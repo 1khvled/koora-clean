@@ -50,7 +50,8 @@ export default {
           const gameTime = getAttr('data-game-time');
           const scoreHome = getAttr('data-score-home');
           const scoreAway = getAttr('data-score-away');
-          const after = html.substring(m.index, m.index + 4000);
+          if (league.includes('المصري') || league.includes('Egypt')) continue;
+      const after = html.substring(m.index, m.index + 4000);
           const logos = [...after.matchAll(/<img[^>]*src="([^"]*)"/g)];
           const timeMatch = after.match(/<div id="STING-web-Match-Time">([^<]*)<\/div>/);
           const resultMatch = after.match(/<div id="STING-web-Result">([^<]*)<\/div>/);

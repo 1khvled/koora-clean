@@ -40,6 +40,8 @@ export default async function handler(req, res) {
       const gameTime = getAttr('data-game-time');
       const scoreHome = getAttr('data-score-home');
       const scoreAway = getAttr('data-score-away');
+      // Skip Egyptian league
+      if (league.includes('المصري') || league.includes('Egypt')) continue;
       const after = html.substring(m.index, m.index + 4000);
       const logos = [...after.matchAll(/<img[^>]*src="([^"]*)"/g)];
       const timeMatch = after.match(/<div id="STING-web-Match-Time">([^<]*)<\/div>/);
