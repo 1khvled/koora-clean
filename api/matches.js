@@ -8,7 +8,6 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Cache-Control', 'public, max-age=30');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
@@ -21,37 +20,49 @@ export default async function handler(req, res) {
     });
     const html = await upstream.text();
     const matches = [];
-    const matchRegex = /<div class="STING-web-Match"[^>]*id="([^"]*)"[^>]*>[\s\S]*?<a href="([^"]*)"[^>]*data-fixture-id="([^"]*)"[^>]*data-home="([^"]*)"[^>]*data-away="([^"]*)"[^>]*data-league="([^"]*)"[^>]*data-start="([^"]*)"[^>]*data-status-code="([^"]*)"[^>]*data-official-status="([^"]*)"[^>]*data-game-time="([^"]*)"[^>]*data-status-group="([^"]*)"[^>]*data-score-home="([^"]*)"[^>]*data-score-away="([^"]*)"[\s\S]*?<img[^>]*src="([^"]*)"[\s\S]*?<div class="STING-web-Team-NAME">([^<]*)<\/div>[\s\S]*?<div id="STING-web-Match-Time">([^<]*)<\/div>[\s\S]*?<div id="STING-web-Result">([^<]*)<\/div>[\s\S]*?<div class="STING-web-Match-Info">([^<]*)<\/div>[\s\S]*?<img[^>]*src="([^"]*)"/gi;
+    const anchorRegex = /<a href="([^"]*)"[^>]*>/g;
     let m;
-    while ((m = matchRegex.exec(html)) !== null) {
+    while ((m = anchorRegex.exec(html)) !== null) {
+      const tag = m[0];
+      if (!tag.includes('data-home')) continue;
+      const getAttr = (name) => {
+        const mm = tag.match(new RegExp(name + '="([^"]*)"'));
+        return mm ? mm[1] : '';
+      };
+      const href = m[1];
+      const id = getAttr('data-fixture-id');
+      const home = getAttr('data-home');
+      const away = getAttr('data-away');
+      const league = getAttr('data-league');
+      const start = getAttr('data-start');
+      const status = getAttr('data-status-code');
+      const official = getAttr('data-official-status');
+      const gameTime = getAttr('data-game-time');
+      const scoreHome = getAttr('data-score-home');
+      const scoreAway = getAttr('data-score-away');
+      const after = html.substring(m.index, m.index + 4000);
+      const logos = [...after.matchAll(/<img[^>]*src="([^"]*)"/g)];
+      const timeMatch = after.match(/<div id="STING-web-Match-Time">([^<]*)<\/div>/);
+      const resultMatch = after.match(/<div id="STING-web-Result">([^<]*)<\/div>/);
+      const leagueMatch = after.match(/<div class="STING-web-Match-Info">([^<]*)<\/div>/);
       matches.push({
-        id: m[3] || m[1],
-        href: m[2],
-        home: m[4],
-        away: m[5],
-        league: m[6],
-        start: m[7],
-        status: m[8],
-        official_status: m[9],
-        game_time: m[10],
-        status_group: m[11],
-        score_home: m[12],
-        score_away: m[13],
-        home_logo: m[14],
-        time_text: (m[15] || '').trim(),
-        result_text: (m[16] || '').trim(),
-        league_text: (m[17] || m[6]).trim(),
-        away_logo: m[18]
+        id: id || `match-${matches.length}`,
+        href,
+        home,
+        away,
+        league,
+        start,
+        status,
+        official_status: official,
+        game_time: gameTime,
+        score_home: scoreHome,
+        score_away: scoreAway,
+        home_logo: logos[0] ? logos[0][1] : '',
+        away_logo: logos[1] ? logos[1][1] : '',
+        time_text: timeMatch ? timeMatch[1].trim() : '',
+        result_text: resultMatch ? resultMatch[1].trim() : '',
+        league_text: leagueMatch ? leagueMatch[1].trim() : league,
       });
-    }
-    // Fallback simple
-    if (matches.length === 0) {
-      const simple = /<div class="STING-web-Match"[^>]*>[\s\S]*?<a href="([^"]*)"/gi;
-      let idx = 0;
-      while ((m = simple.exec(html)) !== null && idx < 20) {
-        matches.push({ id: `unknown-${idx}`, href: m[1], home: `Team ${idx*2+1}`, away: `Team ${idx*2+2}`, league: 'Unknown', status: 'SOON', home_logo: '', away_logo: '', time_text: '', result_text: '', league_text: 'Unknown' });
-        idx++;
-      }
     }
     return res.status(200).json(matches);
   } catch (e) {

@@ -1,108 +1,85 @@
 /**
  * worker.js — Koora Live LIVE scraper + proxy
- * Endpoints:
- *   /api/matches              → live scrape homepage (today)
- *   /api/matches?day=today    → today
- *   /api/matches?day=yesterday→ yesterday
- *   /api/matches?day=tomorrow → tomorrow
- *   /?url=https://kooralive-plus.info/... → proxy + clean HTML (for player)
  */
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
-
-    // CORS headers
     const cors = {
       'access-control-allow-origin': '*',
       'access-control-allow-methods': 'GET, OPTIONS',
       'access-control-allow-headers': '*',
     };
+    if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
 
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: cors });
-    }
-
-    // === LIVE SCRAPE API ===
     if (path === '/api/matches' || path === '/api/matches.json') {
       const day = url.searchParams.get('day') || 'today';
       let target = 'https://kooralive-plus.info/';
       if (day === 'yesterday') target = 'https://kooralive-plus.info/yesterday-matches/';
       else if (day === 'tomorrow') target = 'https://kooralive-plus.info/tomorrow-matches/';
       else if (day === 'today') target = 'https://kooralive-plus.info/today-matches/';
-
       try {
         const upstream = await fetch(target, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'text/html,application/xhtml+xml',
-            'Accept-Language': 'ar,en;q=0.9',
             'Referer': 'https://kooralive-plus.info/',
           },
-          cf: { cacheTtl: 60, cacheEverything: false }
+          cf: { cacheTtl: 60 }
         });
         const html = await upstream.text();
-        
-        // Parse matches from HTML - same logic as scrape_koora_home.py
         const matches = [];
-        // Regex to find STING-web-Match divs
-        const matchRegex = /<div class="STING-web-Match"[^>]*id="([^"]*)"[^>]*>[\s\S]*?<a href="([^"]*)"[^>]*data-fixture-id="([^"]*)"[^>]*data-home="([^"]*)"[^>]*data-away="([^"]*)"[^>]*data-league="([^"]*)"[^>]*data-start="([^"]*)"[^>]*data-status-code="([^"]*)"[^>]*data-official-status="([^"]*)"[^>]*data-game-time="([^"]*)"[^>]*data-status-group="([^"]*)"[^>]*data-score-home="([^"]*)"[^>]*data-score-away="([^"]*)"[\s\S]*?<img[^>]*alt="[^"]*"[^>]*src="([^"]*)"[\s\S]*?<div class="STING-web-Team-NAME">([^<]*)<\/div>[\s\S]*?<div id="STING-web-Match-Time">([^<]*)<\/div>[\s\S]*?<div id="STING-web-Result">([^<]*)<\/div>[\s\S]*?<div class="STING-web-Match-Info">([^<]*)<\/div>[\s\S]*?<img[^>]*alt="[^"]*"[^>]*src="([^"]*)"/gi;
-        
+        const anchorRegex = /<a href="([^"]*)"[^>]*>/g;
         let m;
-        while ((m = matchRegex.exec(html)) !== null) {
+        while ((m = anchorRegex.exec(html)) !== null) {
+          const tag = m[0];
+          if (!tag.includes('data-home')) continue;
+          const getAttr = (name) => {
+            const mm = tag.match(new RegExp(name + '="([^"]*)"'));
+            return mm ? mm[1] : '';
+          };
+          const href = m[1];
+          const id = getAttr('data-fixture-id');
+          const home = getAttr('data-home');
+          const away = getAttr('data-away');
+          const league = getAttr('data-league');
+          const start = getAttr('data-start');
+          const status = getAttr('data-status-code');
+          const official = getAttr('data-official-status');
+          const gameTime = getAttr('data-game-time');
+          const scoreHome = getAttr('data-score-home');
+          const scoreAway = getAttr('data-score-away');
+          const after = html.substring(m.index, m.index + 4000);
+          const logos = [...after.matchAll(/<img[^>]*src="([^"]*)"/g)];
+          const timeMatch = after.match(/<div id="STING-web-Match-Time">([^<]*)<\/div>/);
+          const resultMatch = after.match(/<div id="STING-web-Result">([^<]*)<\/div>/);
+          const leagueMatch = after.match(/<div class="STING-web-Match-Info">([^<]*)<\/div>/);
           matches.push({
-            id: m[3] || m[1],
-            href: m[2],
-            home: m[4],
-            away: m[5],
-            league: m[6],
-            start: m[7],
-            status: m[8],
-            official_status: m[9],
-            game_time: m[10],
-            status_group: m[11],
-            score_home: m[12],
-            score_away: m[13],
-            home_logo: m[14],
-            time_text: (m[15] || '').trim(),
-            result_text: (m[16] || '').trim(),
-            league_text: (m[17] || m[6]).trim(),
-            away_logo: m[18]
+            id: id || `match-${matches.length}`,
+            href,
+            home,
+            away,
+            league,
+            start,
+            status,
+            official_status: official,
+            game_time: gameTime,
+            score_home: scoreHome,
+            score_away: scoreAway,
+            home_logo: logos[0] ? logos[0][1] : '',
+            away_logo: logos[1] ? logos[1][1] : '',
+            time_text: timeMatch ? timeMatch[1].trim() : '',
+            result_text: resultMatch ? resultMatch[1].trim() : '',
+            league_text: leagueMatch ? leagueMatch[1].trim() : league,
           });
         }
-
-        // Fallback: simpler parse if regex fails (for different HTML structure)
-        if (matches.length === 0) {
-          const simpleRegex = /<div class="STING-web-Match"[^>]*>[\s\S]*?<a href="([^"]*)"/gi;
-          let idx = 0;
-          while ((m = simpleRegex.exec(html)) !== null && idx < 20) {
-            matches.push({
-              id: `unknown-${idx}`,
-              href: m[1],
-              home: `Team ${idx*2+1}`,
-              away: `Team ${idx*2+2}`,
-              league: 'Unknown',
-              status: 'SOON',
-              home_logo: '',
-              away_logo: '',
-              time_text: '',
-              result_text: '',
-              league_text: 'Unknown'
-            });
-            idx++;
-          }
-        }
-
-        return new Response(JSON.stringify(matches), {
-          headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=30', ...cors }
-        });
+        return new Response(JSON.stringify(matches), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=30', ...cors } });
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'content-type': 'application/json', ...cors } });
       }
     }
 
-    // === PROXY + CLEAN HTML (for player) ===
     if (url.searchParams.has('url')) {
       const target = url.searchParams.get('url');
       let t;
@@ -110,14 +87,7 @@ export default {
       const allowed = ['kooralive-plus.info','romabar.info','yasirtv.com','912acsss','sir-tv.tv','yalllashoot'];
       if (!allowed.some(h => t.hostname.includes(h))) return new Response('Host not allowed', { status: 403, headers: cors });
       try {
-        const upstream = await fetch(t.toString(), {
-          headers: {
-            'User-Agent': request.headers.get('User-Agent') || 'Mozilla/5.0',
-            'Referer': 'https://kooralive-plus.info/',
-            'Accept': 'text/html,application/xhtml+xml',
-          },
-          cf: { cacheTtl: 0 }
-        });
+        const upstream = await fetch(t.toString(), { headers: { 'User-Agent': request.headers.get('User-Agent') || 'Mozilla/5.0', 'Referer': 'https://kooralive-plus.info/', 'Accept': 'text/html,application/xhtml+xml' }, cf: { cacheTtl: 0 } });
         const ct = upstream.headers.get('content-type') || '';
         if (!ct.includes('text/html')) {
           const body = await upstream.arrayBuffer();
@@ -136,7 +106,6 @@ export default {
         return new Response('Proxy error: ' + e.message, { status: 500, headers: cors });
       }
     }
-
     return new Response('Koora Clean Worker — use /api/matches?day=today or ?url=https://...', { headers: { 'content-type': 'text/plain', ...cors } });
   }
 }
