@@ -93,9 +93,11 @@ const id = qs.get('id') || '';
 const href = qs.get('href') ? decodeURIComponent(qs.get('href')) : '';
 const home = qs.get('home') ? decodeURIComponent(qs.get('home')) : '';
 const away = qs.get('away') ? decodeURIComponent(qs.get('away')) : '';
+
 if(home) document.getElementById('homeName').textContent = home;
 if(away) document.getElementById('awayName').textContent = away;
-// Load match info
+
+// Load match info from embedded data
 let matchData = null;
 if(window.__MATCHES__){
   matchData = window.__MATCHES__.find(x=>x.id===id);
@@ -104,53 +106,47 @@ if(window.__MATCHES__){
     document.getElementById('awayName').textContent = matchData.away;
     document.getElementById('homeLogo').src = matchData.home_logo;
     document.getElementById('awayLogo').src = matchData.away_logo;
-    document.title = `${matchData.home} vs ${matchData.away} — Koora Live Clean`;
+    document.title = `${matchData.home} vs ${matchData.away} — Koora Live`;
   }
-} else {
-  Promise.resolve(window.__MATCHES__ || []).then(arr=>{ if(!arr.length) return fetch('./matches.json').then(r=>r.json()).then(a=>{arr=a; 
-    const m = arr.find(x=>x.id===id);
-    if(m){
-      document.getElementById('homeName').textContent = m.home;
-      document.getElementById('awayName').textContent = m.away;
-      document.getElementById('homeLogo').src = m.home_logo; document.getElementById('homeLogo').style.opacity=1;
-      document.getElementById('awayLogo').src = m.away_logo;
-      document.title = `${m.home} vs ${m.away} — Koora Live Clean`;
-    }
-  }).catch(()=>{});
 }
+
 const TELE_RE = /(t\.me|telegram\.me|telegram\.org|tg:\/\/|joinchat)/i;
 const AD_RE = /(popads|popcash|adcash|propeller|onclkds|highperformancegate|highcpmgate|cl\.mayhapmonisms|additionalheritagenose|yh\.ferritegathers|exo\.click)/i;
 const BLOCK_RE = new RegExp(TELE_RE.source+'|'+AD_RE.source,'i');
+
 const iframe = document.getElementById('player');
 const shield = document.getElementById('shield');
 const clickShield = document.getElementById('clickShield');
 const logEl = document.getElementById('log');
 const countEl = document.getElementById('blockCount');
+const ratio = document.getElementById('ratio');
 let blocked=0, lastCleanSrc='';
+
 function log(m){ logEl.textContent += `\n[${new Date().toLocaleTimeString()}] ${m}`; logEl.scrollTop=logEl.scrollHeight; }
 function toast(m,err){ const t=document.getElementById('toast'); t.textContent=m; t.className= err?'clean-toast err show':'clean-toast show'; clearTimeout(t._id); t._id=setTimeout(()=>t.className='clean-toast',2500); }
 function bump(reason, url){
   blocked++; countEl.textContent='Blocked: '+blocked;
   shield.classList.add('hit'); setTimeout(()=>shield.classList.remove('hit'),500);
-  log('BLOCKED '+reason+': '+(url||'').slice(0,100));
-  toast('Blocked: '+reason+'', true);
+  log('BLOCKED '+reason+': '+(url||'').slice(0,80));
+  toast('Blocked: '+reason, true);
 }
+
 if(location.protocol==='file:'){
   document.getElementById('warn').style.display='block';
-  document.getElementById('warn').innerHTML='⚠️ Open via <code>http server</code> — <code>python -m http.server 8000</code> then <code>http://localhost:8000/player.html...';
+  document.getElementById('warn').innerHTML='⚠️ Open via <code>http server</code> — <code>python -m http.server 8000</code>';
 }
+
 const workerBase = (localStorage.getItem('koora_worker')||'').trim();
 let targetUrl = href || 'https://kooralive-plus.info/';
 if(!targetUrl.startsWith('http')) targetUrl='https://kooralive-plus.info'+targetUrl;
-let finalSrc;
+
 let isLiveMatch = false;
-try{ 
-  const data = window.__MATCHES__ ? window.__MATCHES__.find(x=>x.id===id) : null;
-  isLiveMatch = data && data.status === 'LIVE';
-} catch(e){}
+try{ const data = window.__MATCHES__ ? window.__MATCHES__.find(x=>x.id===id) : null; isLiveMatch = data && data.status === 'LIVE'; }catch(e){}
+
+let finalSrc;
 if(workerBase && workerBase.startsWith('https://')){
   finalSrc = workerBase.replace(/\/$/,'') + '/?url=' + encodeURIComponent(targetUrl);
-  document.getElementById('modeLabel').textContent='Proxy • banner removed 100%';
+  document.getElementById('modeLabel').textContent='Proxy • clean 100%';
   log('Proxy: '+workerBase);
 } else {
   finalSrc = targetUrl;
@@ -158,23 +154,53 @@ if(workerBase && workerBase.startsWith('https://')){
 }
 iframe.src = finalSrc;
 lastCleanSrc = finalSrc;
-log('Loading player...' + (isLiveMatch ? ' (LIVE)' : ''));
-iframe.onerror = () => { log('Player load error, trying fallback to beIN-9'); iframe.src = 'https://www.romabar.info/albaplayer/bein-9/?serv=0'; };
-setTimeout(()=>{
-  log('If player shows blank or "no stream", click Reload or try Demo (?demo=1) for beIN-9');
-  // Auto-fallback for FT matches which have no live player: show message
-  if(!isLiveMatch){
-    log('Note: This match is finished (FT), no live stream — showing beIN-9 as demo');
-  }
-}, 3000);
-setTimeout(()=>{ try{ if(!iframe.src || iframe.src.includes('kooralive')){ log('If player blank, try Demo: ?demo=1 for beIN-9'); } }catch(e){} }, 4000);
-iframe.onerror = () => { log('Player load error, trying fallback'); };
-setTimeout(()=>{
+log('Loading player...' + (isLiveMatch ? ' (LIVE)' : ' (FT - demo available)'));
+
+let armed=true;
+function disarm(){ if(!armed) return; armed=false; clickShield.classList.add('hidden'); log('Shield off — enjoy'); toast('Ready'); }
+clickShield.addEventListener('click', disarm);
+document.getElementById('playBtn').addEventListener('click', disarm);
+
+// --- BUTTONS: ensure they work ---
+document.getElementById('btnReload').onclick = ()=>{
   try{
-    // Check if iframe is blank (no player) - we can't access cross-origin, so we just log
-    log('If player is blank, try Reload or switch to beIN-9 demo: ?demo=1');
-  }catch(e){}
-}, 3000);
+    const u=new URL(lastCleanSrc);
+    u.searchParams.set('_', Date.now());
+    iframe.src=u.toString(); lastCleanSrc=u.toString();
+    armed=true; clickShield.classList.remove('hidden');
+    log('Reload'); toast('Reloading...');
+  }catch(e){ 
+    // Fallback for URLs that are not valid URLs (should not happen)
+    iframe.src = lastCleanSrc + (lastCleanSrc.includes('?')?'&':'?') + '_=' + Date.now();
+    log('Reload (fallback)'); 
+  }
+};
+
+document.getElementById('btnFullscreen').onclick = async ()=>{
+  try{
+    if(ratio.requestFullscreen) await ratio.requestFullscreen();
+    else if(iframe.requestFullscreen) await iframe.requestFullscreen();
+    else toast('Fullscreen not supported', true);
+  }catch(e){ toast('Click Play first', true); }
+};
+
+document.getElementById('btnKill').onclick = ()=>{
+  bump('Hide','overlay');
+  try{ iframe.contentWindow.postMessage({type:'KILL_TELEGRAM'}, '*'); }catch(e){}
+  if(workerBase){
+    try{
+      const u=new URL(lastCleanSrc);
+      u.searchParams.set('kill','1'); u.searchParams.set('_',Date.now());
+      iframe.src=u.toString(); lastCleanSrc=u.toString();
+    }catch(e){}
+  } else {
+    // Direct mode: try to hide via CSS injection attempt (will fail cross-origin, but we hide our own shield)
+    clickShield.classList.add('hidden'); armed=false;
+  }
+  log('Kill signal sent'); toast('Banner hidden');
+};
+
+// Block popups
 const origOpen = window.open.bind(window);
 window.open = function(u, ...rest){
   const s=String(u||'');
@@ -186,53 +212,31 @@ document.addEventListener('click', e=>{
   const hrefA=a?.href||'';
   if(hrefA && BLOCK_RE.test(hrefA) && !hrefA.includes('player.html') && !hrefA.includes(location.host)){
     e.preventDefault(); e.stopPropagation();
-    bump('Telegram link', hrefA.slice(0,100));
+    bump('Telegram link', hrefA.slice(0,60));
     return false;
   }
 }, true);
+
 setInterval(()=>{
   try{
     const src=iframe.src||'';
     if(src!==lastCleanSrc && BLOCK_RE.test(src)){
-      bump('iframe hijack', src.slice(0,100));
+      bump('hijack', src.slice(0,60));
       iframe.src=lastCleanSrc;
     } else if(src && !BLOCK_RE.test(src)) lastCleanSrc=src;
   }catch(e){}
 }, 600);
-let armed=true;
-function disarm(){ if(!armed) return; armed=false; clickShield.classList.add('hidden'); log('Shield off — enjoy Clean ❤️'); toast('Ready'); }
-clickShield.addEventListener('click', disarm);
-document.getElementById('playBtn').addEventListener('click', disarm);
-document.getElementById('btnReload').onclick=()=>{
-  const u=new URL(lastCleanSrc);
-  u.searchParams.set('_', Date.now());
-  iframe.src=u.toString(); lastCleanSrc=u.toString();
-  armed=true; clickShield.classList.remove('hidden');
-  log('Reload'); toast('Reloading...');
-};
-document.getElementById('btnFullscreen').onclick=async()=>{
-  try{ await document.getElementById('ratio').requestFullscreen(); }catch(e){ toast('Click Play first', true); }
-};
-document.getElementById('btnKill').onclick=()=>{
-  bump('Hide','overlay');
-  try{ iframe.contentWindow.postMessage({type:'KILL_TELEGRAM'}, '*'); }catch(e){}
-  if(workerBase){
-    const u=new URL(lastCleanSrc);
-    u.searchParams.set('kill','1'); u.searchParams.set('_',Date.now());
-    iframe.src=u.toString(); lastCleanSrc=u.toString();
-  } else {
-    clickShield.classList.add('hidden'); armed=false;
-  }
-  log('Kill signal for Clean'); toast('Hidden');
-};
+
+// Demo fallback
 if(qs.get('demo')==='1' && !href){
   document.getElementById('homeName').textContent='beIN 9';
   document.getElementById('awayName').textContent='Demo';
-  document.getElementById('homeLogo').src='https://via.placeholder.com/90/ff0f6b/fff?text=9';
-  document.getElementById('awayLogo').src='https://via.placeholder.com/90/273340/fff?text=❤️';
-  iframe.src = (workerBase? workerBase.replace(/\/$/,'')+'/?url='+encodeURIComponent('https://www.romabar.info/albaplayer/bein-9/?serv=0') : 'https://www.romabar.info/albaplayer/bein-9/?serv=0');
-  lastCleanSrc=iframe.src;
-  log('Demo bein-9 for Clean');
+  document.getElementById('homeLogo').src='https://via.placeholder.com/90/750044/fff?text=9';
+  document.getElementById('awayLogo').src='https://via.placeholder.com/90/273340/fff?text=LIVE';
+  const demoSrc = workerBase ? workerBase.replace(/\/$/,'')+'/?url='+encodeURIComponent('https://www.romabar.info/albaplayer/bein-9/?serv=0') : 'https://www.romabar.info/albaplayer/bein-9/?serv=0';
+  iframe.src = demoSrc;
+  lastCleanSrc=demoSrc;
+  log('Demo beIN-9');
 }
 </script>
 </body>
