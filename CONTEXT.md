@@ -82,7 +82,7 @@ Local path: `C:\Users\Abdelli\Desktop\Projects\koora-clean`.
 - `378fb12` — mobile tune v1 (640px, 44px targets, 16px search, player).
 - `27b1ba9` — mobile fixes v2–v4 + mirror sync (this session, see §5).
 - `7513cda` — live-player hd7livex resolver (this session, see §10).
-- `<OWN-HASH>` — OWN UI v1: both pages rewritten from scratch, pitch-night
+- `fc98577` — OWN UI v1: both pages rewritten from scratch, pitch-night
   identity, zero STING CSS (this session, see §11).
 
 ## 5. Mobile-fix saga (2026-09-04, user: "still not mobile optimized")
