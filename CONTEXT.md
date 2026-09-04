@@ -84,7 +84,7 @@ Local path: `C:\Users\Abdelli\Desktop\Projects\koora-clean`.
 - `7513cda` — live-player hd7livex resolver (this session, see §10).
 - `fc98577` — OWN UI v1: both pages rewritten from scratch, pitch-night
   identity, zero STING CSS (this session, see §11).
-- `3dd0508` — improvement batch #2/#4/#8/#9 (this session, see §12).
+- `aea1779` — improvement batch #2/#4/#8/#9 (this session, see §12).
 
 ## 5. Mobile-fix saga (2026-09-04, user: "still not mobile optimized")
 
