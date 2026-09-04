@@ -42,46 +42,54 @@ export default async function handler(req, res) {
     let playerHtml = null;
     let playerSrc = null;
     
-    // Look for iframe with yasirtv, romabar, or similar
-    const iframeMatch = html.match(/<iframe[^>]*src="([^"]*(?:yasirtv|romabar|alba|player)[^"]*)"[^>]*>/i);
+    // Look for iframe with yasirtv, romabar, or similar (single or double quotes)
+    const iframeMatch = html.match(/<iframe[^>]*src=(["'])([^"']*(?:yasirtv|romabar|alba|player)[^"']*)\1[^>]*>/i);
     if (iframeMatch) {
-      playerSrc = iframeMatch[1];
+      playerSrc = iframeMatch[2];
       playerHtml = iframeMatch[0];
     }
-    
-    // If not found, try to find the API data: the page has a commented fetch to /wp-json/sting/v1/iframes
-    // We can try to fetch that API directly with the match ID
+
+    // If not found, try the sting iframes API. The loader is commented out in
+    // the page HTML, so this API is the ONLY source of the real player code.
+    // Match IDs are shared across the whole STING-clone ecosystem, so try
+    // every known sister domain — if any one of them unlocks its API we get
+    // players for all matches.
     if (!playerSrc) {
-      try {
-        const apiRes = await fetch('https://kooralive-plus.info/wp-json/sting/v1/iframes', {
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Referer': target,
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-          }
-        });
-        if (apiRes.ok) {
+      const apiBases = [
+        'https://kooralive-plus.info',
+        'https://kooralive24.com',
+        'https://www.romabar.info',
+      ];
+      for (const base of apiBases) {
+        try {
+          const apiRes = await fetch(base + '/wp-json/sting/v1/iframes', {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
+              'Accept': 'application/json',
+              'Referer': base + '/',
+              'Origin': base,
+              'X-Requested-With': 'XMLHttpRequest',
+              'Sec-Fetch-Site': 'same-origin',
+              'Sec-Fetch-Mode': 'cors',
+              'Sec-Fetch-Dest': 'empty',
+            }
+          });
+          if (!apiRes.ok) continue;
           const apiData = await apiRes.json();
-          const match = apiData.find(m => m.match_id === id || m.id === id);
+          if (!Array.isArray(apiData)) continue; // {"error":"Unauthorized origin"} when locked
+          const match = apiData.find(m =>
+            String(m.match_id) === String(id) || String(m.id) === String(id));
           if (match && match.code) {
-            // Extract src from code
-            const srcMatch = match.code.match(/src="([^"]+)"/);
+            // Extract src from code (single or double quotes)
+            const srcMatch = match.code.match(/src=(["'])([^"']+)\1/);
             if (srcMatch) {
-              playerSrc = srcMatch[1];
+              playerSrc = srcMatch[2];
               playerHtml = match.code;
+              break;
             }
           }
-        }
-      } catch {}
-    }
-    
-    // Ultimate fallback: try yasirtv pattern directly
-    if (!playerSrc && id) {
-      // Try common yasirtv pattern
-      playerSrc = `https://912acsss8af382.yasirtv.com/playerv5.php?match=${id}`;
-      // We don't have the key, but we can try without it or with a generic
-      // For now, return a message to use the match page directly
+        } catch {}
+      }
     }
     
     if (playerSrc) {
