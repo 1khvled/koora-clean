@@ -142,9 +142,14 @@ away teams.
 
 ## 8. Pending — what we are waiting for
 
-1. **Deployed site URL (blocking OUR player e2e, ask user).** Not in repo —
-   need it to test `/api/player?id=4788139`, 390px render,
-   controls/fullscreen/reload/popup-kill on the live build.
+1. **Deployed site URL — GOT IT: `https://kooraadz.vercel.app/`.** Live e2e
+   2026-09-04 ~19:00 UTC: `/api/player?id=4788139&home=أبها&away=الاتفاق`
+   → 200 `{found:true, via:'hd7livex',
+   playerSrc:'https://s15.yallaxsport.com/ch/ch9.php'}`; headless 390px
+   render of OUR player page shows the leaf iframe loaded, `📡 سيرفرات
+   بديلة` visible, `docScrollW=390`, click-shield overlay up, console clean
+   except benign upstream font-CORS + permissions-policy noise (ad-blocker
+   correctly eating `adsco.re`). Proof: `shots/live_player.png` (untracked).
 2. **Real-browser play confirmation (needs user).** User opens OUR Abha player
    link in a real browser and confirms video plays (headless can't — Adscore
    gate). If it plays, the deferred live-player work is DONE.
