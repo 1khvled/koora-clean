@@ -1,356 +1,230 @@
-﻿<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!doctype html>
+<html dir="rtl" lang="ar">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>مشاهدة المباراة — مشغل نظيف بدون إعلانات</title>
-<style>/*================================== ~> Name Template : Yalla Shoot Pro Premium ~> Version	: V 5.0 BETA ~> Last Updated : 20 - 05 - 2025   : ->  02:00 AM  +2 GMT ~> Developer By : STING WEB - Facebook Page : ->  https://www.facebook.com/stingweb.eg ~> Desgin URL : sting-web.com =========== [ STING WEB ] ==========*/ /* ~> VIRTUAL */ @font-face { font-family: "NeoSansArabic"; font-style: normal; font-weight: 400; font-display: swap; src: local("NeoSansArabic"), url("https://kooralive-plus.info/wp-content/themes/Yalla-Shoot-Pro/assets/font/NeoSansArabic.woff2") format("woff2"); } * { margin: 0; text-decoration: none; list-style: none; list-style-type: none; font-family: "NeoSansArabic", Changa, Segoe UI, sans-serif;padding: 0; font-weight: 500; } a { color:#000000; } body { background: #e1e1e1; color: #000; font-size: 16px; line-height: 25px; }.STING-web-Max-Size { max-width: 1000px; width:93%; margin: 0 auto; padding: 0 12px; } /* ~> SVG ICON */ .STING-web-Icon-x { background: no-repeat center url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' fill='%23000' viewBox='0 0 50 50'%3E%3Cpath d='M 5.9199219 6 L 20.582031 27.375 L 6.2304688 44 L 9.4101562 44 L 21.986328 29.421875 L 31.986328 44 L 44 44 L 28.681641 21.669922 L 42.199219 6 L 39.029297 6 L 27.275391 19.617188 L 17.933594 6 L 5.9199219 6 z M 9.7167969 8 L 16.880859 8 L 40.203125 42 L 33.039062 42 L 9.7167969 8 z'%3E%3C/path%3E%3C/svg%3E"); } .STING-web-Icon-facebook { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%231877f2' viewBox='0 0 64 64'%3E%3Cpath d='M20.1,36h3.4c0.3,0,0.6,0.3,0.6,0.6V58c0,1.1,0.9,2,2,2h7.8c1.1,0,2-0.9,2-2V36.6c0-0.3,0.3-0.6,0.6-0.6h5.6 c1,0,1.9-0.7,2-1.7l1.3-7.8c0.2-1.2-0.8-2.4-2-2.4h-6.6c-0.5,0-0.9-0.4-0.9-0.9v-5c0-1.3,0.7-2,2-2h5.9c1.1,0,2-0.9,2-2V6.2 c0-1.1-0.9-2-2-2h-7.1c-13,0-12.7,10.5-12.7,12v7.3c0,0.3-0.3,0.6-0.6,0.6h-3.4c-1.1,0-2,0.9-2,2v7.8C18.1,35.1,19,36,20.1,36z'%3E%3C/path%3E%3C/svg%3E") center no-repeat; } .STING-web-Icon-youtube { background: url("data:image/svg+xml;charset=utf8,%3Csvg aria-hidden='true' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512' %3E%3Cpath fill='%23cd201f' d='M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z' cclass=''%3E%3C/path%3E%3C/svg%3E") center no-repeat; } .STING-web-Icon-telegram { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23389ce9' viewBox='0 0 64 64'%3E%3Cpath d='M56.4,8.2l-51.2,20c-1.7,0.6-1.6,3,0.1,3.5l9.7,2.9c2.1,0.6,3.8,2.2,4.4,4.3l3.8,12.1c0.5,1.6,2.5,2.1,3.7,0.9 l5.2-5.3c0.9-0.9,2.2-1,3.2-0.3l11.5,8.4c1.6,1.2,3.9,0.3,4.3-1.7l8.7-41.8C60.4,9.1,58.4,7.4,56.4,8.2z M50,17.4L29.4,35.6 c-1.1,1-1.9,2.4-2,3.9c-0.2,1.5-2.3,1.7-2.8,0.3l-0.9-3c-0.7-2.2,0.2-4.5,2.1-5.7l23.5-14.6C49.9,16.1,50.5,16.9,50,17.4z'%3E%3C/path%3E%3C/svg%3E") center no-repeat; } .STING-web-Open-Menu-SVG { background: no-repeat center url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6H20M4 12H20M4 18H20' stroke='%23273340' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); width: 25px !important; height: 25px !important; } .STING-web-Open-Dark-SVG { background: no-repeat center url("data:image/svg+xml;charset=utf8,%3Csvg aria-hidden='true' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 241.072 241.072' %3E%3Cpath fill='%23273340' d='M202.167,156.857c-44.236,0-80.085-35.842-80.085-80.078c0-29.923,16.43-55.951,40.733-69.707 C150.088,2.498,136.373,0,122.082,0C55.506,0,1.535,53.971,1.535,120.528c0,66.584,53.971,120.544,120.547,120.544 c57.269,0,105.18-39.937,117.454-93.485C228.374,153.484,215.665,156.857,202.167,156.857L202.167,156.857z' class=''%3E%3C/path%3E%3C/svg%3E"); } /* ~> HEADER */ header { position: relative; overflow: hidden; width: 96%; margin: 0 auto; } .STING-web-Header { display: flex; align-items: center; justify-content: space-between; margin: 20px auto; background: #fff; border-radius: 8px; padding: 8px 12px; } .STING-web-Header-Right { display: flex; align-items: center; gap: 20px; } .STING-web-Header-Logo { width: initial; padding: 5px 15px; background: #750044; border-radius: 8px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 33px; height: 70px; } .STING-web-Header-Logo > a { display: flex; flex-direction: column; justify-content: center; color: #fff; } .STING-web-Header-Logo > a > .STING-WEB-SiteName { font-size: 27px; font-weight: 500; } .STING-web-Header-Logo > a > .STING-WEB-SiteUrl { font-size: 16px; } .STING-web-Menu { display: flex; } .STING-web-Menu > li { float: right; position: relative; } .STING-web-Menu > li > a { color: #222; padding: 0 8px; height: 80px; display: flex; justify-content: center; align-items: center; border-bottom: 2px solid transparent; font-size: 16px; } .STING-web-Menu > li > a:hover { color: #750044; border-bottom: 2px solid #750044; } .STING-web-Social-Media { display: flex; align-items: center; gap: 8px; } .STING-WEB-Screen-Reader { clip: rect(1px,1px,1px,1px); position: absolute!important; height: 1px; width: 1px; overflow: hidden; } .STING-web-Social-Media.i { display: flex; gap: 5px; margin-top: 10px; } .STING-web-Social-Media.i > li { display: inline-block; } .STING-web-Social-Media.i > li > a > span[class*=Icon] { width: 35px; height: 35px; border-radius: 50px; color: #fff; display: inline-block; background-size: 100% 60%; border: 1px solid rgba(0, 0, 0, 0.1); } .STING-web-Header-Left { display: flex; gap: 8px; margin-top: 3px; } .STING-web-ICO { width: 20px; height: 20px; border-radius: 50px; display: block; } .STING-web-Open-Menu, .STING-web-Open-Dark { height: 35px; width: 35px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0, 0, 0, 0.1); } .STING-web-Close-Menu, .STING-web-Open-Menu { display: none; } .STING-web-Ads:before { content: "مادة إعلانية"; display: block; font-size: 12px; padding-bottom: 2px; border-bottom: 1px solid rgba(0, 0, 0, 0.1); width: max-content; font-weight: 600; margin: 8px 12px; } .STING-WEB-Message-Box > p { color: #2c7635; background-color: #dff0d4; border: #d6e9c4 solid 1px; padding: 4px 15px; border-radius: 8px; margin: 0 auto 10px; font-size: 14px; width: 100%; } @media screen and (max-width: 1000px) { .STING-web-Header { padding: 0px 12px; } .STING-web-Header-Logo { margin: 8px auto; display: table; float: none; width: initial; padding: 2px 10px; } .STING-web-Header-Menu { right: -300px; } .STING-web-Header-Menu { float: none; z-index: 99; height: 100%; width: 245px; position: fixed; top: 0; margin: auto; background: #fff; transition: all .3s ease 0s; padding: 15px; overflow-x: hidden; box-shadow: 0 1px 6px rgba(32,33,36,.4); padding-top: 70px; } .STING-web-Menu { display: grid; margin-top: 8%; } .STING-web-Menu > li { margin-bottom: 15px; } .STING-web-Menu > li > a, .STING-web-Close-Menu { background: #273340; color: #fff; display: flex; justify-content: space-between; padding: 5px 10px; border-radius: 8px; height: max-content; } .STING-web-Header-Center { display: none; position: absolute; top: 0; right: 0; z-index: 99; transition: all .7s ease 0s; width: 250px; justify-content: center; } .STING-web-Open-Menu, .STING-web-Open-Dark { padding: 2px; display: flex !important; }} /* ~> MATCHES */ .STING-web-Container-Matches { margin: 20px auto; box-shadow: 0 0 4px rgba(0,0,0,.0); background: transparent; border-radius: 8px; padding: 0; position: relative; } .STING-web-Container-Matches-Top { padding: 12px; overflow: hidden; border-radius: 8px; background: #ffffff; border-bottom: 1px solid rgba(0, 0, 0, 0.1); } .STING-web-Time { position: absolute; left: 8px; top: -26px; z-index: 9; font-size: 11px; padding: 0 12px 6px 12px; border-radius: 8px 8px 0 0; background: #fff; } .STING-web-Title-Box, .STING-web-Matches-Toggle > li > a { font-size: 15px; background: #750044; color: #fff; padding: 4px 10px; display: block; border-radius: 8px; } .STING-web-Title-Box { float: right; display: flex; align-items: center; } .STING-web-Matches-Toggle > .Today-Matches > a, .STING-web-Title-Box { background: #750044 !important; } .STING-web-Matches-Toggle { float: left; display: flex; align-items: center; gap: 5px; } .STING-web-Matches-Toggle > .Yesterday-Matches > a { background: #104783; } .STING-web-Matches-Toggle > .Tomorrow-Matches > a { background: #af5100; } .STING-web-Matches { display: flex !important; flex-direction: column !important; padding: 12px 0; box-sizing: border-box; } .STING-web-Match { overflow: hidden; text-align: center; background: #ffffff; margin-bottom: 8px; position: relative; border-radius: 8px; } .STING-web-Match a { color: #222; } .STING-web-Match-Info { font-size: 12px; text-align: center; line-height: 1.4; margin-top: 10px; max-width: 130px; align-items: center; justify-self: center; } .STING-web-Left-Team, .STING-web-Match-Center, .STING-web-Right-Team { width: 33.33333333%; float: right; } .STING-web-Team-Logo { float: right; width: 50%; }@keyframes blinker { 50% { opacity: 0; } } .STING-web-Team-Logo img { margin: 15px auto !important; display: flex !important; border-radius: 4px; object-fit: contain; width: 50px; height: 50px; } .STING-web-Team-NAME { margin: 0 auto; display: table; font-size: 15px; } .STING-web-Match-Timing { margin: 12px auto; }#STING-web-Match-Time { margin-bottom: 5px; }#STING-web-Result { font-size: 21px; letter-spacing: 5px; margin-right: -5px; } .STING-web-Match-Timing .STING-web-Data, .STING-web-Match-Timing .live:before { color: #fff; background: #273340; border-radius: 8px; font-size: 14px; padding: 0 10px; line-height: 1.9; display: table; margin: auto; margin-top: 6px; position: relative; } /* .STING-web-Match-Info:before { content: "🏆"; margin-left: 7px; } */ .STING-web-Overlay { position: absolute; height: 100%; width: 100%; opacity: 0; cursor: pointer; background: rgb(0 0 0 / 60%); z-index: 9; } .STING-web-Overlay, .STING-web-SVG-Play { bottom: 0; right: 0; left: 0; top: 0; } .STING-web-SVG-Play { position: absolute; height: 45px; margin: auto; width: 45px; background: no-repeat center url("data:image/svg+xml;charset=utf8,%3Csvg aria-hidden='true' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' %3E%3Cpath fill='%23fff' d='M256,0C114.617,0,0,114.615,0,256s114.617,256,256,256s256-114.615,256-256S397.383,0,256,0z M344.48,269.57l-128,80 c-2.59,1.617-5.535,2.43-8.48,2.43c-2.668,0-5.34-.664-7.758-2.008C195.156,347.172,192,341.82,192,336V176 c0-5.82,3.156-11.172,8.242-13.992c5.086-2.836,11.305-2.664,16.238,.422l128,80c4.676,2.93,7.52,8.055,7.52,13.57 S349.156,266.641,344.48,269.57z' class=''%3E%3C/path%3E%3C/svg%3E"); } .STING-web-Left-Team { direction: ltr; display: flex; } .STING-web-Match.LIVE #STING-web-Match-Time, .STING-web-Match.NOT #STING-web-Result { display: none !important; } .STING-web-Match:hover .STING-web-Overlay { opacity: 1; } .STING-web-Right-Team,.STING-web-Left-Team { display: grid; align-items: center; justify-items: center; } .STING-web-Match.SOON { order: 1; } .STING-web-Match.LIVE { order: 2; } .STING-web-Match.NOT { order: 3; } .STING-web-Match.END { order: 4; } .STING-web-Match-Timing .LIVE::before { content: "جارية الآن"; } .STING-web-Match-Timing .LIVE::before { position: absolute; animation: .5s ease-in-out infinite blinker; background: #d00000; left: 0; right: 0; border-radius: 8px; } .STING-web-Match-Timing .SOON { background: #0f6f37; } .STING-web-Match-Timing .END { background: #222; } .STING-web-Match img { opacity: 0; transition: opacity 400ms ease; } .STING-web-Match img.show { opacity: 1; } .STING-web-Matching-None { min-height: 200px; display: flex; align-items: center; justify-content: center; color: #666; border-radius: 8px; margin: 12px 0; background: #ffffff; } @media screen and (max-width: 500px){ .STING-web-Team-Logo { width: 100%; } .STING-web-Team-Logo img { margin: 7px auto; margin-bottom: 0; width: 45px; height: 45px; } .STING-web-Team-NAME { margin: 7px auto; margin-top: 0; } .STING-web-Match-Timing { margin: 13px auto; } .STING-web-Left-Team { display: table; } .STING-web-Match-Info { margin-top: 5px; }} @media screen and (max-width: 500px) { .STING-web-Title-Box { display: block; width: 100%; text-align: center; margin-bottom: 6px; } .STING-web-Title-Box, .STING-web-Matches-Toggle > li > a { padding: 4px 0; } .STING-web-Matches-Toggle { float: right; width: 100%; } .STING-web-Matches-Toggle > li { margin: 0; flex: 1; } .STING-web-Matches-Toggle > li > a { text-align: center; }} /* ~> MAIN */ .STING-web-Main { border-radius: 8px; box-shadow: 0 0 4px rgba(0,0,0,.0); padding: 0; display: grid; margin-bottom: 20px; } .STING-web-Main-Top { background: #fff; border-radius: 8px; } .STING-web-Main .STING-web-WebSite-Title { font-size: 15px; background: #273340; color: #fff; padding: 4px 10px; display: inline-block; border-radius: 6px; margin: 12px; } .STING-web-Main-Bottom-Posts { padding: 12px 12px 0; padding-bottom: 0; overflow: hidden; } .STING-web-Main-All-Post { margin: 0 auto; display: flex; justify-content: space-between; flex-wrap: wrap; } .STING-web-Main-Post { float: right; width: 24%; background: #eceef2; margin: 5px 2px 15px 2px; overflow: hidden; position: relative; border-radius: 8px; } .STING-web-Main-Posted { float: right; width: 24%; background: #fff; margin: 5px 2px 15px 2px; overflow: hidden; position: relative; border-radius: 8px; } .STING-web-Main-Posted a { color: #222; } .STING-web-Main-Posted-IMG img { object-fit: cover; height: 160px; width: 100%; display: grid; opacity: 0; transition: opacity 400ms ease; } .STING-web-Main-Posted-IMG img.show { opacity: 1; } .STING-web-Main-Posted-TiTle { padding: 10px; } .STING-web-Main-Posted-TiTle h3  { margin: 0; line-height: 2; font-size: 15px; height: 60px; overflow: hidden; font-weight: 500; } .STING-web-Not-Posts { text-align: center; display: flex; width: 100%; align-items: center; justify-content: center; padding: 50px 0; color: #222222c2; margin: 20px auto; border-radius: 8px; } .STING-web-Main-Bottom-Posts #loadMore { position: relative; text-align: center; display: flex; cursor: pointer; clear: both; min-width: 170px; border: 1px solid #fff; background: #fff; margin: 5px auto 5px; padding: 8px 15px; font-size: 100%; font-weight: 400; height: 40px; box-sizing: border-box; line-height: 1.4; border-radius: 8px; color: #222; justify-content: center; align-items: center; } .STING-web-Main-Bottom-Posts #loadMore:hover,.STING-web-Main-Posted:hover .STING-web-Main-Posted-TiTle h3 { color: #750044; } .STING-web-Not-More-Post { width: 100%; display: block; text-align: center; color: #ff0000; margin: 15px 0; font-size: 15px; } @media screen and (max-width: 500px) { .STING-web-Main-Posted { width: 100%; margin: 5px 2px 5px 2px; } .STING-web-Main-Posted-IMG { float: right; margin-left: 12px; } .STING-web-Main-Posted-IMG img { height: 80px; width: 125px; } .STING-web-Main-Bottom-Posts { padding: 5px 5px 0; }} /* ~> SITE DESCRIPTION */ .STING-web-Site-Description { text-align: justify; background: #fff; border-radius: 8px; box-shadow: 0 0 4px rgba(0,0,0,.0); padding: 0; display: grid; } .STING-web-Site-Description-Top > h3 { font-size: 15px; background: #273340; color: #fff; padding: 4px 10px; display: inline-block; border-radius: 6px; margin: 12px; } .STING-web-Site-Description-Bottom { padding: 5px 12px 12px 12px; text-align: justify; font-weight: 400; font-size: 16px; line-height: 35px; background: #ffffff; border-top: 1px solid #e1e1e1; max-height: 240px; overflow: hidden; } /* ~> SITE LINKS */ .STING-web-Pages-Site { display: flex; clear: both; padding: 0; flex-wrap: wrap; } .STING-web-Links-List { width: 25%; padding: 20px 12px; box-sizing: border-box; } .STING-web-Links-List-Title { border-bottom: transparent solid 1px; padding: 5px 0; margin-bottom: 7px; font-weight: 700; font-size: 16px; position: relative; } .STING-web-Links-List-Title::before { background: #750044; content: ""; height: 3px; position: absolute; width: 23px; bottom: -1.5px; } .STING-web-Links { line-height: 33px; } .STING-web-Links li { padding: 0; list-style: outside; color: #750044; width: 100%; margin-right: 16px; } .STING-web-Links li a { color: #484848; display: block; font-size: 14px; } .STING-web-Links li a:hover { color: #750044; } .STING-web-Pages > ul { display: flex; gap: 12px; font-size: 13px; padding: 0 7px; } .STING-web-Pages > ul > li a { border-radius: 6px; color: #222; font-size: 13.6px; } @media screen and (max-width: 720px) { .STING-web-Links-List { width: 100%; } .STING-web-Pages-Site  { display: none; } .STING-web-Pages > ul { flex-wrap: wrap; text-align: center; justify-content: center; gap: 18px; }} /* ~> FOOTER */ footer { position: relative; padding: 0; overflow: hidden; box-shadow: 0 0 4px rgba(0,0,0,.0); width: 96%; margin: 20px auto; } .STING-web-Footer { padding: 12px; display: flex; justify-content: space-between; align-items: center; background: #fff; border-radius: 8px; } .STING-web-Site-Copyright { padding: 5px 10px; border-radius: 6px; font-size: 13px; } .STING-web-Site-Copyright > a { color: #222; font-weight: 600; } .STING-web-Copyright a, .STING-web-Site-Copyright { border-radius: 6px; color: #222; font-size: 13.6px; text-align: center; } .STING-web-Footer a:hover { color: #750044; } @media screen and (max-width: 720px) { .STING-web-Footer { display: grid; justify-items: center; justify-content: center; gap: 12px; width: max-content; }} /* ~> NIGHT MODE */ .Night .STING-web-Match,.Night .STING-web-Footer,.Night .STING-web-Header,.Night .STING-web-Header-Menu,.Night .STING-web-Main-Posted,.Night .STING-web-Main-Top,.Night .STING-web-Site-Description,.Night .STING-web-Site-Description-Bottom{background:#191d2d} .Night .STING-web-Match-Timing .STING-web-Data,.Night .STING-web-Main .STING-web-WebSite-Title,.Night .STING-web-Site-Description-Top>h3{background:#0e1019} .Night .STING-web-Main-Bottom-Posts #loadMore{border:1px solid #191d2d;background:#191d2d;color:#fff} .Night .STING-web-Match *,.Night .STING-web-Copyright a,.Night .STING-web-Links li a,.Night .STING-web-Main-Posted-TiTle h3,.Night .STING-web-Menu>li>a,.Night .STING-web-Pages>ul>li a,.Night .STING-web-Site-Copyright,body.Night{color:#ddd} .Night .STING-web-Footer a:hover,.Night .STING-web-Header-Logo>a:hover,.Night .STING-web-Links li,.Night .STING-web-Links li a:hover,.Night .STING-web-Main-Bottom-Posts #loadMore:hover,.Night .STING-web-Main-Posted:hover .STING-web-Main-Posted-TiTle h3,.Night .STING-web-Menu>li>a:hover,.Night .STING-web-Not-More-Post{color:orange} .Night .STING-web-Matching-None{color:#ddd;background:#191d2d}.Night .STING-web-Site-Copyright>a{color:#fff}.Night .STING-web-Links-List-Title::before{background:#ddd} .Night .STING-web-Site-Description-Bottom{border-top:1px solid #0e1019} .Night .STING-web-Container-Matches-Top,.Night .STING-web-Time{background:#191d2d;border-bottom:1px solid #191d2d} .Night .STING-web-Matches-Toggle>li>a,.Night .STING-web-Title-Box{background:#0e1019!important} .Night .STING-web-Header-Logo,.Night .STING-web-Open-Dark,.Night .STING-web-Open-Menu,body.Night{background-color:#0e1019} @media screen and (max-width:1000px){ .Night .STING-web-Close-Menu,.Night .STING-web-Menu>li>a{background:#0e1019}} .Night .STING-web-Menu>li>a:hover{border-bottom:2px solid orange} .Night .STING-web-Ads:before{color:#ddd;border-bottom:1px solid #dddddd21} .Night .STING-web-Icon-youtube{background-color:#cd201f!important;background:url("data:image/svg+xml;charset=utf8,%3Csvg aria-hidden='true' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512' %3E%3Cpath fill='%23fff' d='M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z' cclass=''%3E%3C/path%3E%3C/svg%3E") center no-repeat} .Night .STING-web-Icon-telegram{background-color:#389ce9!important;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 64 64'%3E%3Cpath d='M56.4,8.2l-51.2,20c-1.7,0.6-1.6,3,0.1,3.5l9.7,2.9c2.1,0.6,3.8,2.2,4.4,4.3l3.8,12.1c0.5,1.6,2.5,2.1,3.7,0.9 l5.2-5.3c0.9-0.9,2.2-1,3.2-0.3l11.5,8.4c1.6,1.2,3.9,0.3,4.3-1.7l8.7-41.8C60.4,9.1,58.4,7.4,56.4,8.2z M50,17.4L29.4,35.6 c-1.1,1-1.9,2.4-2,3.9c-0.2,1.5-2.3,1.7-2.8,0.3l-0.9-3c-0.7-2.2,0.2-4.5,2.1-5.7l23.5-14.6C49.9,16.1,50.5,16.9,50,17.4z'%3E%3C/path%3E%3C/svg%3E") center no-repeat} .Night .STING-web-Icon-x{background-color:#000!important;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' fill='%23fff' viewBox='0 0 50 50'%3E%3Cpath d='M 5.9199219 6 L 20.582031 27.375 L 6.2304688 44 L 9.4101562 44 L 21.986328 29.421875 L 31.986328 44 L 44 44 L 28.681641 21.669922 L 42.199219 6 L 39.029297 6 L 27.275391 19.617188 L 17.933594 6 L 5.9199219 6 z M 9.7167969 8 L 16.880859 8 L 40.203125 42 L 33.039062 42 L 9.7167969 8 z'%3E%3C/path%3E%3C/svg%3E") center no-repeat} .Night .STING-web-Icon-facebook{background-color:#1877f2!important;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 64 64'%3E%3Cpath d='M20.1,36h3.4c0.3,0,0.6,0.3,0.6,0.6V58c0,1.1,0.9,2,2,2h7.8c1.1,0,2-0.9,2-2V36.6c0-0.3,0.3-0.6,0.6-0.6h5.6 c1,0,1.9-0.7,2-1.7l1.3-7.8c0.2-1.2-0.8-2.4-2-2.4h-6.6c-0.5,0-0.9-0.4-0.9-0.9v-5c0-1.3,0.7-2,2-2h5.9c1.1,0,2-0.9,2-2V6.2 c0-1.1-0.9-2-2-2h-7.1c-13,0-12.7,10.5-12.7,12v7.3c0,0.3-0.3,0.6-0.6,0.6h-3.4c-1.1,0-2,0.9-2,2v7.8C18.1,35.1,19,36,20.1,36z'%3E%3C/path%3E%3C/svg%3E") center no-repeat} .Night .STING-web-Open-Dark-SVG{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23fff' d='M256 160c-52.9 0-96 43.1-96 96s43.1 96 96 96 96-43.1 96-96-43.1-96-96-96zm246.4 80.5l-94.7-47.3 33.5-100.4c4.5-13.6-8.4-26.5-21.9-21.9l-100.4 33.5-47.4-94.8c-6.4-12.8-24.6-12.8-31 0l-47.3 94.7L92.7 70.8c-13.6-4.5-26.5 8.4-21.9 21.9l33.5 100.4-94.7 47.4c-12.8 6.4-12.8 24.6 0 31l94.7 47.3-33.5 100.5c-4.5 13.6 8.4 26.5 21.9 21.9l100.4-33.5 47.3 94.7c6.4 12.8 24.6 12.8 31 0l47.3-94.7 100.4 33.5c13.6 4.5 26.5-8.4 21.9-21.9l-33.5-100.4 94.7-47.3c13-6.5 13-24.7.2-31.1zm-155.9 106c-49.9 49.9-131.1 49.9-181 0-49.9-49.9-49.9-131.1 0-181 49.9-49.9 131.1-49.9 181 0 49.9 49.9 49.9 131.1 0 181z'%3E%3C/path%3E%3C/svg%3E") center no-repeat} .Night .STING-web-Open-Menu-SVG { background: no-repeat center url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6H20M4 12H20M4 18H20' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071f19">
+<title>مشاهدة المباراة — كورة لايف</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  body{ background:#e1e1e1; }
-  /* removed banner-mini */ .banner-mini-removed{ background: #750044; color:#fff; text-align:center; padding:10px; font-weight:800; font-size:14px; }
-  /* removed banner-mini */ .banner-mini-removed .heart{ animation:beat 1.2s infinite; display:inline-block; margin:0 4px; }
-  @keyframes beat{ 0%,100%{transform:scale(1)}50%{transform:scale(1.2)} }
-  .player-wrap{ max-width:1000px; width:93%; margin:0 auto; }
-  .STING-web-Post{ background:#fff; border-radius:8px; padding:0; display:grid; margin:16px auto; border:1px solid #eee; }
-  .player-card{ background:#111820; border:1px solid #1e2d3d; border-radius:12px; overflow:hidden; margin:12px; }
-  .player-header{ padding:10px 12px; display:flex; align-items:center; justify-content:space-between; background:#0f1720; color:#e6edf3; font-size:13px; gap:8px; flex-wrap:wrap; }
-  .player-header b{ color:#00d084; }
-  .ratio{ position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow:hidden; }
-  .ratio iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; }
-  .click-shield{ position:absolute; inset:0; z-index:6; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.72); backdrop-filter:blur(2px); cursor:pointer; transition:opacity .25s; }
-  .click-shield.hidden{ opacity:0; pointer-events:none; }
-  .click-shield button{ background:#750044; color:#fff; border:0; padding:14px 22px; border-radius:12px; font-weight:800; font-size:15px; cursor:pointer; box-shadow:0 8px 24px rgba(255,15,107,.35); }
-  .shield{ position:absolute; inset:0; pointer-events:none; border:2px solid transparent; transition:border-color .2s; }
-  .shield.hit{ border-color:rgba(255,15,107,.7); }
-  .controls{ display:flex; gap:8px; flex-wrap:wrap; padding:10px 12px; background:#e1e1e1; border-radius:8px; margin:12px; align-items:center; border:1px solid #eee; }
-  .btn{ background:#750044; color:#fff; border:0; padding:9px 14px; border-radius:8px; cursor:pointer; font-weight:700; font-size:13px; }
-  .btn.ghost{ background:#273340; }
-  .btn.danger{ background:#5a1a1a; }
-  .log{ font-family:monospace; font-size:11px; background:#0a0e13; color:#8b949e; border:1px solid #1e2d3d; border-radius:8px; padding:10px; max-height:120px; overflow:auto; margin:12px; white-space:pre-wrap; text-align:left; direction:ltr; }
-  .clean-toast{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(80px); background:#1a0a12; border:1px solid #750044; color:#fff; padding:10px 14px; border-radius:12px; font-size:13px; opacity:0; transition:.3s; z-index:9999; }
-  .clean-toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
-  .clean-toast.err{ background:#2a0a14; }
-  .warn{ background:#e1e1e1; border:1px solid #750044; color:#a0004a; padding:10px 12px; border-radius:8px; font-size:12px; margin:12px; }
-  .STING-web-Header-Logo{ background:#750044 !important; }
-  .STING-WEB-SiteName::after{ content:"كورة لايف"; font-size:16px; font-weight:800; }
-  .STING-WEB-SiteUrl::after{ content:"نظيف"; font-size:10px; }
+/* KOORA-OWN-v1 player: same pitch-night identity as index. */
+:root{
+  --night:#071f19; --pitch:#0b3d2e; --grass:#16a34a;
+  --paper:#0c1a15; --card:#10251e; --ink:#f2f7f4; --muted:#9db5a8;
+  --line:#1e3a30; --live:#e0202e; --gold:#ffb800;
+  --radius:14px;
+  --font:"Cairo",system-ui,"Segoe UI",Tahoma,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
+  font-variant-numeric:tabular-nums;min-height:100vh;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:900px;margin:0 auto;padding:12px 12px calc(20px + env(safe-area-inset-bottom))}
+/* header */
+.head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.back{flex:none;text-decoration:none;color:var(--ink);font-weight:800;font-size:14px;
+  border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:44px;
+  display:inline-flex;align-items:center;background:var(--card)}
+.title{flex:1;min-width:0;text-align:center}
+.title strong{display:block;font-size:16px;font-weight:900;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.title small{color:var(--muted);font-size:12px;font-weight:600}
+/* stage */
+.stage{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;
+  aspect-ratio:16/9;border:1px solid var(--line)}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.shield{position:absolute;inset:0;pointer-events:none;border:2px solid transparent;
+  transition:border-color .2s;z-index:5}
+.shield.hit{border-color:var(--gold)}
+.click-shield{position:absolute;inset:0;z-index:6;display:flex;align-items:center;
+  justify-content:center;background:rgba(4,12,9,.78);cursor:pointer;transition:opacity .25s}
+.click-shield.hidden{opacity:0;pointer-events:none}
+.click-shield button{font-family:var(--font);background:var(--grass);color:#04120c;border:0;
+  padding:14px 26px;border-radius:12px;font-weight:900;font-size:16px;cursor:pointer;
+  min-height:52px;max-width:88vw;box-shadow:0 8px 24px rgba(22,163,74,.4)}
+.click-shield small{display:block;margin-top:10px;color:#cfe6d6;font-size:12px;font-weight:600}
+/* servers */
+.servers{display:flex;gap:8px;margin-top:10px}
+.srv{flex:1;font-family:var(--font);border:1px solid var(--line);background:var(--card);
+  color:var(--ink);font-size:14px;font-weight:800;border-radius:12px;min-height:48px;
+  cursor:pointer}
+.srv.on{background:var(--pitch);border-color:var(--grass)}
+/* controls */
+.controls{display:flex;gap:8px;margin-top:8px}
+.btn{flex:1;font-family:var(--font);border:0;border-radius:12px;min-height:48px;
+  font-size:14px;font-weight:800;cursor:pointer;background:var(--pitch);color:#fff}
+.btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--ink)}
+.status{text-align:center;color:var(--muted);font-size:12px;font-weight:600;margin-top:10px}
+.toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;
+  transform:translateX(-50%) translateY(20px);background:#000;color:#fff;
+  font-size:14px;font-weight:600;border-radius:12px;padding:12px 18px;opacity:0;
+  transition:opacity .25s,transform .25s;pointer-events:none;z-index:50;max-width:90vw;
+  text-align:center;border:1px solid var(--line)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+:focus-visible{outline:2px solid var(--grass);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.click-shield{transition:none}}
 </style>
-<script>window.__MATCHES__ = [{"id": "4804596", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a8%d8%aa%d8%b1%d9%88%d9%84-%d8%a7%d8%b3%d9%8a%d9%88%d8%b7-%d8%b6%d8%af-%d8%a7%d9%84%d8%a8%d9%86%d9%83-%d8%a7%d9%84%d8%a7/", "home": "بترول اسيوط", "away": "البنك الاهلي", "league": "الدوري المصري", "start": "2026-08-31T17:00:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/12254.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/50527.png", "time_text": "انتهت", "result_text": "1-0", "league_text": "الدوري المصري"}, {"id": "4804597", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a7%d9%84%d8%b2%d9%85%d8%a7%d9%84%d9%83-%d8%b6%d8%af-%d9%85%d9%86%d8%aa%d8%ae%d8%a8-%d8%a7%d9%84%d8%b3%d9%88%d9%8a%d8%b3/", "home": "الزمالك", "away": "منتخب السويس بتروجت", "league": "الدوري المصري", "start": "2026-08-31T20:00:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "2", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/8201.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/8302.png", "time_text": "انتهت", "result_text": "1-2", "league_text": "الدوري المصري"}, {"id": "4804599", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a7%d9%84%d9%85%d8%b5%d8%b1%d9%8a-%d8%b6%d8%af-%d8%a8%d9%8a%d8%b1%d8%a7%d9%85%d9%8a%d8%af%d8%b2-%d8%a8%d8%aa%d8%a7%d8%b1/", "home": "المصري", "away": "بيراميدز", "league": "الدوري المصري", "start": "2026-08-31T20:00:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/8303.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/22143.png", "time_text": "انتهت", "result_text": "1-0", "league_text": "الدوري المصري"}, {"id": "4732725", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d9%84%d9%8a%d8%aa%d8%b4%d9%8a-%d8%b6%d8%af-%d8%b1%d9%88%d9%85%d8%a7-%d8%a8%d8%aa%d8%a7%d8%b1%d9%8a%d8%ae-31-08-2026-koora-l/", "home": "ليتشي", "away": "روما", "league": "الدوري الإيطالي", "start": "2026-08-31T19:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "4", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/246.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/225.png", "time_text": "انتهت", "result_text": "4-0", "league_text": "الدوري الإيطالي"}, {"id": "4732730", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%aa%d8%a7%d9%84%d8%a7%d9%86%d8%aa%d8%a7-%d8%b6%d8%af-%d8%a8%d9%88%d9%84%d9%88%d9%86%d9%8a%d8%a7-%d8%a8%d8%aa%d8%a7/", "home": "أتالانتا", "away": "بولونيا", "league": "الدوري الإيطالي", "start": "2026-08-31T21:45:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "85'", "score_home": "0", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/232.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/245.png", "time_text": "85'", "result_text": "0-0", "league_text": "الدوري الإيطالي"}, {"id": "4750885", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d9%88%d8%b3%d8%a7%d8%b3%d9%88%d9%86%d8%a7-%d8%b6%d8%af-%d8%ae%d9%8a%d8%aa%d8%a7%d9%81%d9%8a-%d8%a8%d8%aa%d8%a7%d8%b1/", "home": "أوساسونا", "away": "خيتافي", "league": "الدوري الإسباني", "start": "2026-08-31T20:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "1", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/143.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/140.png", "time_text": "انتهت", "result_text": "0-1", "league_text": "الدوري الإسباني"}, {"id": "4750887", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a8%d8%b1%d8%b4%d9%84%d9%88%d9%86%d8%a9-%d8%b6%d8%af-%d8%b1%d8%a7%d9%8a%d9%88-%d9%81%d8%a7%d9%8a%d9%8a%d9%83%d8%a7%d9%86/", "home": "برشلونة", "away": "رايو فاييكانو", "league": "الدوري الإسباني", "start": "2026-08-31T22:30:00+03:00", "status": "LIVE", "official_status": "شوط", "game_time": "45'", "score_home": "2", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/132.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/174.png", "time_text": "45'", "result_text": "1-2", "league_text": "الدوري الإسباني"}, {"id": "4742090", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%b3%d8%aa%d9%88%d9%86-%d9%81%d9%8a%d9%84%d8%a7-%d8%b6%d8%af-%d8%a3%d8%b1%d8%b3%d9%86%d8%a7%d9%84-%d8%a8%d8%aa%d8%a7/", "home": "أستون فيلا", "away": "أرسنال", "league": "الدوري الإنجليزي", "start": "2026-08-31T22:00:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "70'", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/109.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/104.png", "time_text": "70'", "result_text": "1-0", "league_text": "الدوري الإنجليزي"}];</script><script>window.__MATCHES__ = [{"id": "4804596", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a8%d8%aa%d8%b1%d9%88%d9%84-%d8%a7%d8%b3%d9%8a%d9%88%d8%b7-%d8%b6%d8%af-%d8%a7%d9%84%d8%a8%d9%86%d9%83-%d8%a7%d9%84%d8%a7/", "home": "بترول اسيوط", "away": "البنك الاهلي", "league": "الدوري المصري", "start": "2026-08-31T17:00:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/12254.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/50527.png", "time_text": "انتهت", "result_text": "1-0", "league_text": "الدوري المصري"}, {"id": "4804597", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a7%d9%84%d8%b2%d9%85%d8%a7%d9%84%d9%83-%d8%b6%d8%af-%d9%85%d9%86%d8%aa%d8%ae%d8%a8-%d8%a7%d9%84%d8%b3%d9%88%d9%8a%d8%b3/", "home": "الزمالك", "away": "منتخب السويس بتروجت", "league": "الدوري المصري", "start": "2026-08-31T20:00:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "2", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/8201.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/8302.png", "time_text": "انتهت", "result_text": "1-2", "league_text": "الدوري المصري"}, {"id": "4804599", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a7%d9%84%d9%85%d8%b5%d8%b1%d9%8a-%d8%b6%d8%af-%d8%a8%d9%8a%d8%b1%d8%a7%d9%85%d9%8a%d8%af%d8%b2-%d8%a8%d8%aa%d8%a7%d8%b1/", "home": "المصري", "away": "بيراميدز", "league": "الدوري المصري", "start": "2026-08-31T20:00:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/8303.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/22143.png", "time_text": "انتهت", "result_text": "1-0", "league_text": "الدوري المصري"}, {"id": "4732725", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d9%84%d9%8a%d8%aa%d8%b4%d9%8a-%d8%b6%d8%af-%d8%b1%d9%88%d9%85%d8%a7-%d8%a8%d8%aa%d8%a7%d8%b1%d9%8a%d8%ae-31-08-2026-koora-l/", "home": "ليتشي", "away": "روما", "league": "الدوري الإيطالي", "start": "2026-08-31T19:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "4", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/246.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/225.png", "time_text": "انتهت", "result_text": "4-0", "league_text": "الدوري الإيطالي"}, {"id": "4732730", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%aa%d8%a7%d9%84%d8%a7%d9%86%d8%aa%d8%a7-%d8%b6%d8%af-%d8%a8%d9%88%d9%84%d9%88%d9%86%d9%8a%d8%a7-%d8%a8%d8%aa%d8%a7/", "home": "أتالانتا", "away": "بولونيا", "league": "الدوري الإيطالي", "start": "2026-08-31T21:45:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "85'", "score_home": "0", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/232.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/245.png", "time_text": "85'", "result_text": "0-0", "league_text": "الدوري الإيطالي"}, {"id": "4750885", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d9%88%d8%b3%d8%a7%d8%b3%d9%88%d9%86%d8%a7-%d8%b6%d8%af-%d8%ae%d9%8a%d8%aa%d8%a7%d9%81%d9%8a-%d8%a8%d8%aa%d8%a7%d8%b1/", "home": "أوساسونا", "away": "خيتافي", "league": "الدوري الإسباني", "start": "2026-08-31T20:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "1", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/143.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/140.png", "time_text": "انتهت", "result_text": "0-1", "league_text": "الدوري الإسباني"}, {"id": "4750887", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a8%d8%b1%d8%b4%d9%84%d9%88%d9%86%d8%a9-%d8%b6%d8%af-%d8%b1%d8%a7%d9%8a%d9%88-%d9%81%d8%a7%d9%8a%d9%8a%d9%83%d8%a7%d9%86/", "home": "برشلونة", "away": "رايو فاييكانو", "league": "الدوري الإسباني", "start": "2026-08-31T22:30:00+03:00", "status": "LIVE", "official_status": "شوط", "game_time": "45'", "score_home": "2", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/132.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/174.png", "time_text": "45'", "result_text": "1-2", "league_text": "الدوري الإسباني"}, {"id": "4742090", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%b3%d8%aa%d9%88%d9%86-%d9%81%d9%8a%d9%84%d8%a7-%d8%b6%d8%af-%d8%a3%d8%b1%d8%b3%d9%86%d8%a7%d9%84-%d8%a8%d8%aa%d8%a7/", "home": "أستون فيلا", "away": "أرسنال", "league": "الدوري الإنجليزي", "start": "2026-08-31T22:00:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "70'", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/109.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/104.png", "time_text": "70'", "result_text": "1-0", "league_text": "الدوري الإنجليزي"}];</script><script>window.__MATCHES__ = [{"id": "4732725", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d9%84%d9%8a%d8%aa%d8%b4%d9%8a-%d8%b6%d8%af-%d8%b1%d9%88%d9%85%d8%a7-%d8%a8%d8%aa%d8%a7%d8%b1%d9%8a%d8%ae-31-08-2026-koora-l/", "home": "ليتشي", "away": "روما", "league": "الدوري الإيطالي", "start": "2026-08-31T19:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "4", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/246.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/225.png", "time_text": "انتهت", "result_text": "4-0", "league_text": "الدوري الإيطالي"}, {"id": "4732730", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%aa%d8%a7%d9%84%d8%a7%d9%86%d8%aa%d8%a7-%d8%b6%d8%af-%d8%a8%d9%88%d9%84%d9%88%d9%86%d9%8a%d8%a7-%d8%a8%d8%aa%d8%a7/", "home": "أتالانتا", "away": "بولونيا", "league": "الدوري الإيطالي", "start": "2026-08-31T21:45:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "85'", "score_home": "0", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/232.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/245.png", "time_text": "85'", "result_text": "0-0", "league_text": "الدوري الإيطالي"}, {"id": "4750885", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d9%88%d8%b3%d8%a7%d8%b3%d9%88%d9%86%d8%a7-%d8%b6%d8%af-%d8%ae%d9%8a%d8%aa%d8%a7%d9%81%d9%8a-%d8%a8%d8%aa%d8%a7%d8%b1/", "home": "أوساسونا", "away": "خيتافي", "league": "الدوري الإسباني", "start": "2026-08-31T20:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "1", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/143.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/140.png", "time_text": "انتهت", "result_text": "0-1", "league_text": "الدوري الإسباني"}, {"id": "4750887", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a8%d8%b1%d8%b4%d9%84%d9%88%d9%86%d8%a9-%d8%b6%d8%af-%d8%b1%d8%a7%d9%8a%d9%88-%d9%81%d8%a7%d9%8a%d9%8a%d9%83%d8%a7%d9%86/", "home": "برشلونة", "away": "رايو فاييكانو", "league": "الدوري الإسباني", "start": "2026-08-31T22:30:00+03:00", "status": "LIVE", "official_status": "شوط", "game_time": "45'", "score_home": "2", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/132.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/174.png", "time_text": "45'", "result_text": "1-2", "league_text": "الدوري الإسباني"}, {"id": "4742090", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%b3%d8%aa%d9%88%d9%86-%d9%81%d9%8a%d9%84%d8%a7-%d8%b6%d8%af-%d8%a3%d8%b1%d8%b3%d9%86%d8%a7%d9%84-%d8%a8%d8%aa%d8%a7/", "home": "أستون فيلا", "away": "أرسنال", "league": "الدوري الإنجليزي", "start": "2026-08-31T22:00:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "70'", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/109.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/104.png", "time_text": "70'", "result_text": "1-0", "league_text": "الدوري الإنجليزي"}];</script>
-<style>
-/* Player UX improvements */
-.player-card{ box-shadow:0 12px 32px rgba(0,0,0,0.12) !important; border-radius:16px !important; }
-.controls{ background:#ffffff !important; border:1px solid #e2e8f0 !important; border-radius:12px !important; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
-.btn{ border-radius:10px !important; font-weight:700 !important; transition:all 0.2s !important; }
-.btn:hover{ transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-.btn:active{ transform:translateY(0); }
-.ratio{ border-radius:0 0 16px 16px; }
-.player-header{ border-radius:16px 16px 0 0; }
-/* MOBILE-FIX-v2 — dead drawer becomes an inline nav row (theme ships no opener) */
-@media (max-width:1000px){
-  .STING-web-Header-Menu{ position:static !important; right:auto !important; top:auto !important; float:none !important; width:100% !important; height:auto !important; margin:0 !important; padding:0 !important; background:transparent !important; box-shadow:none !important; border:0 !important; z-index:auto !important; transition:none !important; overflow:visible !important; }
-}
-/* MOBILE-TUNE-v1 — full-bleed player, stacked 44px controls */
-@media (max-width:640px){
-  .player-wrap{ width:100%; padding:0 10px; box-sizing:border-box; }
-  header{ width:100%; }
-  .STING-web-Header-Menu{ margin:10px 0 0 !important; padding:0 0 4px !important; overflow-x:auto !important; overflow-y:hidden !important; -webkit-overflow-scrolling:touch; }
-  /* MOBILE-FIX-v4 — wrap header: centered logo row, pills row below */
-  .STING-web-Header{ flex-wrap:wrap !important; row-gap:8px; }
-  .STING-web-Header-Right{ flex-wrap:wrap !important; gap:10px !important; flex:1 1 100%; min-width:0; }
-  .STING-web-Header-Logo{ margin:8px auto !important; white-space:nowrap !important; }
-  .STING-web-Menu{ flex-wrap:nowrap !important; }
-  .STING-web-Menu > li{ flex:none; }
-  /* MOBILE-FIX-v3 — readable nav pills */
-  /* MOBILE-FIX-v4 — ink text (drawer leaks white), kill drawer grid stack */
-  .STING-web-Menu{ display:flex !important; margin-top:0 !important; }
-  .STING-web-Menu > li{ margin-bottom:0 !important; }
-  .STING-web-Menu > li > a{ background:#fff; border:1px solid #e2e8f0; border-radius:999px; min-height:44px; display:inline-flex; align-items:center; padding:8px 16px; white-space:nowrap; color:#141b26 !important; height:auto !important; border-bottom:0 !important; }
-  .STING-web-Post{ margin:10px auto; }
-  .player-card{ margin:10px 0; border-radius:14px !important; }
-  .ratio{ border-radius:0 0 14px 14px; }
-  .player-header{ border-radius:14px 14px 0 0; font-size:12px; }
-  .controls{ margin:10px 0; padding:10px; gap:10px; }
-  .controls .btn{ flex:1 1 100%; min-height:44px; font-size:14px; padding:12px 14px; }
-  #blockCount{ margin-left:0; margin-inline-start:auto; width:100%; text-align:center; }
-  .click-shield button{ min-height:48px; font-size:16px; max-width:88vw; }
-  .log{ margin:10px 0; }
-  .warn{ margin:10px 0; }
-  .clean-toast{ bottom:calc(16px + env(safe-area-inset-bottom)); max-width:92vw; text-align:center; }
-}
-@media (prefers-reduced-motion:reduce){
-  /* MOBILE-TUNE-v1-motion */
-  .banner-mini-removed .heart{ animation:none; }
-  .click-shield{ transition:none; }
-}
-/* MOBILE-TUNE-v1-rtl-focus */
-#blockCount{ margin-inline-start:auto; }
-a:focus-visible,button:focus-visible{ outline:2px solid #750044; outline-offset:2px; }
-</style>
-<script>window.__MATCHES__ = [{"id": "4732725", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d9%84%d9%8a%d8%aa%d8%b4%d9%8a-%d8%b6%d8%af-%d8%b1%d9%88%d9%85%d8%a7-%d8%a8%d8%aa%d8%a7%d8%b1%d9%8a%d8%ae-31-08-2026-koora-l/", "home": "ليتشي", "away": "روما", "league": "الدوري الإيطالي", "start": "2026-08-31T19:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "4", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/246.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/225.png", "time_text": "انتهت", "result_text": "4-0", "league_text": "الدوري الإيطالي"}, {"id": "4732730", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%aa%d8%a7%d9%84%d8%a7%d9%86%d8%aa%d8%a7-%d8%b6%d8%af-%d8%a8%d9%88%d9%84%d9%88%d9%86%d9%8a%d8%a7-%d8%a8%d8%aa%d8%a7/", "home": "أتالانتا", "away": "بولونيا", "league": "الدوري الإيطالي", "start": "2026-08-31T21:45:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "85'", "score_home": "0", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/232.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/245.png", "time_text": "85'", "result_text": "0-0", "league_text": "الدوري الإيطالي"}, {"id": "4750885", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d9%88%d8%b3%d8%a7%d8%b3%d9%88%d9%86%d8%a7-%d8%b6%d8%af-%d8%ae%d9%8a%d8%aa%d8%a7%d9%81%d9%8a-%d8%a8%d8%aa%d8%a7%d8%b1/", "home": "أوساسونا", "away": "خيتافي", "league": "الدوري الإسباني", "start": "2026-08-31T20:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "1", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/143.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/140.png", "time_text": "انتهت", "result_text": "0-1", "league_text": "الدوري الإسباني"}, {"id": "4750887", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a8%d8%b1%d8%b4%d9%84%d9%88%d9%86%d8%a9-%d8%b6%d8%af-%d8%b1%d8%a7%d9%8a%d9%88-%d9%81%d8%a7%d9%8a%d9%8a%d9%83%d8%a7%d9%86/", "home": "برشلونة", "away": "رايو فاييكانو", "league": "الدوري الإسباني", "start": "2026-08-31T22:30:00+03:00", "status": "LIVE", "official_status": "شوط", "game_time": "45'", "score_home": "2", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/132.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/174.png", "time_text": "45'", "result_text": "1-2", "league_text": "الدوري الإسباني"}, {"id": "4742090", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%b3%d8%aa%d9%88%d9%86-%d9%81%d9%8a%d9%84%d8%a7-%d8%b6%d8%af-%d8%a3%d8%b1%d8%b3%d9%86%d8%a7%d9%84-%d8%a8%d8%aa%d8%a7/", "home": "أستون فيلا", "away": "أرسنال", "league": "الدوري الإنجليزي", "start": "2026-08-31T22:00:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "70'", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/109.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/104.png", "time_text": "70'", "result_text": "1-0", "league_text": "الدوري الإنجليزي"}];</script><script>window.__MATCHES__ = [{"id": "4732725", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d9%84%d9%8a%d8%aa%d8%b4%d9%8a-%d8%b6%d8%af-%d8%b1%d9%88%d9%85%d8%a7-%d8%a8%d8%aa%d8%a7%d8%b1%d9%8a%d8%ae-31-08-2026-koora-l/", "home": "ليتشي", "away": "روما", "league": "الدوري الإيطالي", "start": "2026-08-31T19:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "4", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/246.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/225.png", "time_text": "انتهت", "result_text": "4-0", "league_text": "الدوري الإيطالي"}, {"id": "4732730", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%aa%d8%a7%d9%84%d8%a7%d9%86%d8%aa%d8%a7-%d8%b6%d8%af-%d8%a8%d9%88%d9%84%d9%88%d9%86%d9%8a%d8%a7-%d8%a8%d8%aa%d8%a7/", "home": "أتالانتا", "away": "بولونيا", "league": "الدوري الإيطالي", "start": "2026-08-31T21:45:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "85'", "score_home": "0", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/232.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/245.png", "time_text": "85'", "result_text": "0-0", "league_text": "الدوري الإيطالي"}, {"id": "4750885", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d9%88%d8%b3%d8%a7%d8%b3%d9%88%d9%86%d8%a7-%d8%b6%d8%af-%d8%ae%d9%8a%d8%aa%d8%a7%d9%81%d9%8a-%d8%a8%d8%aa%d8%a7%d8%b1/", "home": "أوساسونا", "away": "خيتافي", "league": "الدوري الإسباني", "start": "2026-08-31T20:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "1", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/143.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/140.png", "time_text": "انتهت", "result_text": "0-1", "league_text": "الدوري الإسباني"}, {"id": "4750887", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a8%d8%b1%d8%b4%d9%84%d9%88%d9%86%d8%a9-%d8%b6%d8%af-%d8%b1%d8%a7%d9%8a%d9%88-%d9%81%d8%a7%d9%8a%d9%8a%d9%83%d8%a7%d9%86/", "home": "برشلونة", "away": "رايو فاييكانو", "league": "الدوري الإسباني", "start": "2026-08-31T22:30:00+03:00", "status": "LIVE", "official_status": "شوط", "game_time": "45'", "score_home": "2", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/132.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/174.png", "time_text": "45'", "result_text": "1-2", "league_text": "الدوري الإسباني"}, {"id": "4742090", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%b3%d8%aa%d9%88%d9%86-%d9%81%d9%8a%d9%84%d8%a7-%d8%b6%d8%af-%d8%a3%d8%b1%d8%b3%d9%86%d8%a7%d9%84-%d8%a8%d8%aa%d8%a7/", "home": "أستون فيلا", "away": "أرسنال", "league": "الدوري الإنجليزي", "start": "2026-08-31T22:00:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "70'", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/109.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/104.png", "time_text": "70'", "result_text": "1-0", "league_text": "الدوري الإنجليزي"}];</script><script>window.__MATCHES__ = [{"id": "4732725", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d9%84%d9%8a%d8%aa%d8%b4%d9%8a-%d8%b6%d8%af-%d8%b1%d9%88%d9%85%d8%a7-%d8%a8%d8%aa%d8%a7%d8%b1%d9%8a%d8%ae-31-08-2026-koora-l/", "home": "ليتشي", "away": "روما", "league": "الدوري الإيطالي", "start": "2026-08-31T19:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "0", "score_away": "4", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/246.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/225.png", "time_text": "انتهت", "result_text": "4-0", "league_text": "الدوري الإيطالي"}, {"id": "4732730", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%aa%d8%a7%d9%84%d8%a7%d9%86%d8%aa%d8%a7-%d8%b6%d8%af-%d8%a8%d9%88%d9%84%d9%88%d9%86%d9%8a%d8%a7-%d8%a8%d8%aa%d8%a7/", "home": "أتالانتا", "away": "بولونيا", "league": "الدوري الإيطالي", "start": "2026-08-31T21:45:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "85'", "score_home": "0", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/232.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/245.png", "time_text": "85'", "result_text": "0-0", "league_text": "الدوري الإيطالي"}, {"id": "4750885", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d9%88%d8%b3%d8%a7%d8%b3%d9%88%d9%86%d8%a7-%d8%b6%d8%af-%d8%ae%d9%8a%d8%aa%d8%a7%d9%81%d9%8a-%d8%a8%d8%aa%d8%a7%d8%b1/", "home": "أوساسونا", "away": "خيتافي", "league": "الدوري الإسباني", "start": "2026-08-31T20:30:00+03:00", "status": "FT", "official_status": "انتهت", "game_time": "", "score_home": "1", "score_away": "0", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/143.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/140.png", "time_text": "انتهت", "result_text": "0-1", "league_text": "الدوري الإسباني"}, {"id": "4750887", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a8%d8%b1%d8%b4%d9%84%d9%88%d9%86%d8%a9-%d8%b6%d8%af-%d8%b1%d8%a7%d9%8a%d9%88-%d9%81%d8%a7%d9%8a%d9%8a%d9%83%d8%a7%d9%86/", "home": "برشلونة", "away": "رايو فاييكانو", "league": "الدوري الإسباني", "start": "2026-08-31T22:30:00+03:00", "status": "LIVE", "official_status": "شوط", "game_time": "45'", "score_home": "2", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/132.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/174.png", "time_text": "45'", "result_text": "1-2", "league_text": "الدوري الإسباني"}, {"id": "4742090", "href": "https://kooralive-plus.info/matches/%d9%85%d8%b4%d8%a7%d9%87%d8%af%d8%a9-%d9%85%d8%a8%d8%a7%d8%b1%d8%a7%d8%a9-%d8%a3%d8%b3%d8%aa%d9%88%d9%86-%d9%81%d9%8a%d9%84%d8%a7-%d8%b6%d8%af-%d8%a3%d8%b1%d8%b3%d9%86%d8%a7%d9%84-%d8%a8%d8%aa%d8%a7/", "home": "أستون فيلا", "away": "أرسنال", "league": "الدوري الإنجليزي", "start": "2026-08-31T22:00:00+03:00", "status": "LIVE", "official_status": "الشوط الثاني", "game_time": "70'", "score_home": "0", "score_away": "1", "home_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/109.png", "away_logo": "https://kooralive-plus.info/wp-content/uploads/yalla-team-logos/104.png", "time_text": "70'", "result_text": "1-0", "league_text": "الدوري الإنجليزي"}];</script></head>
+</head>
 <body>
-
-<header><div class="STING-web-Header STING-web-Max-Size">
-  <div class="STING-web-Header-Right">
-    <div class="STING-web-Header-Logo"><a href="./"><span class="STING-WEB-SiteName">كورة لايف</span><span class="STING-WEB-SiteUrl">بث نظيف بدون إعلانات</span></a></div>
-    <div class="STING-web-Header-Menu"><ul class="STING-web-Menu" style="display:flex;gap:12px;list-style:none;padding:0;margin:0">
-      <li><a href="./" style="color:#750044;font-weight:800;">الرئيسية</a></li><li><a href="./#matches">المباريات</a></li>
-    </ul></div>
+<div class="wrap">
+  <div class="head">
+    <a class="back" href="./index.html">‹ عودة</a>
+    <div class="title"><strong id="matchTitle">جاري التحميل…</strong><small>بث نظيف بدون إعلانات</small></div>
+    <span style="width:76px;flex:none"></span>
   </div>
-  <div class="STING-web-Header-Left"><a href="./" style="background:#750044;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;">→ عودة</a></div>
-</div></header>
-
-<div class="player-wrap">
-  <div id="warn" class="warn" style="display:none"></div>
-  <div class="STING-web-Post STING-web-Max-Size" style="margin-top:12px;">
-    <div id="matchCover" class="STING-web-MatchCover" style="padding:8px;">
-      <div class="STING-web-Background-MatchCover">
-        <div class="STING-web-MatchCover-Right"><img id="homeLogo" class="STING-web-MatchCover-Logo"><span id="homeName">...</span></div>
-        <div class="STING-web-MatchCover-Center">VS</div>
-        <div class="STING-web-MatchCover-Left"><img id="awayLogo" class="STING-web-MatchCover-Logo"><span id="awayName">...</span></div>
+  <div class="stage">
+    <iframe id="player" title="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+      allowfullscreen loading="eager" sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"></iframe>
+    <div class="shield" id="shield"></div>
+    <div class="click-shield" id="clickShield">
+      <div style="text-align:center">
+        <button id="playBtn">▶ اضغط للمشاهدة</button>
+        <small>أول ضغطة تفتح البث فقط — بدون إعلانات</small>
       </div>
-    </div>
-    <div class="controls">
-      <button class="btn" id="btnFullscreen">⛶ ملء الشاشة</button>
-      <button class="btn ghost" id="btnReload">↻ إعادة تحميل</button>
-      <button class="btn ghost" id="btnServers" style="display:none">📡 سيرفرات بديلة</button>
-      <button class="btn danger" id="btnKill">☠️ إخفاء لافتة تيليجرام</button>
-      <span id="blockCount" style="margin-inline-start:auto;font-size:12px;color:#a0004a;">محظور: 0</span>
-    </div>
-    <div class="player-card">
-      <div class="player-header">
-        <span>▶ مشغل نظيف — الحجب نشط</span>
-        <span id="modeLabel" style="color:#ffb3d0;font-size:11px;">مباشر • الدرع مفعّل</span>
-      </div>
-      <div class="ratio" id="ratio">
-        <iframe id="player" title="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen loading="eager" sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"></iframe>
-        <div class="shield" id="shield"></div>
-        <div class="click-shield" id="clickShield"><div style="text-align:center">
-          <button id="playBtn">▶ اضغط للمشاهدة — بدون إعلانات</button>
-          <div style="color:#ffd0e0;font-size:12px;margin-top:8px;">النقرة الأولى تُمتص — لا نوافذ منبثقة</div>
-        </div></div>
-      </div>
-    </div>
-    <div class="log" id="log">سجل:
-[init] جاهز
-</div>
-    <div style="padding:12px;font-size:13px;color:#333;line-height:1.8;text-align:center;">
-      هذا المشغل خالٍ من الإعلانات. نافذة تيليجرام الصفراء/السوداء محجوبة 100%.
     </div>
   </div>
+  <div class="servers" id="servers" hidden>
+    <button class="srv on" id="srvMain">المشغّل الرئيسي</button>
+    <button class="srv" id="srvAlt">📡 سيرفرات بديلة</button>
+  </div>
+  <div class="controls">
+    <button class="btn" id="btnFull">⛶ ملء الشاشة</button>
+    <button class="btn ghost" id="btnReload">⟳ إعادة تحميل</button>
+  </div>
+  <div class="status" id="status">محظور: 0</div>
 </div>
-<div class="clean-toast" id="toast"></div>
+<div class="toast" id="toast"></div>
+
 <script>
+'use strict';
 const qs = new URLSearchParams(location.search);
 const id = qs.get('id') || '';
 const href = qs.get('href') ? decodeURIComponent(qs.get('href')) : '';
 const home = qs.get('home') ? decodeURIComponent(qs.get('home')) : '';
 const away = qs.get('away') ? decodeURIComponent(qs.get('away')) : '';
 
-if(home) document.getElementById('homeName').textContent = home;
-if(away) document.getElementById('awayName').textContent = away;
-
-// Load match info from embedded data
-let matchData = null;
-if(window.__MATCHES__){
-  matchData = window.__MATCHES__.find(x=>x.id===id);
-  if(matchData){
-    document.getElementById('homeName').textContent = matchData.home;
-    document.getElementById('awayName').textContent = matchData.away;
-    document.getElementById('homeLogo').src = matchData.home_logo;
-    document.getElementById('awayLogo').src = matchData.away_logo;
-    document.title = `${matchData.home} vs ${matchData.away} — كورة لايف`;
-  }
-}
-
-const TELE_RE = /(t\.me|telegram\.me|telegram\.org|tg:\/\/|joinchat)/i;
-const AD_RE = /(popads|popcash|adcash|propeller|onclkds|highperformancegate|highcpmgate|cl\.mayhapmonisms|additionalheritagenose|yh\.ferritegathers|exo\.click)/i;
-const BLOCK_RE = new RegExp(TELE_RE.source+'|'+AD_RE.source,'i');
-
 const iframe = document.getElementById('player');
 const shield = document.getElementById('shield');
 const clickShield = document.getElementById('clickShield');
-const logEl = document.getElementById('log');
-const countEl = document.getElementById('blockCount');
-const ratio = document.getElementById('ratio');
-let blocked=0, lastCleanSrc='';
+const statusEl = document.getElementById('status');
+document.getElementById('matchTitle').textContent =
+  (home || away) ? `${home} × ${away}` : 'مشاهدة المباراة';
 
-function log(m){ logEl.textContent += `\n[${new Date().toLocaleTimeString()}] ${m}`; logEl.scrollTop=logEl.scrollHeight; }
-function toast(m,err){ const t=document.getElementById('toast'); t.textContent=m; t.className= err?'clean-toast err show':'clean-toast show'; clearTimeout(t._id); t._id=setTimeout(()=>t.className='clean-toast',2500); }
-function bump(reason, url){
-  blocked++; countEl.textContent='محظور: '+blocked;
-  shield.classList.add('hit'); setTimeout(()=>shield.classList.remove('hit'),500);
-  log('BLOCKED '+reason+': '+(url||'').slice(0,80));
-  toast('محظور: '+reason, true);
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function workerBase(){
+  try { return (localStorage.getItem('koora_worker') || '').trim(); } catch { return ''; }
 }
 
-if(location.protocol==='file:'){
-  document.getElementById('warn').style.display='block';
-  document.getElementById('warn').innerHTML='⚠️ افتح عبر <code>خادم http محلي</code> — <code>python -m http.server 8000</code>';
+/* ad / telegram popup guard — same policy as before */
+const BLOCK_RE = /(popads|popcash|adcash|propeller|exoclick|adsterra|doubleclick|adsco\.re|t\.me|telegram\.me|telegram\.org|tg:\/\/|joinchat|youtube\.com\/((watch|shorts|embed|redirect)|((results|hashtag)\?))|youtu\.be\/)/i;
+let blocked = 0, lastCleanSrc = '';
+function bumpBlocked(){
+  blocked++;
+  statusEl.textContent = 'محظور: ' + blocked;
+  shield.classList.add('hit');
+  setTimeout(() => shield.classList.remove('hit'), 500);
 }
 
-const workerBase = (localStorage.getItem('koora_worker')||'').trim();
-let targetUrl = href || 'https://kooralive-plus.info/';
-if(!targetUrl.startsWith('http')) targetUrl='https://kooralive-plus.info'+targetUrl;
+/* server toggle state */
+let mainSrc = '', altSrc = '', showingAlt = false;
+const serversEl = document.getElementById('servers');
+const srvMain = document.getElementById('srvMain');
+const srvAlt = document.getElementById('srvAlt');
+function showServers(main, alt){
+  mainSrc = main; altSrc = alt; showingAlt = false;
+  srvMain.classList.add('on'); srvAlt.classList.remove('on');
+  serversEl.hidden = !alt;
+}
+function swapServer(){
+  if (!altSrc) return;
+  showingAlt = !showingAlt;
+  srvMain.classList.toggle('on', !showingAlt);
+  srvAlt.classList.toggle('on', showingAlt);
+  iframe.src = showingAlt ? altSrc : mainSrc;
+  lastCleanSrc = iframe.src;
+  rearmShield();
+  toast(showingAlt ? 'سيرفرات بديلة — اختر سيرفراً من القائمة' : 'المشغّل الرئيسي');
+}
+srvMain.onclick = () => { if (showingAlt) swapServer(); };
+srvAlt.onclick = () => { if (!showingAlt) swapServer(); };
 
-let isLiveMatch = false;
-try{ const data = window.__MATCHES__ ? window.__MATCHES__.find(x=>x.id===id) : null; isLiveMatch = data && data.status === 'LIVE'; }catch(e){}
+function rearmShield(){
+  clickShield.classList.remove('hidden');
+}
 
-let finalSrc;
-let altSrc = '';
-
- // Try to fetch real player via API
 async function loadRealPlayer(){
-  try{
-    log('Fetching real player for ' + id + '...');
-    const apiUrl = `/api/player?id=${encodeURIComponent(id)}&href=${encodeURIComponent(targetUrl)}&home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}`;
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-    if(data && data.playerSrc){
-      log('Found direct player: ' + data.playerSrc.slice(0,60));
-      finalSrc = data.playerSrc;
-      // If it's a yasirtv URL, we need to ensure it has the right key - the API should return the correct src
-      // For now, use the returned playerSrc directly
-      if(data.via==='hd7livex'){
-        // hd7livex leaf embeds (yallaxsport/kora-live-live) are bot-gated for
-        // datacenters — they must load directly in the user's browser, never
-        // through the worker proxy. Offer the full AlbaPlayer server page too.
-        finalSrc = data.playerSrc;
-        if(data.livePage){
-          altSrc = data.livePage;
-          document.getElementById('btnServers').style.display='';
-          log('Alt servers: ' + data.livePage.slice(0,60));
-        }
-      } else if(workerBase && workerBase.startsWith('https://') && data.playerSrc.includes('yasirtv')){
-        // For yasirtv, we can load directly, no need for proxy
-        finalSrc = data.playerSrc;
-      } else if(workerBase && workerBase.startsWith('https://')){
-        // For other players, use proxy
-        finalSrc = workerBase.replace(/\/$/,'') + '/?url=' + encodeURIComponent(data.playerSrc);
+  if (qs.get('demo') === '1' && !href){
+    const wb = workerBase();
+    const demoSrc = wb
+      ? wb.replace(/\/$/, '') + '/?url=' + encodeURIComponent('https://www.romabar.info/albaplayer/bein-9/?serv=0')
+      : 'https://www.romabar.info/albaplayer/bein-9/?serv=0';
+    iframe.src = demoSrc;
+    lastCleanSrc = demoSrc;
+    return;
+  }
+  try {
+    const q = new URLSearchParams({ id, href, home, away });
+    const r = await fetch('/api/player?' + q.toString(), { cache: 'no-store' });
+    const data = await r.json();
+    let finalSrc = '';
+    if (data && data.found && data.embedUrl){
+      finalSrc = data.embedUrl;
+      if (data.via === 'hd7livex' && data.livePage){
+        showServers(finalSrc, data.livePage); // leaf direct, livePage = server list
       }
-      document.getElementById('modeLabel').textContent = 'مشغل حقيقي • ' + (isLiveMatch ? 'مباشر' : 'موجود');
-    } else if(data && data.fallbackUrl){
-      log('No direct player, using fallback page');
+    } else if (data && data.fallbackUrl){
       finalSrc = data.fallbackUrl;
-      if(workerBase && workerBase.startsWith('https://')){
-        finalSrc = workerBase.replace(/\/$/,'') + '/?url=' + encodeURIComponent(finalSrc);
-      }
-    } else {
-      // Fallback to original logic
-      if(workerBase && workerBase.startsWith('https://')){
-        finalSrc = workerBase.replace(/\/$/,'') + '/?url=' + encodeURIComponent(targetUrl);
-        document.getElementById('modeLabel').textContent='بروكسي • نظيف';
-        log('Proxy: '+workerBase);
-      } else {
-        finalSrc = targetUrl;
-        log('Direct: '+targetUrl.slice(0,60));
-      }
+      toast('لا يوجد بث مباشر — صفحة المباراة');
     }
-  }catch(e){
-    log('Player API failed: ' + e.message + ', using fallback');
-    if(workerBase && workerBase.startsWith('https://')){
-      finalSrc = workerBase.replace(/\/$/,'') + '/?url=' + encodeURIComponent(targetUrl);
+    if (finalSrc){
+      iframe.src = finalSrc;
+      lastCleanSrc = finalSrc;
     } else {
-      finalSrc = targetUrl;
+      toast('لا يوجد بث متاح حالياً');
     }
+  } catch (e){
+    toast('تعذّر تحميل البث — تحقق من الاتصال');
   }
-  iframe.src = finalSrc;
-  lastCleanSrc = finalSrc;
-  log('Loading player...' + (isLiveMatch ? ' (LIVE)' : ''));
 }
+
+/* first click is absorbed so popups never open */
+clickShield.addEventListener('click', () => clickShield.classList.add('hidden'));
+
+/* fullscreen */
+document.getElementById('btnFull').onclick = () => {
+  const st = document.querySelector('.stage');
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else if (st.requestFullscreen) st.requestFullscreen().catch(() => toast('تعذّر ملء الشاشة'));
+  else toast('المتصفح لا يدعم ملء الشاشة');
+};
+/* reload (cache-bust) */
+document.getElementById('btnReload').onclick = () => {
+  if (!lastCleanSrc) return;
+  iframe.src = lastCleanSrc + (lastCleanSrc.includes('?') ? '&' : '?') + '_=' + Date.now();
+  rearmShield();
+};
+
+/* popup guard: hijacked navigations snap back to the last clean src */
+iframe.addEventListener('load', () => {
+  try {
+    const src = iframe.src || '';
+    if (src !== lastCleanSrc && BLOCK_RE.test(src)){
+      bumpBlocked();
+      iframe.src = lastCleanSrc;
+    } else if (src && !BLOCK_RE.test(src)){
+      lastCleanSrc = src;
+    }
+  } catch {}
+});
+/* block window.open popups from embeds */
+window.open = function(){ bumpBlocked(); return null; };
+
 loadRealPlayer();
-// click shield — first click is absorbed so t.me popups never open
-let armed = true;
-function disarm(){ if(!armed) return; armed=false; clickShield.classList.add('hidden'); log('Shield off — enjoy'); toast('جاهز'); }
-clickShield.addEventListener('click', disarm);
-document.getElementById('playBtn').addEventListener('click', disarm);
-
-// --- BUTTONS: ensure they work ---
-document.getElementById('btnReload').onclick = ()=>{
-  try{
-    const u=new URL(lastCleanSrc);
-    u.searchParams.set('_', Date.now());
-    iframe.src=u.toString(); lastCleanSrc=u.toString();
-    armed=true; clickShield.classList.remove('hidden');
-    log('Reload'); toast('جارٍ إعادة التحميل...');
-  }catch(e){ 
-    // Fallback for URLs that are not valid URLs (should not happen)
-    iframe.src = lastCleanSrc + (lastCleanSrc.includes('?')?'&':'?') + '_=' + Date.now();
-    log('Reload (fallback)'); 
-  }
-};
-
-document.getElementById('btnServers').onclick = ()=>{
-  if(!altSrc) return;
-  const cur = iframe.src;
-  iframe.src = altSrc; altSrc = cur; lastCleanSrc = iframe.src;
-  armed = true; clickShield.classList.remove('hidden');
-  log('Servers view'); toast('عرض السيرفرات البديلة');
-};
-
-document.getElementById('btnFullscreen').onclick = async ()=>{
-  try{
-    if(ratio.requestFullscreen) await ratio.requestFullscreen();
-    else if(iframe.requestFullscreen) await iframe.requestFullscreen();
-    else toast('ملء الشاشة غير مدعوم', true);
-  }catch(e){ toast('اضغط تشغيل أولاً', true); }
-};
-
-document.getElementById('btnKill').onclick = ()=>{
-  bump('Hide','overlay');
-  try{ iframe.contentWindow.postMessage({type:'KILL_TELEGRAM'}, '*'); }catch(e){}
-  if(workerBase){
-    try{
-      const u=new URL(lastCleanSrc);
-      u.searchParams.set('kill','1'); u.searchParams.set('_',Date.now());
-      iframe.src=u.toString(); lastCleanSrc=u.toString();
-    }catch(e){}
-  } else {
-    // Direct mode: try to hide via CSS injection attempt (will fail cross-origin, but we hide our own shield)
-    clickShield.classList.add('hidden'); armed=false;
-  }
-  log('Kill signal sent'); toast('تم إخفاء اللافتة');
-};
-
-// Block popups
-const origOpen = window.open.bind(window);
-window.open = function(u, ...rest){
-  const s=String(u||'');
-  if(BLOCK_RE.test(s)){ bump(TELE_RE.test(s)?'Telegram':'Ad', s); return null; }
-  return origOpen(u,...rest);
-};
-document.addEventListener('click', e=>{
-  const a=e.target.closest('a');
-  const hrefA=a?.href||'';
-  if(hrefA && BLOCK_RE.test(hrefA) && !hrefA.includes('player.html') && !hrefA.includes(location.host)){
-    e.preventDefault(); e.stopPropagation();
-    bump('Telegram link', hrefA.slice(0,60));
-    return false;
-  }
-}, true);
-
-setInterval(()=>{
-  try{
-    const src=iframe.src||'';
-    if(src!==lastCleanSrc && BLOCK_RE.test(src)){
-      bump('hijack', src.slice(0,60));
-      iframe.src=lastCleanSrc;
-    } else if(src && !BLOCK_RE.test(src)) lastCleanSrc=src;
-  }catch(e){}
-}, 600);
-
-// Demo fallback
-if(qs.get('demo')==='1' && !href){
-  document.getElementById('homeName').textContent='beIN 9';
-  document.getElementById('awayName').textContent='تجريبي';
-  document.getElementById('homeLogo').src='https://via.placeholder.com/90/750044/fff?text=9';
-  document.getElementById('awayLogo').src='https://via.placeholder.com/90/273340/fff?text=LIVE';
-  const demoSrc = workerBase ? workerBase.replace(/\/$/,'')+'/?url='+encodeURIComponent('https://www.romabar.info/albaplayer/bein-9/?serv=0') : 'https://www.romabar.info/albaplayer/bein-9/?serv=0';
-  iframe.src = demoSrc;
-  lastCleanSrc=demoSrc;
-  log('Demo beIN-9');
-}
 </script>
 </body>
 </html>
-
-

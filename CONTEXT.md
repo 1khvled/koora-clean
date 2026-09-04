@@ -24,8 +24,8 @@ Local path: `C:\Users\Abdelli\Desktop\Projects\koora-clean`.
 
 | File | Role |
 |---|---|
-| `index.html` | Project A. Single file: minified STING theme CSS + custom override `<style>` + inline `<script>` (fetch `/api/matches?day=`, render cards). |
-| `player.html` | Project B. Single file: player shell, controls, inline sample data in head for offline layout. Has hidden `📡 سيرفرات بديلة` button (revealed when `via==='hd7livex'`) that swap-toggles iframe between leaf embed and full `livePage` server UI. |
+| `index.html` | Project A. **OWN UI v1 (no theme)**: pitch-night skin, day segmented control, search + league chips, live snap rail w/ minute badges, league-grouped rows. Same `/api/matches?day=` contract + worker→api→`matches.json` fallback. |
+| `player.html` | Project B. **OWN UI v1 (no theme)**: dark night page, 16:9 stage, click-shield, `المشغّل الرئيسي` / `📡 سيرفرات بديلة` server toggle (revealed when `via==='hd7livex'`), fullscreen/reload, popup guard, `?demo=1` mode. Same `/api/player` contract. |
 | `index-inline.html`, `player-inline.html` | **Mirrors — must stay byte-identical to sources** (verified with difflib; residual diff must be 0). Historically built by inlining `style.css`/`matches.json`; currently exact copies. Any fix script that touches a source must also touch its mirror (`mobile_fix_mirrors.py` pattern). |
 | `api/matches.js` | Vercel fn: scrapes kooralive-plus.info today/yesterday/tomorrow pages, parses `<a data-home …>` anchors + logos/time/result/league, **skips Egyptian league** (no الدوري المصري), 30s cache. |
 | `api/player.js` | Vercel fn: given `?id=&href=[&home=&away=]`, fetches match page, extracts stream iframe (`yasirtv\|romabar\|alba\|player`); else queries sister domains' `/wp-json/sting/v1/iframes` (origin-allowlisted `"Unauthorized origin"` — effectively dead); else tries **hd7livex resolver** (§10) and returns `{found:true, via:'hd7livex', playerSrc:leaf, livePage}`; else returns `fallbackUrl`. |
@@ -44,25 +44,24 @@ Local path: `C:\Users\Abdelli\Desktop\Projects\koora-clean`.
 | `shots/diag.py` | Overflow-offender evaluator (elements wider than viewport). **Untracked.** |
 | `_watch.html` | Scratch file. **Never commit.** |
 
-## 3. Design system
+## 3. Design system (OWN UI v1 — STING theme fully removed 2026-09-04)
 
-- RTL Arabic, flat (no glass/gradients — that direction was tried and reverted).
-- Tokens: `--brand:#750044` (maroon), `--ink:#141b26`, `--card`, `--line`,
-  `--muted`, `--radius`, `--shadow`. Live red `#d00000`.
-- Theme classes keep STING names (`.STING-web-Match[.LIVE|.END|.SOON]`,
-  `.STING-web-Match-Timing > #STING-web-Match-Time / #STING-web-Result /
-  .STING-web-Data`, `.STING-web-Match-Center`, `.STING-web-Header…`,
-  `.STING-web-Menu`, `.STING-web-Matches-Toggle`).
-- Live card anatomy: score `#STING-web-Result`; league pill `.STING-web-Data`;
-  red blinking **"جارية الآن" banner is a `::before` on
-  `.STING-web-Data.LIVE`**, absolutely positioned against the pill
-  (`position:relative` on the pill is load-bearing — see fix3 incident §5).
-  Theme hides `#STING-web-Match-Time` for LIVE
-  (`.STING-web-Match.LIVE #STING-web-Match-Time{display:none}`).
-- Live matches render twice by design (dark live-rail + main list) — leave alone.
-- Mobile rules: 44px touch targets, 16px inputs (iOS zoom),
-  `env(safe-area-inset-bottom)`, `:focus-visible`, `prefers-reduced-motion`,
-  `margin-inline-start` for RTL.
+- RTL Arabic, flat, mobile-first. Own pitch-night identity (nothing copied
+  from the clone sites).
+- Tokens: `--night:#071f19`, `--pitch:#0b3d2e`, `--grass:#16a34a`,
+  `--paper:#f2f5f2` (index) / `#0c1a15` (player), `--ink`, `--muted`,
+  `--line`, `--live:#e0202e`, `--gold:#ffb800` (minute badge). One font:
+  Cairo (Google Fonts + system fallback), tabular numerals.
+- Signature: live minute badge (gold pill + pulsing dot), grass-green
+  "touchline" edge on live cards, header center-circle + halfway-line motif.
+- Index: dark header → overlapping day segmented control → search + league
+  chips → live snap rail → league-grouped rows (status col + teams + `‹`).
+- Player: dark page, 16:9 stage, translucent click-shield, server toggle
+  pair, fullscreen/reload, blocked-counter.
+- Mobile rules: 44px+ targets, 16px inputs (iOS zoom),
+  `env(safe-area-inset-bottom)`, `:focus-visible`, `prefers-reduced-motion`.
+- (Historical: maroon `#750044` brand + all `.STING-web-*` classes, drawer,
+  `::before` live banner — deleted with the rewrite. See git for the old.)
 
 ## 4. Full history (git, oldest → newest)
 
@@ -83,6 +82,8 @@ Local path: `C:\Users\Abdelli\Desktop\Projects\koora-clean`.
 - `378fb12` — mobile tune v1 (640px, 44px targets, 16px search, player).
 - `27b1ba9` — mobile fixes v2–v4 + mirror sync (this session, see §5).
 - `7513cda` — live-player hd7livex resolver (this session, see §10).
+- `<OWN-HASH>` — OWN UI v1: both pages rewritten from scratch, pitch-night
+  identity, zero STING CSS (this session, see §11).
 
 ## 5. Mobile-fix saga (2026-09-04, user: "still not mobile optimized")
 
@@ -211,3 +212,22 @@ matches at the time (Abha-Ettifaq `4788139` 2nd half, Khenchela-USMA
   live_probe.py, …). **Never commit `shots/` or `_watch.html`.**
 - **Not yet proven:** video actually playing in OUR player (needs deployed URL
   + real browser — see §8.1–8.2).
+
+## 11. OWN UI v1 rewrite (2026-09-04 ~19:00 UTC, user: "UI is dawg shit, make our own")
+
+Both `index.html` + `player.html` rewritten from scratch — zero STING CSS,
+zero maroon, zero drawer. Pitch-night identity (§3). User confirmed
+"everything is working" on the stream side first, then asked for this.
+
+- Kept contracts: `/api/matches?day=` fields, worker→api→`matches.json`
+  fallback, `/api/player` found/via/embedUrl/livePage/fallbackUrl, popup
+  guard regexes, click-shield, `?demo=1`. Dropped: inline sample data in
+  player head (demo mode covers it), telegram-hide button (nothing to hide
+  anymore — no telegram links in our own UI).
+- Verified: `node --check` exit 0 both; local 390px render
+  (`shots/own_index.png`, `shots/own_player.png`, untracked):
+  `docScrollW=390`, no overflow offenders, 3 live rail cards + league rows
+  from `matches.json`, player shield up. Live classifier: `isLive()` on
+  official_status/status/game_time/result_text, `isEnded()` on انتهت/FT.
+- Deployed-URL check of the new UI on `kooraadz.vercel.app` still pending
+  at time of commit — verify after Vercel rebuilds.
