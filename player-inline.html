@@ -112,6 +112,7 @@ a:focus-visible,button:focus-visible{ outline:2px solid #750044; outline-offset:
     <div class="controls">
       <button class="btn" id="btnFullscreen">⛶ ملء الشاشة</button>
       <button class="btn ghost" id="btnReload">↻ إعادة تحميل</button>
+      <button class="btn ghost" id="btnServers" style="display:none">📡 سيرفرات بديلة</button>
       <button class="btn danger" id="btnKill">☠️ إخفاء لافتة تيليجرام</button>
       <span id="blockCount" style="margin-inline-start:auto;font-size:12px;color:#a0004a;">محظور: 0</span>
     </div>
@@ -195,12 +196,13 @@ let isLiveMatch = false;
 try{ const data = window.__MATCHES__ ? window.__MATCHES__.find(x=>x.id===id) : null; isLiveMatch = data && data.status === 'LIVE'; }catch(e){}
 
 let finalSrc;
+let altSrc = '';
 
  // Try to fetch real player via API
 async function loadRealPlayer(){
   try{
     log('Fetching real player for ' + id + '...');
-    const apiUrl = `/api/player?id=${encodeURIComponent(id)}&href=${encodeURIComponent(targetUrl)}`;
+    const apiUrl = `/api/player?id=${encodeURIComponent(id)}&href=${encodeURIComponent(targetUrl)}&home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}`;
     const res = await fetch(apiUrl);
     const data = await res.json();
     if(data && data.playerSrc){
@@ -208,7 +210,17 @@ async function loadRealPlayer(){
       finalSrc = data.playerSrc;
       // If it's a yasirtv URL, we need to ensure it has the right key - the API should return the correct src
       // For now, use the returned playerSrc directly
-      if(workerBase && workerBase.startsWith('https://') && data.playerSrc.includes('yasirtv')){
+      if(data.via==='hd7livex'){
+        // hd7livex leaf embeds (yallaxsport/kora-live-live) are bot-gated for
+        // datacenters — they must load directly in the user's browser, never
+        // through the worker proxy. Offer the full AlbaPlayer server page too.
+        finalSrc = data.playerSrc;
+        if(data.livePage){
+          altSrc = data.livePage;
+          document.getElementById('btnServers').style.display='';
+          log('Alt servers: ' + data.livePage.slice(0,60));
+        }
+      } else if(workerBase && workerBase.startsWith('https://') && data.playerSrc.includes('yasirtv')){
         // For yasirtv, we can load directly, no need for proxy
         finalSrc = data.playerSrc;
       } else if(workerBase && workerBase.startsWith('https://')){
@@ -265,6 +277,14 @@ document.getElementById('btnReload').onclick = ()=>{
     iframe.src = lastCleanSrc + (lastCleanSrc.includes('?')?'&':'?') + '_=' + Date.now();
     log('Reload (fallback)'); 
   }
+};
+
+document.getElementById('btnServers').onclick = ()=>{
+  if(!altSrc) return;
+  const cur = iframe.src;
+  iframe.src = altSrc; altSrc = cur; lastCleanSrc = iframe.src;
+  armed = true; clickShield.classList.remove('hidden');
+  log('Servers view'); toast('عرض السيرفرات البديلة');
 };
 
 document.getElementById('btnFullscreen').onclick = async ()=>{

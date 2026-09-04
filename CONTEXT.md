@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-04 (commit `27b1ba9`).
+> Last updated: 2026-09-04 (commit `572cc2f`).
 
 ## 1. What this is
 
@@ -25,10 +25,10 @@ Local path: `C:\Users\Abdelli\Desktop\Projects\koora-clean`.
 | File | Role |
 |---|---|
 | `index.html` | Project A. Single file: minified STING theme CSS + custom override `<style>` + inline `<script>` (fetch `/api/matches?day=`, render cards). |
-| `player.html` | Project B. Single file: player shell, controls, inline sample data in head for offline layout. |
+| `player.html` | Project B. Single file: player shell, controls, inline sample data in head for offline layout. Has hidden `📡 سيرفرات بديلة` button (revealed when `via==='hd7livex'`) that swap-toggles iframe between leaf embed and full `livePage` server UI. |
 | `index-inline.html`, `player-inline.html` | **Mirrors — must stay byte-identical to sources** (verified with difflib; residual diff must be 0). Historically built by inlining `style.css`/`matches.json`; currently exact copies. Any fix script that touches a source must also touch its mirror (`mobile_fix_mirrors.py` pattern). |
 | `api/matches.js` | Vercel fn: scrapes kooralive-plus.info today/yesterday/tomorrow pages, parses `<a data-home …>` anchors + logos/time/result/league, **skips Egyptian league** (no الدوري المصري), 30s cache. |
-| `api/player.js` | Vercel fn: given `?id=&href=`, fetches match page, extracts stream iframe (`yasirtv\|romabar\|alba\|player`); else queries sister domains' `/wp-json/sting/v1/iframes` (`kooralive-plus.info`, `kooralive24.com`, `romabar.info`); else returns `fallbackUrl`. |
+| `api/player.js` | Vercel fn: given `?id=&href=[&home=&away=]`, fetches match page, extracts stream iframe (`yasirtv\|romabar\|alba\|player`); else queries sister domains' `/wp-json/sting/v1/iframes` (origin-allowlisted `"Unauthorized origin"` — effectively dead); else tries **hd7livex resolver** (§10) and returns `{found:true, via:'hd7livex', playerSrc:leaf, livePage}`; else returns `fallbackUrl`. |
 | `worker.js` | Cloudflare worker: LIVE scraper + proxy (`/api/matches`). |
 | `worker-serve.js` | Cloudflare worker: allowlisted stream proxy (`kooralive-plus.info`, `romabar.info`, `yasirtv.com`, …). |
 | `matches.json` | Static fallback match data. |
@@ -82,6 +82,7 @@ Local path: `C:\Users\Abdelli\Desktop\Projects\koora-clean`.
   numerals; JS hooks unchanged).
 - `378fb12` — mobile tune v1 (640px, 44px targets, 16px search, player).
 - `27b1ba9` — mobile fixes v2–v4 + mirror sync (this session, see §5).
+- `572cc2f` — live-player hd7livex resolver (this session, see §10).
 
 ## 5. Mobile-fix saga (2026-09-04, user: "still not mobile optimized")
 
@@ -124,27 +125,34 @@ away teams.
 5. Commit (include fix scripts) + push to `origin main`. Never commit
    `_watch.html` or `shots/`.
 
-## 7. Current state (2026-09-04, after `27b1ba9`)
+## 7. Current state (2026-09-04, after `572cc2f`)
 
 - Index mobile: clean header pills, unified day tabs, live cards (score +
   league pill + blinking banner), ended cards ("انتهت"), no overflow.
 - Player mobile: centered logo, readable pills, back button clear, stacked
   44px controls. Logo "ghosting" seen once was a screenshot downscale artifact
   (zoomed clip is crisp).
-- **Player stream path is UNTESTED live**: no match was in progress during this
-  session, so `/api/player` resolution → iframe → fullscreen/reload/popup-kill
-  has never been observed working. See Pending.
+- **Player stream path RESOLVED server-side, NOT yet confirmed in a real
+  browser** (see §10): `/api/player?id=4788139&home=أبها&away=الاتفاق`
+  returns `{found:true, via:'hd7livex',
+  playerSrc:'https://s15.yallaxsport.com/ch/ch9.php',
+  livePage:'https://goalkooora.info/live/test1.php'}` (STATUS 200, real
+  handler e2e). Headless Playwright is Adscore-gated at the leaf embed, so
+  only a human opening OUR player link can confirm video plays. See Pending.
 
 ## 8. Pending — what we are waiting for
 
-1. **Live-match player test (waiting on user).** User will ping when a match
-   starts. Then: observe how the player reacts (stream resolves? fallback?
-   buttons? fullscreen? reload? telegram/popup leaks?) and improve. This is
-   the top priority.
-2. **Armed live-match monitor (background task, inherited).** When it fires:
+1. **Deployed site URL (blocking OUR player e2e, ask user).** Not in repo —
+   need it to test `/api/player?id=4788139`, 390px render,
+   controls/fullscreen/reload/popup-kill on the live build.
+2. **Real-browser play confirmation (needs user).** User opens OUR Abha player
+   link in a real browser and confirms video plays (headless can't — Adscore
+   gate). If it plays, the deferred live-player work is DONE.
+3. **Armed live-match monitor (background task, inherited).** When it fires:
    wire the server-rendered player iframe into `api/player.js`/`player.html`,
-   push, reply. Do not poll it.
-3. **This file.** Update + push on every change (protocol at top).
+   push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
+   armed until play is confirmed.)
+4. **This file.** Update + push on every change (protocol at top).
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
@@ -155,3 +163,46 @@ away teams.
 - Edit scripts: guarded `load`/`save`/`rep1` idiom
   (`EXPECTED 1, FOUND n` asserts, marker comments `MOBILE-FIX-vN`, idempotent
   re-runs, `BASE = os.path.dirname(os.path.abspath(__file__))`).
+
+## 10. Live-player resolver saga (2026-09-04 evening, user: "there is a match")
+
+User reported a live match, then gave the breakthrough lead:
+`https://hd7livex.com/test1/` ("this one has a player"). Provenance: 5 live
+matches at the time (Abha-Ettifaq `4788139` 2nd half, Khenchela-USMA
+`4827476`, Lyon-Auxerre `4735277`, Swehly-KVZ `4805131`, AS Port-Zamalek
+`4805134`).
+
+- **Everything old is dead (verified live).** Kooralive match pages are SEO
+  articles (no watch links even rendered); the sister-domain sting
+  `/wp-json/sting/v1/iframes` API is origin-allowlisted
+  (`{"error":"Unauthorized origin"}`, CORS fail, HTTP 403 on all 3 domains);
+  packed theme JS has no player; cards carry no channel data; `koorae.live`
+  is DNS-dead.
+- **Working chain (verified on 2 matches, Abha + Lyon, different leaf
+  schemes):** hd7livex `matches-today` card →
+  per-match page (e.g. `/أبها-ضد-الاتفاق-2/`) → `goalkooora.info/live/*.php`
+  (full AlbaPlayer v10 UI with server buttons) → `goalkooora.info/m9/*.php`
+  (279-byte iframe shell) → **leaf provider embed** (Abha→
+  `s15.yallaxsport.com/ch/ch9.php`; Lyon→
+  `cup.kora-live-live.com/albaplayer/sports-4/`). **Every step is statically
+  fetchable** (no JS needed); the leaf is bot-gated (Adscore — headless gets
+  a 3KB ad shell / hijack nav to YouTube) but plays in real browsers.
+- **Headless trap (don't repeat):** plain-HTTP hd7livex returns 200 with no
+  server redirect, yet Playwright navigated to YouTube — it was a client-side
+  ad/hijack top-nav (`nn125.com`, fingerprints `Chrome Headless`, geo DZ).
+  Blocking ad requests kills the main frame via the aborted top-nav. Static
+  fetching sidesteps all of it.
+- **Implementation.** `api/player.js`: `resolveHd7(home, away)` — Arabic-loose
+  `normAr` matching (أ/إ/آ→ا, ة→ه, ى→ي, strip tashkeel) of card titles from
+  the script-stripped day page
+  (`class='alba_sports_events_link'\s+href='([^']+)'\s+title='([^']+)'`,
+  title-includes-home-or-away), then live→m9→leaf iframe regexes with
+  `//`→`https:` fixups; 8s `fetchT` AbortController timeouts. New optional
+  `?home=&away=` params (also used by local tests; falls back to
+  `/api/matches` self-lookup by id). `player.html`: `via==='hd7livex'` loads
+  the leaf **directly** (never via worker proxy — proxying breaks the
+  provider), reveals the `📡 سيرفرات بديلة` button to swap-toggle leaf ↔
+  `livePage`. Probes live in `shots/` (hd7_*, goal_*, ch_*, card_dump.py,
+  live_probe.py, …). **Never commit `shots/` or `_watch.html`.**
+- **Not yet proven:** video actually playing in OUR player (needs deployed URL
+  + real browser — see §8.1–8.2).
