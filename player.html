@@ -155,10 +155,8 @@ let isLiveMatch = false;
 try{ const data = window.__MATCHES__ ? window.__MATCHES__.find(x=>x.id===id) : null; isLiveMatch = data && data.status === 'LIVE'; }catch(e){}
 
 let finalSrc;
-let isLiveMatch = false;
-try{ const data = window.__MATCHES__ ? window.__MATCHES__.find(x=>x.id===id) : null; isLiveMatch = data && data.status === 'LIVE'; }catch(e){}
 
-// Try to fetch real player via API
+ // Try to fetch real player via API
 async function loadRealPlayer(){
   try{
     log('Fetching real player for ' + id + '...');
@@ -208,7 +206,9 @@ async function loadRealPlayer(){
   log('Loading player...' + (isLiveMatch ? ' (LIVE)' : ''));
 }
 loadRealPlayer();
- log('Shield off — enjoy'); toast('Ready'); }
+// click shield — first click is absorbed so t.me popups never open
+let armed = true;
+function disarm(){ if(!armed) return; armed=false; clickShield.classList.add('hidden'); log('Shield off — enjoy'); toast('Ready'); }
 clickShield.addEventListener('click', disarm);
 document.getElementById('playBtn').addEventListener('click', disarm);
 
