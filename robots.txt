@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kooraadz.vercel.app/sitemap.xml

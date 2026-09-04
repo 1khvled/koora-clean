@@ -84,6 +84,7 @@ Local path: `C:\Users\Abdelli\Desktop\Projects\koora-clean`.
 - `7513cda` — live-player hd7livex resolver (this session, see §10).
 - `fc98577` — OWN UI v1: both pages rewritten from scratch, pitch-night
   identity, zero STING CSS (this session, see §11).
+- `3dd0508` — improvement batch #2/#4/#8/#9 (this session, see §12).
 
 ## 5. Mobile-fix saga (2026-09-04, user: "still not mobile optimized")
 
@@ -126,7 +127,32 @@ away teams.
 5. Commit (include fix scripts) + push to `origin main`. Never commit
    `_watch.html` or `shots/`.
 
-## 7. Current state (2026-09-04, after `7513cda`)
+## 7. Current state (2026-09-04, after batch §12)
+
+- Index: 45s silent score refresh (visible-tab only, LEAGUE + scroll kept);
+  JSON-LD SportsEvent graph (≤50) injected per render; SW registered.
+- Player: ordered server list [leaf → livePage → fallbackUrl]; watchdog
+  auto-advances on ≥3 blocks/15s with "نحاول سيرفراً آخر…" toast (probe:
+  advanced one.example→two.example, counter محظور: 3); SW BLOCKED msgs
+  wired into the counter; dynamic `document.title` per match.
+- PWA: `manifest.webmanifest` + 3 PIL icons (192/512/maskable,
+  apple-touch 180); `robots.txt` + `sitemap.xml` (canonical
+  `https://kooraadz.vercel.app/`); OG/twitter/canonical meta both pages.
+- Verified: node --check 0/0; 390px scrollW=390 both, no overflow;
+  console clean except benign local-/api-404 + upstream autoplay noise.
+  Mirrors at zero diff.
+- Index mobile: clean header pills, unified day tabs, live cards (score +
+  league pill + blinking banner), ended cards ("انتهت"), no overflow.
+- Player mobile: centered logo, readable pills, back button clear, stacked
+  44px controls. Logo "ghosting" seen once was a screenshot downscale artifact
+  (zoomed clip is crisp).
+- **Player stream path RESOLVED server-side, NOT yet confirmed in a real
+  browser** (see §10): `/api/player?id=4788139&home=أبها&away=الاتفاق`
+  returns `{found:true, via:'hd7livex',
+  playerSrc:'https://s15.yallaxsport.com/ch/ch9.php',
+  livePage:'https://goalkooora.info/live/test1.php'}` (STATUS 200, real
+  handler e2e). Headless Playwright is Adscore-gated at the leaf embed, so
+  only a human opening OUR player link can confirm video plays. See Pending.
 
 - Index mobile: clean header pills, unified day tabs, live cards (score +
   league pill + blinking banner), ended cards ("انتهت"), no overflow.
@@ -231,3 +257,30 @@ zero maroon, zero drawer. Pitch-night identity (§3). User confirmed
   official_status/status/game_time/result_text, `isEnded()` on انتهت/FT.
 - Deployed-URL check of the new UI on `kooraadz.vercel.app` still pending
   at time of commit — verify after Vercel rebuilds.
+
+## 12. Improvement batch #2/#4/#8/#9 (2026-09-04 ~19:20 UTC, user: "do 2 and 4 and 8 and 9")
+
+From the 10-item improvement list: user picked #2 auto-refresh, #4 PWA,
+#8 fallback chain, #9 SEO.
+
+- **#2 auto-refresh (index):** `loadDay` split into `fetchData(day, silent)` +
+  `loadDay(day, silent)`; `setInterval 45s` calls `loadDay(DAY, true)` —
+  skips when `document.hidden`, keeps scroll + LEAGUE, cache-busts `_=Date.now()`.
+- **#4 PWA:** `manifest.webmanifest` (ar/rtl, standalone, #071f19, 192+512+
+  maskable) + PIL icons (`icon-192/512.png`, `apple-touch-icon.png` —
+  green rounded square, white ball, 5 dots); SW registered on load in both
+  pages; SW `{type:'BLOCKED'}` messages wired into player's `bumpBlocked()`.
+- **#8 fallback chain (player):** `showServers(main, alt, fb)` builds deduped
+  `serverList` [embed/leaf → livePage → fallbackUrl]; watchdog in
+  `bumpBlocked()` auto-advances (`goServer(srvIdx+1)`) on ≥3 blocks/15s with
+  toast; manual toggle preserved (+`trackServer`). Demo branch registers its
+  single server too.
+- **#9 SEO:** description/canonical/OG/twitter/manifest/apple-touch meta both
+  pages; dynamic player `document.title` (`مشاهدة home × away بث مباشر`);
+  `robots.txt` + `sitemap.xml`; `injectJsonLd()` writes ≤50 SportsEvent
+  `@graph` per render. **Bug caught by probe:** `$('#jsonld').remove()`
+  threw on first render (null) — fixed with `getElementById()?.remove()`.
+- Verified: node --check 0/0; `shots/watchdog_probe.py` (advanced ✓, toast ✓,
+  counter ✓); `shots/jsonld_probe.py` (5 SportsEvent ✓); `shots/console_probe.py`
+  (only benign local-/api-404 + upstream autoplay noise); 390px scrollW=390,
+  no overflow; mirrors 0/0. New probes live in `shots/` — untracked, never commit.
