@@ -4,7 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071f19">
-<title>كورة لايف — بث نظيف بدون إعلانات</title>
+<title>كورة لايف — مباريات اليوم بث مباشر بدون إعلانات</title>
+<meta name="description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة. جدول المباريات، النتائج المباشرة، والقنوات الناقلة.">
+<link rel="canonical" href="https://kooraadz.vercel.app/index.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_AR">
+<meta property="og:site_name" content="كورة لايف">
+<meta property="og:title" content="كورة لايف — مباريات اليوم بث مباشر">
+<meta property="og:description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
+<meta property="og:url" content="https://kooraadz.vercel.app/index.html">
+<meta property="og:image" content="https://kooraadz.vercel.app/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="كورة لايف — مباريات اليوم بث مباشر">
+<meta name="twitter:description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -170,30 +185,39 @@ function logoImg(src, alt){
   return `<img src="${src}" alt="" loading="lazy" onerror="this.style.display='none'">`;
 }
 
-async function loadDay(day){
-  DAY = day;
-  $$('#dayTabs button').forEach(b => b.classList.toggle('on', b.dataset.day === day));
-  $('#loading').hidden = false; $('#leagues').innerHTML = '';
-  $('#liveSec').hidden = true; $('#empty').hidden = true;
+async function fetchData(day, silent){ // silent = background refresh: keep scroll + LEAGUE filter
   const wb = workerBase();
   const urls = [];
   if (wb) urls.push(wb.replace(/\/$/, '') + '/api/matches?day=' + day);
   urls.push('/api/matches?day=' + day, './matches.json');
-  let data = null;
   for (const u of urls){
     try {
-      const r = await fetch(u, { cache: 'no-store' });
+      const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' });
       if (!r.ok) continue;
       const j = await r.json();
-      if (Array.isArray(j) && j.length){ data = j; break; }
+      if (Array.isArray(j) && j.length) return j;
     } catch {}
   }
+  return null;
+}
+
+async function loadDay(day, silent){
+  if (silent && document.hidden) return; // #2: no refresh while tab hidden
+  DAY = day;
+  if (!silent){
+    $$('#dayTabs button').forEach(b => b.classList.toggle('on', b.dataset.day === day));
+    $('#loading').hidden = false; $('#leagues').innerHTML = '';
+    $('#liveSec').hidden = true; $('#empty').hidden = true;
+  }
+  const data = await fetchData(day, silent);
   $('#loading').hidden = true;
-  if (!data){ toast('تعذّر تحميل المباريات — تحقق من الاتصال'); return; }
+  if (!data){ if (!silent) toast('تعذّر تحميل المباريات — تحقق من الاتصال'); return; }
   ALL = data;
-  buildChips();
+  if (!silent) buildChips();
   render();
 }
+
+setInterval(() => loadDay(DAY, true), 45000); // #2: silent score refresh every 45s
 
 function buildChips(){
   const leagues = [...new Set(ALL.map(m => (m.league_text || m.league || '').trim()).filter(Boolean))];
@@ -259,11 +283,39 @@ function render(){
   $('#leagues').innerHTML = [...groups].map(([lg, ms]) =>
     `<section class="league"><h3>${lg}</h3>${ms.map(rowCard).join('')}</section>`).join('');
   $('#empty').hidden = list.length > 0;
+  injectJsonLd(list); // #9: fresh SportsEvent schema for crawlers
+}
+
+function injectJsonLd(list){ // #9: one SportsEvent per listed match
+  document.getElementById('jsonld')?.remove();
+  const graph = list.slice(0, 50).map(m => ({
+    '@type': 'SportsEvent',
+    name: `${m.home || ''} ضد ${m.away || ''}`,
+    sport: 'كرة القدم',
+    startDate: m.start || undefined,
+    eventStatus: isLive(m)
+      ? 'https://schema.org/EventLive'
+      : (isEnded(m) ? 'https://schema.org/EventCompleted' : 'https://schema.org/EventScheduled'),
+    homeTeam: { '@type': 'SportsTeam', name: m.home || '' },
+    awayTeam: { '@type': 'SportsTeam', name: m.away || '' },
+    url: playerLink(m)
+  }));
+  const s = document.createElement('script');
+  s.type = 'application/ld+json'; s.id = 'jsonld';
+  s.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+  document.head.appendChild(s);
 }
 
 $('#searchInput').addEventListener('input', render);
 $$('#dayTabs button').forEach(b => b.onclick = () => { LEAGUE = 'all'; loadDay(b.dataset.day); });
 loadDay('today');
+
+// #4: register service worker (ad-blocker + offline shell); no-op if unsupported
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

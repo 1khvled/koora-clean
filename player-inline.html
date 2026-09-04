@@ -4,7 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071f19">
-<title>مشاهدة المباراة — كورة لايف</title>
+<title>مشاهدة المباراة بث مباشر — كورة لايف</title>
+<meta name="description" content="مشاهدة المباراة بث مباشر بجودة عالية وبدون إعلانات مزعجة على كورة لايف.">
+<link rel="canonical" href="https://kooraadz.vercel.app/player.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_AR">
+<meta property="og:site_name" content="كورة لايف">
+<meta property="og:title" content="مشاهدة المباراة بث مباشر — كورة لايف">
+<meta property="og:description" content="بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
+<meta property="og:url" content="https://kooraadz.vercel.app/player.html">
+<meta property="og:image" content="https://kooraadz.vercel.app/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -110,6 +123,7 @@ const clickShield = document.getElementById('clickShield');
 const statusEl = document.getElementById('status');
 document.getElementById('matchTitle').textContent =
   (home || away) ? `${home} × ${away}` : 'مشاهدة المباراة';
+if (home || away) document.title = `مشاهدة ${home} × ${away} بث مباشر — كورة لايف`; // #9
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -128,17 +142,44 @@ function bumpBlocked(){
   statusEl.textContent = 'محظور: ' + blocked;
   shield.classList.add('hit');
   setTimeout(() => shield.classList.remove('hit'), 500);
+  /* #8 watchdog: 3+ blocks in 15s → auto-advance to next server */
+  const now = Date.now();
+  blockTimes = blockTimes.filter(t => now - t < 15000);
+  blockTimes.push(now);
+  if (blockTimes.length >= 3 && serverList.length > 1){
+    blockTimes = [];
+    goServer(srvIdx + 1, true);
+  }
 }
 
-/* server toggle state */
+/* server list state (#8: leaf → livePage → fallback, last resort) */
 let mainSrc = '', altSrc = '', showingAlt = false;
+let serverList = [], srvIdx = 0, blockTimes = [];
 const serversEl = document.getElementById('servers');
 const srvMain = document.getElementById('srvMain');
 const srvAlt = document.getElementById('srvAlt');
-function showServers(main, alt){
-  mainSrc = main; altSrc = alt; showingAlt = false;
+function showServers(main, alt, fb){
+  mainSrc = main || ''; altSrc = alt || ''; showingAlt = false;
+  serverList = [main, alt, fb].filter(Boolean).filter((s, i, a) => a.indexOf(s) === i);
+  srvIdx = 0;
   srvMain.classList.add('on'); srvAlt.classList.remove('on');
   serversEl.hidden = !alt;
+}
+function trackServer(src){
+  const i = serverList.indexOf(src);
+  if (i >= 0) srvIdx = i;
+}
+function goServer(i, auto){
+  if (!serverList.length) return;
+  srvIdx = ((i % serverList.length) + serverList.length) % serverList.length;
+  const src = serverList[srvIdx];
+  showingAlt = (src === altSrc && src !== mainSrc);
+  srvMain.classList.toggle('on', !showingAlt);
+  srvAlt.classList.toggle('on', showingAlt);
+  iframe.src = src;
+  lastCleanSrc = src;
+  rearmShield();
+  if (auto) toast('نحاول سيرفراً آخر…');
 }
 function swapServer(){
   if (!altSrc) return;
@@ -147,6 +188,7 @@ function swapServer(){
   srvAlt.classList.toggle('on', showingAlt);
   iframe.src = showingAlt ? altSrc : mainSrc;
   lastCleanSrc = iframe.src;
+  trackServer(iframe.src);
   rearmShield();
   toast(showingAlt ? 'سيرفرات بديلة — اختر سيرفراً من القائمة' : 'المشغّل الرئيسي');
 }
@@ -165,6 +207,7 @@ async function loadRealPlayer(){
       : 'https://www.romabar.info/albaplayer/bein-9/?serv=0';
     iframe.src = demoSrc;
     lastCleanSrc = demoSrc;
+    showServers(demoSrc, null, null);
     return;
   }
   try {
@@ -174,13 +217,11 @@ async function loadRealPlayer(){
     let finalSrc = '';
     if (data && data.found && data.embedUrl){
       finalSrc = data.embedUrl;
-      if (data.via === 'hd7livex' && data.livePage){
-        showServers(finalSrc, data.livePage); // leaf direct, livePage = server list
-      }
     } else if (data && data.fallbackUrl){
       finalSrc = data.fallbackUrl;
       toast('لا يوجد بث مباشر — صفحة المباراة');
     }
+    if (data) showServers(data.embedUrl || null, data.livePage || null, data.fallbackUrl || null); // #8 full chain
     if (finalSrc){
       iframe.src = finalSrc;
       lastCleanSrc = finalSrc;
@@ -223,6 +264,16 @@ iframe.addEventListener('load', () => {
 });
 /* block window.open popups from embeds */
 window.open = function(){ bumpBlocked(); return null; };
+
+// #4: register service worker; wire its BLOCKED reports into the counter
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && e.data.type === 'BLOCKED') bumpBlocked();
+  });
+}
 
 loadRealPlayer();
 </script>
