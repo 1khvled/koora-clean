@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-04 (commit `572cc2f`).
+> Last updated: 2026-09-04 (commit `7513cda`).
 
 ## 1. What this is
 
@@ -82,7 +82,7 @@ Local path: `C:\Users\Abdelli\Desktop\Projects\koora-clean`.
   numerals; JS hooks unchanged).
 - `378fb12` — mobile tune v1 (640px, 44px targets, 16px search, player).
 - `27b1ba9` — mobile fixes v2–v4 + mirror sync (this session, see §5).
-- `572cc2f` — live-player hd7livex resolver (this session, see §10).
+- `7513cda` — live-player hd7livex resolver (this session, see §10).
 
 ## 5. Mobile-fix saga (2026-09-04, user: "still not mobile optimized")
 
@@ -125,7 +125,7 @@ away teams.
 5. Commit (include fix scripts) + push to `origin main`. Never commit
    `_watch.html` or `shots/`.
 
-## 7. Current state (2026-09-04, after `572cc2f`)
+## 7. Current state (2026-09-04, after `7513cda`)
 
 - Index mobile: clean header pills, unified day tabs, live cards (score +
   league pill + blinking banner), ended cards ("انتهت"), no overflow.
