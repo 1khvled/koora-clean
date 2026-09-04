@@ -45,10 +45,26 @@
 .btn:active{ transform:translateY(0); }
 .ratio{ border-radius:0 0 16px 16px; }
 .player-header{ border-radius:16px 16px 0 0; }
+/* MOBILE-FIX-v2 — dead drawer becomes an inline nav row (theme ships no opener) */
+@media (max-width:1000px){
+  .STING-web-Header-Menu{ position:static !important; right:auto !important; top:auto !important; float:none !important; width:100% !important; height:auto !important; margin:0 !important; padding:0 !important; background:transparent !important; box-shadow:none !important; border:0 !important; z-index:auto !important; transition:none !important; overflow:visible !important; }
+}
 /* MOBILE-TUNE-v1 — full-bleed player, stacked 44px controls */
 @media (max-width:640px){
   .player-wrap{ width:100%; padding:0 10px; box-sizing:border-box; }
   header{ width:100%; }
+  .STING-web-Header-Menu{ margin:10px 0 0 !important; padding:0 0 4px !important; overflow-x:auto !important; overflow-y:hidden !important; -webkit-overflow-scrolling:touch; }
+  /* MOBILE-FIX-v4 — wrap header: centered logo row, pills row below */
+  .STING-web-Header{ flex-wrap:wrap !important; row-gap:8px; }
+  .STING-web-Header-Right{ flex-wrap:wrap !important; gap:10px !important; flex:1 1 100%; min-width:0; }
+  .STING-web-Header-Logo{ margin:8px auto !important; white-space:nowrap !important; }
+  .STING-web-Menu{ flex-wrap:nowrap !important; }
+  .STING-web-Menu > li{ flex:none; }
+  /* MOBILE-FIX-v3 — readable nav pills */
+  /* MOBILE-FIX-v4 — ink text (drawer leaks white), kill drawer grid stack */
+  .STING-web-Menu{ display:flex !important; margin-top:0 !important; }
+  .STING-web-Menu > li{ margin-bottom:0 !important; }
+  .STING-web-Menu > li > a{ background:#fff; border:1px solid #e2e8f0; border-radius:999px; min-height:44px; display:inline-flex; align-items:center; padding:8px 16px; white-space:nowrap; color:#141b26 !important; height:auto !important; border-bottom:0 !important; }
   .STING-web-Post{ margin:10px auto; }
   .player-card{ margin:10px 0; border-radius:14px !important; }
   .ratio{ border-radius:0 0 14px 14px; }
@@ -75,7 +91,7 @@ a:focus-visible,button:focus-visible{ outline:2px solid #750044; outline-offset:
 
 <header><div class="STING-web-Header STING-web-Max-Size">
   <div class="STING-web-Header-Right">
-    <div class="STING-web-Header-Logo"><a href="./"><span class="STING-WEB-SiteName"></span><span class="STING-WEB-SiteUrl"></span></a></div>
+    <div class="STING-web-Header-Logo"><a href="./"><span class="STING-WEB-SiteName">كورة لايف</span><span class="STING-WEB-SiteUrl">بث نظيف بدون إعلانات</span></a></div>
     <div class="STING-web-Header-Menu"><ul class="STING-web-Menu" style="display:flex;gap:12px;list-style:none;padding:0;margin:0">
       <li><a href="./" style="color:#750044;font-weight:800;">الرئيسية</a></li><li><a href="./#matches">المباريات</a></li>
     </ul></div>

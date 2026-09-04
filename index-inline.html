@@ -148,6 +148,10 @@ body.Night .STING-web-Menu > li > a:hover{ background:#241a26; }
 .STING-web-Footer{ background:var(--card) !important; color:var(--muted) !important;
   border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
 .STING-web-Footer a{ color:var(--brand) !important; font-weight:700; }
+/* MOBILE-FIX-v2 — dead drawer becomes an inline nav row (theme ships no opener) */
+@media (max-width:1000px){
+  .STING-web-Header-Menu{ position:static !important; right:auto !important; top:auto !important; float:none !important; width:100% !important; height:auto !important; margin:0 !important; padding:0 !important; background:transparent !important; box-shadow:none !important; border:0 !important; z-index:auto !important; transition:none !important; overflow:visible !important; }
+}
 /* MOBILE-TUNE-v1 — thumb-first match-day */
 @media (max-width:640px){
   html,body{ overflow-x:hidden; }
@@ -157,12 +161,19 @@ body.Night .STING-web-Menu > li > a:hover{ background:#241a26; }
   .STING-web-Header-Right{ flex-wrap:wrap; gap:10px; width:100%; }
   .STING-web-Header-Logo{ height:52px; min-width:0; }
   .STING-WEB-SiteName{ font-size:20px !important; }
-  .STING-web-Header-Menu{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .STING-web-Header-Menu{ margin:10px 0 0 !important; padding:0 0 4px !important; overflow-x:auto !important; overflow-y:hidden !important; -webkit-overflow-scrolling:touch; }
+  .STING-web-Menu{ flex-wrap:nowrap !important; }
+  .STING-web-Menu > li{ flex:none; }
+  .STING-web-Menu > li > a{ background:var(--card); border:1px solid var(--line); border-radius:999px; }
+  .STING-web-Menu > li > a:hover{ border-color:var(--brand); }
   .STING-web-Menu{ gap:8px; }
   .STING-web-Menu > li > a{ min-height:44px; align-items:center; padding:8px 14px; white-space:nowrap; }
   .STING-web-Container-Matches-Top{ top:0; }
   .STING-web-Matches-Toggle{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .STING-web-Matches-Toggle > li > a{ min-height:44px; white-space:nowrap; display:flex; align-items:center; justify-content:center; }
+  /* MOBILE-FIX-v3 — single brand color for day tabs (theme leaks blue/orange) */
+  .STING-web-Matches-Toggle > li > a:not(.on){ background:var(--card) !important; color:var(--muted) !important; }
+  .STING-web-Matches-Toggle > li > a.on{ background:var(--brand) !important; color:#fff !important; box-shadow:none !important; }
   .search-box input{ font-size:16px; padding:12px 14px; padding-inline-start:42px; }
   .league-filter{ flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch; }
   .league-pill{ flex:none; min-height:44px; display:inline-flex; align-items:center; font-size:13px; padding:9px 16px; }
@@ -171,6 +182,7 @@ body.Night .STING-web-Menu > li > a:hover{ background:#241a26; }
   .lc-score{ font-size:18px; }
   .STING-web-Team-NAME{ font-size:13px !important; }
   #STING-web-Result{ font-size:20px; }
+  /* MOBILE-FIX-v4 — reverted v3 timing stack: broke .STING-web-Data.LIVE::before anchor (theme owns live banner) */
   #toast{ bottom:calc(20px + env(safe-area-inset-bottom)); }
 }
 @media (max-width:400px){
