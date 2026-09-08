@@ -164,10 +164,19 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 <script>
 'use strict';
 const qs = new URLSearchParams(location.search);
+/* SEC/robustness: decodeURIComponent throws on a stray '%' (crafted link) and
+   would kill the whole script at load — never let params do that. */
+function safeDec(v){
+  if (v == null) return '';
+  try { return decodeURIComponent(v); } catch { return String(v); }
+}
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 const id = qs.get('id') || '';
-const href = qs.get('href') ? decodeURIComponent(qs.get('href')) : '';
-const home = qs.get('home') ? decodeURIComponent(qs.get('home')) : '';
-const away = qs.get('away') ? decodeURIComponent(qs.get('away')) : '';
+const href = safeDec(qs.get('href'));
+const home = safeDec(qs.get('home'));
+const away = safeDec(qs.get('away'));
 
 const iframe = document.getElementById('player');
 const shield = document.getElementById('shield');
@@ -205,10 +214,10 @@ function bumpBlocked(){
 }
 
 /* match header card — filled instantly from URL params, enriched by API */
-const homeLogo = qs.get('hl') ? decodeURIComponent(qs.get('hl')) : '';
-const awayLogo = qs.get('al') ? decodeURIComponent(qs.get('al')) : '';
-const leagueP = qs.get('lg') ? decodeURIComponent(qs.get('lg')) : '';
-const timeP = qs.get('tm') ? decodeURIComponent(qs.get('tm')) : '';
+const homeLogo = safeDec(qs.get('hl'));
+const awayLogo = safeDec(qs.get('al'));
+const leagueP = safeDec(qs.get('lg'));
+const timeP = safeDec(qs.get('tm'));
 function paintMatch(h, a, hl, al, lg, tm){
   const card = document.getElementById('matchCard');
   if (!h && !a) return;
@@ -225,7 +234,7 @@ paintMatch(home, away, homeLogo, awayLogo, leagueP, timeP);
 
 /* multi-server state — one unified list, two views: Arabic grid + English grid.
    supports new servers[]/enServers[] plus legacy embedUrl/livePage/fallbackUrl */
-const startP = qs.get('st') ? decodeURIComponent(qs.get('st')) : '';
+const startP = safeDec(qs.get('st'));
 let serverList = [], srvIdx = 0, blockTimes = [];
 const serversEl = document.getElementById('servers');
 const srvCount = document.getElementById('srvCount');
@@ -252,7 +261,8 @@ function subTag(s){
 }
 function btnHtml(s, i, on){
   const en = s.kind === 'en';
-  return `<button class="srv${en ? ' en' : ''}${on ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${s.label || ('سيرفر ' + (i + 1))}</b><span>${subTag(s)}</span></span>${en ? '<span class="enbadge">EN</span>' : (on ? '<span class="live-dot"></span>' : '')}</button>`;
+  // SEC: labels/subs come from upstream scrapes (hd7 tab names, vipbox titles) — escape.
+  return `<button class="srv${en ? ' en' : ''}${on ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${esc(s.label) || ('سيرفر ' + (i + 1))}</b><span>${esc(subTag(s))}</span></span>${en ? '<span class="enbadge">EN</span>' : (on ? '<span class="live-dot"></span>' : '')}</button>`;
 }
 function showSkeleton(){
   serversEl.innerHTML = [1, 2, 3].map(i =>
@@ -397,10 +407,16 @@ document.getElementById('btnFull').onclick = () => {
   else if (st.requestFullscreen) st.requestFullscreen().catch(() => toast('تعذّر ملء الشاشة'));
   else toast('المتصفح لا يدعم ملء الشاشة');
 };
-/* reload (cache-bust) */
+/* reload (cache-bust, hash-safe via URL API) */
 document.getElementById('btnReload').onclick = () => {
   if (!lastCleanSrc) return;
-  iframe.src = lastCleanSrc + (lastCleanSrc.includes('?') ? '&' : '?') + '_=' + Date.now();
+  try {
+    const u = new URL(lastCleanSrc, location.origin);
+    u.searchParams.set('_', Date.now());
+    iframe.src = u.toString();
+  } catch {
+    iframe.src = lastCleanSrc + (lastCleanSrc.includes('?') ? '&' : '?') + '_=' + Date.now();
+  }
   rearmShield();
 };
 

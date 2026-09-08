@@ -86,7 +86,10 @@ export default {
       let t;
       try { t = new URL(target); } catch { return new Response('Invalid url', { status: 400, headers: cors }); }
       const allowed = ['kooralive-plus.info','romabar.info','yasirtv.com','912acsss','sir-tv.tv','yalllashoot'];
-      if (!allowed.some(h => t.hostname.includes(h))) return new Response('Host not allowed', { status: 403, headers: cors });
+      // SEC: exact-or-subdomain match — substring `includes` would allow
+      // kooralive-plus.info.evil.com (SSRF/open-proxy bypass).
+      const hostOk = allowed.some(h => t.hostname === h || t.hostname.endsWith('.' + h));
+      if (!hostOk) return new Response('Host not allowed', { status: 403, headers: cors });
       try {
         const upstream = await fetch(t.toString(), { headers: { 'User-Agent': request.headers.get('User-Agent') || 'Mozilla/5.0', 'Referer': 'https://kooralive-plus.info/', 'Accept': 'text/html,application/xhtml+xml' }, cf: { cacheTtl: 0 } });
         const ct = upstream.headers.get('content-type') || '';

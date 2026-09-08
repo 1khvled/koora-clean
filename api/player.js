@@ -283,8 +283,10 @@ export default async function handler(req, res) {
   let matchHome = qHome, matchAway = qAway;
   if ((!target || (!matchHome && !matchAway)) && id) {
     // If only id, try to find href + team names from matches API
+    // (host-header-influenced URL is safe: any href it yields still passes
+    // the kooralive allowlist below before being fetched).
     try {
-      const matchesRes = await fetch(`https://${req.headers.host}/api/matches?day=today`);
+      const matchesRes = await fetchT(`https://${req.headers.host}/api/matches?day=today`, {}, 7000);
       const matches = await matchesRes.json();
       const match = matches.find(m => m.id === id);
       if (match) {
@@ -301,15 +303,24 @@ export default async function handler(req, res) {
 
   // Ensure target is a full URL
   if (!target.startsWith('http')) target = 'https://kooralive-plus.info' + target;
-  
+
+  // SEC (SSRF): `href` is user input — the server must never fetch arbitrary
+  // hosts (cloud metadata 169.254.169.254, intranet, etc.). Only our scrape
+  // origin is allowed; everything else is a 400. Exact-or-subdomain match —
+  // never substring (kooralive-plus.info.evil.com must fail).
+  let targetHost = '';
+  try { targetHost = new URL(target).hostname.toLowerCase(); } catch { return res.status(400).json({ error: 'bad href' }); }
+  if (!(targetHost === 'kooralive-plus.info' || targetHost.endsWith('.kooralive-plus.info')))
+    return res.status(400).json({ error: 'href host not allowed' });
+
   try {
-    const upstream = await fetch(target, {
+    const upstream = await fetchT(target, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'text/html,application/xhtml+xml',
         'Referer': 'https://kooralive-plus.info/',
       }
-    });
+    }, 8000);
     const html = await upstream.text();
     
     // Try to find player iframe directly in HTML (if already rendered)
@@ -336,7 +347,7 @@ export default async function handler(req, res) {
       ];
       for (const base of apiBases) {
         try {
-          const apiRes = await fetch(base + '/wp-json/sting/v1/iframes', {
+          const apiRes = await fetchT(base + '/wp-json/sting/v1/iframes', {
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
               'Accept': 'application/json',
@@ -347,7 +358,7 @@ export default async function handler(req, res) {
               'Sec-Fetch-Mode': 'cors',
               'Sec-Fetch-Dest': 'empty',
             }
-          });
+          }, 7000);
           if (!apiRes.ok) continue;
           const apiData = await apiRes.json();
           if (!Array.isArray(apiData)) continue; // {"error":"Unauthorized origin"} when locked

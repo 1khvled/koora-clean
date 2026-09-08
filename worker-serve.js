@@ -9,7 +9,10 @@ export default {
       try{
         const t = new URL(target);
         const allowed = ['kooralive-plus.info','romabar.info','yasirtv.com','912acsss','sir-tv.tv','yalllashoot'];
-        if(!allowed.some(h=>t.hostname.includes(h))) return new Response('Host not allowed', {status:403});
+        // SEC: exact-or-subdomain match — substring `includes` would allow
+        // kooralive-plus.info.evil.com (SSRF/open-proxy bypass).
+        const hostOk = allowed.some(h=>t.hostname===h||t.hostname.endsWith('.'+h));
+        if(!hostOk) return new Response('Host not allowed', {status:403});
         const upstream = await fetch(t.toString(), {headers:{'User-Agent': request.headers.get('User-Agent')||'Mozilla/5.0','Referer':'https://kooralive-plus.info/','Accept':'text/html,application/xhtml+xml'}});
         const ct = upstream.headers.get('content-type')||'';
         if(!ct.includes('text/html')){
@@ -658,8 +661,10 @@ export default {
     // allow only kooralive / romabar / yasirtv
     let t;
     try { t = new URL(target); } catch { return new Response('Invalid url', {status:400}); }
-    const allowed = ['kooralive-plus.info', 'romabar.info', 'yasirtv.com', '912acsss', 'sir-tv.tv', 'yalllashoot', 'kooralive'];
-    const hostOk = allowed.some(h => t.hostname.includes(h));
+    const allowed = ['kooralive-plus.info', 'romabar.info', 'yasirtv.com', '912acsss', 'sir-tv.tv', 'yalllashoot'];
+    // SEC: exact-or-subdomain match — the old substring check (plus a bare
+    // 'kooralive' entry) allowed evil-kooralive.com / x.evil.com style bypass.
+    const hostOk = allowed.some(h => t.hostname === h || t.hostname.endsWith('.' + h));
     if (!hostOk) return new Response('Host not allowed. Use kooralive-plus.info or romabar.info', {status:403});
 
     // fetch upstream

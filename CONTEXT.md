@@ -4,7 +4,55 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-08 (commit `ae497e7`, EN empty-section hardening §16).
+> Last updated: 2026-09-08 (security audit + fixes §17, pending commit).
+
+## 17. Security / bug / slop audit (2026-09-08, user: "DEBUG FIX / ANY ERROR ANY SLOP ANY SECURITY Issues if there is")
+
+Full read-through of index/player/api×3/workers/sw + secret scan + live payload tests.
+
+- **XSS — stored via upstream scrape (FIXED, was the big one).** Every match
+  field comes from third-party HTML; `index.html` interpolated home/away/
+  league/scores/logos raw into `innerHTML` (incl. `src="${logo}"` attr
+  breakout → `<img onerror>`), and `player.html` did the same with hd7/vipbox
+  server labels. A compromised upstream owned the page. Fix: `esc()` helper
+  in both pages, applied to all upstream interpolations (cards, chips, group
+  headers, logos, server buttons). Proven with live `"><img onerror>` payloads
+  in team/league/logo/label fields: zero execution, layout intact.
+- **XSS-adjacent crash (FIXED).** `player.html` ran bare `decodeURIComponent`
+  on query params at top level — a crafted link with a stray `%` threw and
+  killed the ENTIRE script (no servers, no popup guard). Fix: `safeDec()`
+  wrapper everywhere. Proven: `?href=%&home=%E0%A4%A` loads fine now.
+- **SSRF via `?href=` / `?url=` proxies (FIXED).** `api/player.js` fetched ANY
+  user-supplied absolute URL server-side (cloud metadata 169.254.169.254,
+  intranet). Fix: strict allowlist — kooralive-plus.info (+www) only, exact/
+  subdomain match, 400 otherwise. Both workers (`worker.js`,
+  `worker-serve.js` ×2 lists) used SUBSTRING `includes` matching → allowed
+  `kooralive-plus.info.evil.com`; fixed to exact-or-suffix (incl. dropping a
+  bare `'kooralive'` entry). `api/vip.js` already dot-anchored; added
+  post-redirect final-host re-check + 2.5MB body cap. Gate matrix unit-tested:
+  9/9 (legit pass, evil-subdomain/query-trick/metadata/loopback rejected).
+- **Hanging upstreams burning serverless time (FIXED).** Plain `fetch` with no
+  timeout on `api/matches`, direct page + sting API + self-lookup fetches in
+  `api/player` (Vercel Hobby = 10s). Fix: 7–8s AbortController timeouts on all.
+- **Reload hash bug (FIXED).** Cache-bust string-concat broke URLs containing
+  `#`; now uses the URL API with fallback.
+- **Chips correctness (kept while escaping).** `data-l` held raw league names;
+  escaping it would have broken filtering — switched to index-based
+  `data-i` + `LEAGUE_LIST`. Verified filtering still works post-change.
+- **Secrets scan:** all 30 tracked files clean (one false positive:
+  `mask-composite` CSS in `premium_ui.py`). `shots/` + `_watch.html` correctly
+  untracked. No keys/tokens anywhere.
+- **Slop verdict:** `*.py` scripts are the intentional edit record (§5); old
+  STING files + `style.css` stay for the legacy worker-serve bundle (noted,
+  untouched — deployment status unknown, not going to yank blindly).
+- **Accepted risks (documented, not changed):** iframe `sandbox` keeps
+  `allow-same-origin` (silencing the console warning would risk breaking leaf
+  playback; `/api/vip`'s CSP-sandbox header already forces opaque origin
+  there); `e.message` in API errors (debug value, personal project); SW
+  `PATH_BLOCK` substring breadth (no legit fetches match it).
+- Verified: `node --check` on all 7 JS surfaces; Playwright XSS + malformed-
+  query + chip-filter + EN-grid tests green, `scrollW=390`, zero pageerrors;
+  mirrors byte-identical.
 
 ## 16. EN "header with no buttons" hardening (2026-09-08, user: "shows nothing" + screenshot of EN header, zero buttons)
 

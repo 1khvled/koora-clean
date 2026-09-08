@@ -11,13 +11,17 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
+    // Hard timeout so a hung upstream can't burn the serverless invocation.
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 8000);
     const upstream = await fetch(target, {
+      signal: ctrl.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'text/html,application/xhtml+xml',
         'Referer': 'https://kooralive-plus.info/',
       }
-    });
+    }).finally(() => clearTimeout(to));
     const html = await upstream.text();
     const matches = [];
     const anchorRegex = /<a href="([^"]*)"[^>]*>/g;
