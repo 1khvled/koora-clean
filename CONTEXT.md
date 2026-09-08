@@ -4,7 +4,46 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-08 (commit `8c49a4f`, security audit + fixes §17).
+> Last updated: 2026-09-09 (DaddyLive integration §18, pending commit).
+
+## 18. DaddyLive source: match channels + beIN 24/7 fallback (2026-09-09, user: "search up other players we can scrape")
+
+- **Research:** surveyed the landscape (search + technical probes). DaddyLive
+  won by far: `dlhd.st` serves a FULLY STATIC schedule (254 events, EN names,
+  UK times, `/watch.php?id=N` channel links), watch pages hand out 7 static
+  player mirrors + an official embed code, their own `api.php` docs bless
+  iframe embedding with exact URL construction rules, and ZERO framing
+  headers anywhere in the chain. Rejected: LiveTV.sx (static schedule but
+  P2P/Acestream playback — embed friction), Totalsportek mirrors (JS-rendered
+  schedule, 50+ ad-infested links/event), STING sisters (no sting API —
+  `rest_no_route` on yallashootkoora; direct-iframe path already covered),
+  YouTube official (geo-blocked, blocked by our player by design).
+- **Chain (verified live):** schedule event → `dlive.sx/stream/stream-<id>.php`
+  → ONE static iframe to a player-only Clappr leaf (3KB, no site chrome —
+  embed directly like hd7 leafs, no cleaning proxy needed). Verified for an
+  event channel (110 → `daddy5.php?id=110`) and beIN 91/61.
+- **`api/player.js` `resolveDaddy`:** parses schedule events (⚽-only via the
+  `data-title` emoji — tennis doubles "A/B vs C" titles polluted the pool in
+  testing), splits "League : A vs B", reuses `fuzzyArEn` + strict gate
+  (`fz ≤ 1.4`, margin `≥ 0.25`, league-word hit or kickoff ≤ 60min), +0.6
+  youth/reserve (U19/U21/…) penalty so senior queries can't land on youth
+  games. Channels capped at 2 (real names preferred over generic "Event
+  Stream"), leafs resolved in parallel. Validated on the live schedule: Lille-
+  Betis + Watford-Preston ACCEPTED (correct), barca/villa/egyptian/
+  Saudi absent-cases all correctly REJECTED (incl. right-team-wrong-opponent).
+  Known safe-fail: senior+U19 same-day coexistence → thin margin → hidden.
+- **beIN fallback:** fixed Arabic 24/7 ids 91/92/93 (verified live), resolved
+  in parallel, merged into `servers[]` as `kind: 'tv'` ahead of the match-page
+  fallback — always-on Arabic safety net. Event channels join `enServers`
+  (`kind: 'en'`, `via: 'daddylive'`). No frontend structural change:
+  `kindTag` learned `'tv'` (قناة ٢٤/٧), EN note generalized to VIPBox/DaddyLive.
+- **Security:** channel ids digit-validated, leaf URLs https-validated via
+  `fixUrl`, all upstream labels go through the §17 `esc()`; fetch hosts are
+  hardcoded (dlhd.st/dlive.sx), timeouts throughout, fail-open.
+- Verified: `node --check` clean; Playwright 390px (AR 3 incl. tv tag, EN 1,
+  counter 1/4, `scrollW=390`, zero pageerrors); mirrors byte-identical.
+- **Not yet proven:** leaf actually playing in a real browser (same standing
+  caveat as hd7/vipbox — needs a live match + real browser).
 
 ## 17. Security / bug / slop audit (2026-09-08, user: "DEBUG FIX / ANY ERROR ANY SLOP ANY SECURITY Issues if there is")
 

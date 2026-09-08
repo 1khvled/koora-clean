@@ -250,13 +250,14 @@ function kindTag(s){
   if (s.kind === 'direct') return 'مباشر';
   if (s.kind === 'live') return 'واجهة كاملة';
   if (s.kind === 'en') return 'إنجليزي';
+  if (s.kind === 'tv') return 'قناة ٢٤/٧';
   return 'سيرفر';
 }
 function subTag(s){
   // NOTE: keep brand names OUT of button text (only kind + time) — some
   // ad-block cosmetic lists remove page elements that mention stream brands,
   // which once left an EN header with zero visible buttons.
-  if (s && s.kind === 'en') return ['إنجليزي', s.sub].filter(Boolean).join(' • ');
+  if (s && (s.kind === 'en' || s.kind === 'tv')) return [kindTag(s), s.sub].filter(Boolean).join(' • ');
   return [kindTag(s), s.via, s.sub].filter(Boolean).join(' • ');
 }
 function btnHtml(s, i, on){
@@ -295,7 +296,7 @@ function showServersFromList(list, enList){
     enEl.innerHTML = en.map((s) => btnHtml(s, serverList.indexOf(s), false)).join('');
     [...enEl.children].forEach(b => b.onclick = () => goServer(+b.dataset.i, false));
     enCount.textContent = en.length;
-    enNote.textContent = 'فيديوهات VIPBox الخاصة بهذه المباراة بتعليق إنجليزي — جرّب Video 2 أو 3 إذا تقطّع الأول.';
+    enNote.textContent = 'مصادر إنجليزية خاصة بهذه المباراة (VIPBox / DaddyLive) — جرّب التالي إذا تقطّع البث.';
     if (enEl.children.length){
       enHead.hidden = false; enEl.hidden = false; enNote.hidden = false;
       enCount.hidden = false;
