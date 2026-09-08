@@ -80,7 +80,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .servers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .srv{font-family:var(--font);border:1px solid var(--line);background:var(--card);
   color:var(--ink);border-radius:12px;min-height:56px;cursor:pointer;padding:8px 10px;
-  display:flex;align-items:center;gap:10px;text-align:start;width:100%}
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%;min-width:0} /* min-width:0 keeps long EN titles from stretching the grid */
 .srv .num{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
   font-size:14px;font-weight:900;background:var(--pitch);color:#fff}
 .srv .meta{flex:1;min-width:0}
@@ -92,6 +92,10 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .srv.on{border-color:var(--grass);background:var(--pitch);box-shadow:0 0 0 1px var(--grass)}
 .srv.on .num{background:var(--grass);color:#04120c}
 .srv.on .meta span{color:#cfe6d6}
+.srv.en .meta b{direction:ltr;unicode-bidi:plaintext}
+.srv .enbadge{flex:none;font-size:10px;font-weight:900;background:#1e3a30;color:#9fd3b4;
+  border-radius:6px;padding:2px 7px;letter-spacing:.5px}
+.srv.on .enbadge{background:var(--gold);color:#231a00}
 .srv:disabled{opacity:.55;cursor:wait}
 .srv.skel{pointer-events:none;border-style:dashed}
 .srv.skel .meta b,.srv.skel .meta span{background:#1e3a30;border-radius:6px;color:transparent}
@@ -143,6 +147,12 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   </div>
   <div class="servers" id="servers"></div>
   <p class="src-note" id="srcNote" hidden></p>
+  <div class="src-head" id="enHead" hidden>
+    <h2>🇬🇧 مصادر إنجليزية <span class="n" id="enCount" hidden>0</span></h2>
+    <small>تعليق إنجليزي • VIPBox</small>
+  </div>
+  <div class="servers" id="enServers" hidden></div>
+  <p class="src-note" id="enNote" hidden></p>
   <div class="controls">
     <button class="btn" id="btnFull">⛶ ملء الشاشة</button>
     <button class="btn ghost" id="btnReload">⟳ إعادة تحميل</button>
@@ -213,18 +223,32 @@ function paintMatch(h, a, hl, al, lg, tm){
 }
 paintMatch(home, away, homeLogo, awayLogo, leagueP, timeP);
 
-/* multi-server state — supports new servers[] plus legacy embedUrl/livePage/fallbackUrl */
+/* multi-server state — one unified list, two views: Arabic grid + English grid.
+   supports new servers[]/enServers[] plus legacy embedUrl/livePage/fallbackUrl */
+const startP = qs.get('st') ? decodeURIComponent(qs.get('st')) : '';
 let serverList = [], srvIdx = 0, blockTimes = [];
 const serversEl = document.getElementById('servers');
 const srvCount = document.getElementById('srvCount');
 const srvNow = document.getElementById('srvNow');
 const srcNote = document.getElementById('srcNote');
+const enHead = document.getElementById('enHead');
+const enEl = document.getElementById('enServers');
+const enCount = document.getElementById('enCount');
+const enNote = document.getElementById('enNote');
 function kindTag(s){
   if (!s) return '';
   if (s.kind === 'fallback') return 'احتياطي';
   if (s.kind === 'direct') return 'مباشر';
   if (s.kind === 'live') return 'واجهة كاملة';
+  if (s.kind === 'en') return 'إنجليزي';
   return 'سيرفر';
+}
+function subTag(s){
+  return [kindTag(s), s.via === 'vipbox' ? 'VIPBox' : s.via, s.sub].filter(Boolean).join(' • ');
+}
+function btnHtml(s, i, on){
+  const en = s.kind === 'en';
+  return `<button class="srv${en ? ' en' : ''}${on ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${s.label || ('سيرفر ' + (i + 1))}</b><span>${subTag(s)}</span></span>${en ? '<span class="enbadge">EN</span>' : (on ? '<span class="live-dot"></span>' : '')}</button>`;
 }
 function showSkeleton(){
   serversEl.innerHTML = [1, 2, 3].map(i =>
@@ -233,35 +257,49 @@ function showSkeleton(){
   srvCount.hidden = true;
   srvNow.textContent = 'جاري البحث عن السيرفرات…';
   srcNote.hidden = true;
+  enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
 }
-function showServersFromList(list){
-  serverList = (list || []).filter(s => s && s.url).filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
+function showServersFromList(list, enList){
+  const dedup = (arr) => (arr || []).filter(s => s && s.url).filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
+  const ar = dedup(list), en = dedup(enList);
+  serverList = [...ar, ...en].filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
   srvIdx = 0;
-  if (!serverList.length){
+  if (!ar.length){
     serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>لا توجد سيرفرات</b><span>اضغط لإعادة المحاولة</span></span></button>`;
     document.getElementById('retryBtn').onclick = () => loadRealPlayer();
     srvCount.hidden = true;
     srvNow.textContent = 'لا يوجد بث متاح حالياً';
-    return;
+  } else {
+    srvCount.hidden = false;
+    srvCount.textContent = ar.length;
+    serversEl.innerHTML = ar.map((s) => btnHtml(s, serverList.indexOf(s), serverList.indexOf(s) === 0)).join('');
+    [...serversEl.children].forEach(b => { if (b.id !== 'retryBtn') b.onclick = () => goServer(+b.dataset.i, false); });
   }
-  srvCount.hidden = false;
-  srvCount.textContent = serverList.length;
-  serversEl.innerHTML = serverList.map((s, i) =>
-    `<button class="srv${i === 0 ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${s.label || ('سيرفر ' + (i + 1))}</b><span>${kindTag(s)}${s.via ? ' • ' + s.via : ''}</span></span>${i === 0 ? '<span class="live-dot"></span>' : ''}</button>`
-  ).join('');
-  [...serversEl.children].forEach(b => b.onclick = () => goServer(+b.dataset.i, false));
+  if (en.length){
+    enHead.hidden = false; enEl.hidden = false; enNote.hidden = false;
+    enCount.hidden = false;
+    enCount.textContent = en.length;
+    enEl.innerHTML = en.map((s) => btnHtml(s, serverList.indexOf(s), false)).join('');
+    [...enEl.children].forEach(b => b.onclick = () => goServer(+b.dataset.i, false));
+    enNote.textContent = 'مصادر VIPBox بتعليق إنجليزي — مباريات اليوم مرتبة حسب الأقرب لموعد مباراتك. اختر مباراتك من القائمة (الأسماء بالإنجليزية).';
+  } else {
+    enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
+  }
   paintNow();
-  const fb = serverList.filter(s => s.kind === 'fallback').length;
-  const live = serverList.length - fb;
-  srcNote.hidden = false;
-  srcNote.textContent = live > 0
-    ? `${live} سيرفر بث مباشر${fb ? ' + صفحة المباراة كاحتياطي' : ''} — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.`
-    : 'لا يوجد بث مباشر حالياً — تُعرض صفحة المباراة كحل احتياطي.';
+  if (ar.length){
+    const fb = ar.filter(s => s.kind === 'fallback').length;
+    const live = ar.length - fb;
+    srcNote.hidden = false;
+    srcNote.textContent = live > 0
+      ? `${live} سيرفر بث مباشر${fb ? ' + صفحة المباراة كاحتياطي' : ''} — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.`
+      : 'لا يوجد بث مباشر حالياً — تُعرض صفحة المباراة كحل احتياطي.';
+  }
 }
 function paintNow(){
   const s = serverList[srvIdx];
   srvNow.textContent = s ? `تشاهد الآن: ${s.label || ('سيرفر ' + (srvIdx + 1))} (${srvIdx + 1}/${serverList.length})` : '';
-  [...serversEl.children].forEach((b, i) => b.classList.toggle('on', i === srvIdx));
+  [...serversEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
+  [...enEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
 }
 function trackServer(src){
   const i = serverList.findIndex(s => s.url === src);
@@ -277,13 +315,13 @@ function goServer(i, auto){
   rearmShield();
   if (auto) toast('نحاول سيرفراً آخر…');
 }
-/* legacy compat: old two-button callers map onto the grid */
+/* legacy compat: old callers map onto the grid (no English list) */
 function showServers(main, alt, fb){
   const list = [];
   if (main) list.push({ label: 'المشغّل الرئيسي', url: main, kind: 'leaf', via: 'hd7livex' });
   if (alt) list.push({ label: 'سيرفرات بديلة', url: alt, kind: 'live', via: 'hd7livex' });
   if (fb) list.push({ label: 'صفحة المباراة (احتياطي)', url: fb, kind: 'fallback', via: 'fallback' });
-  showServersFromList(list);
+  showServersFromList(list, []);
 }
 
 function rearmShield(){
@@ -303,7 +341,7 @@ async function loadRealPlayer(){
     return;
   }
   try {
-    const q = new URLSearchParams({ id, href, home, away });
+    const q = new URLSearchParams({ id, href, home, away, start: startP });
     const r = await fetch('/api/player?' + q.toString(), { cache: 'no-store' });
     const data = await r.json();
     if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP, timeP);
@@ -314,7 +352,8 @@ async function loadRealPlayer(){
       if (data.livePage) list.push({ label: 'سيرفرات بديلة', url: data.livePage, kind: 'live', via: data.via || 'hd7livex' });
       if (data.fallbackUrl) list.push({ label: 'صفحة المباراة (احتياطي)', url: data.fallbackUrl, kind: 'fallback', via: 'fallback' });
     }
-    showServersFromList(list);
+    const enList = (data && Array.isArray(data.enServers)) ? data.enServers : [];
+    showServersFromList(list, enList);
     const first = list.find(s => s && s.url);
     if (first){
       iframe.src = first.url;

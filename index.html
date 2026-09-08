@@ -179,7 +179,7 @@ function statusLabel(m){
 }
 function playerLink(m){
   const q = new URLSearchParams({ id: m.id || '', href: m.href || '', home: m.home || '', away: m.away || '',
-    hl: m.home_logo || '', al: m.away_logo || '', lg: m.league_text || m.league || '', tm: m.time_text || m.game_time || '' });
+    hl: m.home_logo || '', al: m.away_logo || '', lg: m.league_text || m.league || '', tm: m.time_text || m.game_time || '', st: m.start || '' });
   return 'player.html?' + q.toString();
 }
 function logoImg(src, alt){
