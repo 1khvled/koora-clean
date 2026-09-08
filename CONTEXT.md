@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-08 (VIPBox English section §14, pending commit).
+> Last updated: 2026-09-08 (commit `2113f7b`, VIPBox English section §14).
 
 ## 14. VIPBox English sources section (2026-09-08, user: "this website got player but its english… include it into another section")
 
