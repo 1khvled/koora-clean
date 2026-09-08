@@ -4,7 +4,26 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `46a2458`, Access-Denied HLS fix §19).
+> Last updated: 2026-09-09 (DaddyLive removed §20, pending commit).
+
+## 20. DaddyLive REMOVED (2026-09-09, user: "just delete that")
+
+- User still saw "Access Denied / not available on your domain" and ordered
+  full removal — done, no debate. Even the §19 HLS-proxy fix (technically
+  verified working) goes with it: a source that fights its consumers isn't
+  worth the bandwidth bill or the support load.
+- Removed: `api/player.js` `resolveDaddy` + `resolveDaddyStream` + `DADDY_BEIN`
+  + `deEmoji` + `leagueHitEn` (all Daddy-only; `LEAGUE_MAP`/`fuzzyArEn`/
+  `wallMin` stay — VIPBox uses them), beIN `tv` merge, `api/hls.js` deleted
+  (`git rm`), player HLS stack (`hls.js` CDN, `<video>`, `playHls`/`stopHls`,
+  hls branches in goServer/fullscreen/reload, `tv` kind + note mentions).
+- Kept: VIPBox EN section (unchanged contract), hd7 chain, `s.play`
+  preference in goServer (VIPBox `play` URLs still use it), unified-list
+  autoplay + atomic EN reveal from §16.
+- Verified: zero remaining references to daddy/hls/dlive/premiumtv in
+  `player.html`/`api/player.js`; `node --check` clean; Playwright mock grid
+  (AR 2 + EN 2, switching, empty-hide) green, `scrollW=390`, zero pageerrors;
+  mirrors byte-identical.
 
 ## 19. "Access Denied / not available on your domain" — DaddyLive Referer gate → native HLS (2026-09-09, user report + screenshot text)
 
