@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-08 (security audit + fixes §17, pending commit).
+> Last updated: 2026-09-08 (commit `8c49a4f`, security audit + fixes §17).
 
 ## 17. Security / bug / slop audit (2026-09-08, user: "DEBUG FIX / ANY ERROR ANY SLOP ANY SECURITY Issues if there is")
 
