@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (DaddyLive removed §20, pending commit).
+> Last updated: 2026-09-09 (commit `af9bb04`, DaddyLive removed §20).
 
 ## 20. DaddyLive REMOVED (2026-09-09, user: "just delete that")
 
