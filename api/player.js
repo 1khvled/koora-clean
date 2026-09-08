@@ -273,10 +273,13 @@ export default async function handler(req, res) {
 
   // DaddyLive (added 2026-09-09): dlhd.st serves a fully STATIC schedule
   // (event titles + times + /watch.php?id=N channel links), and dlive.sx
-  // stream pages each hold ONE static iframe to a player-only leaf page
-  // (Clappr, no site chrome — same embed-directly pattern as hd7 leafs).
-  // Their own api.php docs bless iframe embedding. Chain per channel:
-  //   schedule event -> /stream/stream-<id>.php -> leaf embed.
+  // stream pages each hold ONE static iframe to a Clappr leaf page whose JS
+  // carries a base64 m3u8. Their own api.php docs bless iframe embedding —
+  // BUT the stream CDN gates on Referer == the leaf URL ("Access Denied" on
+  // our domain), so leaves are unplayable in iframes here. Chain per channel:
+  //   schedule event -> /stream/stream-<id>.php -> leaf -> m3u8
+  // and playback goes through /api/hls (spoofed Referer) as NATIVE HLS.
+  // Only channels with an extracted m3u8 are surfaced (hls-only gate).
   // Matching reuses fuzzyArEn with the same strict gate as VIPBox. Plus a
   // fixed beIN Sports Arabic 24/7 fallback (ids verified live: 91/92/93).
   // Fail-open everywhere -> [] and the sections stay hidden.
@@ -297,7 +300,12 @@ export default async function handler(req, res) {
       arLeague.includes(ar) && toks.some(v =>
         v.toLowerCase().replace(/-/g, ' ').split(/[^a-z]+/).some(w => w.length > 3 && words.has(w))));
   };
-  const resolveDaddyLeaf = async (id, UA) => {
+  // Full DaddyLive resolve: stream page -> leaf page -> base64 m3u8.
+  // Returns {leaf, hls} — hls is OUR /api/hls proxy URL (the ONLY thing that
+  // plays: the CDN demands Referer == the leaf URL, unspoofable client-side).
+  // Channels WITHOUT an extractable m3u8 are dropped (a leaf iframe on our
+  // domain just shows "Access Denied", so never surface it as a button).
+  const resolveDaddyStream = async (id, UA) => {
     if (!/^\d+$/.test(id)) return null; // ids come from scraped HTML — digits only
     try {
       const r = await fetchT(`https://dlive.sx/stream/stream-${id}.php`,
@@ -305,7 +313,23 @@ export default async function handler(req, res) {
       if (!r.ok) return null;
       const html = await r.text();
       const m = html.match(/<iframe[^>]*src=(["'])(.*?)\1/i);
-      return m ? fixUrl(m[2]) : null;
+      const leaf = m ? fixUrl(m[2]) : null;
+      if (!leaf) return null;
+      try {
+        const lr = await fetchT(leaf,
+          { headers: { ...UA, Referer: 'https://dlive.sx/' } }, 7000);
+        if (!lr.ok) return { leaf, hls: null };
+        const lhtml = await lr.text();
+        const sm = lhtml.match(/source\s*:\s*window\.atob\('([^']+)'\)/);
+        if (!sm) return { leaf, hls: null };
+        let m3u8 = null;
+        try { m3u8 = Buffer.from(sm[1], 'base64').toString('utf8'); } catch {}
+        if (!m3u8 || !m3u8.startsWith('https://')) return { leaf, hls: null };
+        return {
+          leaf,
+          hls: '/api/hls?u=' + encodeURIComponent(m3u8) + '&ref=' + encodeURIComponent(leaf),
+        };
+      } catch { return { leaf, hls: null }; }
     } catch { return null; }
   };
   const resolveDaddy = async (home, away, startIso, leagueAr) => {
@@ -316,9 +340,10 @@ export default async function handler(req, res) {
       'Referer': 'https://dlhd.st/',
     };
     // beIN 24/7 runs in parallel with the schedule fetch below.
+    // HLS-only: without an m3u8 the button would just show "Access Denied".
     const tvP = Promise.all(DADDY_BEIN.map(async (ch) => {
-      const leaf = await resolveDaddyLeaf(ch.id, UA);
-      return leaf ? { label: ch.label, url: leaf, kind: 'tv', via: 'daddylive' } : null;
+      const s = await resolveDaddyStream(ch.id, UA);
+      return (s && s.hls) ? { label: ch.label, url: s.leaf, hls: s.hls, kind: 'tv', via: 'daddylive' } : null;
     })).then(rs => rs.filter(Boolean)).catch(() => []);
     let channels = [];
     try {
@@ -370,11 +395,11 @@ export default async function handler(req, res) {
                 ...best.chans.filter(c => /^(event|stream)\b/i.test(c.name)),
               ].slice(0, 2);
               channels = (await Promise.all(picks.map(async (c) => {
-                const leaf = await resolveDaddyLeaf(c.id, UA);
-                return leaf ? {
+                const s = await resolveDaddyStream(c.id, UA);
+                return (s && s.hls) ? {
                   label: c.name || `DaddyLive ${c.id}`,
                   sub: best.clock || undefined,
-                  url: leaf, kind: 'en', via: 'daddylive',
+                  url: s.leaf, hls: s.hls, kind: 'en', via: 'daddylive',
                 } : null;
               }))).filter(Boolean);
             }
