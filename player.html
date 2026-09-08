@@ -57,12 +57,47 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   padding:14px 26px;border-radius:12px;font-weight:900;font-size:16px;cursor:pointer;
   min-height:52px;max-width:88vw;box-shadow:0 8px 24px rgba(22,163,74,.4)}
 .click-shield small{display:block;margin-top:10px;color:#cfe6d6;font-size:12px;font-weight:600}
-/* servers */
-.servers{display:flex;gap:8px;margin-top:10px}
-.srv{flex:1;font-family:var(--font);border:1px solid var(--line);background:var(--card);
-  color:var(--ink);font-size:14px;font-weight:800;border-radius:12px;min-height:48px;
-  cursor:pointer}
-.srv.on{background:var(--pitch);border-color:var(--grass)}
+/* match card */
+.mcard{display:flex;align-items:center;gap:12px;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-top:10px}
+.mcard .team{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;
+  min-width:0;text-align:center}
+.mcard .team img{width:44px;height:44px;object-fit:contain;flex:none;
+  background:#0a1f18;border-radius:10px;padding:4px}
+.mcard .team b{font-size:13px;font-weight:800;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mcard .mid{flex:none;text-align:center;min-width:86px}
+.mcard .mid .vs{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px}
+.mcard .mid .lg{font-size:11px;color:var(--muted);font-weight:700;margin-top:4px;
+  max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mcard .mid .tm{font-size:12px;font-weight:800;margin-top:2px}
+/* sources */
+.src-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 2px 8px}
+.src-head h2{font-size:14px;font-weight:900;margin:0;display:flex;align-items:center;gap:8px}
+.src-head h2 .n{background:var(--grass);color:#04120c;font-size:12px;font-weight:900;
+  border-radius:999px;padding:1px 9px}
+.src-head small{color:var(--muted);font-size:12px;font-weight:700}
+.servers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.srv{font-family:var(--font);border:1px solid var(--line);background:var(--card);
+  color:var(--ink);border-radius:12px;min-height:56px;cursor:pointer;padding:8px 10px;
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%}
+.srv .num{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+  font-size:14px;font-weight:900;background:var(--pitch);color:#fff}
+.srv .meta{flex:1;min-width:0}
+.srv .meta b{display:block;font-size:13px;font-weight:800;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.srv .meta span{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-top:1px}
+.srv .live-dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--live);
+  box-shadow:0 0 0 3px rgba(224,32,46,.18)}
+.srv.on{border-color:var(--grass);background:var(--pitch);box-shadow:0 0 0 1px var(--grass)}
+.srv.on .num{background:var(--grass);color:#04120c}
+.srv.on .meta span{color:#cfe6d6}
+.srv:disabled{opacity:.55;cursor:wait}
+.srv.skel{pointer-events:none;border-style:dashed}
+.srv.skel .meta b,.srv.skel .meta span{background:#1e3a30;border-radius:6px;color:transparent}
+.src-note{font-size:12px;color:var(--muted);font-weight:600;margin:8px 2px 0;line-height:1.7}
+@media (max-width:420px){.servers{grid-template-columns:1fr 1fr}}
+@media (min-width:640px){.servers{grid-template-columns:repeat(3,1fr)}}
 /* controls */
 .controls{display:flex;gap:8px;margin-top:8px}
 .btn{flex:1;font-family:var(--font);border:0;border-radius:12px;min-height:48px;
@@ -97,10 +132,17 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
       </div>
     </div>
   </div>
-  <div class="servers" id="servers" hidden>
-    <button class="srv on" id="srvMain">المشغّل الرئيسي</button>
-    <button class="srv" id="srvAlt">📡 سيرفرات بديلة</button>
+  <div class="mcard" id="matchCard" hidden>
+    <div class="team"><img id="homeLogo" alt=""><b id="homeName">—</b></div>
+    <div class="mid"><div class="vs">بث مباشر</div><div class="tm" id="matchTime">—</div><div class="lg" id="matchLeague">—</div></div>
+    <div class="team"><img id="awayLogo" alt=""><b id="awayName">—</b></div>
   </div>
+  <div class="src-head">
+    <h2>📡 مصادر البث <span class="n" id="srvCount" hidden>0</span></h2>
+    <small id="srvNow">جاري البحث عن السيرفرات…</small>
+  </div>
+  <div class="servers" id="servers"></div>
+  <p class="src-note" id="srcNote" hidden></p>
   <div class="controls">
     <button class="btn" id="btnFull">⛶ ملء الشاشة</button>
     <button class="btn ghost" id="btnReload">⟳ إعادة تحميل</button>
@@ -152,54 +194,104 @@ function bumpBlocked(){
   }
 }
 
-/* server list state (#8: leaf → livePage → fallback, last resort) */
-let mainSrc = '', altSrc = '', showingAlt = false;
+/* match header card — filled instantly from URL params, enriched by API */
+const homeLogo = qs.get('hl') ? decodeURIComponent(qs.get('hl')) : '';
+const awayLogo = qs.get('al') ? decodeURIComponent(qs.get('al')) : '';
+const leagueP = qs.get('lg') ? decodeURIComponent(qs.get('lg')) : '';
+const timeP = qs.get('tm') ? decodeURIComponent(qs.get('tm')) : '';
+function paintMatch(h, a, hl, al, lg, tm){
+  const card = document.getElementById('matchCard');
+  if (!h && !a) return;
+  card.hidden = false;
+  document.getElementById('homeName').textContent = h || '—';
+  document.getElementById('awayName').textContent = a || '—';
+  const hi = document.getElementById('homeLogo'), ai = document.getElementById('awayLogo');
+  if (hl){ hi.src = hl; hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
+  if (al){ ai.src = al; ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
+  document.getElementById('matchLeague').textContent = lg || 'بث نظيف بدون إعلانات';
+  document.getElementById('matchTime').textContent = tm || '';
+}
+paintMatch(home, away, homeLogo, awayLogo, leagueP, timeP);
+
+/* multi-server state — supports new servers[] plus legacy embedUrl/livePage/fallbackUrl */
 let serverList = [], srvIdx = 0, blockTimes = [];
 const serversEl = document.getElementById('servers');
-const srvMain = document.getElementById('srvMain');
-const srvAlt = document.getElementById('srvAlt');
-function showServers(main, alt, fb){
-  mainSrc = main || ''; altSrc = alt || ''; showingAlt = false;
-  serverList = [main, alt, fb].filter(Boolean).filter((s, i, a) => a.indexOf(s) === i);
+const srvCount = document.getElementById('srvCount');
+const srvNow = document.getElementById('srvNow');
+const srcNote = document.getElementById('srcNote');
+function kindTag(s){
+  if (!s) return '';
+  if (s.kind === 'fallback') return 'احتياطي';
+  if (s.kind === 'direct') return 'مباشر';
+  if (s.kind === 'live') return 'واجهة كاملة';
+  return 'سيرفر';
+}
+function showSkeleton(){
+  serversEl.innerHTML = [1, 2, 3].map(i =>
+    `<button class="srv skel" disabled><span class="num">${i}</span><span class="meta"><b>…</b><span>جاري البحث…</span></span></button>`
+  ).join('');
+  srvCount.hidden = true;
+  srvNow.textContent = 'جاري البحث عن السيرفرات…';
+  srcNote.hidden = true;
+}
+function showServersFromList(list){
+  serverList = (list || []).filter(s => s && s.url).filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
   srvIdx = 0;
-  srvMain.classList.add('on'); srvAlt.classList.remove('on');
-  serversEl.hidden = !alt;
+  if (!serverList.length){
+    serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>لا توجد سيرفرات</b><span>اضغط لإعادة المحاولة</span></span></button>`;
+    document.getElementById('retryBtn').onclick = () => loadRealPlayer();
+    srvCount.hidden = true;
+    srvNow.textContent = 'لا يوجد بث متاح حالياً';
+    return;
+  }
+  srvCount.hidden = false;
+  srvCount.textContent = serverList.length;
+  serversEl.innerHTML = serverList.map((s, i) =>
+    `<button class="srv${i === 0 ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${s.label || ('سيرفر ' + (i + 1))}</b><span>${kindTag(s)}${s.via ? ' • ' + s.via : ''}</span></span>${i === 0 ? '<span class="live-dot"></span>' : ''}</button>`
+  ).join('');
+  [...serversEl.children].forEach(b => b.onclick = () => goServer(+b.dataset.i, false));
+  paintNow();
+  const fb = serverList.filter(s => s.kind === 'fallback').length;
+  const live = serverList.length - fb;
+  srcNote.hidden = false;
+  srcNote.textContent = live > 0
+    ? `${live} سيرفر بث مباشر${fb ? ' + صفحة المباراة كاحتياطي' : ''} — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.`
+    : 'لا يوجد بث مباشر حالياً — تُعرض صفحة المباراة كحل احتياطي.';
+}
+function paintNow(){
+  const s = serverList[srvIdx];
+  srvNow.textContent = s ? `تشاهد الآن: ${s.label || ('سيرفر ' + (srvIdx + 1))} (${srvIdx + 1}/${serverList.length})` : '';
+  [...serversEl.children].forEach((b, i) => b.classList.toggle('on', i === srvIdx));
 }
 function trackServer(src){
-  const i = serverList.indexOf(src);
-  if (i >= 0) srvIdx = i;
+  const i = serverList.findIndex(s => s.url === src);
+  if (i >= 0){ srvIdx = i; paintNow(); }
 }
 function goServer(i, auto){
   if (!serverList.length) return;
   srvIdx = ((i % serverList.length) + serverList.length) % serverList.length;
-  const src = serverList[srvIdx];
-  showingAlt = (src === altSrc && src !== mainSrc);
-  srvMain.classList.toggle('on', !showingAlt);
-  srvAlt.classList.toggle('on', showingAlt);
+  const src = serverList[srvIdx].url;
   iframe.src = src;
   lastCleanSrc = src;
+  paintNow();
   rearmShield();
   if (auto) toast('نحاول سيرفراً آخر…');
 }
-function swapServer(){
-  if (!altSrc) return;
-  showingAlt = !showingAlt;
-  srvMain.classList.toggle('on', !showingAlt);
-  srvAlt.classList.toggle('on', showingAlt);
-  iframe.src = showingAlt ? altSrc : mainSrc;
-  lastCleanSrc = iframe.src;
-  trackServer(iframe.src);
-  rearmShield();
-  toast(showingAlt ? 'سيرفرات بديلة — اختر سيرفراً من القائمة' : 'المشغّل الرئيسي');
+/* legacy compat: old two-button callers map onto the grid */
+function showServers(main, alt, fb){
+  const list = [];
+  if (main) list.push({ label: 'المشغّل الرئيسي', url: main, kind: 'leaf', via: 'hd7livex' });
+  if (alt) list.push({ label: 'سيرفرات بديلة', url: alt, kind: 'live', via: 'hd7livex' });
+  if (fb) list.push({ label: 'صفحة المباراة (احتياطي)', url: fb, kind: 'fallback', via: 'fallback' });
+  showServersFromList(list);
 }
-srvMain.onclick = () => { if (showingAlt) swapServer(); };
-srvAlt.onclick = () => { if (!showingAlt) swapServer(); };
 
 function rearmShield(){
   clickShield.classList.remove('hidden');
 }
 
 async function loadRealPlayer(){
+  showSkeleton();
   if (qs.get('demo') === '1' && !href){
     const wb = workerBase();
     const demoSrc = wb
@@ -207,28 +299,34 @@ async function loadRealPlayer(){
       : 'https://www.romabar.info/albaplayer/bein-9/?serv=0';
     iframe.src = demoSrc;
     lastCleanSrc = demoSrc;
-    showServers(demoSrc, null, null);
+    showServersFromList([{ label: 'سيرفر تجريبي', url: demoSrc, kind: 'direct', via: 'demo' }]);
     return;
   }
   try {
     const q = new URLSearchParams({ id, href, home, away });
     const r = await fetch('/api/player?' + q.toString(), { cache: 'no-store' });
     const data = await r.json();
-    let finalSrc = '';
-    if (data && data.found && data.embedUrl){
-      finalSrc = data.embedUrl;
-    } else if (data && data.fallbackUrl){
-      finalSrc = data.fallbackUrl;
-      toast('لا يوجد بث مباشر — صفحة المباراة');
+    if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP, timeP);
+    let list = [];
+    if (data && Array.isArray(data.servers) && data.servers.length) list = data.servers;
+    else if (data) {
+      if (data.embedUrl) list.push({ label: 'المشغّل الرئيسي', url: data.embedUrl, kind: 'leaf', via: data.via || 'hd7livex' });
+      if (data.livePage) list.push({ label: 'سيرفرات بديلة', url: data.livePage, kind: 'live', via: data.via || 'hd7livex' });
+      if (data.fallbackUrl) list.push({ label: 'صفحة المباراة (احتياطي)', url: data.fallbackUrl, kind: 'fallback', via: 'fallback' });
     }
-    if (data) showServers(data.embedUrl || null, data.livePage || null, data.fallbackUrl || null); // #8 full chain
-    if (finalSrc){
-      iframe.src = finalSrc;
-      lastCleanSrc = finalSrc;
+    showServersFromList(list);
+    const first = list.find(s => s && s.url);
+    if (first){
+      iframe.src = first.url;
+      lastCleanSrc = first.url;
+      if (data && data.found === false) toast('لا يوجد بث مباشر — صفحة المباراة');
     } else {
       toast('لا يوجد بث متاح حالياً');
     }
   } catch (e){
+    serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>تعذّر التحميل</b><span>اضغط لإعادة المحاولة</span></span></button>`;
+    document.getElementById('retryBtn').onclick = () => loadRealPlayer();
+    srvNow.textContent = 'تحقق من الاتصال ثم أعد المحاولة';
     toast('تعذّر تحميل البث — تحقق من الاتصال');
   }
 }

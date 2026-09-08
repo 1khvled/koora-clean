@@ -19,11 +19,41 @@ export default async function handler(req, res) {
     .replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
     .replace(/[ً-ْٰ]/g, '').replace(/\s+/g, ' ').trim();
 
-  // NEW (2026-09-04, verified live x2): resolve the real stream embed via the
-  // hd7livex/goal-kooora clone chain, all statically fetchable:
+  // hd7livex/goal-kooora chain (verified 2026-09-04, extended 2026-09-08):
   //   matches-today card -> match page -> goalkooora /live/*.php
-  //     -> goalkooora /m9/*.php -> leaf provider embed (varies per match).
-  // Returns { playerSrc, livePage } or null.
+  //     -> <ul class="albaplayer_name"> Live 1/2/3 tabs (each its own /live/*.php)
+  //     -> each live page embeds /m9/*.php -> leaf provider embed.
+  // Old code returned ONLY the first tab's leaf; now we resolve ALL tabs so
+  // the player can offer N selectable servers instead of 1-2 generic buttons.
+  // Returns { playerSrc, livePage, servers: [{label, livePage, m9, embedUrl}] } or null.
+  const fixUrl = (u) => {
+    if (!u) return null;
+    if (u.startsWith('//')) return 'https:' + u;
+    if (u.startsWith('https://')) return u;
+    return null;
+  };
+  const resolveOneLive = async (liveUrl, referer, UA, ms = 6000) => {
+    try {
+      const lvRes = await fetchT(liveUrl, { headers: { ...UA, Referer: referer } }, ms);
+      if (!lvRes.ok) return null;
+      const lv = await lvRes.text();
+      const m9M = lv.match(/<iframe[^>]+src="([^"]*\/m9\/[^"]+)"[^>]*>/i)
+        || lv.match(/<iframe[^>]+src="([^"]+)"/i);
+      if (!m9M) return { livePage: liveUrl, m9: null, leaf: null };
+      const m9Url = fixUrl(m9M[1]);
+      if (!m9Url) return { livePage: liveUrl, m9: null, leaf: null };
+      let leaf = null;
+      try {
+        const m9Res = await fetchT(m9Url, { headers: { ...UA, Referer: liveUrl } }, ms);
+        if (m9Res.ok) {
+          const m9 = await m9Res.text();
+          const leafM = m9.match(/<iframe[^>]+src="([^"]+)"/i);
+          if (leafM) leaf = fixUrl(leafM[1]);
+        }
+      } catch {}
+      return { livePage: liveUrl, m9: m9Url, leaf };
+    } catch { return null; }
+  };
   const resolveHd7 = async (home, away) => {
     const nH = normAr(home), nA = normAr(away);
     if (!nH && !nA) return null;
@@ -50,26 +80,42 @@ export default async function handler(req, res) {
       const mp = await mpRes.text();
       const liveM = mp.match(/<iframe[^>]+src="([^"]+)"/i);
       if (!liveM) return null;
-      let liveUrl = liveM[1];
-      if (liveUrl.startsWith('//')) liveUrl = 'https:' + liveUrl;
+      const firstLive = fixUrl(liveM[1]);
+      if (!firstLive) return null;
 
-      const lvRes = await fetchT(liveUrl, { headers: { ...UA, Referer: pageUrl } });
-      if (!lvRes.ok) return null;
-      const lv = await lvRes.text();
-      const m9M = lv.match(/<iframe[^>]+src="([^"]+)"/i);
-      if (!m9M) return null;
-      let m9Url = m9M[1];
-      if (m9Url.startsWith('//')) m9Url = 'https:' + m9Url;
-
-      const m9Res = await fetchT(m9Url, { headers: { ...UA, Referer: liveUrl } });
-      if (!m9Res.ok) return null;
-      const m9 = await m9Res.text();
-      const leafM = m9.match(/<iframe[^>]+src="([^"]+)"/i);
-      if (!leafM) return null;
-      let leaf = leafM[1];
-      if (leaf.startsWith('//')) leaf = 'https:' + leaf;
-      if (!leaf.startsWith('https://')) return null;
-      return { playerSrc: leaf, livePage: liveUrl };
+      // Collect every Live tab from the AlbaPlayer server list.
+      const first = await resolveOneLive(firstLive, pageUrl, UA);
+      if (!first) return null;
+      let tabs = [];
+      try {
+        const lvRes = await fetchT(firstLive, { headers: { ...UA, Referer: pageUrl } });
+        if (lvRes.ok) {
+          const lv = await lvRes.text();
+          const ulM = lv.match(/<ul class="albaplayer_name">([\s\S]*?)<\/ul>/i);
+          const scope = ulM ? ulM[1] : lv;
+          const links = [...scope.matchAll(/<a[^>]+href="([^"]*\/live\/[^"]+)"[^>]*>([^<]+)<\/a>/gi)];
+          const seen = new Set([firstLive]);
+          for (const l of links) {
+            const u = fixUrl(l[1]);
+            const label = (l[2] || '').trim().replace(/\s+/g, ' ');
+            if (u && !seen.has(u)) { seen.add(u); tabs.push({ url: u, label }); }
+          }
+        }
+      } catch {}
+      tabs = tabs.slice(0, 3); // cap: 1 first + up to 3 alternates = max 4 servers
+      const rest = await Promise.all(tabs.map(t => resolveOneLive(t.url, pageUrl, UA)));
+      const servers = [];
+      const pushServer = (label, r) => {
+        if (!r) return;
+        const best = r.leaf || r.m9 || r.livePage;
+        if (!best) return;
+        if (servers.some(s => s.url === best || s.livePage === r.livePage)) return;
+        servers.push({ label, url: best, livePage: r.livePage, m9: r.m9, leaf: r.leaf });
+      };
+      pushServer('Live 1', first);
+      rest.forEach((r, i) => pushServer(tabs[i].label || `Live ${i + 2}`, r));
+      if (!servers.length) return null;
+      return { playerSrc: servers[0].url, livePage: servers[0].livePage, servers };
     } catch { return null; }
   };
   
@@ -168,47 +214,64 @@ export default async function handler(req, res) {
       }
     }
     
+    // Clean direct src if we got one.
+    if (playerSrc && playerSrc.startsWith('//')) playerSrc = 'https:' + playerSrc;
+
+    // Always try the hd7livex multi-server chain too (it is the only source
+    // proven to yield playable leaf embeds). Merged below with direct/fallback.
+    let hd7 = null;
+    try { hd7 = await resolveHd7(matchHome, matchAway); } catch { hd7 = null; }
+
+    const servers = [];
+    const pushUnique = (entry) => {
+      if (!entry || !entry.url) return;
+      if (servers.some(s => s.url === entry.url)) return;
+      servers.push(entry);
+    };
     if (playerSrc) {
-      // Clean the player src
-      // Ensure it's https
-      if (playerSrc.startsWith('//')) playerSrc = 'https:' + playerSrc;
-      
-      return res.status(200).json({ 
-        id, 
-        href: target,
-        playerSrc,
-        playerHtml,
-        found: true,
-        // Also return a clean embed URL
-        embedUrl: playerSrc
-      });
-    } else {
-      // No player on the kooralive page — try the hd7livex clone chain
-      // (verified 2026-09-04: Abha→yallaxsport ch9, Lyon→kora-live-live albaplayer).
-      const hd7 = await resolveHd7(matchHome, matchAway);
-      if (hd7) {
-        return res.status(200).json({
-          id,
-          href: target,
-          playerSrc: hd7.playerSrc,
-          playerHtml: null,
-          found: true,
-          via: 'hd7livex',
-          // Full AlbaPlayer UI (server buttons) for this match — the frontend
-          // can offer it as an alternate "servers" view.
-          livePage: hd7.livePage,
-          embedUrl: hd7.playerSrc
-        });
-      }
-      // No player found anywhere - return the match page URL as fallback
-      // The frontend will then iframe the match page directly (with cleaning via proxy)
+      pushUnique({ label: 'المصدر المباشر', url: playerSrc, livePage: null, kind: 'direct', via: 'kooralive' });
+    }
+    if (hd7 && hd7.servers) {
+      hd7.servers.forEach((s, i) => pushUnique({
+        label: s.label || `سيرفر ${i + 1}`,
+        url: s.url, livePage: s.livePage, m9: s.m9, leaf: s.leaf,
+        kind: 'leaf', via: 'hd7livex',
+      }));
+    }
+    // Last resort: the match page itself (frontend iframes it via cleaning proxy).
+    pushUnique({ label: 'صفحة المباراة (احتياطي)', url: target, livePage: null, kind: 'fallback', via: 'fallback' });
+
+    if (playerSrc || (hd7 && hd7.playerSrc)) {
+      const first = servers[0].url;
       return res.status(200).json({
         id,
         href: target,
+        home: matchHome || undefined,
+        away: matchAway || undefined,
+        playerSrc: first,
+        playerHtml,
+        found: true,
+        via: playerSrc && hd7 ? 'mixed' : (hd7 ? 'hd7livex' : 'direct'),
+        livePage: (hd7 && hd7.livePage) || null,
+        embedUrl: first,
+        fallbackUrl: target,
+        count: servers.length,
+        servers,
+      });
+    } else {
+      // No playable embed anywhere — still return the tab list (if any) plus
+      // the fallback so the UI can show "1 source • fallback" instead of zero.
+      return res.status(200).json({
+        id,
+        href: target,
+        home: matchHome || undefined,
+        away: matchAway || undefined,
         playerSrc: null,
         playerHtml: null,
         found: false,
         fallbackUrl: target,
+        count: servers.length,
+        servers,
         message: 'No direct player found, use fallbackUrl with cleaning'
       });
     }
