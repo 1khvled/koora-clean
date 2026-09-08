@@ -270,148 +270,6 @@ export default async function handler(req, res) {
       return vids;
     } catch { return []; }
   };
-
-  // DaddyLive (added 2026-09-09): dlhd.st serves a fully STATIC schedule
-  // (event titles + times + /watch.php?id=N channel links), and dlive.sx
-  // stream pages each hold ONE static iframe to a Clappr leaf page whose JS
-  // carries a base64 m3u8. Their own api.php docs bless iframe embedding —
-  // BUT the stream CDN gates on Referer == the leaf URL ("Access Denied" on
-  // our domain), so leaves are unplayable in iframes here. Chain per channel:
-  //   schedule event -> /stream/stream-<id>.php -> leaf -> m3u8
-  // and playback goes through /api/hls (spoofed Referer) as NATIVE HLS.
-  // Only channels with an extracted m3u8 are surfaced (hls-only gate).
-  // Matching reuses fuzzyArEn with the same strict gate as VIPBox. Plus a
-  // fixed beIN Sports Arabic 24/7 fallback (ids verified live: 91/92/93).
-  // Fail-open everywhere -> [] and the sections stay hidden.
-  const DADDY_BEIN = [
-    { id: '91', label: 'beIN Sports 1' },
-    { id: '92', label: 'beIN Sports 2' },
-    { id: '93', label: 'beIN Sports 3' },
-  ];
-  const deEmoji = (s) => (s || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/\s+/g, ' ').trim();
-  // Arabic league -> English words (compared against Daddy's "League : A vs B"
-  // prefix, e.g. "England - Championship"). Word-level so hyphens/spaces
-  // and extra words ("UEFA", "England") don't matter.
-  const leagueHitEn = (arLeague, enText) => {
-    if (!arLeague || !enText) return false;
-    const words = new Set(enText.toLowerCase().replace(/-/g, ' ').split(/[^a-z]+/).filter(w => w.length > 3));
-    if (!words.size) return false;
-    return LEAGUE_MAP.some(([ar, toks]) =>
-      arLeague.includes(ar) && toks.some(v =>
-        v.toLowerCase().replace(/-/g, ' ').split(/[^a-z]+/).some(w => w.length > 3 && words.has(w))));
-  };
-  // Full DaddyLive resolve: stream page -> leaf page -> base64 m3u8.
-  // Returns {leaf, hls} — hls is OUR /api/hls proxy URL (the ONLY thing that
-  // plays: the CDN demands Referer == the leaf URL, unspoofable client-side).
-  // Channels WITHOUT an extractable m3u8 are dropped (a leaf iframe on our
-  // domain just shows "Access Denied", so never surface it as a button).
-  const resolveDaddyStream = async (id, UA) => {
-    if (!/^\d+$/.test(id)) return null; // ids come from scraped HTML — digits only
-    try {
-      const r = await fetchT(`https://dlive.sx/stream/stream-${id}.php`,
-        { headers: { ...UA, Referer: 'https://dlhd.st/' } }, 7000);
-      if (!r.ok) return null;
-      const html = await r.text();
-      const m = html.match(/<iframe[^>]*src=(["'])(.*?)\1/i);
-      const leaf = m ? fixUrl(m[2]) : null;
-      if (!leaf) return null;
-      try {
-        const lr = await fetchT(leaf,
-          { headers: { ...UA, Referer: 'https://dlive.sx/' } }, 7000);
-        if (!lr.ok) return { leaf, hls: null };
-        const lhtml = await lr.text();
-        const sm = lhtml.match(/source\s*:\s*window\.atob\('([^']+)'\)/);
-        if (!sm) return { leaf, hls: null };
-        let m3u8 = null;
-        try { m3u8 = Buffer.from(sm[1], 'base64').toString('utf8'); } catch {}
-        if (!m3u8 || !m3u8.startsWith('https://')) return { leaf, hls: null };
-        return {
-          leaf,
-          hls: '/api/hls?u=' + encodeURIComponent(m3u8) + '&ref=' + encodeURIComponent(leaf),
-        };
-      } catch { return { leaf, hls: null }; }
-    } catch { return null; }
-  };
-  const resolveDaddy = async (home, away, startIso, leagueAr) => {
-    const out = { channels: [], tv: [] };
-    const UA = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml',
-      'Referer': 'https://dlhd.st/',
-    };
-    // beIN 24/7 runs in parallel with the schedule fetch below.
-    // HLS-only: without an m3u8 the button would just show "Access Denied".
-    const tvP = Promise.all(DADDY_BEIN.map(async (ch) => {
-      const s = await resolveDaddyStream(ch.id, UA);
-      return (s && s.hls) ? { label: ch.label, url: s.leaf, hls: s.hls, kind: 'tv', via: 'daddylive' } : null;
-    })).then(rs => rs.filter(Boolean)).catch(() => []);
-    let channels = [];
-    try {
-      if (normAr(home) || normAr(away)) {
-        const r = await fetchT('https://dlhd.st/', { headers: UA }, 9000);
-        if (r.ok) {
-          const html = await r.text();
-          const evts = [...html.matchAll(/schedule__eventHeader"[^>]*data-title="([^"]+)"[\s\S]{0,400}?schedule__time"[^>]*>([^<]+)<[\s\S]{0,400}?schedule__eventTitle">([^<]+)<([\s\S]*?)schedule__channels">([\s\S]*?)<\/div>\s*<\/div>/gi)];
-          const seen = new Set();
-          const items = [];
-          for (const e of evts) {
-            // data-title carries the sport emoji — require ⚽ so tennis doubles
-            // ("A/B vs C") and other 'vs' sports never enter the pool.
-            if (!/\u26BD/u.test(e[1])) continue;
-            const title = deEmoji(e[3]);
-            if (!/ vs /i.test(' ' + title + ' ')) continue; // teams only
-            const parts = title.split(/\s*:\s*/);
-            const teams = parts.length > 1 ? parts.slice(1).join(' : ') : title;
-            const leaguePart = parts.length > 1 ? parts[0] : '';
-            const clock = (e[2] || '').trim();
-            const chans = [...e[5].matchAll(/href="\/watch\.php\?id=(\d+)"[^>]*title="([^"]*)"/gi)]
-              .map(m => ({ id: m[1], name: (m[2] || '').trim() }))
-              .filter(c => c.id && !seen.has('c' + c.id));
-            if (!chans.length) continue;
-            const key = normLat(teams);
-            if (seen.has(key)) continue;
-            seen.add(key);
-            // Youth/reserve second teams (U19/U21/…) score like their senior
-            // sides — penalize so a senior query can't land on a youth game.
-            const youth = /\bU1[5-9]\b|\bU2[0-3]\b|\byouth\b|\breserve\b|\bII\b/i.test(teams) ? 0.6 : 0;
-            items.push({ teams, leaguePart, clock, chans, youth });
-          }
-          const refMin = wallMin(startIso);
-          const scored = items.map(it => {
-            const fz = fuzzyArEn(home, away, it.teams);
-            return { ...it, fz, score: fz + it.youth };
-          }).sort((x, y) => x.score - y.score);
-          const best = scored[0], second = scored[1];
-          if (best && best.fz <= 1.4 && (!second || (second.score - best.score) >= 0.25)) {
-            const lh = leagueHitEn(leagueAr, best.leaguePart);
-            let dd = null;
-            if (refMin !== null && best.clock && /^\d{2}:\d{2}$/.test(best.clock)) {
-              const d = Math.abs((+best.clock.slice(0, 2)) * 60 + (+best.clock.slice(3)) - refMin);
-              dd = Math.min(d, 1440 - d);
-            }
-            if (lh || (dd !== null && dd <= 60)) {
-              const picks = [
-                ...best.chans.filter(c => !/^(event|stream)\b/i.test(c.name)),
-                ...best.chans.filter(c => /^(event|stream)\b/i.test(c.name)),
-              ].slice(0, 2);
-              channels = (await Promise.all(picks.map(async (c) => {
-                const s = await resolveDaddyStream(c.id, UA);
-                return (s && s.hls) ? {
-                  label: c.name || `DaddyLive ${c.id}`,
-                  sub: best.clock || undefined,
-                  url: s.leaf, hls: s.hls, kind: 'en', via: 'daddylive',
-                } : null;
-              }))).filter(Boolean);
-            }
-          }
-        }
-      }
-    } catch {}
-    out.channels = channels;
-    try { out.tv = await tvP; } catch { out.tv = []; }
-    return out;
-  };
-
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=30');
   
@@ -524,12 +382,11 @@ export default async function handler(req, res) {
     // Always try the hd7livex multi-server chain too (it is the only source
     // proven to yield playable leaf embeds). Merged below with direct/fallback.
     // VIPBox schedule resolves in parallel (independent fetch, fail-open).
-    const [hd7, vipServers, daddy] = await Promise.all([
+    const [hd7, vipServers] = await Promise.all([
       resolveHd7(matchHome, matchAway).catch(() => null),
       resolveVipboxMatch(matchHome, matchAway, qStart || null, qLeague || null).catch(() => []),
-      resolveDaddy(matchHome, matchAway, qStart || null, qLeague || null).catch(() => ({ channels: [], tv: [] })),
     ]);
-    const enServers = [...(vipServers || []), ...((daddy && daddy.channels) || [])];
+    const enServers = vipServers || [];
 
     const servers = [];
     const pushUnique = (entry) => {
@@ -545,12 +402,6 @@ export default async function handler(req, res) {
         label: s.label || `سيرفر ${i + 1}`,
         url: s.url, livePage: s.livePage, m9: s.m9, leaf: s.leaf,
         kind: 'leaf', via: 'hd7livex',
-      }));
-    }
-    // beIN 24/7 Arabic channels (always-on fallback, before the match page).
-    if (daddy && daddy.tv) {
-      daddy.tv.forEach(s => pushUnique({
-        label: s.label, url: s.url, kind: 'tv', via: 'daddylive',
       }));
     }
     // Last resort: the match page itself (frontend iframes it via cleaning proxy).
