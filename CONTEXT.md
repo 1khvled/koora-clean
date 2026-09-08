@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (DaddyLive integration §18, pending commit).
+> Last updated: 2026-09-09 (commit `3becc85`, DaddyLive integration §18).
 
 ## 18. DaddyLive source: match channels + beIN 24/7 fallback (2026-09-09, user: "search up other players we can scrape")
 
