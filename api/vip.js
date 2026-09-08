@@ -33,7 +33,17 @@ export default async function handler(req, res) {
       },
     }).finally(() => clearTimeout(to));
     if (!up.ok) return res.status(502).json({ error: 'upstream ' + up.status });
+    // SEC: fetch follows redirects — re-check the FINAL host so a vipbox
+    // redirect can't launder arbitrary content through our origin.
+    let finalHost = '';
+    try { finalHost = new URL(up.url).hostname.toLowerCase(); } catch {}
+    if (!(finalHost === 'vipbox.lc' || finalHost.endsWith('.vipbox.lc')))
+      return res.status(502).json({ error: 'upstream redirected off-host' });
+    // Size cap: pages are ~650KB; refuse absurd bodies before buffering.
+    const clen = +(up.headers.get('content-length') || 0);
+    if (clen > 2500000) return res.status(502).json({ error: 'upstream too large' });
     let html = await up.text();
+    if (html.length > 2500000) return res.status(502).json({ error: 'upstream too large' });
 
     if (/<base\s/i.test(html)) html = html.replace(/<base[^>]*>/i, '<base href="https://vipbox.lc/">');
     else if (html.includes('<head>')) html = html.replace('<head>', '<head><base href="https://vipbox.lc/">');

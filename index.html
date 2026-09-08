@@ -182,8 +182,13 @@ function playerLink(m){
     hl: m.home_logo || '', al: m.away_logo || '', lg: m.league_text || m.league || '', tm: m.time_text || m.game_time || '', st: m.start || '' });
   return 'player.html?' + q.toString();
 }
+/* SEC: every match field comes from a third-party scrape — escape before
+   innerHTML or a compromised upstream owns the page (attr breakout + <img onerror>). */
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 function logoImg(src, alt){
-  return `<img src="${src}" alt="" loading="lazy" onerror="this.style.display='none'">`;
+  return `<img src="${esc(src)}" alt="" loading="lazy" onerror="this.style.display='none'">`;
 }
 
 async function fetchData(day, silent){ // silent = background refresh: keep scroll + LEAGUE filter
@@ -220,13 +225,15 @@ async function loadDay(day, silent){
 
 setInterval(() => loadDay(DAY, true), 45000); // #2: silent score refresh every 45s
 
+let LEAGUE_LIST = []; // raw league names parallel to chip indexes (never in DOM)
 function buildChips(){
-  const leagues = [...new Set(ALL.map(m => (m.league_text || m.league || '').trim()).filter(Boolean))];
+  LEAGUE_LIST = [...new Set(ALL.map(m => (m.league_text || m.league || '').trim()).filter(Boolean))];
   const box = $('#leagueChips');
-  box.innerHTML = `<button class="chip${LEAGUE === 'all' ? ' on' : ''}" data-l="all">الكل</button>` +
-    leagues.map(l => `<button class="chip${LEAGUE === l ? ' on' : ''}" data-l="${l}">${l}</button>`).join('');
+  box.innerHTML = `<button class="chip${LEAGUE === 'all' ? ' on' : ''}" data-i="-1">الكل</button>` +
+    LEAGUE_LIST.map((l, i) => `<button class="chip${LEAGUE === l ? ' on' : ''}" data-i="${i}">${esc(l)}</button>`).join('');
   $$('.chip', box).forEach(c => c.onclick = () => {
-    LEAGUE = c.dataset.l;
+    const i = +c.dataset.i;
+    LEAGUE = i < 0 ? 'all' : LEAGUE_LIST[i];
     $$('.chip', box).forEach(x => x.classList.toggle('on', x === c));
     render();
   });
@@ -243,26 +250,26 @@ function filtered(){
 
 function liveCard(m){
   const st = statusLabel(m);
-  const score = (m.score_home !== '' && m.score_home != null) ? `${m.score_home} - ${m.score_away}` : 'VS';
+  const score = (m.score_home !== '' && m.score_home != null) ? `${esc(m.score_home)} - ${esc(m.score_away)}` : 'VS';
   return `<a class="live-card" href="${playerLink(m)}">
-    <div class="lg">${m.league_text || m.league || ''}</div>
-    <div class="row">${logoImg(m.home_logo)}<span>${m.home || ''}</span></div>
-    <div class="row" style="margin-top:6px">${logoImg(m.away_logo)}<span>${m.away || ''}</span></div>
+    <div class="lg">${esc(m.league_text || m.league || '')}</div>
+    <div class="row">${logoImg(m.home_logo)}<span>${esc(m.home || '')}</span></div>
+    <div class="row" style="margin-top:6px">${logoImg(m.away_logo)}<span>${esc(m.away || '')}</span></div>
     <div class="score-line"><span class="vs">${score}</span>
-      <span class="minute"><span class="dot" style="background:#231a00"></span>${st.txt}</span></div>
+      <span class="minute"><span class="dot" style="background:#231a00"></span>${esc(st.txt)}</span></div>
   </a>`;
 }
 
 function rowCard(m){
   const st = statusLabel(m);
-  const sh = (m.score_home !== '' && m.score_home != null) ? m.score_home : '';
-  const sa = (m.score_away !== '' && m.score_away != null) ? m.score_away : '';
+  const sh = (m.score_home !== '' && m.score_home != null) ? esc(m.score_home) : '';
+  const sa = (m.score_away !== '' && m.score_away != null) ? esc(m.score_away) : '';
   return `<a class="m${isLive(m) ? ' is-live' : ''}" href="${playerLink(m)}">
-    <div class="st"><div class="t">${(m.time_text || '').trim() || '–'}</div>
-      <div class="s ${st.cls}">${st.txt}</div></div>
+    <div class="st"><div class="t">${esc((m.time_text || '').trim()) || '–'}</div>
+      <div class="s ${st.cls}">${esc(st.txt)}</div></div>
     <div class="teams">
-      <div class="t">${logoImg(m.home_logo)}<span>${m.home || ''}</span><b>${sh}</b></div>
-      <div class="t">${logoImg(m.away_logo)}<span>${m.away || ''}</span><b>${sa}</b></div>
+      <div class="t">${logoImg(m.home_logo)}<span>${esc(m.home || '')}</span><b>${sh}</b></div>
+      <div class="t">${logoImg(m.away_logo)}<span>${esc(m.away || '')}</span><b>${sa}</b></div>
     </div>
     <div class="go">‹</div>
   </a>`;
@@ -282,7 +289,7 @@ function render(){
     groups.get(k).push(m);
   }
   $('#leagues').innerHTML = [...groups].map(([lg, ms]) =>
-    `<section class="league"><h3>${lg}</h3>${ms.map(rowCard).join('')}</section>`).join('');
+    `<section class="league"><h3>${esc(lg)}</h3>${ms.map(rowCard).join('')}</section>`).join('');
   $('#empty').hidden = list.length > 0;
   injectJsonLd(list); // #9: fresh SportsEvent schema for crawlers
 }
