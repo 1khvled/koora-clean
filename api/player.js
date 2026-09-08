@@ -5,6 +5,7 @@ export default async function handler(req, res) {
   // the /api/matches self-lookup (also used by local tests).
   const qHome = (req.query.home || '').toString();
   const qAway = (req.query.away || '').toString();
+  const qStart = (req.query.start || '').toString();
 
   // Fetch with a hard timeout (serverless-friendly).
   const fetchT = (url, opts = {}, ms = 8000) => {
@@ -119,6 +120,60 @@ export default async function handler(req, res) {
     } catch { return null; }
   };
   
+  // VIPBox English section (added 2026-09-08): the vipbox player itself is
+  // JS-rendered + encrypted server-side (no static iframe to extract), but its
+  // football schedule IS static HTML: /onair/football/<slug> anchors with
+  // English title="" + kickoff <span content="ISO">. Each match plays at
+  // /live/football/<slug>-1 (Video 1; the page's own UI switches 2..N
+  // in-page, so one URL per match suffices). We return the schedule ranked by
+  // kickoff distance to ?start= so the user's match floats to the top; the
+  // frontend renders it as a separate "English sources" section. Fail-open:
+  // any error -> [] and the section stays hidden.
+  const resolveVipbox = async (startIso) => {
+    const UA = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml',
+      'Referer': 'https://vipbox.lc/',
+    };
+    try {
+      const r = await fetchT('https://vipbox.lc/football-schedule', { headers: UA }, 8000);
+      if (!r.ok) return [];
+      const html = await r.text();
+      const anchors = [...html.matchAll(/<a[^>]+href="\/onair\/football\/([A-Za-z0-9\-]+)"[^>]*title="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
+      const seen = new Set();
+      const items = [];
+      for (const a of anchors) {
+        const slug = a[1].toLowerCase();
+        const title = (a[2] || '').trim().replace(/\s+/g, ' ');
+        if (!slug || !title || seen.has(slug)) continue;
+        seen.add(slug);
+        const inner = a[3] || '';
+        const tM = inner.match(/<span[^>]+content="([^"]+)"[^>]*>(\d{2}:\d{2})?</i);
+        const kickoff = tM ? tM[1] : null;
+        const clock = tM && tM[2] ? tM[2] : (kickoff && kickoff.match(/(\d{2}:\d{2})/) || [])[1] || '';
+        const lM = inner.match(/vip-box\s+([a-z\-]+)/i);
+        const league = lM ? lM[1].replace(/-/g, ' ') : '';
+        items.push({ slug, title, kickoff, clock, league });
+      }
+      const ref = startIso ? Date.parse(startIso) : NaN;
+      if (!isNaN(ref)) {
+        items.forEach(it => {
+          const t = it.kickoff ? Date.parse(it.kickoff) : NaN;
+          it._d = isNaN(t) ? Number.MAX_SAFE_INTEGER : Math.abs(t - ref);
+        });
+        items.sort((x, y) => x._d - y._d);
+      }
+      return items.slice(0, 12).map(it => ({
+        label: it.title,
+        sub: [it.clock, it.league].filter(Boolean).join(' • '),
+        url: `https://vipbox.lc/live/football/${it.slug}-1`,
+        onair: `https://vipbox.lc/onair/football/${it.slug}`,
+        kind: 'en',
+        via: 'vipbox',
+      }));
+    } catch { return []; }
+  };
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=30');
   
@@ -219,8 +274,11 @@ export default async function handler(req, res) {
 
     // Always try the hd7livex multi-server chain too (it is the only source
     // proven to yield playable leaf embeds). Merged below with direct/fallback.
-    let hd7 = null;
-    try { hd7 = await resolveHd7(matchHome, matchAway); } catch { hd7 = null; }
+    // VIPBox schedule resolves in parallel (independent fetch, fail-open).
+    const [hd7, enServers] = await Promise.all([
+      resolveHd7(matchHome, matchAway).catch(() => null),
+      resolveVipbox(qStart || null).catch(() => []),
+    ]);
 
     const servers = [];
     const pushUnique = (entry) => {
@@ -257,6 +315,8 @@ export default async function handler(req, res) {
         fallbackUrl: target,
         count: servers.length,
         servers,
+        enCount: (enServers || []).length,
+        enServers: enServers || [],
       });
     } else {
       // No playable embed anywhere — still return the tab list (if any) plus
@@ -272,6 +332,8 @@ export default async function handler(req, res) {
         fallbackUrl: target,
         count: servers.length,
         servers,
+        enCount: (enServers || []).length,
+        enServers: enServers || [],
         message: 'No direct player found, use fallbackUrl with cleaning'
       });
     }

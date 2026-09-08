@@ -4,7 +4,47 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-08 (commit `89c51ee`, player sources upgrade §13).
+> Last updated: 2026-09-08 (VIPBox English section §14, pending commit).
+
+## 14. VIPBox English sources section (2026-09-08, user: "this website got player but its english… include it into another section")
+
+- **Probe (live 2026-09-08):** `vipbox.lc/live/football/lille-vs-real-betis-1`
+  is JS-rendered + encrypted (`window['ZpQ…']` blob decodes to binary, video
+  tabs 1–10 only in JS, one static `javascript:;` "more video/stream option"
+  anchor) → deep server-side leaf extraction = breaking obfuscated crypto,
+  fragile. BUT the `/football-schedule` page IS static HTML: 53 unique
+  `/onair/football/<slug>` anchors with English `title=""`, kickoff `<span
+  content="ISO">HH:MM</span>`, league icon class. Each match plays at
+  `/live/football/<slug>-1` (Video 1; page's own UI switches 2..N in-page, so
+  one URL per match suffices). Cross-language team mapping (Arabic→English
+  slug) is unreliable → no fake matching: rank schedule by kickoff distance
+  to `?start=` so the user's match floats near the top, user picks by English
+  name.
+- **`api/player.js`:** new `resolveVipbox(startIso)` (8s `fetchT`, fail-open
+  → `[]`), parses slug/title/kickoff/league, ranks by `|kickoff − start|`,
+  takes 12, returns `{label, sub, url: live/<slug>-1, onair, kind:'en',
+  via:'vipbox'}`. Runs in `Promise.all` with `resolveHd7`. New `?start=`
+  param; responses add `enServers`/`enCount` (both found + not-found paths).
+- **`player.html`:** new `🇬🇧 مصادر إنجليزية` section (`#enHead/#enServers/
+  #enNote`, hidden when empty): same grid styling + `EN` badge + LTR labels
+  (`direction:ltr; unicode-bidi:plaintext`), sub-line `EN • VIPBox •
+  20:00`. One unified `serverList` (Arabic + EN) → shared iframe,
+  `تشاهد الآن (i/N)`, synced `.on` in both grids, watchdog auto-advance works
+  across sections. `loadRealPlayer` sends `start: startP`.
+- **`index.html`:** `playerLink()` forwards `st: m.start` for the ranking.
+- **Bug caught by probe:** long EN titles stretched the page (`scrollW=477`,
+  every element offender — grid items default `min-width:auto`) → fixed with
+  `.srv{min-width:0}`.
+- Verified: parser replayed on real schedule HTML (53 matches, Lille-Betis
+  ranked top for 20:00 ref, constructed URL == user's URL pattern);
+  Playwright 390px (`verify_en.py`, TEMP-untracked): EN section shows/counts
+  (2+2), EN click loads vipbox URL + active sync, empty-EN hides section,
+  `scrollW=390 offenders=[]`, zero pageerrors; `node --check` clean; mirrors
+  byte-identical.
+- **Not yet proven in a real browser:** vipbox iframe actually playing inside
+  OUR player (X-Frame-Options unknown — vipbox distributes embeds so likely
+  allowed; same ad-guard caveat as hd7 leaf). Needs user check on
+  `kooraadz.vercel.app`.
 
 ## 1. What this is
 
