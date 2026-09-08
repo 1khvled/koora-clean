@@ -244,7 +244,11 @@ function kindTag(s){
   return 'سيرفر';
 }
 function subTag(s){
-  return [kindTag(s), s.via === 'vipbox' ? 'VIPBox' : s.via, s.sub].filter(Boolean).join(' • ');
+  // NOTE: keep brand names OUT of button text (only kind + time) — some
+  // ad-block cosmetic lists remove page elements that mention stream brands,
+  // which once left an EN header with zero visible buttons.
+  if (s && s.kind === 'en') return ['إنجليزي', s.sub].filter(Boolean).join(' • ');
+  return [kindTag(s), s.via, s.sub].filter(Boolean).join(' • ');
 }
 function btnHtml(s, i, on){
   const en = s.kind === 'en';
@@ -276,12 +280,18 @@ function showServersFromList(list, enList){
     [...serversEl.children].forEach(b => { if (b.id !== 'retryBtn') b.onclick = () => goServer(+b.dataset.i, false); });
   }
   if (en.length){
-    enHead.hidden = false; enEl.hidden = false; enNote.hidden = false;
-    enCount.hidden = false;
-    enCount.textContent = en.length;
+    // Populate the grid FIRST, reveal the header only after — so a header
+    // with no buttons can never be left on screen, whatever happens.
     enEl.innerHTML = en.map((s) => btnHtml(s, serverList.indexOf(s), false)).join('');
     [...enEl.children].forEach(b => b.onclick = () => goServer(+b.dataset.i, false));
+    enCount.textContent = en.length;
     enNote.textContent = 'فيديوهات VIPBox الخاصة بهذه المباراة بتعليق إنجليزي — جرّب Video 2 أو 3 إذا تقطّع الأول.';
+    if (enEl.children.length){
+      enHead.hidden = false; enEl.hidden = false; enNote.hidden = false;
+      enCount.hidden = false;
+    } else {
+      enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
+    }
   } else {
     enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
   }
@@ -356,11 +366,16 @@ async function loadRealPlayer(){
     }
     const enList = (data && Array.isArray(data.enServers)) ? data.enServers : [];
     showServersFromList(list, enList);
-    const first = list.find(s => s && s.url);
+    // Play from the UNIFIED list (Arabic first, English fallback) — using only
+    // the Arabic `list` here left a black player when Arabic was empty but
+    // English videos existed.
+    const first = serverList.find(s => s && (s.play || s.url));
     if (first){
-      iframe.src = first.url;
-      lastCleanSrc = first.url;
-      if (data && data.found === false) toast('لا يوجد بث مباشر — صفحة المباراة');
+      const src = first.play || first.url;
+      iframe.src = src;
+      lastCleanSrc = src;
+      trackServer(first.url);
+      if (data && data.found === false && first.kind !== 'en') toast('لا يوجد بث مباشر — صفحة المباراة');
     } else {
       toast('لا يوجد بث متاح حالياً');
     }

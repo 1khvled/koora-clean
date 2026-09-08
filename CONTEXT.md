@@ -4,7 +4,32 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-08 (commit `57f615f`, VIPBox fix §15).
+> Last updated: 2026-09-08 (EN empty-section hardening §16, pending commit).
+
+## 16. EN "header with no buttons" hardening (2026-09-08, user: "shows nothing" + screenshot of EN header, zero buttons)
+
+- **Reproduction:** live deployment behaves correctly (Ettifaq test: 3 Arabic
+  buttons, EN properly hidden, `enCount 0`; mock grid tests: counts, clicks,
+  active-sync all pass). No code path in §14/§15 renders the EN header without
+  its grid — the render is atomic. Prime suspect for the user's screenshot:
+  an ad-block cosmetic rule removing buttons that mention stream brands
+  (only EN buttons contained the text "VIPBox"), and/or the real first-load
+  bug below. Could not reproduce the exact half-state locally.
+- **Fixes (all safe, verified):**
+  1. EN buttons no longer contain brand text (`إنجليزي • 20:00` instead of
+     `إنجليزي • VIPBox • 20:00`) — brand stays in header/note only.
+  2. Header reveals only AFTER the grid has children (`enEl.children.length`
+     check) — a header-with-no-buttons is now structurally impossible even
+     under exceptions.
+  3. First-load auto-play reads the UNIFIED `serverList` (was: Arabic `list`
+     only) — previously a black player when Arabic was empty but English
+     videos existed.
+- Verified: Playwright cases A (ar+en), B (ar-empty+en → auto-play source
+  found), C (both empty → retry, EN hidden); `scrollW=390`, zero pageerrors,
+  `node --check` clean, mirrors byte-identical.
+- **Still needed from user:** WHICH match showed this (to inspect its exact
+  `/api/player` response), and whether an ad-blocker is active — if the
+  half-state persists with this build, that data will pin it.
 
 ## 15. VIPBox fix — match-only videos + cleaned embed (2026-09-08, user: "player is not good like that, displaying random matches")
 
