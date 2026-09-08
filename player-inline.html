@@ -21,6 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
 <style>
 /* KOORA-OWN-v1 player: same pitch-night identity as index. */
 :root{
@@ -47,6 +48,9 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .stage{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;
   aspect-ratio:16/9;border:1px solid var(--line)}
 .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.stage iframe[hidden]{display:none}
+.stage video{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.stage video[hidden]{display:none}
 .shield{position:absolute;inset:0;pointer-events:none;border:2px solid transparent;
   transition:border-color .2s;z-index:5}
 .shield.hit{border-color:var(--gold)}
@@ -128,6 +132,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   <div class="stage">
     <iframe id="player" title="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       allowfullscreen loading="eager" sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"></iframe>
+    <video id="hlsvid" hidden controls playsinline preload="none"></video>
     <div class="shield" id="shield"></div>
     <div class="click-shield" id="clickShield">
       <div style="text-align:center">
@@ -326,14 +331,65 @@ function trackServer(src){
   const i = serverList.findIndex(s => s.url === src);
   if (i >= 0){ srvIdx = i; paintNow(); }
 }
+/* Native HLS (DaddyLive via /api/hls): no iframe, no popups possible.
+   HEVC note — some DaddyLive renditions are hvc1, which Chrome desktop can't
+   decode: hls.js reports fatal MEDIA_ERROR and we auto-advance like the
+   popup watchdog does. Safari/iOS play natively. */
+const hlsvid = document.getElementById('hlsvid');
+let hlsInst = null, hlsActive = false;
+function stopHls(){
+  hlsActive = false;
+  try { if (hlsInst){ hlsInst.destroy(); hlsInst = null; } } catch {}
+  try { hlsvid.pause(); hlsvid.removeAttribute('src'); hlsvid.load(); } catch {}
+  hlsvid.hidden = true;
+  iframe.hidden = false;
+}
+function playHls(url){
+  stopHls();
+  hlsActive = true;
+  iframe.hidden = true;
+  hlsvid.hidden = false;
+  const start = () => {
+    try { hlsvid.muted = true; } catch {}
+    try { const pr = hlsvid.play(); if (pr && pr.catch) pr.catch(() => {}); } catch {}
+    toast('اضغط لعرض البث — فعّل الصوت من المشغّل');
+  };
+  // Prefer hls.js (MSE) first: headless/desktop Chrome claims "maybe" for
+  // native HLS via canPlayType but can't actually play it — native is only
+  // the fallback for Safari, which has no MSE need.
+  if (window.Hls && window.Hls.isSupported()) {
+    try {
+      hlsInst = new window.Hls({ capLevelToPlayerSize: true });
+      hlsInst.on(window.Hls.Events.ERROR, (ev, data) => {
+        if (data && data.fatal){ const f = hlsActive; stopHls(); if (f) goServer(srvIdx + 1, true); }
+      });
+      hlsInst.loadSource(url);
+      hlsInst.attachMedia(hlsvid);
+      hlsInst.on(window.Hls.Events.MANIFEST_PARSED, start);
+    } catch { stopHls(); goServer(srvIdx + 1, true); }
+  } else if (hlsvid.canPlayType('application/vnd.apple.mpegurl')) {
+    hlsvid.src = url;
+    hlsvid.addEventListener('loadedmetadata', start, { once: true });
+  } else {
+    toast('المتصفح لا يدعم HLS — جرّب سيرفراً آخر');
+    stopHls(); goServer(srvIdx + 1, true);
+  }
+}
 function goServer(i, auto){
   if (!serverList.length) return;
   srvIdx = ((i % serverList.length) + serverList.length) % serverList.length;
   const s = serverList[srvIdx];
-  const src = (s && (s.play || s.url)) || '';
-  if (!src) return;
-  iframe.src = src;
-  lastCleanSrc = src;
+  if (!s) return;
+  if (s.hls){
+    playHls(s.hls);
+    lastCleanSrc = s.hls;
+  } else {
+    stopHls();
+    const src = s.play || s.url || '';
+    if (!src) return;
+    iframe.src = src;
+    lastCleanSrc = src;
+  }
   paintNow();
   rearmShield();
   if (auto) toast('نحاول سيرفراً آخر…');
@@ -380,13 +436,9 @@ async function loadRealPlayer(){
     // Play from the UNIFIED list (Arabic first, English fallback) — using only
     // the Arabic `list` here left a black player when Arabic was empty but
     // English videos existed.
-    const first = serverList.find(s => s && (s.play || s.url));
-    if (first){
-      const src = first.play || first.url;
-      iframe.src = src;
-      lastCleanSrc = src;
-      trackServer(first.url);
-      if (data && data.found === false && first.kind !== 'en') toast('لا يوجد بث مباشر — صفحة المباراة');
+    if (serverList.length){
+      goServer(0, false);
+      if (serverList[0].kind === 'fallback') toast('لا يوجد بث مباشر — صفحة المباراة');
     } else {
       toast('لا يوجد بث متاح حالياً');
     }
@@ -403,6 +455,12 @@ clickShield.addEventListener('click', () => clickShield.classList.add('hidden'))
 
 /* fullscreen */
 document.getElementById('btnFull').onclick = () => {
+  if (hlsActive && !hlsvid.hidden){
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else if (hlsvid.requestFullscreen) hlsvid.requestFullscreen().catch(() => toast('تعذّر ملء الشاشة'));
+    else toast('المتصفح لا يدعم ملء الشاشة');
+    return;
+  }
   const st = document.querySelector('.stage');
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else if (st.requestFullscreen) st.requestFullscreen().catch(() => toast('تعذّر ملء الشاشة'));
@@ -410,6 +468,18 @@ document.getElementById('btnFull').onclick = () => {
 };
 /* reload (cache-bust, hash-safe via URL API) */
 document.getElementById('btnReload').onclick = () => {
+  if (hlsActive){
+    const s = serverList[srvIdx];
+    if (s && s.hls){
+      try {
+        const u = new URL(s.hls, location.origin);
+        u.searchParams.set('_', Date.now());
+        playHls(u.toString());
+      } catch { playHls(s.hls); }
+      rearmShield();
+    }
+    return;
+  }
   if (!lastCleanSrc) return;
   try {
     const u = new URL(lastCleanSrc, location.origin);

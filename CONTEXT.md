@@ -4,7 +4,44 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `3becc85`, DaddyLive integration §18).
+> Last updated: 2026-09-09 (Access-Denied HLS fix §19, pending commit).
+
+## 19. "Access Denied / not available on your domain" — DaddyLive Referer gate → native HLS (2026-09-09, user report + screenshot text)
+
+- **Root cause (proven, not guessed).** DaddyLive leaf pages carry a base64
+  m3u8 (`source:window.atob(...)` → `xameleon.phantemlis.top/.../index.m3u8`).
+  Playlist fetch tests with 4 Referers: ONLY `Referer: <exact leaf URL>` → 200
+  (master 1080p50); no-referer / dlive.sx / our domain → 403. Browsers can't
+  spoof Referer, so NO iframe arrangement can play — hence the denial screen.
+- **Fix: `api/hls.js` (NEW) + native playback.** Proxy re-sends every
+  playlist/segment/key with the spoofed leaf Referer (manual redirect loop
+  re-applies it per hop), rewrites all playlist URIs (URI lines + `URI=""`
+  attrs) back through itself, validates `ref` looks like a daddy leaf page
+  (not a generic open proxy), caps bodies (2.5MB playlists / 12MB segments),
+  forwards Range, caches segments. `resolveDaddy` now extracts the m3u8 per
+  channel and emits HLS-ONLY entries (`hls: /api/hls?u=…&ref=…`) — anything
+  without an m3u8 is dropped so no dead "Access Denied" button can appear.
+- **Player:** hls.js 1.5.18 (pinned) + `<video>` in the stage; `goServer`
+  branches on `s.hls` (video) vs iframe; fullscreen/reload/error paths handle
+  both; fatal HLS errors auto-advance like the popup watchdog; muted autoplay
+  behind the existing click-shield with an unmute toast. Popup guard/SW
+  untouched (nothing to block — no iframe in HLS mode).
+- **Bug caught in testing:** desktop Chrome answers "maybe" to native-HLS
+  `canPlayType` but can't play it (loadstart → suspend, dead player) — hls.js
+  (MSE) is now tried FIRST, native only as the Safari fallback.
+- **Stream facts:** single 1080p50 HEVC (hvc1) rendition — nothing to strip;
+  Chrome-desktop-without-HEVC falls back to next server gracefully;
+  Safari/iOS play natively. Segments are signed R2 URLs (15-min expiry —
+  harmless: live playlists refresh continuously, resolver runs per page load).
+- **COST WARNING (read before matchday):** video bytes flow through Vercel —
+  ~2.5GB/hour/viewer at 1080p50; the 100GB/mo free tier ≈ 40 viewer-hours.
+  Kill-switch: stop emitting `hls` in `resolveDaddy` (one spot) — iframe
+  sources (hd7/vipbox, which don't gate) keep working.
+- Verified: REAL `api/hls.js` invoked with mocked req/res — master rewrite
+  1/1, variant 6/6 segments proxied, 2.27MB segment bytes flow, bad-ref /
+  http / garbage → 400; in-browser hls.js playback CONFIRMED (currentTime
+  7.76→10.73, playing, 512px wide); iframe↔video switching, `scrollW=390`,
+  zero pageerrors; `node --check` all; mirrors byte-identical.
 
 ## 18. DaddyLive source: match channels + beIN 24/7 fallback (2026-09-09, user: "search up other players we can scrape")
 
