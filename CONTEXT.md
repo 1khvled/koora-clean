@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-08 (player sources upgrade §13, pending commit).
+> Last updated: 2026-09-08 (commit `89c51ee`, player sources upgrade §13).
 
 ## 1. What this is
 
