@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-08 (EN empty-section hardening §16, pending commit).
+> Last updated: 2026-09-08 (commit `ae497e7`, EN empty-section hardening §16).
 
 ## 16. EN "header with no buttons" hardening (2026-09-08, user: "shows nothing" + screenshot of EN header, zero buttons)
 
