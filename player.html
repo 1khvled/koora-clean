@@ -281,7 +281,7 @@ function showServersFromList(list, enList){
     enCount.textContent = en.length;
     enEl.innerHTML = en.map((s) => btnHtml(s, serverList.indexOf(s), false)).join('');
     [...enEl.children].forEach(b => b.onclick = () => goServer(+b.dataset.i, false));
-    enNote.textContent = 'مصادر VIPBox بتعليق إنجليزي — مباريات اليوم مرتبة حسب الأقرب لموعد مباراتك. اختر مباراتك من القائمة (الأسماء بالإنجليزية).';
+    enNote.textContent = 'فيديوهات VIPBox الخاصة بهذه المباراة بتعليق إنجليزي — جرّب Video 2 أو 3 إذا تقطّع الأول.';
   } else {
     enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
   }
@@ -308,7 +308,9 @@ function trackServer(src){
 function goServer(i, auto){
   if (!serverList.length) return;
   srvIdx = ((i % serverList.length) + serverList.length) % serverList.length;
-  const src = serverList[srvIdx].url;
+  const s = serverList[srvIdx];
+  const src = (s && (s.play || s.url)) || '';
+  if (!src) return;
   iframe.src = src;
   lastCleanSrc = src;
   paintNow();
@@ -341,7 +343,7 @@ async function loadRealPlayer(){
     return;
   }
   try {
-    const q = new URLSearchParams({ id, href, home, away, start: startP });
+    const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP });
     const r = await fetch('/api/player?' + q.toString(), { cache: 'no-store' });
     const data = await r.json();
     if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP, timeP);

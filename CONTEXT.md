@@ -4,7 +4,48 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-08 (commit `2113f7b`, VIPBox English section §14).
+> Last updated: 2026-09-08 (VIPBox fix §15, pending commit).
+
+## 15. VIPBox fix — match-only videos + cleaned embed (2026-09-08, user: "player is not good like that, displaying random matches")
+
+§14 shipped two mistakes: (1) the EN section listed ~12 nearest-kickoff matches
+(random other games in YOUR match's player), (2) EN buttons iframed the whole
+vipbox site (header/titles/chat squeezed in 16:9, real player below the fold —
+screenshot `shots/vip_embed.png` proved it).
+
+- **Matching (the hard part — Arabic names, English slugs).** Built
+  Arabic→Latin transliteration + per-token normalized edit-distance fuzzy
+  scorer. Tuned on 11 real pairs (correct title always won), then validated
+  the ACCEPT/reject gate on 10 end-to-end cases against the real schedule:
+  4/4 present matches ACCEPTED (Lille-Betis, Dortmund-Villarreal, Real-Inter,
+  Porto-City), 6/6 absent correctly REJECTED — incl. the nasty
+  Atalanta/Atlante near-collision (fz 0.96!) killed by corroboration. Gate:
+  `fz ≤ 1.4 && margin ≥ 0.25 && (leagueHit || kickoff within 45min)`.
+  League map: 30 Arabic→vipbox-token rows. Wall-clock compare (no Date/TZ
+  math — the sites use different zones). Result: `enServers` = ONLY this
+  match's videos, each status+title-verified (Video 1..3, all 200 on the
+  reference match). No confident match → `[]` → section hides. NEVER a list
+  of other matches again.
+- **Playback (`api/vip.js`, NEW).** Proxies the vipbox `/live/<slug>-N` page
+  through Vercel (no user worker config needed): injects
+  `<base href="https://vipbox.lc/">` (relative assets/APIs keep working),
+  CSS hiding site chrome (`nav.navbar,h1,h2,[data-item=chat],footer` —
+  stable selectors only, obfuscated classes avoided), keeps player scripts +
+  the in-page video switcher, adds a `window.open` ad-guard, forces opaque
+  origin via CSP `sandbox` so third-party scripts can't touch our page.
+  Verified via local transform replay: chrome gone, switcher + 16:9 player
+  at top (`shots/vip_clean.png`). EN buttons now play `play:
+  /api/vip?u=…` (goServer prefers `play`, falls back to `url`).
+- **Stream 403 (honest status).** The cleaned player boots and requests its
+  stream host (`posamari.me/sd0embed/…` → 403) — but the reference match had
+  likely just ended (21:47 UTC vs 20:00 kickoff) AND headless is bot-gated, so
+  headless cannot confirm playback. Same standard as the hd7 leaf: resolved +
+  rendering, needs a real browser on a LIVE match. User check required.
+- Verified: `node --check` api/player + api/vip + both inline scripts;
+  Playwright 390px: EN section shows this match's videos only, EN click loads
+  proxied URL, empty-EN hides section, `scrollW=390 offenders=[]`, zero
+  pageerrors; mirrors byte-identical. Probes in TEMP (untracked), screenshots
+  in `shots/` (untracked, never commit).
 
 ## 14. VIPBox English sources section (2026-09-08, user: "this website got player but its english… include it into another section")
 
