@@ -6,6 +6,7 @@ export default async function handler(req, res) {
   const qHome = (req.query.home || '').toString();
   const qAway = (req.query.away || '').toString();
   const qStart = (req.query.start || '').toString();
+  const qLeague = (req.query.lg || req.query.league || '').toString();
 
   // Fetch with a hard timeout (serverless-friendly).
   const fetchT = (url, opts = {}, ms = 8000) => {
@@ -120,16 +121,87 @@ export default async function handler(req, res) {
     } catch { return null; }
   };
   
-  // VIPBox English section (added 2026-09-08): the vipbox player itself is
-  // JS-rendered + encrypted server-side (no static iframe to extract), but its
-  // football schedule IS static HTML: /onair/football/<slug> anchors with
-  // English title="" + kickoff <span content="ISO">. Each match plays at
-  // /live/football/<slug>-1 (Video 1; the page's own UI switches 2..N
-  // in-page, so one URL per match suffices). We return the schedule ranked by
-  // kickoff distance to ?start= so the user's match floats to the top; the
-  // frontend renders it as a separate "English sources" section. Fail-open:
-  // any error -> [] and the section stays hidden.
-  const resolveVipbox = async (startIso) => {
+  // VIPBox English section (added 2026-09-08, fixed same day): the vipbox
+  // player is JS-rendered + encrypted (no static iframe to extract), but its
+  // /football-schedule IS static HTML with English titles. We map OUR match
+  // (Arabic names) to THEIR slug via Arabic->Latin transliteration + fuzzy
+  // token scoring (tuned on 11 real pairs: correct title always wins), with
+  // league-token + wall-clock bonuses. Returns ONLY this match's verified
+  // videos (Video 1..3, each status-checked) — never other matches.
+  // Fail-open: no confident match -> [] and the section stays hidden.
+  const AR_TR = {
+    'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a', 'ء': '', 'ؤ': 'w', 'ئ': 'y',
+    'ب': 'b', 'ة': 'a', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh',
+    'د': 'd', 'ذ': 'd', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh',
+    'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh',
+    'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+    'ه': 'h', 'و': 'o', 'ي': 'y', 'ى': 'a', 'ـ': '', ' ': ' ',
+  };
+  const EN_STOP = new Set(['vs', 'fc', 'sc', 'ac', 'cf', 'as', 'kf', 'fk', 'sk', 'if', 'bk', 'cd', 'ud', 'ssc']);
+  const trAr = (s) => (s || '').replace(/[ً-ْٰ]/g, '').split('')
+    .map(c => AR_TR[c] !== undefined ? AR_TR[c] : c).join('')
+    .toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const normLat = (s) => (s || '').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const editDist = (a, b) => {
+    const m = a.length, n = b.length;
+    if (!m) return n; if (!n) return m;
+    let prev = [...Array(n + 1).keys()], cur = new Array(n + 1);
+    for (let i = 1; i <= m; i++) {
+      cur[0] = i;
+      for (let j = 1; j <= n; j++)
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      const tmp = prev; prev = cur; cur = tmp;
+    }
+    return prev[n];
+  };
+  const fuzzyArEn = (home, away, enTitle) => {
+    const arToks = trAr(home + ' ' + away).split(' ').filter(t => t.length >= 2);
+    const enToks = normLat(enTitle).split(' ').filter(t => t && !EN_STOP.has(t));
+    if (!arToks.length || !enToks.length) return 99;
+    let total = 0;
+    for (const t of arToks) {
+      let best = Infinity;
+      for (const e of enToks) {
+        const d = editDist(t, e) / Math.max(t.length, e.length);
+        if (d < best) best = d;
+      }
+      total += best;
+    }
+    return total;
+  };
+  // Arabic league substring -> vipbox schedule tokens (tokens are countries
+  // like 'england'/'saudi-arabia' or competitions like 'champions-league').
+  const LEAGUE_MAP = [
+    ['أبطال أوروبا', ['champions-league']], ['الأوروبي', ['europa-league']],
+    ['المؤتمر', ['conference-league']], ['الإنجليز', ['england', 'premier-league']],
+    ['الإسبان', ['spain', 'la-liga']], ['الإيطال', ['italy', 'serie-a']],
+    ['الألمان', ['germany', 'bundesliga']], ['الفرنس', ['france', 'ligue-1']],
+    ['البرتغال', ['portugal']], ['الهولند', ['netherlands']], ['التركي', ['turkey', 'turkiye']],
+    ['السعود', ['saudi-arabia']], ['روشن', ['saudi-arabia']], ['الإسكتلند', ['scotland']],
+    ['البرازيل', ['brazil']], ['الأرجنتين', ['argentina']], ['المكسيك', ['mexico']],
+    ['أمريك', ['united-states']], ['كأس العالم', ['worldcup']], ['كوبا', ['copa-america']],
+    ['اليونان', ['greece']], ['بلجيك', ['belgium']], ['النمسا', ['austria']],
+    ['سويسر', ['switzerland']], ['الدنمارك', ['denmark']], ['النرويج', ['norway']],
+    ['السويد', ['sweden']], ['كروات', ['croatia']], ['صرب', ['serbia']],
+    ['التشيك', ['czech-republic']], ['بولند', ['poland']], ['أوكران', ['ukraine']],
+    ['اليابان', ['japan']], ['كوريا', ['south-korea', 'korea']], ['الصين', ['china']],
+    ['أسترال', ['australia']], ['المغرب', ['morocco']], ['الجزائر', ['algeria']],
+    ['تونس', ['tunisia']], ['الإمارات', ['uae']], ['قطر', ['qatar']],
+  ];
+  const leagueHit = (arLeague, vipToken) => {
+    if (!arLeague || !vipToken) return false;
+    const tok = vipToken.toLowerCase();
+    return LEAGUE_MAP.some(([ar, toks]) =>
+      arLeague.includes(ar) && toks.some(v => tok === v || tok.includes(v) || v.includes(tok)));
+  };
+  // Wall-clock HH:MM straight from the ISO strings (no Date/TZ math — the two
+  // sites use different zones, so this is a soft bonus only, never a filter).
+  const wallMin = (iso) => {
+    const m = (iso || '').match(/T(\d{2}):(\d{2})/);
+    return m ? (+m[1]) * 60 + (+m[2]) : null;
+  };
+  const resolveVipboxMatch = async (home, away, startIso, leagueAr) => {
+    if (!normAr(home) && !normAr(away)) return [];
     const UA = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
       'Accept': 'text/html,application/xhtml+xml',
@@ -148,29 +220,54 @@ export default async function handler(req, res) {
         if (!slug || !title || seen.has(slug)) continue;
         seen.add(slug);
         const inner = a[3] || '';
-        const tM = inner.match(/<span[^>]+content="([^"]+)"[^>]*>(\d{2}:\d{2})?</i);
+        const tM = inner.match(/<span[^>]+content="([^"]+)"[^>]*>/i);
         const kickoff = tM ? tM[1] : null;
-        const clock = tM && tM[2] ? tM[2] : (kickoff && kickoff.match(/(\d{2}:\d{2})/) || [])[1] || '';
+        const clock = (kickoff && (kickoff.match(/(\d{2}:\d{2})/) || [])[1]) || '';
         const lM = inner.match(/vip-box\s+([a-z\-]+)/i);
-        const league = lM ? lM[1].replace(/-/g, ' ') : '';
+        const league = lM ? lM[1].toLowerCase() : '';
         items.push({ slug, title, kickoff, clock, league });
       }
-      const ref = startIso ? Date.parse(startIso) : NaN;
-      if (!isNaN(ref)) {
-        items.forEach(it => {
-          const t = it.kickoff ? Date.parse(it.kickoff) : NaN;
-          it._d = isNaN(t) ? Number.MAX_SAFE_INTEGER : Math.abs(t - ref);
-        });
-        items.sort((x, y) => x._d - y._d);
+      if (!items.length) return [];
+      // Rank by fuzzy name score only. League/kickoff are CORROBORATION
+      // (never filters — the two sites use different timezones and the league
+      // map can miss). Tuned 2026-09-08 on 10 cases: 4/4 present matches
+      // accepted, 6/6 absent correctly rejected (incl. the Atalanta/Atlante
+      // near-collision, killed by the corroboration clause).
+      const refMin = wallMin(startIso);
+      const scored = items.map(it => ({ ...it, fz: fuzzyArEn(home, away, it.title) }))
+        .sort((x, y) => x.fz - y.fz);
+      const best = scored[0];
+      const second = scored[1];
+      if (!best || best.fz > 1.4) return [];
+      if (second && (second.fz - best.fz) < 0.25) return [];
+      const lh = leagueHit(leagueAr, best.league);
+      let dd = null;
+      if (refMin !== null && best.kickoff && wallMin(best.kickoff) !== null) {
+        const d = Math.abs(wallMin(best.kickoff) - refMin);
+        dd = Math.min(d, 1440 - d);
       }
-      return items.slice(0, 12).map(it => ({
-        label: it.title,
-        sub: [it.clock, it.league].filter(Boolean).join(' • '),
-        url: `https://vipbox.lc/live/football/${it.slug}-1`,
-        onair: `https://vipbox.lc/onair/football/${it.slug}`,
-        kind: 'en',
-        via: 'vipbox',
-      }));
+      if (!lh && (dd === null || dd > 45)) return [];
+      // Verify Video 1..3 exist (status + title) so we never show dead buttons.
+      const vids = [];
+      for (const n of [1, 2, 3]) {
+        try {
+          const u = `https://vipbox.lc/live/football/${best.slug}-${n}`;
+          const vr = await fetchT(u, { headers: UA }, 6000);
+          if (!vr.ok) continue;
+          const vh = await vr.text();
+          const vt = (vh.match(/<title>([^<]*)<\/title>/i) || [])[1] || '';
+          if (!new RegExp(`Video\\s*${n}\\b`, 'i').test(vt)) continue;
+          vids.push({
+            label: `Video ${n}`,
+            sub: best.clock || undefined,
+            url: u,
+            play: `/api/vip?u=${encodeURIComponent(u)}`,
+            kind: 'en',
+            via: 'vipbox',
+          });
+        } catch {}
+      }
+      return vids;
     } catch { return []; }
   };
 
@@ -277,7 +374,7 @@ export default async function handler(req, res) {
     // VIPBox schedule resolves in parallel (independent fetch, fail-open).
     const [hd7, enServers] = await Promise.all([
       resolveHd7(matchHome, matchAway).catch(() => null),
-      resolveVipbox(qStart || null).catch(() => []),
+      resolveVipboxMatch(matchHome, matchAway, qStart || null, qLeague || null).catch(() => []),
     ]);
 
     const servers = [];
