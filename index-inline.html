@@ -178,7 +178,8 @@ function statusLabel(m){
   return { cls: '', txt: (m.time_text || '').trim() || '—' };
 }
 function playerLink(m){
-  const q = new URLSearchParams({ id: m.id || '', href: m.href || '', home: m.home || '', away: m.away || '' });
+  const q = new URLSearchParams({ id: m.id || '', href: m.href || '', home: m.home || '', away: m.away || '',
+    hl: m.home_logo || '', al: m.away_logo || '', lg: m.league_text || m.league || '', tm: m.time_text || m.game_time || '' });
   return 'player.html?' + q.toString();
 }
 function logoImg(src, alt){

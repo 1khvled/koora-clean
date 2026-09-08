@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-04 (commit `7513cda`).
+> Last updated: 2026-09-08 (player sources upgrade §13, pending commit).
 
 ## 1. What this is
 
@@ -284,3 +284,40 @@ From the 10-item improvement list: user picked #2 auto-refresh, #4 PWA,
   counter ✓); `shots/jsonld_probe.py` (5 SportsEvent ✓); `shots/console_probe.py`
   (only benign local-/api-404 + upstream autoplay noise); 390px scrollW=390,
   no overflow; mirrors 0/0. New probes live in `shots/` — untracked, never commit.
+
+## 13. Player sources upgrade (2026-09-08, user: "improve the sources of player how they are displayed etc")
+
+Root cause of "only 2 generic buttons": `api/player.js` resolved ONLY the first
+AlbaPlayer tab (Live 1 → m9 → leaf) and returned `{embedUrl, livePage,
+fallbackUrl}`; `player.html` rendered them as two fixed buttons (`srvMain` /
+`srvAlt`) with the fallback unreachable manually (watchdog-only).
+
+- **Probe (live 2026-09-08):** `hd7livex.com/matches-today` → 18 cards (incl.
+  spam); `test1/` → `goalkooora.info/live/test1.php` → `<ul
+  class="albaplayer_name">` with **3 tabs** (Live 1/2/3 → test1/test11/test111.
+  php), each with its own `/m9/*.php` → leaf (`cup.kora-live-live.com/
+  albaplayer/sports-5/` for test1). Same pattern on test2 (test2/22/222). So
+  every match has 3+ playable servers, we exposed 1.
+- **`api/player.js`:** new `resolveHd7` parses ALL `<ul class="albaplayer_name">`
+  tabs (cap 1+3), resolves each via `resolveOneLive` (live → m9 → leaf, 6s
+  `fetchT`, `Promise.all`, `allSettled`-style per-tab try/catch), returns
+  `servers: [{label, url, livePage, m9, leaf, kind, via}]` + `count`, keeping
+  legacy `embedUrl/livePage/fallbackUrl` fields. Direct kooralive iframe +
+  hd7 merged (`via: 'mixed'`), fallback always last (`kind: 'fallback'`).
+- **`player.html`:** new match card (`#matchCard`: logos + names + league +
+  time, painted instantly from URL params `hl/al/lg/tm`, enriched by API
+  `home/away`); new sources header (`مصادر البث (N)` + `تشاهد الآن: X (i/N)`);
+  responsive grid (`#serverGrid` 2-col mobile, 3-col ≥640px) with numbered
+  buttons + kind badges (سيرفر/مباشر/واجهة كاملة/احتياطي) + via + live-dot;
+  skeleton (3 shimmer) while loading, retry button on error/empty, `srcNote`
+  explainer; watchdog + popup guard + click-shield + SW unchanged.
+  Legacy `showServers(main, alt, fb)` kept as a compat shim onto
+  `showServersFromList`.
+- **`index.html`:** `playerLink()` now forwards `hl/al/lg/tm` so the player
+  header renders without an extra fetch.
+- **Mirrors:** `Copy-Item` sources → `*-inline.html`, verified byte-identical.
+- Verified: `node --check` api/player + both inline scripts OK; Playwright
+  390px (`verify_player2.py`, untracked TEMP): matchCard visible, retry state
+  clean, mock 4-server grid renders (count=4, `تشاهد الآن: Live 1 (1/4)`),
+  click → Live 2 (2/4) + iframe src swaps, `scrollW=390 offenders=[]`,
+  zero pageerrors.
