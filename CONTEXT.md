@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (personal IPTV beIN bridge §21, pending commit).
+> Last updated: 2026-09-09 (commit `0de9280`, personal IPTV beIN bridge §21).
 
 ## 21. Personal IPTV beIN bridge (2026-09-09, user supplied an Xtream panel link)
 
