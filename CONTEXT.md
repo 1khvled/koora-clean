@@ -4,7 +4,38 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `29eae04`, FotMob-layout copy §24).
+> Last updated: 2026-09-09 (mobile/console/security pass §25, pending commit).
+
+## 25. Mobile + console + security pass (2026-09-09, user: "optimize for mobiles ipads, fix console errors, fix security")
+
+- **Audit first:** 360/390/768/1024 viewports — docScrollW == viewport
+  everywhere, TRUE overflow offenders NONE (earlier flags were by-design
+  horizontal scrollers: chips row, live rail), all touch targets ≥40px.
+  So no broken layout — this pass is polish + hardening.
+- **Console:** removed the redundant `allowfullscreen` attribute (the `Allow`
+  warning; `allow="fullscreen"` already grants it, provider fullscreen
+  buttons keep working). The `sandbox` warning is inherent and stays —
+  mitigated (`/api/vip` forces opaque origin via CSP header). Local-only
+  `/api/*` 404s don't occur on Vercel.
+- **Mobile/iPad CSS:** league chips 40→44px targets; pitch capped at 560px
+  and centered on tablets/desktops; sub-360px dot/label shrink; ≥768px gets
+  roomier player wrap + minfo padding, wider index content (880px), larger
+  brand/rows.
+- **Security — REAL find: `javascript:` iframe smuggling.** Server-extracted
+  stream URLs were assigned to `iframe.src` unchecked — a compromised
+  upstream returning `javascript:…`/`data:` as embedUrl would execute in our
+  origin (sandbox has `allow-scripts`). Fixed at BOTH ends: client `safeSrc()`
+  choke point in `goServer` (+ demo branch, reload inherits it), and
+  server-side `pushUnique` allowlists `https?://` only. Proven live:
+  `javascript:`/`data:`/newline-smuggled URLs all refused, legit https +
+  `/api/` relatives pass, zero execution, no dialogs.
+- **Security — FotMob id:** `matchId` from FotMob JSON is now digits-guarded
+  before URL interpolation. Re-ran the secret scan: clean (only the known
+  `mask-composite` CSS false positive); `shots/` + `_watch.html` untracked.
+- Accepted as-is: SW `PATH_BLOCK` breadth, `e.message` passthrough,
+  legacy worker-serve bundle (see §17).
+- Verified: `node --check` all 7 JS surfaces; Playwright XSS-smuggle +
+  360/768 render, `scrollW` clean, zero pageerrors; mirrors byte-identical.
 
 ## 24. FotMob-layout copy: pitch, faces, badges (2026-09-09, user: "copy the fotmob layout with rating all stuff and team placing ect")
 

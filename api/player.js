@@ -397,6 +397,9 @@ export default async function handler(req, res) {
     const servers = [];
     const pushUnique = (entry) => {
       if (!entry || !entry.url) return;
+      // SEC: only http(s) URLs leave the server — kills javascript:/data:
+      // URL smuggling from compromised upstreams (client re-checks too).
+      if (!/^https?:\/\//i.test(entry.url)) return;
       if (servers.some(s => s.url === entry.url)) return;
       servers.push(entry);
     };

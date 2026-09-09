@@ -192,7 +192,9 @@ export default async function handler(req, res) {
     }
     if (!best) return res.status(200).json({ found: false });
 
-    // 2) full details
+    // 2) full details (matchId comes from FotMob's own JSON — still validated
+    // digits-only so a compromised upstream can't turn it into URL injection).
+    if (!/^\d{1,12}$/.test(String(best.id))) return res.status(200).json({ found: false });
     const dr = await fetchT(`${FM}/api/data/matchDetails?matchId=${best.id}&ccode3=USA_en`, 10000);
     if (!dr.ok) return res.status(200).json({ found: false });
     const d = await dr.json();
