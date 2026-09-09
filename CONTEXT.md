@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `0de9280`, personal IPTV beIN bridge §21).
+> Last updated: 2026-09-09 (IPTV bridge removed §22, pending commit).
+
+## 22. Personal IPTV bridge REMOVED (2026-09-09, user: "do i have to use my subscription? if yes then delete it")
+
+- Straight answer that triggered this: YES — every site viewer would consume
+  the owner's single connection slot (`max_connections: 1` on a sub expiring
+  2026-09-21), plus ~2GB/hour/viewer of Vercel bandwidth. So per the owner's
+  conditional, the whole thing is deleted.
+- Removed: `api/iptv.js` (`git rm`), player HLS stack (`hls.js` CDN,
+  `<video>`, `playHls`/`stopHls`, hls branches in goServer/fullscreen/reload),
+  beIN fetch+merge, `tv` kind + subTag branch, url-or-hls dedup (back to
+  url-only). `s.play` preference kept (VIPBox `play` URLs still use it).
+- Credentials were NEVER in the repo (env-only design held) — nothing to
+  rotate on our side. Reminder stands from §21: the login was pasted in chat,
+  so rotating the panel password with the provider is still smart.
+- Verified: zero references to iptv/hls/daddy in `player.html`/
+  `api/player.js`; `node --check` clean; Playwright grid/switching/empty-hide
+  green, `scrollW=390`, zero pageerrors; mirrors byte-identical. Site is back
+  to hd7 + VIPBox + fallback sources.
 
 ## 21. Personal IPTV beIN bridge (2026-09-09, user supplied an Xtream panel link)
 
