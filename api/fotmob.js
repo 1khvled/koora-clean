@@ -149,19 +149,28 @@ export default async function handler(req, res) {
       dates.push(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
     }
 
-    let best = null;
-    for (const date of dates.slice(0, 2)) {
-      let day;
+    // Both candidate dates fetched IN PARALLEL (sequential 9s+10s blew the 10s
+    // serverless budget); gating runs once over the combined pool.
+    const days = (await Promise.all(dates.slice(0, 2).map(async (date) => {
       try {
-        const r = await fetchT(`${FM}/api/data/matches?date=${date}&ccode3=USA_en`, 9000);
-        if (!r.ok) continue;
-        day = await r.json();
-      } catch { continue; }
-      const items = [];
+        const r = await fetchT(`${FM}/api/data/matches?date=${date}&ccode3=USA_en`, 7000);
+        if (!r.ok) return null;
+        return await r.json();
+      } catch { return null; }
+    }))).filter(Boolean);
+    const items = [];
+    const seenIds = new Set();
+    for (const day of days) {
       for (const lg of (day.leagues || [])) {
         for (const m of (lg.matches || [])) {
           const h = (m.home && m.home.name) || '', a = (m.away && m.away.name) || '';
           if (!h && !a) continue;
+          // Same match can spill into both date buckets near midnight —
+          // dedupe by id or the twin ties the margin gate at 0.
+          if (m.id != null) {
+            if (seenIds.has(String(m.id))) continue;
+            seenIds.add(String(m.id));
+          }
           // Youth/reserve games (U19/U21/…) transliterate identically to their
           // senior sides and tie the fuzzy score — dropping them from the pool
           // outright (a genuine youth query simply hides the section: safe).
@@ -173,12 +182,13 @@ export default async function handler(req, res) {
           });
         }
       }
-      if (!items.length) continue;
+    }
+    let best = null;
+    if (items.length) {
       const refMin = wallMin(qStart);
       const scored = items.map(it => ({ ...it, fz: fuzzyArEn(qHome, qAway, it.h + ' vs ' + it.a) }))
         .sort((x, y) => x.fz - y.fz);
       const b0 = scored[0], b1 = scored[1];
-      if (!b0 || b0.fz > 1.4) continue;
       const margin = b1 ? b1.fz - b0.fz : 99;
       const lh = leagueHitEn(qLeague, b0.league);
       let dd = null;
@@ -193,17 +203,15 @@ export default async function handler(req, res) {
       const corroborated = lh || (dd !== null && dd <= 120);
       // Strict margin normally; relaxed when league AND kickoff both agree
       // (e.g. Saudi derbies whose transliterations legitimately collide).
-      if (margin < 0.25 && !(margin >= 0.10 && lh && dd !== null && dd <= 120)) continue;
-      if (!corroborated) continue;
-      best = b0;
-      break;
+      if (b0.fz <= 1.4 && margin >= 0.25 && corroborated) best = b0;
+      else if (b0.fz <= 1.4 && margin >= 0.10 && lh && dd !== null && dd <= 120) best = b0;
     }
     if (!best) return res.status(200).json({ found: false });
 
     // 2) full details (matchId comes from FotMob's own JSON — still validated
     // digits-only so a compromised upstream can't turn it into URL injection).
     if (!/^\d{1,12}$/.test(String(best.id))) return res.status(200).json({ found: false });
-    const dr = await fetchT(`${FM}/api/data/matchDetails?matchId=${best.id}&ccode3=USA_en`, 10000);
+    const dr = await fetchT(`${FM}/api/data/matchDetails?matchId=${best.id}&ccode3=USA_en`, 8000);
     if (!dr.ok) return res.status(200).json({ found: false });
     const d = await dr.json();
     const header = d.header || {};
@@ -237,18 +245,35 @@ export default async function handler(req, res) {
       };
     };
     let stats = [];
+    let periods = {};
     try {
       // Shape is {Periods:{All:{stats:[...]}}} (sometimes {stats:[...]}).
       const root = content.stats || {};
+      const parseGroups = (groups) => {
+        const list = Array.isArray(groups) ? groups : [];
+        const top = list.find(g => g.key === 'top_stats') || list[0];
+        return ((top && top.stats) || []).slice(0, 8).map(s => ({
+          title: str40(s.title),
+          home: clipNum(Array.isArray(s.stats) ? s.stats[0] : ''),
+          away: clipNum(Array.isArray(s.stats) ? s.stats[1] : ''),
+        })).filter(s => s.title && (s.home !== '' || s.away !== ''));
+      };
+      // Per-half splits for the in-page period switcher (additive: `stats`
+      // keeps its exact previous meaning = All). Small by design (<=3x8 rows).
+      if (root.Periods && typeof root.Periods === 'object') {
+        for (const k of ['All', '1H', '2H']) {
+          const pg = root.Periods[k];
+          if (pg && Array.isArray(pg.stats)) {
+            const parsed = parseGroups(pg.stats);
+            if (parsed.length) periods[k] = parsed;
+          }
+        }
+      }
       const groups = root.stats || (root.Periods && (root.Periods.All || root.Periods[Object.keys(root.Periods)[0] || ''] || {}).stats) || [];
-      const list = Array.isArray(groups) ? groups : [];
-      const top = list.find(g => g.key === 'top_stats') || list[0];
-      stats = ((top && top.stats) || []).slice(0, 8).map(s => ({
-        title: str40(s.title),
-        home: clipNum(Array.isArray(s.stats) ? s.stats[0] : ''),
-        away: clipNum(Array.isArray(s.stats) ? s.stats[1] : ''),
-      })).filter(s => s.title && (s.home !== '' || s.away !== ''));
+      stats = parseGroups(groups);
+      if (!periods.All && stats.length) periods.All = stats;
     } catch {}
+
     let events = [];
     try {
       const ev = (((content.matchFacts || {}).events || {}).events) || [];
@@ -260,14 +285,15 @@ export default async function handler(req, res) {
         const swapPids = swapArr.map(s => pidOf(s && s.id)).filter(Boolean);
         const detail = kind === 'goal' ? (e.goalDescription || (e.ownGoal ? 'Own goal' : ''))
           : kind === 'card' ? String(e.card || '') : '';
+        const tstr = e.timeStr != null ? String(e.timeStr) : '';
         return {
-          min: str40((e.timeStr != null ? e.timeStr : '') + (e.overloadTime ? '+' + e.overloadTime : '') + '’'),
+          min: str40(tstr ? tstr + (e.overloadTime ? '+' + e.overloadTime : '') + '’' : ''),
           kind,
           home: !!e.isHome,
           pid: pidOf(e.player && e.player.id),
           player: str40(e.nameStr || (e.player && e.player.name && e.player.name.trim()) || swap),
           swapPids,
-          red: kind === 'card' && /red/i.test(String(e.card || '') + String(e.cardDescription || '')),
+          red: kind === 'card' && /\bred\b/i.test(String(e.card || '') + ' ' + String(e.cardDescription || '')),
           detail: str40(detail),
           score: (e.homeScore != null && e.awayScore != null) ? `${e.homeScore}-${e.awayScore}` : '',
         };
@@ -276,12 +302,13 @@ export default async function handler(req, res) {
     let topPlayers = [];
     try {
       const tp = (content.matchFacts || {}).topPlayers || {};
+      const homeId = (lineup.homeTeam || {}).id;
       const all = [...(tp.homeTopPlayers || []), ...(tp.awayTopPlayers || [])]
         .map(p => ({
           pid: pidOf(p.playerId),
           name: str40(p.name && (p.name.fullName || (p.name.firstName + ' ' + p.name.lastName))),
           team: str40(p.teamName),
-          home: String(p.teamId) === String((lineup.homeTeam || {}).id),
+          home: !!(p.teamId && homeId && String(p.teamId) === String(homeId)),
           rating: num1(p.playerRating),
           motm: !!p.manOfTheMatch,
         }))
@@ -291,16 +318,21 @@ export default async function handler(req, res) {
       topPlayers = all;
     } catch {}
 
+    // Logos must be https (never javascript:/data:) — frontend re-checks too.
+    const logoOk = (u) => {
+      const s = String(u || '');
+      return /^https:\/\//i.test(s) && !/[\s<>"]/.test(s) ? s.slice(0, 160) : '';
+    };
     return res.status(200).json({
       found: true,
       matchId: best.id,
-      home: { name: str40(teams[0]?.name || best.h), score: teams[0]?.score, logo: teams[0]?.imageUrl || '' },
-      away: { name: str40(teams[1]?.name || best.a), score: teams[1]?.score, logo: teams[1]?.imageUrl || '' },
+      home: { name: str40(teams[0]?.name || best.h), score: teams[0]?.score, logo: logoOk(teams[0]?.imageUrl) },
+      away: { name: str40(teams[1]?.name || best.a), score: teams[1]?.score, logo: logoOk(teams[1]?.imageUrl) },
       started: !!general.started,
       finished: !!general.finished,
       league: str40(general.leagueName || best.league),
       lineups: { home: side(lineup.homeTeam), away: side(lineup.awayTeam) },
-      stats, events, topPlayers,
+      stats, periods, events, topPlayers,
     });
   } catch (e) {
     return res.status(200).json({ found: false });

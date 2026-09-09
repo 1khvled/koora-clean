@@ -253,26 +253,27 @@ export default async function handler(req, res) {
         dd = Math.min(d, 1440 - d);
       }
       if (!lh && (dd === null || dd > 45)) return [];
-      // Verify Video 1..3 exist (status + title) so we never show dead buttons.
-      const vids = [];
-      for (const n of [1, 2, 3]) {
+      // Verify Video 1..3 exist (status + title) so we never show dead
+      // buttons — in parallel with short budgets (sequential 3x6s + 8s
+      // schedule blew the 10s serverless limit under load).
+      const vids = (await Promise.all([1, 2, 3].map(async (n) => {
         try {
           const u = `https://vipbox.lc/live/football/${best.slug}-${n}`;
-          const vr = await fetchT(u, { headers: UA }, 6000);
-          if (!vr.ok) continue;
+          const vr = await fetchT(u, { headers: UA }, 5000);
+          if (!vr.ok) return null;
           const vh = await vr.text();
           const vt = (vh.match(/<title>([^<]*)<\/title>/i) || [])[1] || '';
-          if (!new RegExp(`Video\\s*${n}\\b`, 'i').test(vt)) continue;
-          vids.push({
+          if (!new RegExp(`Video\\s*${n}\\b`, 'i').test(vt)) return null;
+          return {
             label: `Video ${n}`,
             sub: best.clock || undefined,
             url: u,
             play: `/api/vip?u=${encodeURIComponent(u)}`,
             kind: 'en',
             via: 'vipbox',
-          });
-        } catch {}
-      }
+          };
+        } catch { return null; }
+      }))).filter(Boolean);
       return vids;
     } catch { return []; }
   };
@@ -280,6 +281,7 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'public, max-age=30');
   
   if (!id && !href) {
+    res.setHeader('Cache-Control', 'no-store'); // errors must never cache
     return res.status(400).json({ error: 'Missing id or href' });
   }
 
@@ -292,8 +294,10 @@ export default async function handler(req, res) {
     // the kooralive allowlist below before being fetched).
     try {
       const matchesRes = await fetchT(`https://${req.headers.host}/api/matches?day=today`, {}, 7000);
+      if (!matchesRes.ok) throw 0;
       const matches = await matchesRes.json();
-      const match = matches.find(m => m.id === id);
+      if (!Array.isArray(matches)) throw 0;
+      const match = matches.find(m => String(m && m.id) === String(id));
       if (match) {
         if (!target) target = match.href;
         if (!matchHome) matchHome = match.home || '';
@@ -303,6 +307,7 @@ export default async function handler(req, res) {
   }
   
   if (!target) {
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(404).json({ error: 'Match not found', id });
   }
 
@@ -314,9 +319,11 @@ export default async function handler(req, res) {
   // origin is allowed; everything else is a 400. Exact-or-subdomain match —
   // never substring (kooralive-plus.info.evil.com must fail).
   let targetHost = '';
-  try { targetHost = new URL(target).hostname.toLowerCase(); } catch { return res.status(400).json({ error: 'bad href' }); }
-  if (!(targetHost === 'kooralive-plus.info' || targetHost.endsWith('.kooralive-plus.info')))
+  try { targetHost = new URL(target).hostname.toLowerCase(); } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'bad href' }); }
+  if (!(targetHost === 'kooralive-plus.info' || targetHost.endsWith('.kooralive-plus.info'))){
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(400).json({ error: 'href host not allowed' });
+  }
 
   try {
     const upstream = await fetchT(target, {
@@ -416,7 +423,10 @@ export default async function handler(req, res) {
     // Last resort: the match page itself (frontend iframes it via cleaning proxy).
     pushUnique({ label: 'صفحة المباراة (احتياطي)', url: target, livePage: null, kind: 'fallback', via: 'fallback' });
 
-    if (playerSrc || (hd7 && hd7.playerSrc)) {
+    // found = a real playable embed exists (post-filter, not the raw inputs —
+    // a dropped javascript: URL must not report found:true with the fallback).
+    const hasPlayable = servers.some(s => s.kind !== 'fallback');
+    if (hasPlayable) {
       const first = servers[0].url;
       return res.status(200).json({
         id,
@@ -455,6 +465,7 @@ export default async function handler(req, res) {
       });
     }
   } catch (e) {
-    return res.status(500).json({ error: e.message, id, href: target });
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(500).json({ error: 'upstream failed', id });
   }
 }

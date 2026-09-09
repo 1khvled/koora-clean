@@ -8,13 +8,18 @@ export default {
       const target = search.get('url');
       try{
         const t = new URL(target);
-        const allowed = ['kooralive-plus.info','romabar.info','yasirtv.com','912acsss','sir-tv.tv','yalllashoot'];
-        // SEC: exact-or-subdomain match — substring `includes` would allow
-        // kooralive-plus.info.evil.com (SSRF/open-proxy bypass).
-        const hostOk = allowed.some(h=>t.hostname===h||t.hostname.endsWith('.'+h));
-        if(!hostOk) return new Response('Host not allowed', {status:403});
-        const upstream = await fetch(t.toString(), {headers:{'User-Agent': request.headers.get('User-Agent')||'Mozilla/5.0','Referer':'https://kooralive-plus.info/','Accept':'text/html,application/xhtml+xml'}});
-        const ct = upstream.headers.get('content-type')||'';
+        // NOTE: bare fragments without a real TLD can never match — dropped.
+        const allowed = ['kooralive-plus.info','romabar.info','yasirtv.com','sir-tv.tv'];
+        // SEC: exact-or-subdomain match + https-only + manual redirects.
+        const hostOk = (u)=>{ try{ const x=new URL(u); return x.protocol==='https:' && allowed.some(h=>x.hostname===h||x.hostname.endsWith('.'+h)); }catch{ return false; } };
+        if(!hostOk(t.toString())) return new Response('Host not allowed', {status:403});
+        let upstream = await fetch(t.toString(), {headers:{'User-Agent': request.headers.get('User-Agent')||'Mozilla/5.0','Referer':'https://kooralive-plus.info/','Accept':'text/html,application/xhtml+xml'}, redirect:'manual', signal:AbortSignal.timeout(8000)});
+        for (let hop=0; hop<3 && upstream.status>=300 && upstream.status<400 && upstream.headers.get('location'); hop++){
+          const loc = new URL(upstream.headers.get('location'), upstream.url).toString();
+          if(!hostOk(loc)) return new Response('Redirect off-allowlist', {status:403});
+          upstream = await fetch(loc, {headers:{'User-Agent': request.headers.get('User-Agent')||'Mozilla/5.0','Referer':'https://kooralive-plus.info/','Accept':'text/html,application/xhtml+xml'}, redirect:'manual', signal:AbortSignal.timeout(8000)});
+        }
+        const ct = (upstream.headers.get('content-type')||'').toLowerCase();
         if(!ct.includes('text/html')){
           const body = await upstream.arrayBuffer();
           return new Response(body, {status: upstream.status, headers:{'content-type':ct,'access-control-allow-origin':'*','cache-control':'no-store'}});

@@ -14,6 +14,9 @@
 <meta property="og:description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
 <meta property="og:url" content="https://kooraadz.vercel.app/index.html">
 <meta property="og:image" content="https://kooraadz.vercel.app/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:image:alt" content="كورة لايف">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="كورة لايف — مباريات اليوم بث مباشر">
 <meta name="twitter:description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
@@ -75,7 +78,7 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   border-radius:999px;padding:2px 10px}
 /* live rail */
 .rail{display:grid;grid-auto-flow:column;grid-auto-columns:min(78vw,340px);gap:12px;
-  overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x mandatory}
+  overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity;scroll-padding-inline:12px}
 .live-card{scroll-snap-align:start;background:var(--night);color:#fff;border-radius:var(--radius);
   padding:14px;text-decoration:none;display:block;position:relative;overflow:hidden;
   border-inline-start:4px solid var(--grass)} /* touchline edge */
@@ -99,7 +102,8 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .m{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
   border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;text-decoration:none;
   color:var(--ink);box-shadow:var(--shadow);min-height:64px}
-.m .st{flex:none;width:58px;text-align:center}
+.m .st{flex:none;width:58px;text-align:center;min-width:0}
+.m .st .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .m .st .t{font-weight:800;font-size:14px}
 .m .st .s{font-size:11px;font-weight:700;color:var(--muted)}
 .m .st .s.live{color:var(--live)}
@@ -170,20 +174,28 @@ function toast(msg){
 function workerBase(){
   try { return (localStorage.getItem('koora_worker') || '').trim(); } catch { return ''; }
 }
-/* match state helpers — same api/matches.js contract */
+/* match state helpers — same api/matches.js contract.
+   Word-boundaried Latin codes (HT/LIVE/FT) so "Tonight"/"After" never match;
+   game_time counts as live only when minute-like (digits, no clock colon). */
 function isLive(m){
+  if (!m || typeof m !== 'object') return false;
   const s = [m.official_status, m.status, m.game_time, m.result_text].join(' ');
-  return /جارية|مباشر|الشوط|استراحة|1H|2H|HT|LIVE/i.test(s) ||
-    (!!String(m.game_time || '').replace(/\D/g, '') && !isEnded(m));
+  if (/جارية|مباشر|الشوط|استراحة/i.test(s)) return true;
+  if (/\b(1H|2H|HT|LIVE)\b/i.test(s)) return true;
+  const gt = String(m.game_time || '');
+  return !!gt.replace(/\D/g, '') && !/:/.test(gt) && !isEnded(m);
 }
 function isEnded(m){
+  if (!m || typeof m !== 'object') return false;
   const s = [m.official_status, m.status, m.result_text].join(' ');
-  return /انتهت|نهاية|FT|Full/i.test(s);
+  return /انتهت|نهاية|\bFT\b|\bFull-?Time\b/i.test(s);
 }
 function statusLabel(m){
-  if (isLive(m)) return { cls: 'live', txt: m.game_time ? m.game_time.trim() + '’' : 'مباشر' };
+  // Decode first so `63&#039;` doesn't gain a second minute mark.
+  const gt = dec(m.game_time || '').trim();
+  if (isLive(m)) return { cls: 'live', txt: gt ? (/['’]$/.test(gt) ? gt : gt + '’') : 'مباشر' };
   if (isEnded(m)) return { cls: '', txt: 'انتهت' };
-  return { cls: '', txt: (m.time_text || '').trim() || '—' };
+  return { cls: '', txt: dec(m.time_text || '').trim() || '—' };
 }
 function playerLink(m){
   const q = new URLSearchParams({ id: m.id || '', href: m.href || '', home: m.home || '', away: m.away || '',
@@ -196,21 +208,39 @@ function playerLink(m){
 function esc(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+/* Decode entities (single AND double-encoded) BEFORE esc() — otherwise
+   upstream `&#039;` renders as literal garbage. Always use as esc(dec(x)). */
+function dec(s){
+  let out = String(s == null ? '' : s), prev = '';
+  for (let i = 0; i < 3 && out !== prev; i++){
+    prev = out;
+    out = out.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
+      .replace(/&#x([0-9a-fA-F]+);/g, (m, h) => { const c = parseInt(h, 16); return c > 31 && c < 0x110000 ? String.fromCodePoint(c) : m; })
+      .replace(/&#(\d+);/g, (m, n) => { const c = parseInt(n, 10); return c > 31 && c < 0x110000 ? String.fromCodePoint(c) : m; });
+  }
+  return out;
+}
+function tx(s){ return esc(dec(s)); }
 function logoImg(src, alt){
-  return `<img src="${esc(src)}" alt="" loading="lazy" onerror="this.style.display='none'">`;
+  const u = dec(src);
+  if (!u || !/^(https?:\/\/|\.\/|\/)/i.test(u)) return '';
+  return `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.display='none'">`;
 }
 
+let reqSeq = 0; // concurrency guard: stale day responses are ignored
 async function fetchData(day, silent){ // silent = background refresh: keep scroll + LEAGUE filter
   const wb = workerBase();
   const urls = [];
   if (wb) urls.push(wb.replace(/\/$/, '') + '/api/matches?day=' + day);
-  urls.push('/api/matches?day=' + day, './matches.json');
+  urls.push('/api/matches?day=' + day);
+  if (day === 'today') urls.push('./matches.json'); // static fallback is today's data only
   for (const u of urls){
     try {
       const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' });
       if (!r.ok) continue;
       const j = await r.json();
-      if (Array.isArray(j) && j.length) return j;
+      if (Array.isArray(j)) return j; // [] is a valid empty day, not a failure
     } catch {}
   }
   return null;
@@ -218,104 +248,133 @@ async function fetchData(day, silent){ // silent = background refresh: keep scro
 
 async function loadDay(day, silent){
   if (silent && document.hidden) return; // #2: no refresh while tab hidden
+  const myReq = ++reqSeq;
   DAY = day;
   if (!silent){
-    $$('#dayTabs button').forEach(b => b.classList.toggle('on', b.dataset.day === day));
+    $$('#dayTabs button').forEach(b => {
+      const on = b.dataset.day === day;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
     $('#loading').hidden = false; $('#leagues').innerHTML = '';
     $('#liveSec').hidden = true; $('#empty').hidden = true;
   }
   const data = await fetchData(day, silent);
+  if (myReq !== reqSeq) return; // a newer day request already won
   $('#loading').hidden = true;
+  // Offline/failure: keep the stale list on screen, toast only when explicit.
   if (!data){ if (!silent) toast('تعذّر تحميل المباريات — تحقق من الاتصال'); return; }
-  ALL = data;
-  if (!silent) buildChips();
-  render();
+  ALL = data.filter(x => x && typeof x === 'object');
+  // Rebuild chips on silent too (new leagues appear mid-day); the LEAGUE
+  // selection survives because it's matched by value, defaulting to 'all'
+  // if the previously selected league vanished.
+  if (LEAGUE !== 'all' && !ALL.some(m => (m.league_text || m.league || '').trim() === LEAGUE)) LEAGUE = 'all';
+  buildChips();
+  render(silent);
 }
 
 setInterval(() => loadDay(DAY, true), 45000); // #2: silent score refresh every 45s
+// Catch-up refresh the moment the tab becomes visible again.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) loadDay(DAY, true);
+});
 
 let LEAGUE_LIST = []; // raw league names parallel to chip indexes (never in DOM)
 function buildChips(){
   LEAGUE_LIST = [...new Set(ALL.map(m => (m.league_text || m.league || '').trim()).filter(Boolean))];
   const box = $('#leagueChips');
   box.innerHTML = `<button class="chip${LEAGUE === 'all' ? ' on' : ''}" data-i="-1">الكل</button>` +
-    LEAGUE_LIST.map((l, i) => `<button class="chip${LEAGUE === l ? ' on' : ''}" data-i="${i}">${esc(l)}</button>`).join('');
+    LEAGUE_LIST.map((l, i) => `<button class="chip${LEAGUE === l ? ' on' : ''}" data-i="${i}">${tx(l)}</button>`).join('');
   $$('.chip', box).forEach(c => c.onclick = () => {
     const i = +c.dataset.i;
     LEAGUE = i < 0 ? 'all' : LEAGUE_LIST[i];
     $$('.chip', box).forEach(x => x.classList.toggle('on', x === c));
+    try { c.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch {}
     render();
   });
 }
 
 function filtered(){
-  const q = ($('#searchInput').value || '').trim();
+  const q = ($('#searchInput').value || '').trim().toLowerCase();
   return ALL.filter(m => {
     if (LEAGUE !== 'all' && (m.league_text || m.league || '').trim() !== LEAGUE) return false;
-    if (q && !((m.home || '') + ' ' + (m.away || '') + ' ' + (m.league_text || m.league || '')).includes(q)) return false;
+    if (q && !(((m.home || '') + ' ' + (m.away || '') + ' ' + (m.league_text || m.league || '')).toLowerCase().includes(q))) return false;
     return true;
   });
 }
 
 function liveCard(m){
   const st = statusLabel(m);
-  const score = (m.score_home !== '' && m.score_home != null) ? `${esc(m.score_home)} - ${esc(m.score_away)}` : 'VS';
+  const hasSh = m.score_home !== '' && m.score_home != null;
+  const hasSa = m.score_away !== '' && m.score_away != null;
+  const score = (hasSh && hasSa) ? `${tx(m.score_home)} - ${tx(m.score_away)}`
+    : (hasSh || hasSa) ? `${hasSh ? tx(m.score_home) : '–'} - ${hasSa ? tx(m.score_away) : '–'}` : 'VS';
   return `<a class="live-card" href="${playerLink(m)}">
-    <div class="lg">${esc(m.league_text || m.league || '')}</div>
-    <div class="row">${logoImg(m.home_logo)}<span>${esc(m.home || '')}</span></div>
-    <div class="row" style="margin-top:6px">${logoImg(m.away_logo)}<span>${esc(m.away || '')}</span></div>
+    <div class="lg">${tx(m.league_text || m.league || '')}</div>
+    <div class="row">${logoImg(m.home_logo)}<span>${tx(m.home || '')}</span></div>
+    <div class="row" style="margin-top:6px">${logoImg(m.away_logo)}<span>${tx(m.away || '')}</span></div>
     <div class="score-line"><span class="vs">${score}</span>
-      <span class="minute"><span class="dot" style="background:#231a00"></span>${esc(st.txt)}</span></div>
+      <span class="minute"><span class="dot" style="background:#231a00"></span>${tx(st.txt)}</span></div>
   </a>`;
 }
 
 function rowCard(m){
   const st = statusLabel(m);
-  const sh = (m.score_home !== '' && m.score_home != null) ? esc(m.score_home) : '';
-  const sa = (m.score_away !== '' && m.score_away != null) ? esc(m.score_away) : '';
+  const sh = (m.score_home !== '' && m.score_home != null) ? tx(m.score_home) : '';
+  const sa = (m.score_away !== '' && m.score_away != null) ? tx(m.score_away) : '';
   return `<a class="m${isLive(m) ? ' is-live' : ''}" href="${playerLink(m)}">
-    <div class="st"><div class="t">${esc((m.time_text || '').trim()) || '–'}</div>
-      <div class="s ${st.cls}">${esc(st.txt)}</div></div>
+    <div class="st"><div class="t">${tx((m.time_text || '').trim()) || '–'}</div>
+      <div class="s ${st.cls}">${tx(st.txt)}</div></div>
     <div class="teams">
-      <div class="t">${logoImg(m.home_logo)}<span>${esc(m.home || '')}</span><b>${sh}</b></div>
-      <div class="t">${logoImg(m.away_logo)}<span>${esc(m.away || '')}</span><b>${sa}</b></div>
+      <div class="t">${logoImg(m.home_logo)}<span>${tx(m.home || '')}</span><b>${sh}</b></div>
+      <div class="t">${logoImg(m.away_logo)}<span>${tx(m.away || '')}</span><b>${sa}</b></div>
     </div>
     <div class="go">‹</div>
   </a>`;
 }
 
-function render(){
+function render(silent){
+  // Silent refresh keeps the user's rail position (no jump mid-scroll).
+  const rail = $('#liveRail');
+  const keepX = silent && rail ? rail.scrollLeft : 0;
   const list = filtered();
   const live = list.filter(isLive);
   const rest = list.filter(m => !isLive(m));
   $('#liveSec').hidden = !live.length;
-  $('#liveRail').innerHTML = live.map(liveCard).join('');
+  rail.innerHTML = live.map(liveCard).join('');
+  if (silent && rail) rail.scrollLeft = keepX;
   $('#liveCount').textContent = live.length || '';
   const groups = new Map();
   for (const m of rest){
-    const k = (m.league_text || m.league || 'بطولات أخرى').trim();
+    const k = (m.league_text || m.league || '').trim() || 'بطولات أخرى';
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k).push(m);
   }
   $('#leagues').innerHTML = [...groups].map(([lg, ms]) =>
-    `<section class="league"><h3>${esc(lg)}</h3>${ms.map(rowCard).join('')}</section>`).join('');
-  $('#empty').hidden = list.length > 0;
+    `<section class="league"><h3>${tx(lg)}</h3>${ms.map(rowCard).join('')}</section>`).join('');
+  // #empty is for "filter matched nothing" — offline keeps the stale list
+  // with a toast instead (loadDay returns early on !data).
+  $('#empty').hidden = list.length > 0 || ALL.length === 0;
   injectJsonLd(list); // #9: fresh SportsEvent schema for crawlers
 }
 
 function injectJsonLd(list){ // #9: one SportsEvent per listed match
   document.getElementById('jsonld')?.remove();
+  const isoStart = (m) => {
+    const s = String(m.start || '');
+    return /^(19|20)\d\d-\d\d-\d\dT\d\d:\d\d/.test(s) ? s : undefined;
+  };
   const graph = list.slice(0, 50).map(m => ({
     '@type': 'SportsEvent',
     name: `${m.home || ''} ضد ${m.away || ''}`,
     sport: 'كرة القدم',
-    startDate: m.start || undefined,
+    startDate: isoStart(m),
     eventStatus: isLive(m)
       ? 'https://schema.org/EventLive'
       : (isEnded(m) ? 'https://schema.org/EventCompleted' : 'https://schema.org/EventScheduled'),
     homeTeam: { '@type': 'SportsTeam', name: m.home || '' },
     awayTeam: { '@type': 'SportsTeam', name: m.away || '' },
-    url: playerLink(m)
+    url: new URL(playerLink(m), location.href).toString()
   }));
   const s = document.createElement('script');
   s.type = 'application/ld+json'; s.id = 'jsonld';
@@ -323,8 +382,14 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
   document.head.appendChild(s);
 }
 
-$('#searchInput').addEventListener('input', render);
+let searchT = null;
+$('#searchInput').addEventListener('input', () => { // debounced: no DOM churn per keystroke
+  clearTimeout(searchT);
+  searchT = setTimeout(render, 160);
+});
 $$('#dayTabs button').forEach(b => b.onclick = () => { LEAGUE = 'all'; loadDay(b.dataset.day); });
+document.querySelector('#dayTabs')?.setAttribute('role', 'tablist');
+$$('#dayTabs button').forEach(b => { b.setAttribute('role', 'tab'); if (!b.hasAttribute('aria-selected')) b.setAttribute('aria-selected', b.classList.contains('on') ? 'true' : 'false'); });
 loadDay('today');
 
 // #4: register service worker (ad-blocker + offline shell); no-op if unsupported

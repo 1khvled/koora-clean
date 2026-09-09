@@ -26,8 +26,10 @@ export default {
             'Accept': 'text/html,application/xhtml+xml',
             'Referer': 'https://kooralive-plus.info/',
           },
-          cf: { cacheTtl: 60 }
+          cf: { cacheTtl: 60 },
+          signal: AbortSignal.timeout(8000),
         });
+        if (!upstream.ok) return new Response(JSON.stringify({ error: 'upstream failed' }), { status: 502, headers: { 'content-type': 'application/json', ...cors } });
         const html = await upstream.text();
         const matches = [];
         const anchorRegex = /<a href="([^"]*)"[^>]*>/g;
@@ -85,14 +87,31 @@ export default {
       const target = url.searchParams.get('url');
       let t;
       try { t = new URL(target); } catch { return new Response('Invalid url', { status: 400, headers: cors }); }
-      const allowed = ['kooralive-plus.info','romabar.info','yasirtv.com','912acsss','sir-tv.tv','yalllashoot'];
+      // NOTE: bare fragments without a real TLD can never match a hostname —
+      // they were dead entries; dropped rather than guessed.
+      const allowed = ['kooralive-plus.info','romabar.info','yasirtv.com','sir-tv.tv'];
       // SEC: exact-or-subdomain match — substring `includes` would allow
-      // kooralive-plus.info.evil.com (SSRF/open-proxy bypass).
-      const hostOk = allowed.some(h => t.hostname === h || t.hostname.endsWith('.' + h));
+      // kooralive-plus.info.evil.com (SSRF/open-proxy bypass). HTTPS only
+      // (no MITM-able http upgrades) and redirects re-validated below.
+      const hostOk = t.protocol === 'https:' && allowed.some(h => t.hostname === h || t.hostname.endsWith('.' + h));
       if (!hostOk) return new Response('Host not allowed', { status: 403, headers: cors });
+      const proxied = async (urlStr) => {
+        const u = new URL(urlStr);
+        const ok = u.protocol === 'https:' && allowed.some(h => u.hostname === h || u.hostname.endsWith('.' + h));
+        if (!ok) throw new Error('redirect off-allowlist');
+        return fetch(u.toString(), {
+          headers: { 'User-Agent': request.headers.get('User-Agent') || 'Mozilla/5.0', 'Referer': 'https://kooralive-plus.info/', 'Accept': 'text/html,application/xhtml+xml' },
+          cf: { cacheTtl: 0 },
+          redirect: 'manual',
+          signal: AbortSignal.timeout(8000),
+        });
+      };
       try {
-        const upstream = await fetch(t.toString(), { headers: { 'User-Agent': request.headers.get('User-Agent') || 'Mozilla/5.0', 'Referer': 'https://kooralive-plus.info/', 'Accept': 'text/html,application/xhtml+xml' }, cf: { cacheTtl: 0 } });
-        const ct = upstream.headers.get('content-type') || '';
+        let upstream = await proxied(t.toString());
+        // Follow same-allowlist redirects manually (fetch() would not re-check).
+        for (let hop = 0; hop < 3 && upstream.status >= 300 && upstream.status < 400 && upstream.headers.get('location'); hop++)
+          upstream = await proxied(new URL(upstream.headers.get('location'), upstream.url).toString());
+        const ct = (upstream.headers.get('content-type') || '').toLowerCase();
         if (!ct.includes('text/html')) {
           const body = await upstream.arrayBuffer();
           return new Response(body, { status: upstream.status, headers: { 'content-type': ct, 'access-control-allow-origin': '*', 'cache-control': 'no-store' } });

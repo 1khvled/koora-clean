@@ -4,9 +4,11 @@
   "description": "مباريات اليوم بث مباشر نظيف بدون إعلانات",
   "lang": "ar",
   "dir": "rtl",
-  "start_url": "./index.html",
+  "id": "./",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "categories": ["sports", "entertainment"],
   "background_color": "#071f19",
   "theme_color": "#071f19",
   "icons": [
