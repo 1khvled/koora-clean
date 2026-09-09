@@ -113,9 +113,10 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .m .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .m .t b{margin-inline-start:auto;font-weight:900;font-size:16px;flex:none}
 .m .go{flex:none;color:var(--muted);font-size:18px}
-/* goal scorers under team names (live + finished rows) */
+/* goal scorers under team names (live + finished rows): ALL goals grouped
+   per player, flowing onto multiple lines — never truncated with ellipsis. */
 .m .t .sc, .live-card .row .sc{display:block;font-size:11px;color:var(--muted);
-  font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+  font-weight:600;line-height:1.9;white-space:normal;max-width:100%}
 .live-card .row{flex-wrap:wrap}
 .live-card .row .sc{color:#9fd3b4;flex-basis:100%}
 .m .t{flex-wrap:wrap}
@@ -412,19 +413,32 @@ async function loadScorers(){
     paintScorers();
   } catch {}
 }
+function fmtScorers(list){
+  // Group minutes per player: "Dembélé 17’, 23’ • Torres 31’" — compact but complete.
+  const byName = new Map();
+  (list || []).forEach(s => {
+    if (!s || !s.p) return;
+    if (!byName.has(s.p)) byName.set(s.p, []);
+    if (s.m) byName.get(s.p).push(s.m);
+  });
+  return [...byName].map(([n, mins]) => (mins.length ? `${n} ${mins.join(', ')}` : n)).join(' • ');
+}
 function paintScorers(){
   document.querySelectorAll('#content [data-mid]').forEach(card => {
     const g = SCORERS[card.dataset.mid];
     card.querySelectorAll('.sc').forEach(e => e.remove());
     if (!g) return;
-    const rows = card.querySelectorAll('.teams .t, .live-card .row, .row');
+    const rows = card.querySelectorAll('.teams .t');
+    const liveRows = card.querySelectorAll('.live-card .row');
+    const targets = rows.length ? [rows[0], rows[1]] : [liveRows[0], liveRows[1]];
     const sides = [g.h, g.a];
-    rows.forEach((row, i) => {
-      const list = sides[i];
-      if (!list || !list.length) return;
+    targets.forEach((row, i) => {
+      if (!row) return;
+      const txt = fmtScorers(sides[i]);
+      if (!txt) return;
       const d = document.createElement('div');
       d.className = 'sc';
-      d.textContent = '⚽ ' + list.slice(0, 3).map(s => `${s.p} ${s.m}`).join(' • ');
+      d.textContent = '⚽ ' + txt;
       row.appendChild(d);
     });
   });

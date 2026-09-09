@@ -173,8 +173,8 @@ export default async function handler(req, res) {
           let min = e.timeStr != null ? String(e.timeStr) : '';
           if (e.overloadTime && !min.includes('+')) min += '+' + e.overloadTime;
           const row = { p: nm, m: (min ? min + '’' : '') };
-          if (e.isHome) { if (h.length < 4) h.push(row); }
-          else if (a.length < 4) a.push(row);
+          if (e.isHome) { if (h.length < 12) h.push(row); }
+          else if (a.length < 12) a.push(row);
         }
         if (h.length || a.length) goals[String(ours.id)] = { h, a };
       } catch {}
