@@ -4,7 +4,12 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (FotMob recall fixes §23, pending commit).
+> Last updated: 2026-09-09 (commit `0b93b35`, FotMob recall fixes §23).
+
+Live re-test after deploy: 5/6 current matches HIT (was 1/6) with full
+lineups. The one miss (Stuttgart vs "فيشينغ ستافانغير") is bad upstream data
+— FotMob lists the opponent as Viking (the club; Stavanger is its city), so
+no transliteration can bridge it. Safe fail, accepted as-is.
 
 ## 23. FotMob lineups / ratings / stats / events below the match view (2026-09-09, user: "use footmob to get players lineup ratings everything")
 
