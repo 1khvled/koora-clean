@@ -66,7 +66,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--muted);
   font-family:var(--font);font-size:13px;font-weight:700;border-radius:999px;
-  padding:8px 14px;min-height:40px;cursor:pointer;white-space:nowrap}
+  padding:8px 14px;min-height:44px;cursor:pointer;white-space:nowrap}
 .chip.on{background:var(--pitch);border-color:var(--pitch);color:#fff}
 /* ── content ─────────────────────────────── */
 main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
@@ -120,6 +120,14 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
 @media (min-width:700px){.rail{grid-auto-columns:340px}}
+/* tablets/desktops: wider content, calmer rail */
+@media (min-width:768px){
+  main{max-width:880px}
+  .toolbar{max-width:880px;margin:0 auto;width:100%}
+  .days{max-width:880px;margin-left:auto;margin-right:auto}
+  .m{padding:14px 16px}
+  .brand strong{font-size:22px}
+}
 </style>
 </head>
 <body>
