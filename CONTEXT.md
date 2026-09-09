@@ -20,7 +20,10 @@
   (XSS-proof by construction, proven with live payload).
 - Verified: mock render (2 lines live / 0 upcoming, no overflow, no errors);
   screenshot `shots/scorers.png` (untracked); `node --check` clean; mirrors
-  byte-identical. Live endpoint test after deploy.
+  byte-identical. Live endpoint test after deploy: **7 matches with real
+  scorers** (Ronaldo, Dembélé ×2, Ødegaard, Szoboszlai, Raphinha, Yamal…).
+  Follow-up fix: stoppage-time minutes came out "45 + 6+6’" — deduped in both
+  `scorers.js` and `fotmob.js`.
 
 ## 27. Five-agent audit triage + interactive FotMob section (2026-09-09, user: "fix all bugs, send 5 subagents" → "make fotmob interactive not STATIC")
 
