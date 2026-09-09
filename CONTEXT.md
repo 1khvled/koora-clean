@@ -4,7 +4,23 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `247fb00`, 5-agent audit triage + interactive minfo §27).
+> Last updated: 2026-09-09 (scorers on rows §28, pending commit).
+
+## 28. Goal scorers on live + finished rows (2026-09-09, user: "type who scored… like always")
+
+- **New `api/scorers.js`:** one batched call per day — self-fetches own
+  `/api/matches`, keeps LIVE/FINISHED matches, resolves each against FotMob
+  day lists (same strict fuzzy gate), pulls details in parallel (cap 14),
+  returns `{matchId: {h:[{p,m}], a:[...]}}` (max 4 goals/side). Edge-cached
+  60s. Fail-open empty.
+- **Index:** `data-mid` on both card types, `.sc` scorer lines under team
+  names (`⚽ name min’`, max 3/side), painted after every render, refreshed
+  on explicit loads + every 3min (45s silent keeps scores fresh without the
+  heavy call). Upcoming rows untouched. Scorer text via `textContent`
+  (XSS-proof by construction, proven with live payload).
+- Verified: mock render (2 lines live / 0 upcoming, no overflow, no errors);
+  screenshot `shots/scorers.png` (untracked); `node --check` clean; mirrors
+  byte-identical. Live endpoint test after deploy.
 
 ## 27. Five-agent audit triage + interactive FotMob section (2026-09-09, user: "fix all bugs, send 5 subagents" → "make fotmob interactive not STATIC")
 

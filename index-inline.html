@@ -113,6 +113,13 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .m .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .m .t b{margin-inline-start:auto;font-weight:900;font-size:16px;flex:none}
 .m .go{flex:none;color:var(--muted);font-size:18px}
+/* goal scorers under team names (live + finished rows) */
+.m .t .sc, .live-card .row .sc{display:block;font-size:11px;color:var(--muted);
+  font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.live-card .row{flex-wrap:wrap}
+.live-card .row .sc{color:#9fd3b4;flex-basis:100%}
+.m .t{flex-wrap:wrap}
+.m .t .sc{flex-basis:100%;margin-inline-start:32px}
 .m.is-live{border-inline-start:4px solid var(--live)}
 #empty{text-align:center;color:var(--muted);padding:40px 0;font-weight:600}
 .loading{text-align:center;color:var(--muted);padding:40px 0;font-weight:600}
@@ -271,6 +278,9 @@ async function loadDay(day, silent){
   if (LEAGUE !== 'all' && !ALL.some(m => (m.league_text || m.league || '').trim() === LEAGUE)) LEAGUE = 'all';
   buildChips();
   render(silent);
+  // Scorers refresh on explicit loads only (silent 45s keeps scores fresh;
+  // the heavier scorers call runs here + every 3min).
+  if (!silent) loadScorers();
 }
 
 setInterval(() => loadDay(DAY, true), 45000); // #2: silent score refresh every 45s
@@ -309,7 +319,7 @@ function liveCard(m){
   const hasSa = m.score_away !== '' && m.score_away != null;
   const score = (hasSh && hasSa) ? `${tx(m.score_home)} - ${tx(m.score_away)}`
     : (hasSh || hasSa) ? `${hasSh ? tx(m.score_home) : '–'} - ${hasSa ? tx(m.score_away) : '–'}` : 'VS';
-  return `<a class="live-card" href="${playerLink(m)}">
+  return `<a class="live-card" href="${playerLink(m)}" data-mid="${tx(m.id || '')}">
     <div class="lg">${tx(m.league_text || m.league || '')}</div>
     <div class="row">${logoImg(m.home_logo)}<span>${tx(m.home || '')}</span></div>
     <div class="row" style="margin-top:6px">${logoImg(m.away_logo)}<span>${tx(m.away || '')}</span></div>
@@ -322,7 +332,7 @@ function rowCard(m){
   const st = statusLabel(m);
   const sh = (m.score_home !== '' && m.score_home != null) ? tx(m.score_home) : '';
   const sa = (m.score_away !== '' && m.score_away != null) ? tx(m.score_away) : '';
-  return `<a class="m${isLive(m) ? ' is-live' : ''}" href="${playerLink(m)}">
+  return `<a class="m${isLive(m) ? ' is-live' : ''}" href="${playerLink(m)}" data-mid="${tx(m.id || '')}">
     <div class="st"><div class="t">${tx((m.time_text || '').trim()) || '–'}</div>
       <div class="s ${st.cls}">${tx(st.txt)}</div></div>
     <div class="teams">
@@ -356,6 +366,7 @@ function render(silent){
   // with a toast instead (loadDay returns early on !data).
   $('#empty').hidden = list.length > 0 || ALL.length === 0;
   injectJsonLd(list); // #9: fresh SportsEvent schema for crawlers
+  paintScorers(); // re-apply scorer lines wiped by innerHTML rebuilds
 }
 
 function injectJsonLd(list){ // #9: one SportsEvent per listed match
@@ -387,6 +398,38 @@ $('#searchInput').addEventListener('input', () => { // debounced: no DOM churn p
   clearTimeout(searchT);
   searchT = setTimeout(render, 160);
 });
+
+/* Goal scorers on live + finished rows: one batched call per day, painted
+   under team names. Refreshes every 3min (scores themselves refresh 45s).
+   Fail-silent — rows simply show no scorer lines. */
+let SCORERS = {};
+async function loadScorers(){
+  try {
+    const r = await fetch('/api/scorers?day=' + DAY + '&_=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j && j.goals) SCORERS = j.goals;
+    paintScorers();
+  } catch {}
+}
+function paintScorers(){
+  document.querySelectorAll('#content [data-mid]').forEach(card => {
+    const g = SCORERS[card.dataset.mid];
+    card.querySelectorAll('.sc').forEach(e => e.remove());
+    if (!g) return;
+    const rows = card.querySelectorAll('.teams .t, .live-card .row, .row');
+    const sides = [g.h, g.a];
+    rows.forEach((row, i) => {
+      const list = sides[i];
+      if (!list || !list.length) return;
+      const d = document.createElement('div');
+      d.className = 'sc';
+      d.textContent = '⚽ ' + list.slice(0, 3).map(s => `${s.p} ${s.m}`).join(' • ');
+      row.appendChild(d);
+    });
+  });
+}
+setInterval(() => { if (!document.hidden) loadScorers(); }, 180000);
 $$('#dayTabs button').forEach(b => b.onclick = () => { LEAGUE = 'all'; loadDay(b.dataset.day); });
 document.querySelector('#dayTabs')?.setAttribute('role', 'tablist');
 $$('#dayTabs button').forEach(b => { b.setAttribute('role', 'tab'); if (!b.hasAttribute('aria-selected')) b.setAttribute('aria-selected', b.classList.contains('on') ? 'true' : 'false'); });
