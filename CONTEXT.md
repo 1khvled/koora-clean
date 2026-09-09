@@ -26,6 +26,12 @@
   Fix: youth/reserve titles (U19/U21/youth/reserve/II) are dropped from the
   candidate pool outright — a genuine youth query safely hides instead.
   The senior sides now win cleanly.
+- **Vowel-insensitive scoring (same push).** الفتح/fateh can only align
+  consonant-to-consonant (Arabic omits short vowels), so both sides now strip
+  vowels before edit distance. Battery-tested: fixes Fateh, improves every
+  correct margin, all wrong cases (Pyramids-trap, Atlanta-trap, Kairat-trap)
+  still gate out via margin/league/time. `min-len-3` variant was tried and
+  REJECTED (created the traps instead of fixing them).
 
 ## 25. Mobile + console + security pass (2026-09-09, user: "optimize for mobiles ipads, fix console errors, fix security")
 

@@ -57,12 +57,16 @@ export default async function handler(req, res) {
     }
     return prev[n];
   };
+  // Vowel-insensitive: Arabic script omits short vowels, so الفتح/fateh only
+  // align consonant-to-consonant (validated 2026-09-09: fixes Fateh-type
+  // misses, improves every correct margin, wrong cases still gate out).
+  const noVow = (s) => s.replace(/[aeiou]/g, '');
   const fuzzyArEn = (home, away, enTitle) => {
-    const arToks = trAr(home + ' ' + away).split(' ').filter(t => t.length >= 2);
+    const arToks = trAr(home + ' ' + away).split(' ').map(noVow).filter(t => t.length >= 2);
     // Conflate letters Arabic has no distinct form for: v->f, p->b
     // (ليفربول/liverpool, نابولي/napoli, فياريال/villarreal).
     const enToks = normLat(enTitle).replace(/v/g, 'f').replace(/p/g, 'b')
-      .split(' ').filter(t => t && !EN_STOP.has(t));
+      .split(' ').map(noVow).filter(t => t && t.length >= 2 && !EN_STOP.has(t));
     if (!arToks.length || !enToks.length) return 99;
     let total = 0;
     for (const t of arToks) {
