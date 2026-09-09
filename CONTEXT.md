@@ -24,6 +24,10 @@
   scorers** (Ronaldo, Dembélé ×2, Ødegaard, Szoboszlai, Raphinha, Yamal…).
   Follow-up fix: stoppage-time minutes came out "45 + 6+6’" — deduped in both
   `scorers.js` and `fotmob.js`.
+- **Scorer display fix (same day, user: "only 3 shown of 6, UI horrible").**
+  Cap was 3-4/side and one ellipsis-truncated line. Now: cap 12/side,
+  grouped per player ("Dembélé 17’, 23’"), flowing onto wrapped lines —
+  verified with a 6-goal mock, all names visible, no overflow.
 
 ## 27. Five-agent audit triage + interactive FotMob section (2026-09-09, user: "fix all bugs, send 5 subagents" → "make fotmob interactive not STATIC")
 
