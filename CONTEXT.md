@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (5-agent audit triage + interactive minfo §27, pending commit).
+> Last updated: 2026-09-09 (commit `247fb00`, 5-agent audit triage + interactive minfo §27).
 
 ## 27. Five-agent audit triage + interactive FotMob section (2026-09-09, user: "fix all bugs, send 5 subagents" → "make fotmob interactive not STATIC")
 
