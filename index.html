@@ -187,7 +187,8 @@ function statusLabel(m){
 }
 function playerLink(m){
   const q = new URLSearchParams({ id: m.id || '', href: m.href || '', home: m.home || '', away: m.away || '',
-    hl: m.home_logo || '', al: m.away_logo || '', lg: m.league_text || m.league || '', tm: m.time_text || m.game_time || '', st: m.start || '' });
+    hl: m.home_logo || '', al: m.away_logo || '', lg: m.league_text || m.league || '', tm: m.time_text || m.game_time || '', st: m.start || '',
+    so: m.official_status || m.status || '', gt: m.game_time || '', sh: m.score_home ?? '', sa: m.score_away ?? '' });
   return 'player.html?' + q.toString();
 }
 /* SEC: every match field comes from a third-party scrape — escape before

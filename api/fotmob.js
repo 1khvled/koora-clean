@@ -158,6 +158,10 @@ export default async function handler(req, res) {
         for (const m of (lg.matches || [])) {
           const h = (m.home && m.home.name) || '', a = (m.away && m.away.name) || '';
           if (!h && !a) continue;
+          // Youth/reserve games (U19/U21/…) transliterate identically to their
+          // senior sides and tie the fuzzy score — dropping them from the pool
+          // outright (a genuine youth query simply hides the section: safe).
+          if (/\bU1[5-9]\b|\bU2[0-3]\b|\byouth\b|\breserve\b|\bII\b/i.test(h + ' ' + a)) continue;
           items.push({
             id: m.id, h, a, league: lg.name || '',
             time: m.time || '',

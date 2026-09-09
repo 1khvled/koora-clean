@@ -68,6 +68,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mcard .mid{flex:none;text-align:center;min-width:86px}
 .mcard .mid .vs{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px}
+.mcard .mid .vs.live{color:var(--live)}
 .mcard .mid .lg{font-size:11px;color:var(--muted);font-weight:700;margin-top:4px;
   max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mcard .mid .tm{font-size:12px;font-weight:800;margin-top:2px}
@@ -263,7 +264,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   </div>
   <div class="mcard" id="matchCard" hidden>
     <div class="team"><img id="homeLogo" alt=""><b id="homeName">—</b></div>
-    <div class="mid"><div class="vs">بث مباشر</div><div class="tm" id="matchTime">—</div><div class="lg" id="matchLeague">—</div></div>
+    <div class="mid"><div class="vs" id="matchState">…</div><div class="tm" id="matchTime">—</div><div class="lg" id="matchLeague">—</div></div>
     <div class="team"><img id="awayLogo" alt=""><b id="awayName">—</b></div>
   </div>
   <div class="src-head">
@@ -345,12 +346,30 @@ function bumpBlocked(){
   }
 }
 
-/* match header card — filled instantly from URL params, enriched by API */
+/* match header card — filled instantly from URL params, enriched by API.
+   Computes its OWN live/ended state (same rules as index) instead of trusting
+   the possibly-stale tm param — a match that kicked off after the index
+   rendered must not say "لم تبدأ" next to a live player. */
 const homeLogo = safeDec(qs.get('hl'));
 const awayLogo = safeDec(qs.get('al'));
 const leagueP = safeDec(qs.get('lg'));
-const timeP = safeDec(qs.get('tm'));
-function paintMatch(h, a, hl, al, lg, tm){
+const timeP = dec(safeDec(qs.get('tm')));
+const offP = dec(safeDec(qs.get('so')));
+const gtP = dec(safeDec(qs.get('gt')));
+const shP = safeDec(qs.get('sh'));
+const saP = safeDec(qs.get('sa'));
+function dec(s){
+  return String(s == null ? '' : s).replace(/&#0?39;/g, '’').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+}
+function isLiveP(){
+  const s = [offP, gtP, timeP].join(' ');
+  return /جارية|مباشر|الشوط|استراحة|1H|2H|HT|LIVE/i.test(s) ||
+    (!!String(gtP || '').replace(/\D/g, '') && !isEndedP());
+}
+function isEndedP(){
+  return /انتهت|نهاية|FT|Full/i.test([offP, timeP].join(' '));
+}
+function paintMatch(h, a, hl, al, lg){
   const card = document.getElementById('matchCard');
   if (!h && !a) return;
   card.hidden = false;
@@ -360,9 +379,23 @@ function paintMatch(h, a, hl, al, lg, tm){
   if (hl){ hi.src = hl; hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
   if (al){ ai.src = al; ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
   document.getElementById('matchLeague').textContent = lg || 'بث نظيف بدون إعلانات';
-  document.getElementById('matchTime').textContent = tm || '';
+  const stEl = document.getElementById('matchState');
+  const tmEl = document.getElementById('matchTime');
+  if (isLiveP()){
+    stEl.textContent = 'مباشر';
+    stEl.classList.add('live');
+    tmEl.textContent = (gtP || timeP || '').trim() || '•';
+  } else if (isEndedP()){
+    stEl.textContent = 'انتهت';
+    stEl.classList.remove('live');
+    tmEl.textContent = (shP !== '' && saP !== '') ? `${shP} - ${saP}` : (timeP || '').trim();
+  } else {
+    stEl.textContent = 'لم تبدأ';
+    stEl.classList.remove('live');
+    tmEl.textContent = (timeP || '').trim();
+  }
 }
-paintMatch(home, away, homeLogo, awayLogo, leagueP, timeP);
+paintMatch(home, away, homeLogo, awayLogo, leagueP);
 
 /* multi-server state — one unified list, two views: Arabic grid + English grid.
    supports new servers[]/enServers[] plus legacy embedUrl/livePage/fallbackUrl */
@@ -505,11 +538,34 @@ async function loadRealPlayer(){
     showServersFromList([{ label: 'سيرفر تجريبي', url: demoSrc, kind: 'direct', via: 'demo' }]);
     return;
   }
-  try {
+  // Robust load: 12s timeout + one automatic retry. Previously a hung API
+  // left a dead skeleton until the user manually refreshed ("sometimes works
+  // sometimes not"). Now the page visibly loads, retries once by itself, and
+  // only then offers the manual retry button.
+  const failBox = () => {
+    serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>تعذّر التحميل</b><span>اضغط لإعادة المحاولة</span></span></button>`;
+    document.getElementById('retryBtn').onclick = () => loadRealPlayer();
+    srvNow.textContent = 'تحقق من الاتصال ثم أعد المحاولة';
+    toast('تعذّر تحميل البث — تحقق من الاتصال');
+  };
+  const fetchApi = async () => {
     const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP });
-    const r = await fetch('/api/player?' + q.toString(), { cache: 'no-store' });
-    const data = await r.json();
-    if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP, timeP);
+    for (let attempt = 1; attempt <= 2; attempt++){
+      srvNow.textContent = attempt > 1 ? 'إعادة المحاولة…' : 'جاري تحميل البث…';
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 12000);
+      try {
+        const r = await fetch('/api/player?' + q.toString() + (attempt > 1 ? '&retry=1' : ''), { cache: 'no-store', signal: ctrl.signal });
+        if (!r.ok) throw new Error('http ' + r.status);
+        return await r.json();
+      } catch (e){
+        if (attempt === 2) throw e;
+      } finally { clearTimeout(to); }
+    }
+  };
+  try {
+    const data = await fetchApi();
+    if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP);
     let list = [];
     if (data && Array.isArray(data.servers) && data.servers.length) list = data.servers;
     else if (data) {
@@ -529,10 +585,7 @@ async function loadRealPlayer(){
       toast('لا يوجد بث متاح حالياً');
     }
   } catch (e){
-    serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>تعذّر التحميل</b><span>اضغط لإعادة المحاولة</span></span></button>`;
-    document.getElementById('retryBtn').onclick = () => loadRealPlayer();
-    srvNow.textContent = 'تحقق من الاتصال ثم أعد المحاولة';
-    toast('تعذّر تحميل البث — تحقق من الاتصال');
+    failBox();
   }
 }
 
@@ -625,8 +678,13 @@ async function loadMatchInfo(){
   box.hidden = false;
   try {
     const q = new URLSearchParams({ home, away, start: startP, lg: leagueP });
-    const r = await fetch('/api/fotmob?' + q.toString(), { cache: 'no-store' });
-    const d = await r.json();
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 12000);
+    let d;
+    try {
+      const r = await fetch('/api/fotmob?' + q.toString(), { cache: 'no-store', signal: ctrl.signal });
+      d = await r.json();
+    } finally { clearTimeout(to); }
     if (!d || !d.found) throw 0;
     document.getElementById('minfoSrc').textContent = (d.league ? d.league + ' • ' : '') + 'FotMob';
     const evts = d.events || [];
