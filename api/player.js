@@ -156,7 +156,10 @@ export default async function handler(req, res) {
   };
   const fuzzyArEn = (home, away, enTitle) => {
     const arToks = trAr(home + ' ' + away).split(' ').filter(t => t.length >= 2);
-    const enToks = normLat(enTitle).split(' ').filter(t => t && !EN_STOP.has(t));
+    // Conflate letters Arabic has no distinct form for: v->f, p->b
+    // (ليفربول/liverpool, نابولي/napoli, فياريال/villarreal).
+    const enToks = normLat(enTitle).replace(/v/g, 'f').replace(/p/g, 'b')
+      .split(' ').filter(t => t && !EN_STOP.has(t));
     if (!arToks.length || !enToks.length) return 99;
     let total = 0;
     for (const t of arToks) {
@@ -188,11 +191,14 @@ export default async function handler(req, res) {
     ['أسترال', ['australia']], ['المغرب', ['morocco']], ['الجزائر', ['algeria']],
     ['تونس', ['tunisia']], ['الإمارات', ['uae']], ['قطر', ['qatar']],
   ];
+  // Hamza-insensitive: upstream writes اوروبا while the map has أوروبا.
+  const normHamza = (s) => (s || '').replace(/[أإآ]/g, 'ا');
   const leagueHit = (arLeague, vipToken) => {
     if (!arLeague || !vipToken) return false;
+    arLeague = normHamza(arLeague);
     const tok = vipToken.toLowerCase();
     return LEAGUE_MAP.some(([ar, toks]) =>
-      arLeague.includes(ar) && toks.some(v => tok === v || tok.includes(v) || v.includes(tok)));
+      arLeague.includes(normHamza(ar)) && toks.some(v => tok === v || tok.includes(v) || v.includes(tok)));
   };
   // Wall-clock HH:MM straight from the ISO strings (no Date/TZ math — the two
   // sites use different zones, so this is a soft bonus only, never a filter).

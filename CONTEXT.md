@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `7b64952`, FotMob match data §23).
+> Last updated: 2026-09-09 (FotMob recall fixes §23, pending commit).
 
 ## 23. FotMob lineups / ratings / stats / events below the match view (2026-09-09, user: "use footmob to get players lineup ratings everything")
 
@@ -33,6 +33,17 @@
   in-browser render + XSS payload neutralized + fail-hide path; screenshot
   `shots/minfo.png` (untracked); `scrollW=390`, zero pageerrors;
   `node --check` clean; mirrors byte-identical.
+- **Recall fixes (same day, user: "i see nothing").** Live test showed 1/6
+  hits — three matcher bugs: (1) FotMob times look like "09.09.2026 18:45"
+  and the HH:MM regex grabbed the DATE part ("09.09") → take the LAST match;
+  (2) league map has أوروبا but upstream writes اوروبا → hamza-insensitive
+  compare (also applied to the VIPBox `leagueHit` in `api/player.js`);
+  (3) transliteration gaps (ليفربول/liverpool just over threshold) → conflated
+  v→f, p→b on the English side (also applied to `api/player.js` matcher).
+  Plus a relaxed margin (≥0.10) when league AND kickoff both corroborate
+  (Saudi-derby transliteration collisions). All data values stay English —
+  the one Arabic literal (`هدف عكسي`) became `Own goal`; Arabic UI chrome
+  unchanged per "keep the site language".
 
 ## 22. Personal IPTV bridge REMOVED (2026-09-09, user: "do i have to use my subscription? if yes then delete it")
 

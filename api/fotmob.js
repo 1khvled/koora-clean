@@ -59,7 +59,10 @@ export default async function handler(req, res) {
   };
   const fuzzyArEn = (home, away, enTitle) => {
     const arToks = trAr(home + ' ' + away).split(' ').filter(t => t.length >= 2);
-    const enToks = normLat(enTitle).split(' ').filter(t => t && !EN_STOP.has(t));
+    // Conflate letters Arabic has no distinct form for: v->f, p->b
+    // (ليفربول/liverpool, نابولي/napoli, فياريال/villarreal).
+    const enToks = normLat(enTitle).replace(/v/g, 'f').replace(/p/g, 'b')
+      .split(' ').filter(t => t && !EN_STOP.has(t));
     if (!arToks.length || !enToks.length) return 99;
     let total = 0;
     for (const t of arToks) {
@@ -73,7 +76,10 @@ export default async function handler(req, res) {
     return total;
   };
   // FotMob league names are English ("Champions League", "LaLiga", "Serie A").
+  // Hamza-insensitive: upstream writes اوروبا while the map has أوروبا.
+  const normHamza = (s) => (s || '').replace(/[أإآ]/g, 'ا');
   const leagueHitEn = (arLeague, enText) => {
+    arLeague = normHamza(arLeague);
     if (!arLeague || !enText) return false;
     const words = new Set(enText.toLowerCase().replace(/-/g, ' ').split(/[^a-z]+/).filter(w => w.length > 3));
     if (!words.size) return false;
@@ -96,7 +102,7 @@ export default async function handler(req, res) {
       ['الجزائر', ['algeria', 'ligue']], ['تونس', ['tunisia', 'ligue']], ['مصر', ['egypt', 'egyptian']],
       ['الإمارات', ['uae', 'emirates']], ['قطر', ['qatar', 'stars']],
     ];
-    return MAP.some(([ar, toks]) => arLeague.includes(ar) && toks.some(v => words.has(v)));
+    return MAP.some(([ar, toks]) => arLeague.includes(normHamza(ar)) && toks.some(v => words.has(v)));
   };
   const wallMin = (iso) => {
     const m = (iso || '').match(/T(\d{2}):(\d{2})/);
@@ -158,15 +164,22 @@ export default async function handler(req, res) {
         .sort((x, y) => x.fz - y.fz);
       const b0 = scored[0], b1 = scored[1];
       if (!b0 || b0.fz > 1.4) continue;
-      if (b1 && (b1.fz - b0.fz) < 0.25) continue;
+      const margin = b1 ? b1.fz - b0.fz : 99;
       const lh = leagueHitEn(qLeague, b0.league);
       let dd = null;
-      const tm = (b0.time || '').match(/(\d{2})[.:](\d{2})/);
+      // FotMob times look like "09.09.2026 18:45" — take the LAST HH:MM
+      // (the first regex hit would be the date part "09.09").
+      const tms = [...(b0.time || '').matchAll(/(\d{2})[.:](\d{2})/g)];
+      const tm = tms.length ? tms[tms.length - 1] : null;
       if (refMin !== null && tm) {
         const d = Math.abs((+tm[1]) * 60 + (+tm[2]) - refMin);
         dd = Math.min(d, 1440 - d);
       }
-      if (!lh && (dd === null || dd > 120)) continue;
+      const corroborated = lh || (dd !== null && dd <= 120);
+      // Strict margin normally; relaxed when league AND kickoff both agree
+      // (e.g. Saudi derbies whose transliterations legitimately collide).
+      if (margin < 0.25 && !(margin >= 0.10 && lh && dd !== null && dd <= 120)) continue;
+      if (!corroborated) continue;
       best = b0;
       break;
     }
@@ -223,7 +236,7 @@ export default async function handler(req, res) {
         const t = String(e.type || '');
         const kind = /^goal$/i.test(t) ? 'goal' : /^card$/i.test(t) ? 'card' : 'sub';
         const swap = Array.isArray(e.swap) ? e.swap.map(s => s && s.name).filter(Boolean).join(' ⇄ ') : '';
-        const detail = kind === 'goal' ? (e.goalDescription || (e.ownGoal ? 'هدف عكسي' : ''))
+        const detail = kind === 'goal' ? (e.goalDescription || (e.ownGoal ? 'Own goal' : ''))
           : kind === 'card' ? String(e.card || '') : '';
         return {
           min: str40((e.timeStr != null ? e.timeStr : '') + (e.overloadTime ? '+' + e.overloadTime : '') + '’'),
