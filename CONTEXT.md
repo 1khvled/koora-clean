@@ -4,7 +4,35 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `b82c0b6`, IPTV bridge removed §22).
+> Last updated: 2026-09-09 (FotMob match data §23, pending commit).
+
+## 23. FotMob lineups / ratings / stats / events below the match view (2026-09-09, user: "use footmob to get players lineup ratings everything")
+
+- **Probe:** direct `/api/*` paths 404, but the web app's bundles reveal
+  `/api/data/*`, which is OPEN with plain browser headers (no keys/tokens):
+  `allLeagues` (league ids), `matches?date=YYYYMMDD` (all matches + FotMob
+  ids + EN names + scores), `matchDetails?matchId=` (lineup/formations/
+  starters+ratings/coach/subs, top_stats group, playerStats/topPlayers/POTM,
+  events with goals/cards/subs). Shapes verified on finished (AEK-LASK,
+  Lille-Betis) and upcoming (Barca-Feyenoord, empty starters) matches.
+- **`api/fotmob.js` (NEW):** `?home=&away=&start=&lg=` → tries match-day then
+  the UTC-adjacent day (late +03:00 games belong to the previous UTC day),
+  same strict fuzzy gate as streams (`fz ≤ 1.4`, margin `≥ 0.25`, league-word
+  hit or kickoff ≤ 120min — validated: Lille-Betis hit, fake match + missing
+  params correctly miss). Returns trimmed display JSON (~5KB): formations,
+  XI+ratings+shirt numbers, subs, coach, top-4 players + MOTM, 8 stats,
+  24 events (goals/cards/subs only — Comment/AddedTime/Half noise filtered,
+  swap names joined with ⇄, stat values digit-whitelisted). Fail-open
+  `{found:false}` → section hides.
+- **Player:** new `📊 بيانات المباراة` section after the status line (below
+  the match view): top-rated chips with color pills + ⭐, dual stat bars,
+  two-column lineups (formation • team rating, coach, XI + subs with pills),
+  event timeline (⚽/🟨/🔄 + minute + score). Loads in parallel, never blocks
+  streams; all strings through §17 `esc()`, ratings via Number().
+- Verified: REAL handler e2e (Lille-Betis full data, fake→miss, bad→400);
+  in-browser render + XSS payload neutralized + fail-hide path; screenshot
+  `shots/minfo.png` (untracked); `scrollW=390`, zero pageerrors;
+  `node --check` clean; mirrors byte-identical.
 
 ## 22. Personal IPTV bridge REMOVED (2026-09-09, user: "do i have to use my subscription? if yes then delete it")
 

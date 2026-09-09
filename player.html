@@ -96,6 +96,52 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .srv .enbadge{flex:none;font-size:10px;font-weight:900;background:#1e3a30;color:#9fd3b4;
   border-radius:6px;padding:2px 7px;letter-spacing:.5px}
 .srv.on .enbadge{background:var(--gold);color:#231a00}
+/* match info (FotMob): stats, lineups, ratings, events */
+.minfo{margin-top:14px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:14px}
+.minfo h3{font-size:13px;font-weight:900;margin:14px 0 8px;color:var(--ink)}
+.minfo h3:first-child{margin-top:0}
+.minfo .sub{font-size:11px;color:var(--muted);font-weight:700}
+.toprow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.toprow::-webkit-scrollbar{display:none}
+.topchip{flex:none;display:flex;align-items:center;gap:8px;border:1px solid var(--line);
+  border-radius:999px;padding:6px 12px 6px 6px;font-size:12px;font-weight:800}
+.rpill{flex:none;min-width:34px;text-align:center;font-size:13px;font-weight:900;
+  border-radius:8px;padding:2px 7px;font-variant-numeric:tabular-nums}
+.r-hi{background:var(--grass);color:#04120c}
+.r-md{background:var(--gold);color:#231a00}
+.r-lo{background:var(--live);color:#fff}
+.r-na{background:#29423a;color:var(--muted)}
+.stat{margin-bottom:8px}
+.stat .lab{display:flex;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:4px}
+.stat .lab small{color:var(--muted)}
+.stat .bars{display:flex;gap:4px;height:8px}
+.stat .bars i{border-radius:99px;display:block;height:100%}
+.stat .bars .h{background:var(--grass)}
+.stat .bars .a{background:#3b5b4e}
+.lu-grid{display:grid;gap:12px}
+@media (min-width:640px){.lu-grid{grid-template-columns:1fr 1fr}}
+.lu{border:1px solid var(--line);border-radius:12px;padding:10px}
+.lu header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.lu header img{width:26px;height:26px;object-fit:contain}
+.lu header b{font-size:13px;font-weight:900;flex:1;min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.lu header .fm{font-size:11px;color:var(--muted);font-weight:700}
+.pl{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);
+  font-size:13px}
+.pl:first-of-type{border-top:0}
+.pl .num{flex:none;width:24px;text-align:center;color:var(--muted);font-weight:800;font-size:12px}
+.pl .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.pl.sub{opacity:.75}
+.ev{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);
+  font-size:13px}
+.ev:first-of-type{border-top:0}
+.ev .mn{flex:none;min-width:40px;text-align:center;font-size:12px;font-weight:900;
+  background:var(--pitch);color:#fff;border-radius:8px;padding:2px 6px}
+.ev .ic{flex:none;width:22px;text-align:center}
+.ev .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.ev .sc{flex:none;color:var(--muted);font-weight:800;font-size:12px}
+.minfo .loading{text-align:center;color:var(--muted);padding:18px 0;font-weight:600;font-size:13px}
 .srv:disabled{opacity:.55;cursor:wait}
 .srv.skel{pointer-events:none;border-style:dashed}
 .srv.skel .meta b,.srv.skel .meta span{background:#1e3a30;border-radius:6px;color:transparent}
@@ -158,6 +204,13 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
     <button class="btn ghost" id="btnReload">⟳ إعادة تحميل</button>
   </div>
   <div class="status" id="status">محظور: 0</div>
+  <section class="minfo" id="minfo" hidden>
+    <div class="src-head" style="margin-top:0">
+      <h2>📊 بيانات المباراة</h2>
+      <small id="minfoSrc">FotMob</small>
+    </div>
+    <div id="minfoBody"><div class="loading">جاري تحميل التشكيلة والتقييمات…</div></div>
+  </section>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -440,8 +493,73 @@ if ('serviceWorker' in navigator){
     if (e.data && e.data.type === 'BLOCKED') bumpBlocked();
   });
 }
+/* FotMob match info (lineups, ratings, stats, events) — parallel, never blocks streams */
+function rCls(r){
+  if (r == null || !isFinite(r)) return 'r-na';
+  if (r >= 7.5) return 'r-hi';
+  if (r >= 6) return 'r-md';
+  return 'r-lo';
+}
+function rPill(r){
+  return `<span class="rpill ${rCls(r)}">${r == null || !isFinite(r) ? '–' : Number(r).toFixed(1)}</span>`;
+}
+function statNum(v){
+  const n = parseFloat(v);
+  return isFinite(n) ? n : null;
+}
+async function loadMatchInfo(){
+  const box = document.getElementById('minfo'), body = document.getElementById('minfoBody');
+  if (!home && !away) return;
+  box.hidden = false;
+  try {
+    const q = new URLSearchParams({ home, away, start: startP, lg: leagueP });
+    const r = await fetch('/api/fotmob?' + q.toString(), { cache: 'no-store' });
+    const d = await r.json();
+    if (!d || !d.found) throw 0;
+    document.getElementById('minfoSrc').textContent = (d.league ? d.league + ' • ' : '') + 'FotMob';
+    let h = '';
+    if (d.topPlayers && d.topPlayers.length){
+      h += '<h3>⭐ الأعلى تقييماً</h3><div class="toprow">' + d.topPlayers.map(p =>
+        `<span class="topchip">${rPill(p.rating)}<span>${esc(p.name)}${p.motm ? ' ⭐' : ''}</span></span>`).join('') + '</div>';
+    }
+    if (d.stats && d.stats.length){
+      h += '<h3>📈 إحصائيات</h3>' + d.stats.map(s => {
+        const hn = statNum(s.home), an = statNum(s.away);
+        let hw = 50, aw = 50;
+        if (hn != null && an != null && (hn + an) > 0){ hw = Math.round(hn / (hn + an) * 100); aw = 100 - hw; }
+        return `<div class="stat"><div class="lab"><span>${esc(s.home)}</span><small>${esc(s.title)}</small><span>${esc(s.away)}</span></div><div class="bars"><i class="h" style="width:${hw}%"></i><i class="a" style="width:${aw}%"></i></div></div>`;
+      }).join('');
+    }
+    const luSide = (t, logo) => {
+      const coach = t.coach ? `<div class="sub">المدرب: ${esc(t.coach)}</div>` : '';
+      const st = (t.starters || []).map(p =>
+        `<div class="pl"><span class="num">${esc(p.num)}</span><span class="nm">${esc(p.name)}</span>${rPill(p.rating)}</div>`).join('');
+      const sb = (t.subs || []).length
+        ? `<div class="sub" style="margin-top:6px">البدلاء</div>` + (t.subs || []).map(p =>
+          `<div class="pl sub"><span class="num">${esc(p.num)}</span><span class="nm">${esc(p.name)}</span>${rPill(p.rating)}</div>`).join('')
+        : '';
+      return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(t.name)}</b><span class="fm">${esc(t.formation)}${t.rating != null && isFinite(t.rating) ? ' • ' + Number(t.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}</div>`;
+    };
+    if (d.lineups && (d.lineups.home || d.lineups.away)){
+      h += '<h3>📋 التشكيلة</h3><div class="lu-grid">'
+        + luSide(d.lineups.home || {}, d.home && d.home.logo)
+        + luSide(d.lineups.away || {}, d.away && d.away.logo) + '</div>';
+    }
+    if (d.events && d.events.length){
+      h += '<h3>🕐 الأحداث</h3>' + d.events.map(e => {
+        const ic = e.kind === 'goal' ? '⚽' : e.kind === 'card' ? '🟨' : e.kind === 'sub' ? '🔄' : '•';
+        return `<div class="ev"><span class="mn">${esc(e.min)}</span><span class="ic">${ic}</span><span class="nm">${esc(e.player)}${e.detail ? ' <small class="sub">(' + esc(e.detail) + ')</small>' : ''}</span><span class="sc">${esc(e.score)}</span></div>`;
+      }).join('');
+    }
+    if (!h) throw 0;
+    body.innerHTML = h;
+    box.hidden = false;
+  } catch { box.hidden = true; }
+}
 
 loadRealPlayer();
+loadMatchInfo();
+
 </script>
 </body>
 </html>
