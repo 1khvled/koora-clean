@@ -4,7 +4,32 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `0b93b35`, FotMob recall fixes §23).
+> Last updated: 2026-09-09 (FotMob-layout copy §24, pending commit).
+
+## 24. FotMob-layout copy: pitch, faces, badges (2026-09-09, user: "copy the fotmob layout with rating all stuff and team placing ect")
+
+- **Reference studied in-browser:** score header (logos/score/status/scorers),
+  tab bar, momentum, top-stats, POTM, events timeline, lineup pitch (photo
+  dots + rating badges + sub/card/goal badges + MOTM star), lists, team form.
+  Screenshots in `shots/fm_ref_*.png` (untracked).
+- **Rebuilt in `player.html`:** FotMob score header (grouped scorers per side
+  + red-card marks), green pitch card with team rails (rating pill + logo +
+  name + formation), 22 photo dots from
+  `images.fotmob.com/image_resources/playerimages/{id}.png` (verified 200s;
+  initials fallback when missing), rating badges (green ≥7 / orange ≥5 /
+  red below, blue ★ MOTM), sub-minute / card / goal badges matched by player
+  id, then lists + coach + unavailable + top players + stats + timeline.
+- **Placement math (verified vs reference):** `horizontalLayout` x/y are full-
+  pitch attack-right coordinates; home `top = 5 + x·41`, away
+  `top = 95 − x·41`, both `left = 4 + y·92` (shared flank, NO horizontal flip
+  — the flip put both teams on top of each other). First attempt WAS that
+  overlap bug, caught on screenshot. Taller pitch (34/58) + 34px dots so rows
+  breathe. All data stays English, UI chrome Arabic.
+- **`api/fotmob.js` additions:** `pid`/`short` per player, event `pid` +
+  `swapPids` + `red` flag, `unavailable[]`, team logos already there.
+- Verified: real Lille 4-2-3-1 coordinates render clean (screenshot
+  `shots/fm_pitch2.png`, untracked); `node --check`; `scrollW=390`, zero
+  pageerrors; mirrors byte-identical.
 
 Live re-test after deploy: 5/6 current matches HIT (was 1/6) with full
 lineups. The one miss (Stuttgart vs "فيشينغ ستافانغير") is bad upstream data
