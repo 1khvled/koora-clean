@@ -171,7 +171,7 @@ export default async function handler(req, res) {
           const nm = str32(e.nameStr || (e.player && e.player.name && e.player.name.trim()));
           if (!nm) continue;
           let min = e.timeStr != null ? String(e.timeStr) : '';
-          if (e.overloadTime) min += '+' + e.overloadTime;
+          if (e.overloadTime && !min.includes('+')) min += '+' + e.overloadTime;
           const row = { p: nm, m: (min ? min + '’' : '') };
           if (e.isHome) { if (h.length < 4) h.push(row); }
           else if (a.length < 4) a.push(row);
