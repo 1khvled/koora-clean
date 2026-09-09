@@ -4,7 +4,45 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `af9bb04`, DaddyLive removed §20).
+> Last updated: 2026-09-09 (personal IPTV beIN bridge §21, pending commit).
+
+## 21. Personal IPTV beIN bridge (2026-09-09, user supplied an Xtream panel link)
+
+- **What was done with the account:** ONE read-only probe (auth status,
+  categories, channel list — never played a stream, never held a connection).
+  Panel: Active, NOT trial, expires 2026-09-21, **`max_connections: 1`**,
+  formats m3u8/ts/rtmp. Arabic beIN HD bouquet = category 108 (beIN 1–9 +
+  News/XTRA/English). NO credentials are stored anywhere in this repo, chat
+  history aside — see rule below.
+- **Design (siphon without leaking).** There is no such thing as a login-free
+  Xtream link — every stream URL embeds user/pass. So: `api/iptv.js` (NEW)
+  reads `IPTV_SERVER`/`IPTV_USER`/`IPTV_PASS` **from Vercel env vars only**
+  (no defaults — not even the panel hostname), exposes 3 allowlisted actions:
+  `bein` (beIN 1/2/3/News ids+names, edge-cached 10min), `play&sid=` (m3u8
+  with creds injected server-side, URIs rewritten to `seg`), `seg&u=`
+  (segment/key bytes, host MUST equal the panel host, Range + size caps).
+  The browser only ever sees stream ids and `/api/iptv?...` URLs — verified
+  byte-level: no credential strings in any response. Abuse paths unit-tested
+  (bad action/sid/host → 400/403). Player reuses the HLS stack for `kind:
+  'tv'` entries merged into the Arabic grid ahead of the fallback; missing
+  env (503) = section silently absent.
+- **RULE (owner + future agents): credentials NEVER enter git, CONTEXT, logs,
+  or client-visible URLs. Env vars are set by the owner in the Vercel
+  dashboard. If this rule is ever broken, rotate the IPTV password first.**
+- **Warnings the owner accepted by asking for this:** (1) Vercel bandwidth —
+  ~2GB/hour/viewer through the proxy; (2) `max_connections: 1` — ANY site
+  viewer consumes the owner's single slot: while someone watches via the
+  site, the owner's own app/TV gets kicked (and multi-IP use can get the line
+  banned); recommend personal use only; (3) sub expires 2026-09-21 — after
+  that the section silently disappears until renewed.
+- Verified: REAL handler against the REAL panel (`bein` 4 channels, `play`
+  200 + rewritten segments, no cred leak); in-browser tv render + fatal-error
+  auto-advance to next server; `node --check`; secret scan clean (only the
+  known `mask-composite` CSS false positive); mirrors byte-identical.
+- **Owner action required:** add the 3 env vars in Vercel (project Settings →
+  Environment Variables → Production): `IPTV_SERVER` = panel http(s) origin,
+  `IPTV_USER`, `IPTV_PASS` → Redeploy. Until then the site behaves exactly as
+  before (no beIN section, zero errors).
 
 ## 20. DaddyLive REMOVED (2026-09-09, user: "just delete that")
 

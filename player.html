@@ -21,6 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
 <style>
 /* KOORA-OWN-v1 player: same pitch-night identity as index. */
 :root{
@@ -47,6 +48,9 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .stage{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;
   aspect-ratio:16/9;border:1px solid var(--line)}
 .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.stage iframe[hidden]{display:none}
+.stage video{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.stage video[hidden]{display:none}
 .shield{position:absolute;inset:0;pointer-events:none;border:2px solid transparent;
   transition:border-color .2s;z-index:5}
 .shield.hit{border-color:var(--gold)}
@@ -128,6 +132,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   <div class="stage">
     <iframe id="player" title="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       allowfullscreen loading="eager" sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"></iframe>
+    <video id="hlsvid" hidden controls playsinline preload="none"></video>
     <div class="shield" id="shield"></div>
     <div class="click-shield" id="clickShield">
       <div style="text-align:center">
@@ -250,13 +255,14 @@ function kindTag(s){
   if (s.kind === 'direct') return 'مباشر';
   if (s.kind === 'live') return 'واجهة كاملة';
   if (s.kind === 'en') return 'إنجليزي';
+  if (s.kind === 'tv') return 'قناة ٢٤/٧';
   return 'سيرفر';
 }
 function subTag(s){
   // NOTE: keep brand names OUT of button text (only kind + time) — some
   // ad-block cosmetic lists remove page elements that mention stream brands,
   // which once left an EN header with zero visible buttons.
-  if (s && s.kind === 'en') return [kindTag(s), s.sub].filter(Boolean).join(' • ');
+  if (s && (s.kind === 'en' || s.kind === 'tv')) return [kindTag(s), s.sub].filter(Boolean).join(' • ');
   return [kindTag(s), s.via, s.sub].filter(Boolean).join(' • ');
 }
 function btnHtml(s, i, on){
@@ -274,9 +280,11 @@ function showSkeleton(){
   enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
 }
 function showServersFromList(list, enList){
-  const dedup = (arr) => (arr || []).filter(s => s && s.url).filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
+  // Identity = url OR hls (IPTV tv entries carry only hls, no url).
+  const keyOf = (s) => (s && (s.hls || s.url)) || '';
+  const dedup = (arr) => (arr || []).filter(s => keyOf(s)).filter((s, i, a) => a.findIndex(x => keyOf(x) === keyOf(s)) === i);
   const ar = dedup(list), en = dedup(enList);
-  serverList = [...ar, ...en].filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
+  serverList = [...ar, ...en].filter((s, i, a) => a.findIndex(x => keyOf(x) === keyOf(s)) === i);
   srvIdx = 0;
   if (!ar.length){
     serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>لا توجد سيرفرات</b><span>اضغط لإعادة المحاولة</span></span></button>`;
@@ -322,17 +330,64 @@ function paintNow(){
   [...enEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
 }
 function trackServer(src){
-  const i = serverList.findIndex(s => s.url === src);
+  const i = serverList.findIndex(s => s.url === src || s.hls === src);
   if (i >= 0){ srvIdx = i; paintNow(); }
+}
+/* Native HLS (personal IPTV beIN via /api/iptv): no iframe, nothing to block.
+   hls.js (MSE) first — desktop Chrome lies about native HLS support. Fatal
+   errors auto-advance like the popup watchdog. */
+const hlsvid = document.getElementById('hlsvid');
+let hlsInst = null, hlsActive = false;
+function stopHls(){
+  hlsActive = false;
+  try { if (hlsInst){ hlsInst.destroy(); hlsInst = null; } } catch {}
+  try { hlsvid.pause(); hlsvid.removeAttribute('src'); hlsvid.load(); } catch {}
+  hlsvid.hidden = true;
+  iframe.hidden = false;
+}
+function playHls(url){
+  stopHls();
+  hlsActive = true;
+  iframe.hidden = true;
+  hlsvid.hidden = false;
+  const start = () => {
+    try { hlsvid.muted = true; } catch {}
+    try { const pr = hlsvid.play(); if (pr && pr.catch) pr.catch(() => {}); } catch {}
+    toast('اضغط لعرض البث — فعّل الصوت من المشغّل');
+  };
+  if (window.Hls && window.Hls.isSupported()){
+    try {
+      hlsInst = new window.Hls({ capLevelToPlayerSize: true });
+      hlsInst.on(window.Hls.Events.ERROR, (ev, data) => {
+        if (data && data.fatal){ const f = hlsActive; stopHls(); if (f) goServer(srvIdx + 1, true); }
+      });
+      hlsInst.loadSource(url);
+      hlsInst.attachMedia(hlsvid);
+      hlsInst.on(window.Hls.Events.MANIFEST_PARSED, start);
+    } catch { stopHls(); goServer(srvIdx + 1, true); }
+  } else if (hlsvid.canPlayType('application/vnd.apple.mpegurl')){
+    hlsvid.src = url;
+    hlsvid.addEventListener('loadedmetadata', start, { once: true });
+  } else {
+    toast('المتصفح لا يدعم HLS — جرّب سيرفراً آخر');
+    stopHls(); goServer(srvIdx + 1, true);
+  }
 }
 function goServer(i, auto){
   if (!serverList.length) return;
   srvIdx = ((i % serverList.length) + serverList.length) % serverList.length;
   const s = serverList[srvIdx];
-  const src = (s && (s.play || s.url)) || '';
-  if (!src) return;
-  iframe.src = src;
-  lastCleanSrc = src;
+  if (!s) return;
+  if (s.hls){
+    playHls(s.hls);
+    lastCleanSrc = s.hls;
+  } else {
+    stopHls();
+    const src = s.play || s.url || '';
+    if (!src) return;
+    iframe.src = src;
+    lastCleanSrc = src;
+  }
   paintNow();
   rearmShield();
   if (auto) toast('نحاول سيرفراً آخر…');
@@ -364,6 +419,10 @@ async function loadRealPlayer(){
   }
   try {
     const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP });
+    // Personal IPTV beIN list loads in parallel; 503/empty = silently skipped
+    // (works only when the owner configured server env vars on the host).
+    const iptvP = fetch('/api/iptv?action=bein', { cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : null)).catch(() => null);
     const r = await fetch('/api/player?' + q.toString(), { cache: 'no-store' });
     const data = await r.json();
     if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP, timeP);
@@ -375,6 +434,18 @@ async function loadRealPlayer(){
       if (data.fallbackUrl) list.push({ label: 'صفحة المباراة (احتياطي)', url: data.fallbackUrl, kind: 'fallback', via: 'fallback' });
     }
     const enList = (data && Array.isArray(data.enServers)) ? data.enServers : [];
+    // beIN 24/7 (personal IPTV) slots into the Arabic grid after live servers.
+    try {
+      const iptv = await iptvP;
+      const chans = (iptv && Array.isArray(iptv.channels)) ? iptv.channels : [];
+      const tvs = chans.filter(c => c && /^\d{1,10}$/.test(String(c.sid || ''))).slice(0, 4)
+        .map(c => ({ label: String(c.name || 'beIN').slice(0, 40), hls: '/api/iptv?action=play&sid=' + c.sid, kind: 'tv', via: 'iptv' }));
+      if (tvs.length){
+        const fbIdx = list.findIndex(s => s && s.kind === 'fallback');
+        if (fbIdx >= 0) list.splice(fbIdx, 0, ...tvs);
+        else list.push(...tvs);
+      }
+    } catch {}
     showServersFromList(list, enList);
     // Play from the UNIFIED list (Arabic first, English fallback) — using only
     // the Arabic `list` here left a black player when Arabic was empty but
@@ -398,6 +469,12 @@ clickShield.addEventListener('click', () => clickShield.classList.add('hidden'))
 
 /* fullscreen */
 document.getElementById('btnFull').onclick = () => {
+  if (hlsActive && !hlsvid.hidden){
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else if (hlsvid.requestFullscreen) hlsvid.requestFullscreen().catch(() => toast('تعذّر ملء الشاشة'));
+    else toast('المتصفح لا يدعم ملء الشاشة');
+    return;
+  }
   const st = document.querySelector('.stage');
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else if (st.requestFullscreen) st.requestFullscreen().catch(() => toast('تعذّر ملء الشاشة'));
@@ -405,6 +482,18 @@ document.getElementById('btnFull').onclick = () => {
 };
 /* reload (cache-bust, hash-safe via URL API) */
 document.getElementById('btnReload').onclick = () => {
+  if (hlsActive){
+    const s = serverList[srvIdx];
+    if (s && s.hls){
+      try {
+        const u = new URL(s.hls, location.origin);
+        u.searchParams.set('_', Date.now());
+        playHls(u.toString());
+      } catch { playHls(s.hls); }
+      rearmShield();
+    }
+    return;
+  }
   if (!lastCleanSrc) return;
   try {
     const u = new URL(lastCleanSrc, location.origin);
