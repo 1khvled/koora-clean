@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (mobile/console/security pass §25, pending commit).
+> Last updated: 2026-09-09 (commit `1865cad`, mobile/console/security pass §25).
 
 ## 25. Mobile + console + security pass (2026-09-09, user: "optimize for mobiles ipads, fix console errors, fix security")
 
