@@ -287,7 +287,7 @@ export default async function handler(req, res) {
           : kind === 'card' ? String(e.card || '') : '';
         const tstr = e.timeStr != null ? String(e.timeStr) : '';
         return {
-          min: str40(tstr ? tstr + (e.overloadTime ? '+' + e.overloadTime : '') + '’' : ''),
+          min: str40(tstr ? tstr + ((e.overloadTime && !tstr.includes('+')) ? '+' + e.overloadTime : '') + '’' : ''),
           kind,
           home: !!e.isHome,
           pid: pidOf(e.player && e.player.id),
