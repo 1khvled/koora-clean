@@ -19,10 +19,10 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'only /live/ pages' });
 
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 'public, max-age=60');
+  // NOTE: cache header is set only on the 200 path below — errors stay uncached.
 
   const ctrl = new AbortController();
-  const to = setTimeout(() => ctrl.abort(), 10000);
+  const to = setTimeout(() => ctrl.abort(), 7000);
   try {
     const up = await fetch(t.toString(), {
       signal: ctrl.signal,
@@ -33,12 +33,14 @@ export default async function handler(req, res) {
       },
     }).finally(() => clearTimeout(to));
     if (!up.ok) return res.status(502).json({ error: 'upstream ' + up.status });
-    // SEC: fetch follows redirects — re-check the FINAL host so a vipbox
-    // redirect can't launder arbitrary content through our origin.
-    let finalHost = '';
-    try { finalHost = new URL(up.url).hostname.toLowerCase(); } catch {}
-    if (!(finalHost === 'vipbox.lc' || finalHost.endsWith('.vipbox.lc')))
-      return res.status(502).json({ error: 'upstream redirected off-host' });
+    // SEC: fetch follows redirects — re-check the FINAL host AND path so a
+    // vipbox redirect can't launder arbitrary content through our origin.
+    let finalUrl = null;
+    try { finalUrl = new URL(up.url); } catch {}
+    const finalHost = (finalUrl ? finalUrl.hostname : '').toLowerCase();
+    if (!(finalHost === 'vipbox.lc' || finalHost.endsWith('.vipbox.lc'))
+      || !(finalUrl && finalUrl.pathname.startsWith('/live/')))
+      return res.status(502).json({ error: 'upstream redirected off-page' });
     // Size cap: pages are ~650KB; refuse absurd bodies before buffering.
     const clen = +(up.headers.get('content-length') || 0);
     if (clen > 2500000) return res.status(502).json({ error: 'upstream too large' });
@@ -57,8 +59,9 @@ export default async function handler(req, res) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     // Force opaque origin so the third-party scripts can never touch our page.
     res.setHeader('Content-Security-Policy', 'sandbox allow-scripts allow-forms allow-presentation');
+    res.setHeader('Cache-Control', 'public, max-age=60');
     return res.status(200).send(html);
   } catch (e) {
-    return res.status(502).json({ error: String((e && e.message) || e) });
+    return res.status(502).json({ error: 'upstream failed' });
   }
 }

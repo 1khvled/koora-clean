@@ -4,7 +4,53 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (live-bug batch §26, pending commit).
+> Last updated: 2026-09-09 (5-agent audit triage + interactive minfo §27, pending commit).
+
+## 27. Five-agent audit triage + interactive FotMob section (2026-09-09, user: "fix all bugs, send 5 subagents" → "make fotmob interactive not STATIC")
+
+- **5 parallel read-only audit agents** (player / index / apis / workers+PWA /
+  entity-pipeline) returned ~130 findings; triaged to the real ones below.
+  Everything else was deferred with reasons (validated gates, conventions,
+  can't-verify).
+- **Interactive minfo (delegated to 1 subagent, verified by me):** FotMob-style
+  tabs (نظرة/التشكيلة/الأحداث, sticky, aria-selected), clickable pitch dots
+  → clamped popover card (photo/rating/events, Esc/outside/✕ close),
+  timeline filter chips (الكل/أهداف/بطاقات/تبديلات), 60s live auto-refresh
+  (hidden-tab skip, stops at FT, never touches iframe/servers), stats period
+  switcher (All/1H/2H from new `periods` API field). Verified live in-browser
+  390+768: tabs/dots/popover/filters/periods/timer all green, zero pageerrors.
+- **Entity pipeline (the "38&95&" garbage):** decode-once server-side in
+  `api/matches.js` + `decFull` loop-decoder (named/decimal/hex, handles
+  double-encoded `&amp;#039;`) in both pages, applied as `esc(decFull(x))`
+  at every sink; statusLabel appends `’` only if missing; logoImg validates
+  scheme; FotMob `Own goal` stays English.
+- **Player:** `safeSrc` also rejects ad/telegram URLs + `goServer` auto-skips
+  dead servers (bounded); Safari fullscreen guard + webkit fallback; fetch
+  in-flight guard; fail/skeleton states reset counts; `subTag` brand-free;
+  live-dot via CSS `::after`; dead `trackServer`/`showServers` deleted.
+- **Index:** null-item guard, empty-array = valid day, stale-kept offline,
+  reqSeq anti-race, word-boundaried LIVE/FT, minute-only game_time, chips
+  rebuild on silent, case-insensitive search + debounce, rail scroll preserve,
+  snap proximity, corrected empty-state + JSON-LD (absolute URL, ISO dates),
+  visibility catch-up, chip scrollIntoView, day-tab aria roles.
+- **Backend:** vipbox video verify parallelized (was ~26s worst case);
+  fotmob dates parallel + 7/8s budgets + same-match dedupe; matchesRes
+  ok/array guards + String id compare; `found` now post-filter (a dropped
+  `javascript:` URL can't report found:true); no-store on all error paths;
+  `api/matches` day allowlist + ok/size caps + quote-agnostic attrs +
+  logo-preference + slug-stable ids; `api/vip` redirect pathname re-check +
+  cache-only-on-200 + 7s budget; fotmob matchId digits + min-suffix/red-word/
+  topPlayers-guard/logo-https fixes.
+- **Workers/SW/PWA:** redirect re-validation + https-only + 8s timeouts in
+  both proxies; dead bare-TLD allowlist entries dropped; SW regexes anchored
+  (verified 13/13 incl. `exoclick.com` fix + `t.me` query-string safety);
+  manifest `id` + categories; sitemap canonical + hourly.
+- Deliberately NOT changed: validated fuzzy gates/thresholds, v/p conflation
+  scope, SW silent catch (console-noise rule), demo branch, slop scripts
+  (edit-record convention), worker-serve legacy bundle (deployment unknown),
+  pitch aspect math, rearmShield-per-switch protection.
+- Verified: `node --check` all 9 JS surfaces; Playwright XSS-smuggle +
+  viewports + interactive suite green; mirrors byte-identical.
 
 ## 26. Live-bug batch: card status, flaky loads, FotMob U19 collisions (2026-09-09, user: "match started but says لم تبدأ, player needs refresh, no fotmob")
 

@@ -14,6 +14,9 @@
 <meta property="og:description" content="بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
 <meta property="og:url" content="https://kooraadz.vercel.app/player.html">
 <meta property="og:image" content="https://kooraadz.vercel.app/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:image:alt" content="كورة لايف">
 <meta name="twitter:card" content="summary">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
@@ -93,6 +96,10 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .srv.on{border-color:var(--grass);background:var(--pitch);box-shadow:0 0 0 1px var(--grass)}
 .srv.on .num{background:var(--grass);color:#04120c}
 .srv.on .meta span{color:#cfe6d6}
+.srv.on{position:relative}
+.srv.on::after{content:"";position:absolute;inset-inline-end:8px;top:8px;width:9px;
+  height:9px;border-radius:50%;background:var(--live);
+  box-shadow:0 0 0 3px rgba(224,32,46,.18)}
 .srv.en .meta b{direction:ltr;unicode-bidi:plaintext}
 .srv .enbadge{flex:none;font-size:10px;font-weight:900;background:#1e3a30;color:#9fd3b4;
   border-radius:6px;padding:2px 7px;letter-spacing:.5px}
@@ -103,7 +110,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .minfo h3{font-size:13px;font-weight:900;margin:14px 0 8px;color:var(--ink)}
 .minfo h3:first-child{margin-top:0}
 .minfo .sub{font-size:11px;color:var(--muted);font-weight:700}
-.toprow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.toprow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;scroll-padding:8px}
 .toprow::-webkit-scrollbar{display:none}
 .topchip{flex:none;display:flex;align-items:center;gap:8px;border:1px solid var(--line);
   border-radius:999px;padding:6px 12px 6px 6px;font-size:12px;font-weight:800}
@@ -116,8 +123,8 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .stat{margin-bottom:8px}
 .stat .lab{display:flex;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:4px}
 .stat .lab small{color:var(--muted)}
-.stat .bars{display:flex;gap:4px;height:8px}
-.stat .bars i{border-radius:99px;display:block;height:100%}
+.stat .bars{display:flex;height:8px;background:#1e3a30;border-radius:99px;overflow:hidden}
+.stat .bars i{display:block;height:100%}
 .stat .bars .h{background:var(--grass)}
 .stat .bars .a{background:#3b5b4e}
 .lu-grid{display:grid;gap:12px}
@@ -143,6 +150,25 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .ev .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
 .ev .sc{flex:none;color:var(--muted);font-weight:800;font-size:12px}
 .minfo .loading{text-align:center;color:var(--muted);padding:18px 0;font-weight:600;font-size:13px}
+/* minfo interactive: sticky tabs, filter chips, player popover */
+.minfo-tabs{position:sticky;top:0;z-index:5;display:flex;gap:6px;background:var(--card);padding:8px 0;margin-bottom:10px}
+.minfo-tabs button{flex:1;font-family:var(--font);min-height:44px;border:1px solid var(--line);background:var(--pitch);color:#fff;border-radius:10px;font-size:13px;font-weight:900;cursor:pointer;padding:8px 6px}
+.minfo-tabs button[aria-selected="true"]{background:var(--grass);color:#04120c;border-color:var(--grass)}
+.minfo-pane[hidden]{display:none}
+.fchips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+.fchip{font-family:var(--font);min-height:44px;border:1px solid var(--line);background:var(--pitch);color:#fff;border-radius:999px;font-size:12px;font-weight:800;cursor:pointer;padding:8px 14px}
+.fchip[aria-pressed="true"]{background:var(--grass);color:#04120c;border-color:var(--grass)}
+button.pdot{background:none;border:0;padding:0;font-family:var(--font);cursor:pointer}
+button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.mpop{position:fixed;z-index:60;width:250px;max-width:86vw;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;box-shadow:0 12px 32px rgba(0,0,0,.5);color:var(--ink);text-align:start}
+.mpop .mh{display:flex;gap:8px;align-items:center}
+.mpop .mh img{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#0b3d2e;flex:none}
+.mpop .mh .tt{flex:1;min-width:0}
+.mpop .mh b{display:block;font-size:13px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mpop .mh small{color:var(--muted);font-size:11px;font-weight:700}
+.mpop .mx{flex:none;width:44px;height:44px;border:1px solid var(--line);background:var(--pitch);color:#fff;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer}
+.mpop .me{margin:8px 0 0;font-size:12px;font-weight:700;line-height:2}
+.mpop .me div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* FotMob-style score header */
 .fm-score{background:var(--card);border:1px solid var(--line);border-radius:12px;
   padding:12px;margin-bottom:12px;text-align:center}
@@ -199,15 +225,15 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   place-items:center;background:#e0202e;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .pev.card{background:#ffb800;color:#231a00;border-radius:5px}
 .pev.goal{background:transparent;box-shadow:none;font-size:15px}
-.pname{margin-top:2px;font-size:9.5px;font-weight:800;color:#fff;text-align:center;
+.pname{margin-top:2px;font-size:10px;font-weight:800;color:#fff;text-align:center;
   line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.7);max-width:110%;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext}
 .pname b{font-weight:900}
 .unav{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);
   font-size:12px;color:var(--muted);font-weight:700}
 .unav:first-of-type{border-top:0}
 /* small phones: shrink pitch dots so 4-4-2 rows never collide */
-@media (max-width:359px){
+@media (max-width:360px){
   .pimg{width:30px;height:30px}
   .pname{font-size:9px}
   .pbadge{font-size:10px;padding:0 5px}
@@ -308,8 +334,9 @@ function esc(s){
 }
 const id = qs.get('id') || '';
 const href = safeDec(qs.get('href'));
-const home = safeDec(qs.get('home'));
-const away = safeDec(qs.get('away'));
+const home = decFull(qs.get('home'));
+const away = decFull(qs.get('away'));
+const startP = decFull(qs.get('st'));
 
 const iframe = document.getElementById('player');
 const shield = document.getElementById('shield');
@@ -352,14 +379,28 @@ function bumpBlocked(){
    rendered must not say "لم تبدأ" next to a live player. */
 const homeLogo = safeDec(qs.get('hl'));
 const awayLogo = safeDec(qs.get('al'));
-const leagueP = safeDec(qs.get('lg'));
-const timeP = dec(safeDec(qs.get('tm')));
-const offP = dec(safeDec(qs.get('so')));
-const gtP = dec(safeDec(qs.get('gt')));
-const shP = safeDec(qs.get('sh'));
-const saP = safeDec(qs.get('sa'));
+const leagueP = decFull(qs.get('lg'));
+const timeP = decFull(qs.get('tm'));
+const offP = decFull(qs.get('so'));
+const gtP = decFull(qs.get('gt'));
+const shP = decFull(qs.get('sh'));
+const saP = decFull(qs.get('sa'));
 function dec(s){
   return String(s == null ? '' : s).replace(/&#0?39;/g, '’').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+}
+/* Full entity decoder: handles single AND double-encoded input (&amp;#039;),
+   named (&apos; &quot; &lt; &gt; &amp; &nbsp;), decimal (&#039; &#38;) and hex
+   (&#x27;) entities. Loops until stable (max 3x). ALWAYS decode BEFORE esc(). */
+function decFull(s){
+  let out = String(s == null ? '' : s), prev = '';
+  for (let i = 0; i < 3 && out !== prev; i++){
+    prev = out;
+    out = out.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
+      .replace(/&#x([0-9a-fA-F]+);/g, (m, h) => { const c = parseInt(h, 16); return c > 31 && c < 0x110000 ? String.fromCodePoint(c) : m; })
+      .replace(/&#(\d+);/g, (m, n) => { const c = parseInt(n, 10); return c > 31 && c < 0x110000 ? String.fromCodePoint(c) : m; });
+  }
+  return out;
 }
 function isLiveP(){
   const s = [offP, gtP, timeP].join(' ');
@@ -398,8 +439,8 @@ function paintMatch(h, a, hl, al, lg){
 paintMatch(home, away, homeLogo, awayLogo, leagueP);
 
 /* multi-server state — one unified list, two views: Arabic grid + English grid.
-   supports new servers[]/enServers[] plus legacy embedUrl/livePage/fallbackUrl */
-const startP = safeDec(qs.get('st'));
+   supports new servers[]/enServers[] plus legacy embedUrl/livePage/fallbackUrl
+   (startP is defined with the other params above) */
 let serverList = [], srvIdx = 0, blockTimes = [];
 const serversEl = document.getElementById('servers');
 const srvCount = document.getElementById('srvCount');
@@ -422,24 +463,27 @@ function subTag(s){
   // ad-block cosmetic lists remove page elements that mention stream brands,
   // which once left an EN header with zero visible buttons.
   if (s && s.kind === 'en') return [kindTag(s), s.sub].filter(Boolean).join(' • ');
-  return [kindTag(s), s.via, s.sub].filter(Boolean).join(' • ');
+  return [kindTag(s), s.sub].filter(Boolean).join(' • ');
 }
 function btnHtml(s, i, on){
   const en = s.kind === 'en';
-  // SEC: labels/subs come from upstream scrapes (hd7 tab names, vipbox titles) — escape.
-  return `<button class="srv${en ? ' en' : ''}${on ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${esc(s.label) || ('سيرفر ' + (i + 1))}</b><span>${esc(subTag(s))}</span></span>${en ? '<span class="enbadge">EN</span>' : (on ? '<span class="live-dot"></span>' : '')}</button>`;
+  // SEC: labels/subs come from upstream scrapes (hd7 tab names, vipbox titles) — decode then escape.
+  return `<button class="srv${en ? ' en' : ''}${on ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${esc(decFull(s.label)) || ('سيرفر ' + (i + 1))}</b><span>${esc(decFull(subTag(s)))}</span></span>${en ? '<span class="enbadge">EN</span>' : ''}</button>`;
 }
 function showSkeleton(){
   serversEl.innerHTML = [1, 2, 3].map(i =>
     `<button class="srv skel" disabled><span class="num">${i}</span><span class="meta"><b>…</b><span>جاري البحث…</span></span></button>`
   ).join('');
+  enEl.innerHTML = '';
   srvCount.hidden = true;
+  enCount.hidden = true;
   srvNow.textContent = 'جاري البحث عن السيرفرات…';
   srcNote.hidden = true;
   enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
 }
 function showServersFromList(list, enList){
-  const dedup = (arr) => (arr || []).filter(s => s && s.url).filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
+  // Drop unplayable URLs up-front so counts never include dead servers.
+  const dedup = (arr) => (arr || []).filter(s => s && s.url && safeSrc(s.play || s.url)).filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
   const ar = dedup(list), en = dedup(enList);
   serverList = [...ar, ...en].filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
   srvIdx = 0;
@@ -486,10 +530,6 @@ function paintNow(){
   [...serversEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
   [...enEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
 }
-function trackServer(src){
-  const i = serverList.findIndex(s => s.url === src);
-  if (i >= 0){ srvIdx = i; paintNow(); }
-}
 /* SEC: stream URLs come from third-party scrapes — only http(s) absolute or
    site-relative paths may ever reach the iframe. This kills `javascript:`,
    `data:` and `blob:` URL smuggling at the single choke point (demo branch
@@ -500,27 +540,25 @@ function safeSrc(u){
   if (/^https?:\/\//i.test(s) || s[0] === '/') return s;
   return '';
 }
-function goServer(i, auto){
+function goServer(i, auto, _tried){
   if (!serverList.length) return;
   srvIdx = ((i % serverList.length) + serverList.length) % serverList.length;
   const s = serverList[srvIdx];
-  const src = safeSrc(s && (s.play || s.url));
-  if (!src) return;
+  let src = safeSrc(s && (s.play || s.url));
+  // Never load ad/telegram URLs even if an upstream smuggles one in as a
+  // "server" — skip to the next instead of leaving a stale highlight.
+  if (src && BLOCK_RE.test(src)) src = '';
+  if (!src){
+    if ((_tried || 0) >= serverList.length - 1){ toast('لا يوجد سيرفر صالح'); return; }
+    goServer(srvIdx + 1, auto, (_tried || 0) + 1);
+    return;
+  }
   iframe.src = src;
   lastCleanSrc = src;
   paintNow();
   rearmShield();
   if (auto) toast('نحاول سيرفراً آخر…');
 }
-/* legacy compat: old callers map onto the grid (no English list) */
-function showServers(main, alt, fb){
-  const list = [];
-  if (main) list.push({ label: 'المشغّل الرئيسي', url: main, kind: 'leaf', via: 'hd7livex' });
-  if (alt) list.push({ label: 'سيرفرات بديلة', url: alt, kind: 'live', via: 'hd7livex' });
-  if (fb) list.push({ label: 'صفحة المباراة (احتياطي)', url: fb, kind: 'fallback', via: 'fallback' });
-  showServersFromList(list, []);
-}
-
 function rearmShield(){
   clickShield.classList.remove('hidden');
 }
@@ -542,9 +580,17 @@ async function loadRealPlayer(){
   // left a dead skeleton until the user manually refreshed ("sometimes works
   // sometimes not"). Now the page visibly loads, retries once by itself, and
   // only then offers the manual retry button.
+  // In-flight guard: rapid retry taps must not spawn parallel fetches.
+  if (loadRealPlayer._busy) return;
+  loadRealPlayer._busy = true;
   const failBox = () => {
+    loadRealPlayer._busy = false;
     serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>تعذّر التحميل</b><span>اضغط لإعادة المحاولة</span></span></button>`;
     document.getElementById('retryBtn').onclick = () => loadRealPlayer();
+    enEl.innerHTML = '';
+    srvCount.hidden = true;
+    enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
+    srcNote.hidden = true;
     srvNow.textContent = 'تحقق من الاتصال ثم أعد المحاولة';
     toast('تعذّر تحميل البث — تحقق من الاتصال');
   };
@@ -584,6 +630,7 @@ async function loadRealPlayer(){
     } else {
       toast('لا يوجد بث متاح حالياً');
     }
+    loadRealPlayer._busy = false;
   } catch (e){
     failBox();
   }
@@ -592,12 +639,19 @@ async function loadRealPlayer(){
 /* first click is absorbed so popups never open */
 clickShield.addEventListener('click', () => clickShield.classList.add('hidden'));
 
-/* fullscreen */
+/* fullscreen (Safari returns undefined, not a Promise — guard it) */
 document.getElementById('btnFull').onclick = () => {
   const st = document.querySelector('.stage');
-  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-  else if (st.requestFullscreen) st.requestFullscreen().catch(() => toast('تعذّر ملء الشاشة'));
-  else toast('المتصفح لا يدعم ملء الشاشة');
+  try {
+    if (document.fullscreenElement){
+      const p = document.exitFullscreen();
+      if (p && p.catch) p.catch(() => {});
+    } else if (st.requestFullscreen){
+      const p = st.requestFullscreen();
+      if (p && p.catch) p.catch(() => toast('تعذّر ملء الشاشة'));
+    } else if (st.webkitRequestFullscreen) st.webkitRequestFullscreen();
+    else toast('المتصفح لا يدعم ملء الشاشة');
+  } catch { toast('تعذّر ملء الشاشة'); }
 };
 /* reload (cache-bust, hash-safe via URL API) */
 document.getElementById('btnReload').onclick = () => {
@@ -672,127 +726,301 @@ function clampv(v){
   if (!isFinite(n)) return null;
   return Math.min(0.97, Math.max(0.03, n));
 }
+/* minfo interactive (tabs / popover / filters / auto-refresh) — parallel, never blocks streams.
+   State lives in JS vars only (no storage). Re-renders touch #minfoBody alone:
+   the video iframe and server grid are never touched here. */
+let miTab = 'ov';
+let miEvFilter = 'all';
+let miPeriod = 'All';
+let miData = null;
+let miTimer = null;
+let miByPid = {};
+let miEvByPid = {};
+let miOpener = null;
+/* SEC: upstream logo URLs are untrusted — only https without spaces/quotes/brackets. */
+function logoOk(u){
+  const s = String(u == null ? '' : u);
+  if (/^https:\/\//i.test(s) && !/[\s<>"]/.test(s)) return s;
+  return '';
+}
+function miClearTimer(){
+  if (miTimer){ clearInterval(miTimer); miTimer = null; }
+}
+function miArmTimer(){
+  miClearTimer();
+  if (miData && miData.started && !miData.finished){
+    miTimer = setInterval(() => {
+      if (document.hidden) return;
+      miRefresh();
+    }, 60000);
+  }
+}
+async function miFetch(){
+  const q = new URLSearchParams({ home, away, start: startP, lg: leagueP });
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const r = await fetch('/api/fotmob?' + q.toString(), { cache: 'no-store', signal: ctrl.signal });
+    return await r.json();
+  } finally { clearTimeout(to); }
+}
 async function loadMatchInfo(){
-  const box = document.getElementById('minfo'), body = document.getElementById('minfoBody');
+  const box = document.getElementById('minfo');
   if (!home && !away) return;
   box.hidden = false;
   try {
-    const q = new URLSearchParams({ home, away, start: startP, lg: leagueP });
-    const ctrl = new AbortController();
-    const to = setTimeout(() => ctrl.abort(), 12000);
-    let d;
-    try {
-      const r = await fetch('/api/fotmob?' + q.toString(), { cache: 'no-store', signal: ctrl.signal });
-      d = await r.json();
-    } finally { clearTimeout(to); }
+    const d = await miFetch();
     if (!d || !d.found) throw 0;
+    miData = d;
     document.getElementById('minfoSrc').textContent = (d.league ? d.league + ' • ' : '') + 'FotMob';
-    const evts = d.events || [];
-    const byPid = {};
-    (evts || []).forEach(e => {
-      (e.pid ? [e.pid] : []).concat(e.swapPids || []).forEach(pid => {
-        (byPid[pid] = byPid[pid] || []).push(e);
-      });
+    if (!renderMi()) throw 0;
+    miArmTimer();
+    box.hidden = false;
+  } catch { box.hidden = true; miClearTimer(); }
+}
+async function miRefresh(){
+  try {
+    const d = await miFetch();
+    if (!d || !d.found) return;
+    miData = d;
+    document.getElementById('minfoSrc').textContent = (d.league ? d.league + ' • ' : '') + 'FotMob';
+    closeMiPop();
+    renderMi();
+    if (d.finished) miClearTimer();
+  } catch {}
+}
+function miEvIcon(e){
+  if (e.kind === 'goal') return '⚽';
+  if (e.kind === 'card') return e.red ? '🟥' : '🟨';
+  if (e.kind === 'sub') return '🔄';
+  return '•';
+}
+function renderMi(){
+  const box = document.getElementById('minfo'), body = document.getElementById('minfoBody');
+  const d = miData;
+  if (!d || !body) return false;
+  miByPid = {};
+  const evts = d.events || [];
+  const byPid = {};
+  evts.forEach(e => {
+    const keys = [];
+    if (e.pid) keys.push(e.pid);
+    (e.swapPids || []).forEach(pid => { if (keys.indexOf(pid) < 0) keys.push(pid); });
+    keys.forEach(pid => {
+      if (!byPid[pid]) byPid[pid] = [];
+      byPid[pid].push(e);
     });
-    const motmPids = {};
-    (d.topPlayers || []).forEach(p => { if (p.motm && p.pid) motmPids[p.pid] = 1; });
-    let h = '';
-    // --- FotMob score header: logos, names, score, status, scorers ---
-    const statusTxt = d.finished ? 'انتهت' : (d.started ? 'جارية الآن' : 'لم تبدأ');
-    const scorers = (isHome) => {
-      const gs = evts.filter(e => e.kind === 'goal' && !!e.home === !!isHome);
-      const byName = new Map();
-      gs.forEach(e => {
-        const k = e.player || '?';
-        if (!byName.has(k)) byName.set(k, []);
-        byName.get(k).push(e.min);
-      });
-      const reds = evts.filter(e => e.kind === 'card' && e.red && !!e.home === !!isHome)
-        .map(e => `${esc(e.player)} ${esc(e.min)} 🟥`);
-      return [...byName].map(([n, mins]) => `⚽ ${esc(n)} ${mins.map(esc).join(', ')}`).concat(reds).join('<br>') || '—';
-    };
-    h += `<div class="fm-score"><div class="lg">${esc(d.league || '')}</div><div class="row">`
-      + `<div class="tm">${d.home.logo ? `<img src="${esc(d.home.logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(d.home.name)}</b></div>`
-      + `<div class="mid"><div class="gl">${d.home.score != null ? d.home.score : '–'} - ${d.away.score != null ? d.away.score : '–'}</div><div class="st">${statusTxt}</div></div>`
-      + `<div class="tm">${d.away.logo ? `<img src="${esc(d.away.logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(d.away.name)}</b></div>`
-      + `</div><div class="scorers"><div>${scorers(true)}</div><div>${scorers(false)}</div></div></div>`;
-    // --- FotMob pitch: photos + rating badges + event badges ---
-    const dot = (p, mirror) => {
-      const x = clampv(p.x), y = clampv(p.y);
-      if (x == null || y == null) return '';
+  });
+  miEvByPid = byPid;
+  const motmPids = {};
+  (d.topPlayers || []).forEach(p => { if (p.motm && p.pid) motmPids[p.pid] = 1; });
+  const statusTxt = d.finished ? 'انتهت' : (d.started ? 'جارية الآن' : 'لم تبدأ');
+  const scorers = (isHome) => {
+    const gs = evts.filter(e => e.kind === 'goal' && !!e.home === !!isHome);
+    const byName = new Map();
+    gs.forEach(e => {
+      const k = e.player || '?';
+      if (!byName.has(k)) byName.set(k, []);
+      byName.get(k).push(e.min);
+    });
+    const reds = evts.filter(e => e.kind === 'card' && e.red && !!e.home === !!isHome)
+      .map(e => `${esc(decFull(e.player))} ${esc(decFull(e.min))} 🟥`);
+    return [...byName].map(([n, mins]) => `⚽ ${esc(decFull(n))} ${mins.map(m => esc(decFull(m))).join(', ')}`).concat(reds).join('<br>') || '—';
+  };
+  const hLogo = logoOk(d.home && d.home.logo), aLogo = logoOk(d.away && d.away.logo);
+  const scoreHtml = `<div class="fm-score"><div class="lg">${esc(decFull(d.league || ''))}</div><div class="row">`
+    + `<div class="tm">${hLogo ? `<img src="${esc(hLogo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.home.name))}</b></div>`
+    + `<div class="mid"><div class="gl">${d.home.score != null ? d.home.score : '–'} - ${d.away.score != null ? d.away.score : '–'}</div><div class="st">${statusTxt}</div></div>`
+    + `<div class="tm">${aLogo ? `<img src="${esc(aLogo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.away.name))}</b></div>`
+    + `</div><div class="scorers"><div>${scorers(true)}</div><div>${scorers(false)}</div></div></div>`;
+  // --- clickable pitch dots (button dots; coach has no dot and never pops) ---
+  const dot = (p, mirror, homeFlag, teamName, starter) => {
+    const x = clampv(p.x), y = clampv(p.y);
+    if (x == null || y == null) return '';
+    if (p.pid) miByPid[p.pid] = { p, home: !!homeFlag, team: teamName || '', starter: !!starter };
       // Vertical half-pitch per side (FotMob layout): home attacks downward
       // into the top half, away attacks upward into the bottom half.
       // Left flank is shared (no horizontal flip) — verified vs reference.
-      const left = (4 + y * 92).toFixed(1);
+      // Clamped so edge dots (and their badges) never clip outside the pitch.
+      const left = Math.min(91, Math.max(9, 4 + y * 92)).toFixed(1);
       const top = mirror ? (95 - x * 41).toFixed(1) : (5 + x * 41).toFixed(1);
-      const motm = p.pid && motmPids[p.pid];
-      const pe = (p.pid && byPid[p.pid]) || [];
-      let badge = `<span class="pbadge ${fCls(p.rating, motm)}">${p.rating != null && isFinite(p.rating) ? Number(p.rating).toFixed(1) : '–'}${motm ? '★' : ''}</span>`;
-      let ev = '';
-      const sub = pe.find(e => e.kind === 'sub');
-      const card = pe.find(e => e.kind === 'card');
-      const goal = pe.find(e => e.kind === 'goal');
-      if (sub) ev += `<span class="pev" title="تبديل">${esc(sub.min.replace('’', ''))}</span>`;
-      else if (card) ev += `<span class="pev card">${card.red ? '🟥' : '🟨'}</span>`;
-      else if (goal) ev += `<span class="pev goal">⚽</span>`;
-      const photo = photoUrl(p.pid);
-      return `<div class="pdot" style="left:${left}%;top:${top}%">${ev}`
-        + `<span class="pimg"><i>${esc(initials(p.short || p.name))}</i>${photo ? `<img src="${photo}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`
-        + `${badge}<span class="pname"><b>${esc(p.num)}</b> ${esc(p.short || p.name)}</span></div>`;
-    };
-    const tH = (d.lineups && d.lineups.home) || {}, tA = (d.lineups && d.lineups.away) || {};
-    const hasPitch = (tH.starters || []).some(p => p.x != null) || (tA.starters || []).some(p => p.x != null);
-    if (hasPitch){
-      const tline = (t, logo, cls) =>
-        `<div class="teamline ${cls}">${t.rating != null && isFinite(t.rating) ? `<span class="trate">${Number(t.rating).toFixed(1)}</span>` : ''}${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<span>${esc(t.name)}</span><span class="fm2">${esc(t.formation)}</span></div>`;
-      h += `<div class="pitch"><div class="ln half"></div><div class="ln circ"></div><div class="ln boxT"></div><div class="ln boxB"></div>`
-        + tline(tH, d.home.logo, 'tH')
-        + (tH.starters || []).map(p => dot(p, false)).join('')
-        + (tA.starters || []).map(p => dot(p, true)).join('')
-        + tline(tA, d.away.logo, 'tA') + `</div>`;
-    }
-    // --- Lists: XI + subs + coach + unavailable ---
-    const luSide = (t, logo) => {
-      const coach = t.coach ? `<div class="sub">المدرب: ${esc(t.coach)}</div>` : '';
-      const st = (t.starters || []).map(p =>
-        `<div class="pl"><span class="num">${esc(p.num)}</span><span class="nm">${esc(p.name)}</span>${rPill(p.rating)}</div>`).join('');
-      const sb = (t.subs || []).length
-        ? `<div class="sub" style="margin-top:6px">البدلاء</div>` + (t.subs || []).map(p =>
-          `<div class="pl sub"><span class="num">${esc(p.num)}</span><span class="nm">${esc(p.name)}</span>${rPill(p.rating)}</div>`).join('')
-        : '';
-      const un = (t.unavailable || []).length
-        ? `<div class="sub" style="margin-top:6px">الغائبون</div>` + (t.unavailable || []).map(p =>
-          `<div class="unav"><span>🚑</span><span class="nm">${esc(p.name)}${p.reason ? ' <small class="sub">(' + esc(p.reason) + ')</small>' : ''}</span></div>`).join('')
-        : '';
-      return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(t.name)}</b><span class="fm">${esc(t.formation)}${t.rating != null && isFinite(t.rating) ? ' • ' + Number(t.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
-    };
-    if (d.lineups && (d.lineups.home || d.lineups.away)){
-      h += '<h3>📋 التشكيلة</h3><div class="lu-grid">'
-        + luSide(d.lineups.home || {}, d.home && d.home.logo)
-        + luSide(d.lineups.away || {}, d.away && d.away.logo) + '</div>';
-    }
-    if (d.topPlayers && d.topPlayers.length){
-      h += '<h3>⭐ الأعلى تقييماً</h3><div class="toprow">' + d.topPlayers.map(p =>
-        `<span class="topchip">${rPill(p.rating)}<span>${esc(p.name)}${p.motm ? ' ⭐' : ''}</span></span>`).join('') + '</div>';
-    }
-    if (d.stats && d.stats.length){
-      h += '<h3>📈 إحصائيات</h3>' + d.stats.map(s => {
-        const hn = statNum(s.home), an = statNum(s.away);
-        let hw = 50, aw = 50;
-        if (hn != null && an != null && (hn + an) > 0){ hw = Math.round(hn / (hn + an) * 100); aw = 100 - hw; }
-        return `<div class="stat"><div class="lab"><span>${esc(s.home)}</span><small>${esc(s.title)}</small><span>${esc(s.away)}</span></div><div class="bars"><i class="h" style="width:${hw}%"></i><i class="a" style="width:${aw}%"></i></div></div>`;
-      }).join('');
-    }
-    if (d.events && d.events.length){
-      h += '<h3>🕐 الأحداث</h3>' + d.events.map(e => {
-        const ic = e.kind === 'goal' ? '⚽' : e.kind === 'card' ? (e.red ? '🟥' : '🟨') : e.kind === 'sub' ? '🔄' : '•';
-        return `<div class="ev"><span class="mn">${esc(e.min)}</span><span class="ic">${ic}</span><span class="nm">${esc(e.player)}${e.detail ? ' <small class="sub">(' + esc(e.detail) + ')</small>' : ''}</span><span class="sc">${esc(e.score)}</span></div>`;
-      }).join('');
-    }
-    if (!h) throw 0;
-    body.innerHTML = h;
-    box.hidden = false;
-  } catch { box.hidden = true; }
+    const motm = p.pid && motmPids[p.pid];
+    const pe = (p.pid && byPid[p.pid]) || [];
+    const badge = `<span class="pbadge ${fCls(p.rating, motm)}">${p.rating != null && isFinite(p.rating) ? Number(p.rating).toFixed(1) : '–'}${motm ? '★' : ''}</span>`;
+    let evb = '';
+    const sub = pe.find(e => e.kind === 'sub');
+    const card = pe.find(e => e.kind === 'card');
+    const goal = pe.find(e => e.kind === 'goal');
+    if (sub) evb += `<span class="pev" title="تبديل">${esc(decFull(String(sub.min || '').replace('’', '')))}</span>`;
+    else if (card) evb += `<span class="pev card">${card.red ? '🟥' : '🟨'}</span>`;
+    else if (goal) evb += `<span class="pev goal">⚽</span>`;
+    const photo = photoUrl(p.pid);
+    const lbl = esc(decFull(p.short || p.name));
+    return `<button type="button" class="pdot" data-pid="${esc(p.pid || '')}" style="left:${left}%;top:${top}%" aria-haspopup="dialog" aria-label="${lbl}">${evb}`
+      + `<span class="pimg"><i>${esc(initials(p.short || p.name))}</i>${photo ? `<img src="${photo}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`
+      + `${badge}<span class="pname"><b>${esc(decFull(p.num))}</b> ${lbl}</span></button>`;
+  };
+  const tH = (d.lineups && d.lineups.home) || {}, tA = (d.lineups && d.lineups.away) || {};
+  const hasPitch = (tH.starters || []).some(p => p.x != null) || (tA.starters || []).some(p => p.x != null);
+  let pitchHtml = '';
+  if (hasPitch){
+    const tline = (t, logo, cls) =>
+      `<div class="teamline ${cls}">${t.rating != null && isFinite(t.rating) ? `<span class="trate">${Number(t.rating).toFixed(1)}</span>` : ''}${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<span>${esc(decFull(t.name))}</span><span class="fm2">${esc(decFull(t.formation))}</span></div>`;
+    pitchHtml = `<div class="pitch"><div class="ln half"></div><div class="ln circ"></div><div class="ln boxT"></div><div class="ln boxB"></div>`
+      + tline(tH, hLogo, 'tH')
+      + (tH.starters || []).map(p => dot(p, false, true, tH.name, true)).join('')
+      + (tA.starters || []).map(p => dot(p, true, false, tA.name, true)).join('')
+      + tline(tA, aLogo, 'tA') + `</div>`;
+  }
+  // Subs registered too (for دخول/خروج labels in the popover).
+  (tH.subs || []).forEach(p => { if (p.pid && !miByPid[p.pid]) miByPid[p.pid] = { p, home: true, team: tH.name || '', starter: false }; });
+  (tA.subs || []).forEach(p => { if (p.pid && !miByPid[p.pid]) miByPid[p.pid] = { p, home: false, team: tA.name || '', starter: false }; });
+  // --- Lists: XI + subs + coach + unavailable ---
+  const luSide = (t, logo) => {
+    const coach = t.coach ? `<div class="sub">المدرب: ${esc(decFull(t.coach))}</div>` : '';
+    const st = (t.starters || []).map(p =>
+      `<div class="pl"><span class="num">${esc(decFull(p.num))}</span><span class="nm">${esc(decFull(p.name))}</span>${rPill(p.rating)}</div>`).join('');
+    const sb = (t.subs || []).length
+      ? `<div class="sub" style="margin-top:6px">البدلاء</div>` + (t.subs || []).map(p =>
+        `<div class="pl sub"><span class="num">${esc(decFull(p.num))}</span><span class="nm">${esc(decFull(p.name))}</span>${rPill(p.rating)}</div>`).join('')
+      : '';
+    const un = (t.unavailable || []).length
+      ? `<div class="sub" style="margin-top:6px">الغائبون</div>` + (t.unavailable || []).map(p =>
+        `<div class="unav"><span>🚑</span><span class="nm">${esc(decFull(p.name))}${p.reason ? ' <small class="sub">(' + esc(decFull(p.reason)) + ')</small>' : ''}</span></div>`).join('')
+      : '';
+    return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(t.name))}</b><span class="fm">${esc(decFull(t.formation))}${t.rating != null && isFinite(t.rating) ? ' • ' + Number(t.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
+  };
+  let listsHtml = '';
+  if (d.lineups && (d.lineups.home || d.lineups.away)){
+    listsHtml = '<h3>📋 التشكيلة</h3><div class="lu-grid">'
+      + luSide(d.lineups.home || {}, hLogo)
+      + luSide(d.lineups.away || {}, aLogo) + '</div>';
+  }
+  let topHtml = '';
+  if (d.topPlayers && d.topPlayers.length){
+    topHtml = '<h3>⭐ الأعلى تقييماً</h3><div class="toprow" tabindex="0">' + d.topPlayers.map(p =>
+      `<span class="topchip">${rPill(p.rating)}<span>${esc(decFull(p.name))}${p.motm ? ' ⭐' : ''}</span></span>`).join('') + '</div>';
+  }
+  // --- stats + period switcher (client-side swap, fallback = All only) ---
+  const per = (d.periods && typeof d.periods === 'object') ? d.periods : null;
+  const perKeys = per ? ['All', '1H', '2H'].filter(k => per[k] && per[k].length) : [];
+  if (perKeys.length && perKeys.indexOf(miPeriod) < 0) miPeriod = perKeys[0];
+  const curStats = (per && per[miPeriod] && per[miPeriod].length) ? per[miPeriod] : (d.stats || []);
+  const perName = { All: 'الكل', '1H': 'الشوط الأول', '2H': 'الشوط الثاني' };
+  let statsHtml = '';
+  if (curStats && curStats.length){
+    const perHtml = perKeys.length > 1
+      ? `<div class="fchips" role="group" aria-label="الفترة">` + perKeys.map(k =>
+        `<button type="button" class="fchip" data-per="${k}" aria-pressed="${k === miPeriod}">${perName[k] || k}</button>`).join('') + `</div>`
+      : '';
+    statsHtml = '<h3>📈 إحصائيات</h3>' + perHtml + curStats.map(s => {
+      const hn = statNum(s.home), an = statNum(s.away);
+      let hw = 50, aw = 50;
+      if (hn != null && an != null && (hn + an) > 0){ hw = Math.round(hn / (hn + an) * 100); aw = 100 - hw; }
+      return `<div class="stat"><div class="lab"><span>${esc(decFull(s.home))}</span><small>${esc(decFull(s.title))}</small><span>${esc(decFull(s.away))}</span></div><div class="bars"><i class="h" style="width:${hw}%"></i><i class="a" style="width:${aw}%"></i></div></div>`;
+    }).join('');
+  }
+  // --- events + filter chips (client-side only, no refetch) ---
+  const fDefs = [['all', 'الكل'], ['goal', 'أهداف'], ['card', 'بطاقات'], ['sub', 'تبديلات']];
+  let evHtml = '';
+  if (evts.length){
+    const rows = evts.filter(e => miEvFilter === 'all' || e.kind === miEvFilter);
+    evHtml = '<h3>🕐 الأحداث</h3>'
+      + `<div class="fchips" role="group" aria-label="تصفية الأحداث">` + fDefs.map(f =>
+        `<button type="button" class="fchip" data-f="${f[0]}" aria-pressed="${miEvFilter === f[0]}">${f[1]}</button>`).join('') + `</div>`
+      + (rows.length ? rows.map(e =>
+        `<div class="ev" data-kind="${e.kind}"><span class="mn">${esc(decFull(e.min))}</span><span class="ic">${miEvIcon(e)}</span><span class="nm">${esc(decFull(e.player))}${e.detail ? ' <small class="sub">(' + esc(decFull(e.detail)) + ')</small>' : ''}</span><span class="sc">${esc(e.score)}</span></div>`
+      ).join('') : '<div class="sub">لا توجد أحداث هنا</div>');
+  }
+  if (!scoreHtml && !topHtml && !statsHtml && !pitchHtml && !listsHtml && !evHtml) return false;
+  // --- sticky tabs: نظرة (score+top+stats) / التشكيلة (pitch+lists) / الأحداث ---
+  const tabBtn = (id, label) =>
+    `<button type="button" role="tab" data-tab="${id}" aria-selected="${miTab === id}">${label}</button>`;
+  let h = `<div class="minfo-tabs" role="tablist" aria-label="أقسام بيانات المباراة">`
+    + tabBtn('ov', 'نظرة عامة') + tabBtn('lu', 'التشكيلة') + tabBtn('ev', 'الأحداث') + `</div>`;
+  h += `<div class="minfo-pane" role="tabpanel" data-pane="ov"${miTab === 'ov' ? '' : ' hidden'}>${scoreHtml}${topHtml}${statsHtml}</div>`;
+  h += `<div class="minfo-pane" role="tabpanel" data-pane="lu"${miTab === 'lu' ? '' : ' hidden'}>${pitchHtml}${listsHtml}${(!pitchHtml && !listsHtml) ? '<div class="sub">لا توجد تشكيلة متاحة</div>' : ''}</div>`;
+  h += `<div class="minfo-pane" role="tabpanel" data-pane="ev"${miTab === 'ev' ? '' : ' hidden'}>${evHtml || '<div class="sub">لا توجد أحداث متاحة</div>'}</div>`;
+  body.innerHTML = h;
+  body.querySelectorAll('.minfo-tabs [data-tab]').forEach(b => {
+    b.onclick = () => { miTab = b.getAttribute('data-tab'); closeMiPop(); renderMi(); };
+  });
+  body.querySelectorAll('[data-f]').forEach(b => {
+    b.onclick = () => { miEvFilter = b.getAttribute('data-f'); closeMiPop(); renderMi(); };
+  });
+  body.querySelectorAll('[data-per]').forEach(b => {
+    b.onclick = () => { miPeriod = b.getAttribute('data-per'); closeMiPop(); renderMi(); };
+  });
+  body.querySelectorAll('.pdot').forEach(b => {
+    b.onclick = (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); openMiPop(b); };
+  });
+  return true;
+}
+function closeMiPop(){
+  miOpener = null;
+  const old = document.getElementById('miPop');
+  if (old && old.parentNode) old.parentNode.removeChild(old);
+  document.removeEventListener('pointerdown', miOutside, true);
+  document.removeEventListener('keydown', miEscDown);
+}
+function miEscDown(e){
+  if (e && e.key === 'Escape') closeMiPop();
+}
+function miOutside(e){
+  const pop = document.getElementById('miPop');
+  if (!pop || !e || !e.target) return;
+  if (pop === e.target || (pop.contains && pop.contains(e.target))) return;
+  if (miOpener && (miOpener === e.target || (miOpener.contains && miOpener.contains(e.target)))) return;
+  closeMiPop();
+}
+function openMiPop(btn){
+  const pid = btn.getAttribute('data-pid');
+  if (!pid) return;
+  const wasOpen = document.getElementById('miPop');
+  const wasPid = wasOpen ? wasOpen.getAttribute('data-pid') : null;
+  closeMiPop();
+  if (wasPid === pid) return;
+  const info = miByPid[pid];
+  if (!info || !info.p) return;
+  const p = info.p;
+  const list = miEvByPid[pid] || [];
+  const photo = photoUrl(pid);
+  const rows = list.map(e => {
+    if (e.kind === 'sub') return `<div>🔄 ${esc(decFull(e.min))} (${info.starter ? 'خروج' : 'دخول'})</div>`;
+    return `<div>${miEvIcon(e)} ${esc(decFull(e.min))}${e.detail ? ' • ' + esc(decFull(e.detail)) : ''}${e.score ? ' (' + esc(e.score) + ')' : ''}</div>`;
+  }).join('');
+  const el = document.createElement('div');
+  el.className = 'mpop';
+  el.id = 'miPop';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('data-pid', pid);
+  el.innerHTML = `<div class="mh">${photo ? `<img src="${photo}" alt="" loading="lazy" onerror="this.remove()">` : ''}`
+    + `<span class="tt"><b>${esc(decFull(p.short || p.name))}</b><small>${esc(decFull(p.num))} • ${esc(decFull(info.team))}</small></span>`
+    + `<button type="button" class="mx" aria-label="إغلاق">✕</button></div>`
+    + `<div style="margin-top:6px">${rPill(p.rating)}</div>`
+    + `<div class="me">${rows || '<div>لا أحداث لهذا اللاعب</div>'}</div>`;
+  document.body.appendChild(el);
+  const mx = el.querySelector('.mx');
+  if (mx) mx.onclick = (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); closeMiPop(); };
+  miOpener = btn;
+  // Near the dot, clamped inside the viewport (flips above when no room below).
+  const r = btn.getBoundingClientRect();
+  const W = 250, M = 8;
+  let left = r.left + r.width / 2 - W / 2;
+  if (left < M) left = M;
+  if (left > window.innerWidth - W - M) left = window.innerWidth - W - M;
+  if (left < M) left = M;
+  el.style.left = left + 'px';
+  const estH = 230;
+  let top = r.bottom + 8;
+  if (top + estH > window.innerHeight) top = r.top - estH - 8;
+  if (top < M) top = M;
+  el.style.top = top + 'px';
+  const rh = el.getBoundingClientRect();
+  if (rh.bottom > window.innerHeight - M) el.style.top = Math.max(M, window.innerHeight - rh.height - M) + 'px';
+  if (rh.right > window.innerWidth - M) el.style.left = Math.max(M, window.innerWidth - rh.width - M) + 'px';
+  document.addEventListener('pointerdown', miOutside, true);
+  document.addEventListener('keydown', miEscDown);
 }
 
 loadRealPlayer();
