@@ -142,6 +142,68 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .ev .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
 .ev .sc{flex:none;color:var(--muted);font-weight:800;font-size:12px}
 .minfo .loading{text-align:center;color:var(--muted);padding:18px 0;font-weight:600;font-size:13px}
+/* FotMob-style score header */
+.fm-score{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:12px;margin-bottom:12px;text-align:center}
+.fm-score .lg{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:8px}
+.fm-score .row{display:flex;align-items:center;gap:8px}
+.fm-score .tm{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.fm-score .tm img{width:40px;height:40px;object-fit:contain}
+.fm-score .tm b{font-size:13px;font-weight:900}
+.fm-score .mid{flex:none;min-width:86px}
+.fm-score .gl{font-size:26px;font-weight:900;letter-spacing:2px;font-variant-numeric:tabular-nums}
+.fm-score .st{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
+.fm-score .scorers{display:flex;justify-content:space-between;gap:8px;margin-top:8px;
+  font-size:11px;color:var(--muted);font-weight:700;line-height:1.8}
+.fm-score .scorers div{flex:1;min-width:0}
+/* FotMob-style pitch */
+.pitch{position:relative;border-radius:12px;overflow:hidden;background:#1d7a44;
+  background:linear-gradient(180deg,#1e8a4c 0%,#17753f 50%,#1e8a4c 100%);
+  aspect-ratio:34/58;border:1px solid var(--line)}
+.pitch .ln{position:absolute;border:0 solid rgba(255,255,255,.55);pointer-events:none}
+.pitch .half{left:0;right:0;top:50%;border-top-width:2px}
+.pitch .circ{left:50%;top:50%;width:26%;aspect-ratio:1;transform:translate(-50%,-50%);
+  border-width:2px;border-radius:50%}
+.pitch .boxT{left:50%;top:0;transform:translateX(-50%);width:52%;height:11%;
+  border-width:0 2px 2px 2px}
+.pitch .boxB{left:50%;bottom:0;transform:translateX(-50%);width:52%;height:11%;
+  border-width:2px 2px 0 2px}
+.pitch .teamline{display:flex;align-items:center;gap:6px;position:absolute;left:8px;right:8px;
+  background:rgba(0,0,0,.35);border-radius:9px;padding:4px 8px;color:#fff;
+  font-size:12px;font-weight:900;z-index:3}
+.pitch .teamline.tH{top:6px}
+.pitch .teamline.tA{bottom:6px}
+.pitch .teamline img{width:20px;height:20px;object-fit:contain}
+.pitch .teamline .trate{flex:none;font-size:11px;font-weight:900;background:#ff9e1a;
+  color:#231a00;border-radius:7px;padding:1px 7px}
+.pitch .teamline .fm2{flex:1;text-align:end;color:#dcefe4;font-size:11px;font-weight:700}
+.pdot{position:absolute;transform:translate(-50%,-50%);z-index:2;width:17%;
+  display:flex;flex-direction:column;align-items:center}
+.pimg{position:relative;width:34px;height:34px;max-width:100%}
+.pimg i{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;
+  background:#0b3d2e;color:#fff;font-size:13px;font-weight:900;font-style:normal;
+  border:2px solid rgba(255,255,255,.85)}
+.pimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  border-radius:50%;border:2px solid rgba(255,255,255,.85);background:#0b3d2e}
+.pbadge{position:absolute;top:-7px;inset-inline-end:-9px;z-index:3;font-size:11px;
+  font-weight:900;border-radius:8px;padding:1px 6px;color:#fff;
+  font-variant-numeric:tabular-nums;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.f-hi{background:#22b45e}
+.f-md{background:#ff9e1a}
+.f-lo{background:#e0202e}
+.f-motm{background:#2f7bff}
+.pev{position:absolute;top:-7px;inset-inline-start:-9px;z-index:3;font-size:11px;
+  font-weight:900;border-radius:50%;width:20px;height:20px;display:grid;
+  place-items:center;background:#e0202e;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.pev.card{background:#ffb800;color:#231a00;border-radius:5px}
+.pev.goal{background:transparent;box-shadow:none;font-size:15px}
+.pname{margin-top:2px;font-size:9.5px;font-weight:800;color:#fff;text-align:center;
+  line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.7);max-width:110%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pname b{font-weight:900}
+.unav{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);
+  font-size:12px;color:var(--muted);font-weight:700}
+.unav:first-of-type{border-top:0}
 .srv:disabled{opacity:.55;cursor:wait}
 .srv.skel{pointer-events:none;border-style:dashed}
 .srv.skel .meta b,.srv.skel .meta span{background:#1e3a30;border-radius:6px;color:transparent}
@@ -496,8 +558,8 @@ if ('serviceWorker' in navigator){
 /* FotMob match info (lineups, ratings, stats, events) — parallel, never blocks streams */
 function rCls(r){
   if (r == null || !isFinite(r)) return 'r-na';
-  if (r >= 7.5) return 'r-hi';
-  if (r >= 6) return 'r-md';
+  if (r >= 7) return 'r-hi';
+  if (r >= 5) return 'r-md';
   return 'r-lo';
 }
 function rPill(r){
@@ -506,6 +568,28 @@ function rPill(r){
 function statNum(v){
   const n = parseFloat(v);
   return isFinite(n) ? n : null;
+}
+/* FotMob-style helpers: rating tiers, photo dots, pitch placement */
+function fCls(r, motm){
+  if (motm) return 'f-motm';
+  if (r == null || !isFinite(r)) return 'f-md';
+  if (r >= 7) return 'f-hi';
+  if (r >= 5) return 'f-md';
+  return 'f-lo';
+}
+function photoUrl(pid){
+  return pid && /^\d{1,12}$/.test(pid)
+    ? 'https://images.fotmob.com/image_resources/playerimages/' + pid + '.png' : '';
+}
+function initials(name){
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '–';
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+}
+function clampv(v){
+  const n = Number(v);
+  if (!isFinite(n)) return null;
+  return Math.min(0.97, Math.max(0.03, n));
 }
 async function loadMatchInfo(){
   const box = document.getElementById('minfo'), body = document.getElementById('minfoBody');
@@ -517,7 +601,90 @@ async function loadMatchInfo(){
     const d = await r.json();
     if (!d || !d.found) throw 0;
     document.getElementById('minfoSrc').textContent = (d.league ? d.league + ' • ' : '') + 'FotMob';
+    const evts = d.events || [];
+    const byPid = {};
+    (evts || []).forEach(e => {
+      (e.pid ? [e.pid] : []).concat(e.swapPids || []).forEach(pid => {
+        (byPid[pid] = byPid[pid] || []).push(e);
+      });
+    });
+    const motmPids = {};
+    (d.topPlayers || []).forEach(p => { if (p.motm && p.pid) motmPids[p.pid] = 1; });
     let h = '';
+    // --- FotMob score header: logos, names, score, status, scorers ---
+    const statusTxt = d.finished ? 'انتهت' : (d.started ? 'جارية الآن' : 'لم تبدأ');
+    const scorers = (isHome) => {
+      const gs = evts.filter(e => e.kind === 'goal' && !!e.home === !!isHome);
+      const byName = new Map();
+      gs.forEach(e => {
+        const k = e.player || '?';
+        if (!byName.has(k)) byName.set(k, []);
+        byName.get(k).push(e.min);
+      });
+      const reds = evts.filter(e => e.kind === 'card' && e.red && !!e.home === !!isHome)
+        .map(e => `${esc(e.player)} ${esc(e.min)} 🟥`);
+      return [...byName].map(([n, mins]) => `⚽ ${esc(n)} ${mins.map(esc).join(', ')}`).concat(reds).join('<br>') || '—';
+    };
+    h += `<div class="fm-score"><div class="lg">${esc(d.league || '')}</div><div class="row">`
+      + `<div class="tm">${d.home.logo ? `<img src="${esc(d.home.logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(d.home.name)}</b></div>`
+      + `<div class="mid"><div class="gl">${d.home.score != null ? d.home.score : '–'} - ${d.away.score != null ? d.away.score : '–'}</div><div class="st">${statusTxt}</div></div>`
+      + `<div class="tm">${d.away.logo ? `<img src="${esc(d.away.logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(d.away.name)}</b></div>`
+      + `</div><div class="scorers"><div>${scorers(true)}</div><div>${scorers(false)}</div></div></div>`;
+    // --- FotMob pitch: photos + rating badges + event badges ---
+    const dot = (p, mirror) => {
+      const x = clampv(p.x), y = clampv(p.y);
+      if (x == null || y == null) return '';
+      // Vertical half-pitch per side (FotMob layout): home attacks downward
+      // into the top half, away attacks upward into the bottom half.
+      // Left flank is shared (no horizontal flip) — verified vs reference.
+      const left = (4 + y * 92).toFixed(1);
+      const top = mirror ? (95 - x * 41).toFixed(1) : (5 + x * 41).toFixed(1);
+      const motm = p.pid && motmPids[p.pid];
+      const pe = (p.pid && byPid[p.pid]) || [];
+      let badge = `<span class="pbadge ${fCls(p.rating, motm)}">${p.rating != null && isFinite(p.rating) ? Number(p.rating).toFixed(1) : '–'}${motm ? '★' : ''}</span>`;
+      let ev = '';
+      const sub = pe.find(e => e.kind === 'sub');
+      const card = pe.find(e => e.kind === 'card');
+      const goal = pe.find(e => e.kind === 'goal');
+      if (sub) ev += `<span class="pev" title="تبديل">${esc(sub.min.replace('’', ''))}</span>`;
+      else if (card) ev += `<span class="pev card">${card.red ? '🟥' : '🟨'}</span>`;
+      else if (goal) ev += `<span class="pev goal">⚽</span>`;
+      const photo = photoUrl(p.pid);
+      return `<div class="pdot" style="left:${left}%;top:${top}%">${ev}`
+        + `<span class="pimg"><i>${esc(initials(p.short || p.name))}</i>${photo ? `<img src="${photo}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`
+        + `${badge}<span class="pname"><b>${esc(p.num)}</b> ${esc(p.short || p.name)}</span></div>`;
+    };
+    const tH = (d.lineups && d.lineups.home) || {}, tA = (d.lineups && d.lineups.away) || {};
+    const hasPitch = (tH.starters || []).some(p => p.x != null) || (tA.starters || []).some(p => p.x != null);
+    if (hasPitch){
+      const tline = (t, logo, cls) =>
+        `<div class="teamline ${cls}">${t.rating != null && isFinite(t.rating) ? `<span class="trate">${Number(t.rating).toFixed(1)}</span>` : ''}${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<span>${esc(t.name)}</span><span class="fm2">${esc(t.formation)}</span></div>`;
+      h += `<div class="pitch"><div class="ln half"></div><div class="ln circ"></div><div class="ln boxT"></div><div class="ln boxB"></div>`
+        + tline(tH, d.home.logo, 'tH')
+        + (tH.starters || []).map(p => dot(p, false)).join('')
+        + (tA.starters || []).map(p => dot(p, true)).join('')
+        + tline(tA, d.away.logo, 'tA') + `</div>`;
+    }
+    // --- Lists: XI + subs + coach + unavailable ---
+    const luSide = (t, logo) => {
+      const coach = t.coach ? `<div class="sub">المدرب: ${esc(t.coach)}</div>` : '';
+      const st = (t.starters || []).map(p =>
+        `<div class="pl"><span class="num">${esc(p.num)}</span><span class="nm">${esc(p.name)}</span>${rPill(p.rating)}</div>`).join('');
+      const sb = (t.subs || []).length
+        ? `<div class="sub" style="margin-top:6px">البدلاء</div>` + (t.subs || []).map(p =>
+          `<div class="pl sub"><span class="num">${esc(p.num)}</span><span class="nm">${esc(p.name)}</span>${rPill(p.rating)}</div>`).join('')
+        : '';
+      const un = (t.unavailable || []).length
+        ? `<div class="sub" style="margin-top:6px">الغائبون</div>` + (t.unavailable || []).map(p =>
+          `<div class="unav"><span>🚑</span><span class="nm">${esc(p.name)}${p.reason ? ' <small class="sub">(' + esc(p.reason) + ')</small>' : ''}</span></div>`).join('')
+        : '';
+      return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(t.name)}</b><span class="fm">${esc(t.formation)}${t.rating != null && isFinite(t.rating) ? ' • ' + Number(t.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
+    };
+    if (d.lineups && (d.lineups.home || d.lineups.away)){
+      h += '<h3>📋 التشكيلة</h3><div class="lu-grid">'
+        + luSide(d.lineups.home || {}, d.home && d.home.logo)
+        + luSide(d.lineups.away || {}, d.away && d.away.logo) + '</div>';
+    }
     if (d.topPlayers && d.topPlayers.length){
       h += '<h3>⭐ الأعلى تقييماً</h3><div class="toprow">' + d.topPlayers.map(p =>
         `<span class="topchip">${rPill(p.rating)}<span>${esc(p.name)}${p.motm ? ' ⭐' : ''}</span></span>`).join('') + '</div>';
@@ -530,24 +697,9 @@ async function loadMatchInfo(){
         return `<div class="stat"><div class="lab"><span>${esc(s.home)}</span><small>${esc(s.title)}</small><span>${esc(s.away)}</span></div><div class="bars"><i class="h" style="width:${hw}%"></i><i class="a" style="width:${aw}%"></i></div></div>`;
       }).join('');
     }
-    const luSide = (t, logo) => {
-      const coach = t.coach ? `<div class="sub">المدرب: ${esc(t.coach)}</div>` : '';
-      const st = (t.starters || []).map(p =>
-        `<div class="pl"><span class="num">${esc(p.num)}</span><span class="nm">${esc(p.name)}</span>${rPill(p.rating)}</div>`).join('');
-      const sb = (t.subs || []).length
-        ? `<div class="sub" style="margin-top:6px">البدلاء</div>` + (t.subs || []).map(p =>
-          `<div class="pl sub"><span class="num">${esc(p.num)}</span><span class="nm">${esc(p.name)}</span>${rPill(p.rating)}</div>`).join('')
-        : '';
-      return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(t.name)}</b><span class="fm">${esc(t.formation)}${t.rating != null && isFinite(t.rating) ? ' • ' + Number(t.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}</div>`;
-    };
-    if (d.lineups && (d.lineups.home || d.lineups.away)){
-      h += '<h3>📋 التشكيلة</h3><div class="lu-grid">'
-        + luSide(d.lineups.home || {}, d.home && d.home.logo)
-        + luSide(d.lineups.away || {}, d.away && d.away.logo) + '</div>';
-    }
     if (d.events && d.events.length){
       h += '<h3>🕐 الأحداث</h3>' + d.events.map(e => {
-        const ic = e.kind === 'goal' ? '⚽' : e.kind === 'card' ? '🟨' : e.kind === 'sub' ? '🔄' : '•';
+        const ic = e.kind === 'goal' ? '⚽' : e.kind === 'card' ? (e.red ? '🟥' : '🟨') : e.kind === 'sub' ? '🔄' : '•';
         return `<div class="ev"><span class="mn">${esc(e.min)}</span><span class="ic">${ic}</span><span class="nm">${esc(e.player)}${e.detail ? ' <small class="sub">(' + esc(e.detail) + ')</small>' : ''}</span><span class="sc">${esc(e.score)}</span></div>`;
       }).join('');
     }

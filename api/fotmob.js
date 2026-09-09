@@ -113,6 +113,13 @@ export default async function handler(req, res) {
     return isFinite(n) ? Math.round(n * 10) / 10 : null;
   };
   const str40 = (v) => String(v == null ? '' : v).slice(0, 40);
+  const pidOf = (v) => (/^\d{1,12}$/.test(String(v == null ? '' : v)) ? String(v) : '');
+  const shortOf = (p) => {
+    const last = (p.lastName || '').trim();
+    if (last) return last.split(/\s+/).slice(-1)[0].slice(0, 20);
+    const full = str40((p.firstName && p.lastName) ? p.firstName + ' ' + p.lastName : p.name);
+    return full.split(/\s+/).slice(-1)[0] || full;
+  };
   const clipNum = (v) => {
     const s = String(v == null ? '' : v);
     return /^[\d.,%()'’\s-]+$/.test(s) && /\d/.test(s) ? s.slice(0, 14) : '';
@@ -197,22 +204,25 @@ export default async function handler(req, res) {
 
     const side = (t) => {
       t = t || {};
+      const cmap = (p) => ({
+        pid: pidOf(p.id),
+        name: str40((p.firstName && p.lastName) ? p.firstName + ' ' + p.lastName : p.name),
+        short: str40(shortOf(p)),
+        num: str40(p.shirtNumber),
+        x: typeof p.horizontalLayout?.x === 'number' ? Math.round(p.horizontalLayout.x * 100) / 100 : null,
+        y: typeof p.horizontalLayout?.y === 'number' ? Math.round(p.horizontalLayout.y * 100) / 100 : null,
+        rating: num1(p.performance && p.performance.rating),
+      });
       return {
         name: str40(t.name),
         formation: str40(t.formation),
         rating: num1(t.rating),
         coach: str40(t.coach && t.coach.name),
-        starters: (t.starters || []).slice(0, 11).map(p => ({
+        starters: (t.starters || []).slice(0, 11).map(cmap),
+        subs: (t.subs || []).slice(0, 9).map(cmap),
+        unavailable: (t.unavailable || []).slice(0, 6).map(p => ({
           name: str40((p.firstName && p.lastName) ? p.firstName + ' ' + p.lastName : p.name),
-          num: str40(p.shirtNumber),
-          x: typeof p.horizontalLayout?.x === 'number' ? Math.round(p.horizontalLayout.x * 100) / 100 : null,
-          y: typeof p.horizontalLayout?.y === 'number' ? Math.round(p.horizontalLayout.y * 100) / 100 : null,
-          rating: num1(p.performance && p.performance.rating),
-        })),
-        subs: (t.subs || []).slice(0, 9).map(p => ({
-          name: str40((p.firstName && p.lastName) ? p.firstName + ' ' + p.lastName : p.name),
-          num: str40(p.shirtNumber),
-          rating: num1(p.performance && p.performance.rating),
+          reason: str40(p.reason || p.injury || p.status || ''),
         })),
       };
     };
@@ -235,14 +245,19 @@ export default async function handler(req, res) {
       events = ev.filter(e => /^(goal|card|substitution)$/i.test(String(e.type || ''))).slice(0, 24).map(e => {
         const t = String(e.type || '');
         const kind = /^goal$/i.test(t) ? 'goal' : /^card$/i.test(t) ? 'card' : 'sub';
-        const swap = Array.isArray(e.swap) ? e.swap.map(s => s && s.name).filter(Boolean).join(' ⇄ ') : '';
+        const swapArr = Array.isArray(e.swap) ? e.swap : [];
+        const swap = swapArr.map(s => s && s.name).filter(Boolean).join(' ⇄ ');
+        const swapPids = swapArr.map(s => pidOf(s && s.id)).filter(Boolean);
         const detail = kind === 'goal' ? (e.goalDescription || (e.ownGoal ? 'Own goal' : ''))
           : kind === 'card' ? String(e.card || '') : '';
         return {
           min: str40((e.timeStr != null ? e.timeStr : '') + (e.overloadTime ? '+' + e.overloadTime : '') + '’'),
           kind,
           home: !!e.isHome,
+          pid: pidOf(e.player && e.player.id),
           player: str40(e.nameStr || (e.player && e.player.name && e.player.name.trim()) || swap),
+          swapPids,
+          red: kind === 'card' && /red/i.test(String(e.card || '') + String(e.cardDescription || '')),
           detail: str40(detail),
           score: (e.homeScore != null && e.awayScore != null) ? `${e.homeScore}-${e.awayScore}` : '',
         };
@@ -253,6 +268,7 @@ export default async function handler(req, res) {
       const tp = (content.matchFacts || {}).topPlayers || {};
       const all = [...(tp.homeTopPlayers || []), ...(tp.awayTopPlayers || [])]
         .map(p => ({
+          pid: pidOf(p.playerId),
           name: str40(p.name && (p.name.fullName || (p.name.firstName + ' ' + p.name.lastName))),
           team: str40(p.teamName),
           home: String(p.teamId) === String((lineup.homeTeam || {}).id),
