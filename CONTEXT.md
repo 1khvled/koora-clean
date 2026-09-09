@@ -4,7 +4,28 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (commit `1865cad`, mobile/console/security pass §25).
+> Last updated: 2026-09-09 (live-bug batch §26, pending commit).
+
+## 26. Live-bug batch: card status, flaky loads, FotMob U19 collisions (2026-09-09, user: "match started but says لم تبدأ, player needs refresh, no fotmob")
+
+- **Card lied (FIXED).** The header card painted `tm` verbatim and the middle
+  label was a hardcoded "بث مباشر" — a match that kicked off after the index
+  rendered showed "بث مباشر / لم تبدأ" next to a live player. Now the player
+  computes its own state (same live/ended rules as index) from new `so/gt/
+  sh/sa` URL params: live → red "مباشر" + minute, ended → "انتهت" + score,
+  upcoming → "لم تبدأ" + time. Also decodes `&#039;` entities (upstream sends
+  `63&#039;`, `textContent` showed it raw). Verified all three states live.
+- **Flaky loads (FIXED).** `loadRealPlayer` had no timeout — a hung API left a
+  dead skeleton until manual refresh. Now: 12s AbortController timeout + ONE
+  automatic retry (proven firing in tests), visible "جاري تحميل البث… /
+  إعادة المحاولة…" status, then the manual retry button. Same 12s timeout
+  for the FotMob fetch (fail-hide instead of hanging on "loading…").
+- **FotMob missed every live UCL match (FIXED).** Root cause: matchday Youth
+  League games (same clubs, earlier kickoffs) tie the fuzzy score EXACTLY
+  (extra EN tokens are ignored by design) → margin gate killed all four.
+  Fix: youth/reserve titles (U19/U21/youth/reserve/II) are dropped from the
+  candidate pool outright — a genuine youth query safely hides instead.
+  The senior sides now win cleanly.
 
 ## 25. Mobile + console + security pass (2026-09-09, user: "optimize for mobiles ipads, fix console errors, fix security")
 
