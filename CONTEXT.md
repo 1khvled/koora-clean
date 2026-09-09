@@ -30,8 +30,12 @@
   consonant-to-consonant (Arabic omits short vowels), so both sides now strip
   vowels before edit distance. Battery-tested: fixes Fateh, improves every
   correct margin, all wrong cases (Pyramids-trap, Atlanta-trap, Kairat-trap)
-  still gate out via margin/league/time. `min-len-3` variant was tried and
+  still gate out via margin/league/time.   `min-len-3` variant was tried and
   REJECTED (created the traps instead of fixing them).
+- Live re-test after deploy: **5/6 with full live data** (11/11 lineups,
+  8 stats, 8–17 events each). Only Sporting–Galatasaray misses ("Sporting CP"
+  contains no Lisbon token — unmatchable without gutting the gates; safe
+  fail, accepted).
 
 ## 25. Mobile + console + security pass (2026-09-09, user: "optimize for mobiles ipads, fix console errors, fix security")
 
