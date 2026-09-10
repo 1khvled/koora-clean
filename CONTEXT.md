@@ -4,7 +4,29 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-10 (commit `0a1f5dc`, coverage 17/17 §29).
+> Last updated: 2026-09-10 (Alwan extra source §30, pending commit).
+
+## 30. Alwan Sport extra channels (2026-09-10, user gave a worker link + "send a subagent")
+
+- **Source:** `ahamadsport…workers.dev` serves static `app.js` with a
+  `channels=[{id,name,url,type}]` array (Kurdish sports site). Types: `hls`
+  (expiring Periscope tokens), `okru` (ok.ru embeds), `iframe` (fabortvcdn
+  playerv5, koralive albaplayer). Generic always-on channels, NOT
+  match-specific → fallback entries, never mapped. Implemented by a subagent,
+  verified by me.
+- **New `api/alwan.js`:** fetches the bundle (8s timeout, 500KB cap),
+  regex-extracts + field-parses the array (no eval), returns ONLY okru+iframe
+  (hls skipped: expiring tokens, no HLS player), cap 6, per-URL validation
+  (https-only, no javascript:/data:/t.me), edge-cached 120s, fail-open empty.
+  No credentials anywhere. Live-verified independently: 200 in ~450ms,
+  6 channels (3 fabortvcdn + 3 ok.ru), zero violations.
+- **Player:** `/api/alwan` fetched in parallel with match streams; entries
+  merged as `kind:'tv'` after leafs, before fallback (re-added the `tv` →
+  قناة ٢٤/٧ tag; subTag stays brand-free). Existing safeSrc/BLOCK_RE/popup
+  machinery covers them with no new guards. Browser-verified 390+768:
+  ordering, click-to-load, counter, zero overflow/errors.
+- Never iframes their page itself (ad-infested: ratecpm, telegram modal) —
+  only extracted embeds.
 
 Final live count after wave-2 deploy: **17/17 matches HIT** (was 9/14) —
 Vancouver/Galaxy + USM Alger flipped by the new aliases, everything else
