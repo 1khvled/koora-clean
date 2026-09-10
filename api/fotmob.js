@@ -70,6 +70,8 @@ export default async function handler(req, res) {
     ['فيلادلفيا', ['philadelphia']], ['كولومبوس', ['columbus']],
     ['مونتريال', ['montreal']], ['شارلوت', ['charlotte']],
     ['لوس أنجلوس', ['los', 'angeles']], ['نيويورك', ['new', 'york']],
+    ['فانكوفر', ['vancouver']], ['وايت كابس', ['whitecaps']], ['غالاكسي', ['galaxy']],
+    ['اتحاد العاصمة', ['usm', 'alger']], ['شبيبة الأبيار', ['el', 'biar']],
   ];
   const applyAlias = (toks, rawNorm) => {
     // toks arrive already devoweled — compare devoweled drop-sets too.
@@ -107,6 +109,7 @@ export default async function handler(req, res) {
   // FotMob league names are English ("Champions League", "LaLiga", "Serie A").
   // Hamza-insensitive: upstream writes اوروبا while the map has أوروبا.
   const normHamza = (s) => (s || '').replace(/[أإآ]/g, 'ا');
+  // MAP mirror lives in api/scorers.js leagueHitEn too — keep both in sync.
   const leagueHitEn = (arLeague, enText) => {
     arLeague = normHamza(arLeague);
     if (!arLeague || !enText) return false;
@@ -128,7 +131,7 @@ export default async function handler(req, res) {
       ['صرب', ['serbia']], ['التشيك', ['czech']], ['بولند', ['poland', 'ekstraklasa']],
       ['أوكران', ['ukraine']], ['اليابان', ['japan', 'league']], ['كوريا', ['korea']],
       ['الصين', ['china']], ['أسترال', ['australia', 'league']], ['المغرب', ['morocco', 'botola']],
-      ['الجزائر', ['algeria', 'ligue']], ['تونس', ['tunisia', 'ligue']], ['مصر', ['egypt', 'egyptian']],
+      ['الجزائر', ['algeria', 'algerian', 'ligue']], ['تونس', ['tunisia', 'ligue']], ['مصر', ['egypt', 'egyptian']],
       ['الإمارات', ['uae', 'emirates']], ['قطر', ['qatar', 'stars']],
     ];
     return MAP.some(([ar, toks]) => arLeague.includes(normHamza(ar)) && toks.some(v => words.has(v)));
