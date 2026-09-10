@@ -41,6 +41,27 @@ export default async function handler(req, res) {
     .toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
   const normLat = (s) => (s || '').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
   const noVow = (s) => s.replace(/[aeiou]/g, '');
+  // Abbreviations + notorious transliterations (same table as api/fotmob.js —
+  // keep in sync). Applied as token SUBSTITUTION before scoring.
+  const normFrag = (s) => normAr(s).replace(/[.\-_/]/g, ' ').replace(/\s+/g, ' ').trim();
+  const ALIAS = [
+    ['دي سي', ['dc', 'united']], ['ديسي', ['dc', 'united']],
+    ['فيلادلفيا', ['philadelphia']], ['كولومبوس', ['columbus']],
+    ['مونتريال', ['montreal']], ['شارلوت', ['charlotte']],
+    ['لوس أنجلوس', ['los', 'angeles']], ['نيويورك', ['new', 'york']],
+  ];
+  const applyAlias = (toks, rawNorm) => {
+    let out = [...toks];
+    const flat = ' ' + rawNorm.replace(/[.\-_/]/g, ' ') + ' ';
+    for (const [frag, en] of ALIAS) {
+      const nf = normFrag(frag);
+      if (!nf || (!flat.includes(' ' + nf + ' ') && !flat.replace(/\s+/g, '').includes(nf.replace(/\s+/g, '')))) continue;
+      const drop = new Set((trAr(frag) + ' ' + trAr(frag.replace(/\s+/g, ''))).split(' ').map(noVow).filter(t => t.length >= 2));
+      out = out.filter(t => !drop.has(t));
+      out = out.concat(en.map(noVow).filter(t => t.length >= 2));
+    }
+    return [...new Set(out)];
+  };
   const editDist = (a, b) => {
     const m = a.length, n = b.length;
     if (!m) return n; if (!n) return m;
@@ -54,7 +75,9 @@ export default async function handler(req, res) {
     return prev[n];
   };
   const fuzzyArEn = (home, away, enTitle) => {
-    const arToks = trAr(home + ' ' + away).split(' ').map(noVow).filter(t => t.length >= 2);
+    const arToks = applyAlias(
+      trAr(home + ' ' + away).split(' ').map(noVow).filter(t => t.length >= 2),
+      normAr(home + ' ' + away));
     const enToks = normLat(enTitle).replace(/v/g, 'f').replace(/p/g, 'b')
       .split(' ').map(noVow).filter(t => t && t.length >= 2 && !EN_STOP.has(t));
     if (!arToks.length || !enToks.length) return 99;
@@ -80,7 +103,7 @@ export default async function handler(req, res) {
       ['الإنجليز', ['england', 'premier']], ['الإسبان', ['spain', 'laliga', 'la', 'liga']],
       ['الإيطال', ['italy', 'serie']], ['الألمان', ['germany', 'bundesliga']],
       ['الفرنس', ['france', 'ligue']], ['السعود', ['saudi', 'arabia', 'pro']],
-      ['روشن', ['saudi', 'roshn']], ['الأمريك', ['united', 'states', 'mls']],
+      ['روشن', ['saudi', 'roshn']], ['الأمريك', ['united', 'states', 'mls', 'major', 'soccer']],
     ];
     return MAP.some(([ar, toks]) => arLeague.includes(normHamza(ar)) && toks.some(v => words.has(v)));
   };
@@ -145,7 +168,7 @@ export default async function handler(req, res) {
       const scored = pools.map(it => ({ ...it, fz: fuzzyArEn(m.home, m.away, it.h + ' vs ' + it.a) }))
         .sort((x, y) => x.fz - y.fz);
       const b0 = scored[0], b1 = scored[1];
-      if (!b0 || b0.fz > 1.4) continue;
+      if (!b0 || b0.fz > 2.5) continue;
       const margin = b1 ? b1.fz - b0.fz : 99;
       const lh = leagueHitEn(m.league_text || m.league, b0.league);
       let dd = null;
@@ -153,8 +176,9 @@ export default async function handler(req, res) {
         const d = Math.abs((+b0.clock.slice(0, 2)) * 60 + (+b0.clock.slice(3)) - refMin);
         dd = Math.min(d, 1440 - d);
       }
-      if (margin < 0.25 && !(margin >= 0.10 && lh && dd !== null && dd <= 120)) continue;
-      if (!lh && (dd === null || dd > 120)) continue;
+      const strict = b0.fz <= 1.4 && margin >= 0.25 && (lh || (dd !== null && dd <= 120));
+      const second = b0.fz <= 2.0 && margin >= 0.20 && lh && dd !== null && dd <= 120;
+      if (!strict && !second) continue;
       hits.push({ ours: m, fmId: b0.id });
     }
     const goals = {};

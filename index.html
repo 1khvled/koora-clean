@@ -366,7 +366,10 @@ function render(silent){
   // #empty is for "filter matched nothing" — offline keeps the stale list
   // with a toast instead (loadDay returns early on !data).
   $('#empty').hidden = list.length > 0 || ALL.length === 0;
-  injectJsonLd(list); // #9: fresh SportsEvent schema for crawlers
+  // SEO schema is for crawlers, not humans: rebuild at most every ~4min,
+  // not on every 45s silent render (JSON churn + layout cost for nothing).
+  render._n = (render._n || 0) + 1;
+  if (!silent || render._n % 6 === 1) injectJsonLd(list); // #9
   paintScorers(); // re-apply scorer lines wiped by innerHTML rebuilds
 }
 

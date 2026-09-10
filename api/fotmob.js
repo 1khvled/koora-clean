@@ -61,8 +61,33 @@ export default async function handler(req, res) {
   // align consonant-to-consonant (validated 2026-09-09: fixes Fateh-type
   // misses, improves every correct margin, wrong cases still gate out).
   const noVow = (s) => s.replace(/[aeiou]/g, '');
+  // Abbreviations + notorious transliterations: [arabic fragment, english
+  // tokens]. Applied as token SUBSTITUTION (fragment's own tokens dropped)
+  // before scoring. Dot/dash-tolerant ('دي.سي.' matches 'دي سي').
+  const normFrag = (s) => normAr(s).replace(/[.\-_/]/g, ' ').replace(/\s+/g, ' ').trim();
+  const ALIAS = [
+    ['دي سي', ['dc', 'united']], ['ديسي', ['dc', 'united']],
+    ['فيلادلفيا', ['philadelphia']], ['كولومبوس', ['columbus']],
+    ['مونتريال', ['montreal']], ['شارلوت', ['charlotte']],
+    ['لوس أنجلوس', ['los', 'angeles']], ['نيويورك', ['new', 'york']],
+  ];
+  const applyAlias = (toks, rawNorm) => {
+    // toks arrive already devoweled — compare devoweled drop-sets too.
+    let out = [...toks];
+    const flat = ' ' + rawNorm.replace(/[.\-_/]/g, ' ') + ' ';
+    for (const [frag, en] of ALIAS) {
+      const nf = normFrag(frag);
+      if (!nf || (!flat.includes(' ' + nf + ' ') && !flat.replace(/\s+/g, '').includes(nf.replace(/\s+/g, '')))) continue;
+      const drop = new Set((trAr(frag) + ' ' + trAr(frag.replace(/\s+/g, ''))).split(' ').map(noVow).filter(t => t.length >= 2));
+      out = out.filter(t => !drop.has(t));
+      out = out.concat(en.map(noVow).filter(t => t.length >= 2));
+    }
+    return [...new Set(out)];
+  };
   const fuzzyArEn = (home, away, enTitle) => {
-    const arToks = trAr(home + ' ' + away).split(' ').map(noVow).filter(t => t.length >= 2);
+    const arToks = applyAlias(
+      trAr(home + ' ' + away).split(' ').map(noVow).filter(t => t.length >= 2),
+      normAr(home + ' ' + away));
     // Conflate letters Arabic has no distinct form for: v->f, p->b
     // (ليفربول/liverpool, نابولي/napoli, فياريال/villarreal).
     const enToks = normLat(enTitle).replace(/v/g, 'f').replace(/p/g, 'b')
@@ -96,7 +121,7 @@ export default async function handler(req, res) {
       ['السعود', ['saudi', 'arabia', 'pro']], ['روشن', ['saudi', 'roshn']],
       ['الإسكتلند', ['scotland', 'scottish']], ['البرازيل', ['brazil', 'brasileiro']],
       ['الأرجنتين', ['argentina', 'liga', 'profesional']], ['المكسيك', ['mexico', 'liga']],
-      ['أمريك', ['united', 'states', 'mls']], ['كأس العالم', ['world', 'cup']],
+      ['أمريك', ['united', 'states', 'mls', 'major', 'soccer']], ['كأس العالم', ['world', 'cup']],
       ['اليونان', ['greece']], ['بلجيك', ['belgium']], ['النمسا', ['austria']],
       ['سويسر', ['switzerland', 'swiss']], ['الدنمارك', ['denmark', 'danish']],
       ['النرويج', ['norway']], ['السويد', ['sweden']], ['كروات', ['croatia']],
@@ -203,8 +228,12 @@ export default async function handler(req, res) {
       const corroborated = lh || (dd !== null && dd <= 120);
       // Strict margin normally; relaxed when league AND kickoff both agree
       // (e.g. Saudi derbies whose transliterations legitimately collide).
+      // Second chance (calibrated 2026-09-09): poor transliteration but
+      // unmistakable league + kickoff + clear margin. The 2.0 cap and 0.20
+      // margin keep Pyramids/Kairat/Atlante-type traps out (verified).
       if (b0.fz <= 1.4 && margin >= 0.25 && corroborated) best = b0;
       else if (b0.fz <= 1.4 && margin >= 0.10 && lh && dd !== null && dd <= 120) best = b0;
+      else if (b0.fz <= 2.0 && margin >= 0.20 && lh && dd !== null && dd <= 120) best = b0;
     }
     if (!best) return res.status(200).json({ found: false });
 

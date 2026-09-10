@@ -4,7 +4,31 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-09 (scorers on rows §28, pending commit).
+> Last updated: 2026-09-10 (coverage + speed §29, pending commit).
+
+## 29. FotMob coverage + loading speed (2026-09-10, user: "not all matches get fotmob, site laggy, make data loading faster")
+
+- **Coverage 9/14 → 13/14 (measured live).** Three fixes: (1) explicit ALIAS
+  table (abbreviations + notorious transliterations: DC United, Philadelphia,
+  Columbus, Montreal, Charlotte, LA, NY) applied as token substitution;
+  (2) second-chance gate (`fz ≤ 2.0`, margin `≥ 0.20`, league + kickoff ≤120)
+  for poor transliterations with unmistakable context; (3) MLS league-map
+  rows (`major`/`soccer` — FotMob calls it "Major League Soccer", the old
+  map had no overlapping token). Mirrored in `scorers.js` so rows and player
+  data never disagree. Validated by battery: DC/Montreal/Philly flip to
+  correct accepts; Toronto/Atlanta/Kholood/Liverpool stay hit; Kairat/
+  Atlante/Pyramids/Boca traps still reject. Remaining misses (Sporting CP —
+  no Lisbon token anywhere; Stuttgart — upstream calls Viking "Stavanger")
+  are unmatchable without gutting the gates: safe fails, accepted.
+- **Known residual:** same-team-different-opponent same evening (e.g. a test
+  query matching a cup game) can pass the second-chance gate — needs the
+  queried fixture absent from FotMob AND a same-team game the same evening,
+  near-impossible with real fixture lists. Documented, accepted.
+- **Speed:** `api/matches` edge cache 60s (every other 45s poll instant);
+  player `fetchT` default 8s→6s; index skips JSON-LD rebuild on silent
+  renders (every ~4min instead of 45s). Measured: player API 4.7s cold →
+  0.0s cached; matches 3.5s cold. The 45s/60s/180s pollers were already
+  tab-hidden-aware and fail-silent.
 
 ## 28. Goal scorers on live + finished rows (2026-09-09, user: "type who scored… like always")
 

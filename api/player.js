@@ -8,8 +8,9 @@ export default async function handler(req, res) {
   const qStart = (req.query.start || '').toString();
   const qLeague = (req.query.lg || req.query.league || '').toString();
 
-  // Fetch with a hard timeout (serverless-friendly).
-  const fetchT = (url, opts = {}, ms = 8000) => {
+  // Fetch with a hard timeout (serverless-friendly). Default 6s: typical
+  // upstreams answer in 1-3s; hung ones must die fast inside the 10s budget.
+  const fetchT = (url, opts = {}, ms = 6000) => {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ms);
     return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
