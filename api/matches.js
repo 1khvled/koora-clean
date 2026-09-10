@@ -12,7 +12,8 @@ export default async function handler(req, res) {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Cache-Control', 'public, max-age=30');
+  // Edge caches 60s (every other 45s poll is instant), browsers 30s (scores stay fresh).
+  res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=60');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   // Decode entities ONCE at the scrape (WordPress sends 63&#039;, sometimes
