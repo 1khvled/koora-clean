@@ -456,6 +456,7 @@ function kindTag(s){
   if (s.kind === 'direct') return 'مباشر';
   if (s.kind === 'live') return 'واجهة كاملة';
   if (s.kind === 'en') return 'إنجليزي';
+  if (s.kind === 'tv') return 'قناة ٢٤/٧';
   return 'سيرفر';
 }
 function subTag(s){
@@ -610,6 +611,25 @@ async function loadRealPlayer(){
     }
   };
   try {
+    // 24/7 fallback channels (/api/alwan): kicked off BEFORE awaiting the
+    // match API so both fly in parallel; fail-silent — a dead endpoint must
+    // never break match streams.
+    const alwanP = (async () => {
+      try {
+        const actrl = new AbortController();
+        const ato = setTimeout(() => actrl.abort(), 8000);
+        try {
+          const r = await fetch('/api/alwan', { cache: 'no-store', signal: actrl.signal });
+          if (!r.ok) return [];
+          const j = await r.json();
+          if (!j || !Array.isArray(j.channels)) return [];
+          return j.channels
+            .filter(c => c && typeof c.url === 'string' && /^https:\/\//i.test(c.url))
+            .slice(0, 6)
+            .map(c => ({ label: String(c.name || '').slice(0, 30), url: c.url, kind: 'tv', via: 'alwan' }));
+        } finally { clearTimeout(ato); }
+      } catch { return []; }
+    })();
     const data = await fetchApi();
     if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP);
     let list = [];
@@ -620,6 +640,17 @@ async function loadRealPlayer(){
       if (data.fallbackUrl) list.push({ label: 'صفحة المباراة (احتياطي)', url: data.fallbackUrl, kind: 'fallback', via: 'fallback' });
     }
     const enList = (data && Array.isArray(data.enServers)) ? data.enServers : [];
+    // Merge 24/7 channels right BEFORE the fallback entry (after hd7 leafs).
+    // showServersFromList dedups by url + drops unplayable srcs, and goServer
+    // skips BLOCK_RE hits — no extra guard needed here.
+    try {
+      const alwan = await alwanP;
+      if (alwan.length){
+        const fbIdx = list.findIndex(s => s && s.kind === 'fallback');
+        if (fbIdx >= 0) list.splice(fbIdx, 0, ...alwan);
+        else list.push(...alwan);
+      }
+    } catch {}
     showServersFromList(list, enList);
     // Play from the UNIFIED list (Arabic first, English fallback) — using only
     // the Arabic `list` here left a black player when Arabic was empty but
