@@ -4,7 +4,11 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-10 (commit `c2bfbe7`, coverage + speed §29).
+> Last updated: 2026-09-10 (commit `0a1f5dc`, coverage 17/17 §29).
+
+Final live count after wave-2 deploy: **17/17 matches HIT** (was 9/14) —
+Vancouver/Galaxy + USM Alger flipped by the new aliases, everything else
+held. Zero misses on the current matchday.
 
 Wave-2 validation (local handler, live FotMob): Vancouver Whitecaps vs LA
 Galaxy + USM Alger vs JS El Biar both HIT correctly (new aliases); DC,
