@@ -4,7 +4,26 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-10 (commit `a61a9ae`, scorers removed §31).
+> Last updated: 2026-09-10 (Alwan liveness hardening §30b, pending commit).
+
+## 30b. Alwan liveness hardening (same day — user: Kurdish site, big UCL nights?)
+
+- User asked whether big-match nights are covered. Probe says: bundle is
+  STATIC (same match IDs/keys as at integration — no rotation so far; only
+  10 channels in the array, VIP 16-20 have no entries to take), BUT 3 of our
+  6 served entries were DEAD: `fabortvcdn.com` serves an INVALID TLS cert
+  (`ERR_CERT_COMMON_NAME_INVALID` — dead in every real browser, confirmed
+  headless, not just server-side).
+- Fix in `api/alwan.js`: parse ALL valid entries (no early cap), then a
+  parallel liveness gate (status 2xx/3xx, 3.5s budget, body dropped unread)
+  and serve the first 6 alive. beIN-named/URL entries sort first (big nights
+  ride beIN — incl. `1bein1` in the URL, not just the name). Bundle budget
+  cut 8s→6s so schedule+liveness fits the 10s Hobby limit.
+- Live-verified: 200 in ~3.8s, dead fabortvcdn ×3 auto-dropped, serving
+  beIN (koralive) + AVA/ALWAN/NRT 4K (ok.ru). Also caught+fixed an inverted
+  sort comparator during verification.
+- ok.ru embeds return 200 with player markup and no framing denial — the
+  surviving entries are genuinely playable, not just reachable.
 
 ## 31. Goal scorers REMOVED (2026-09-10, user: "remove the goal scored things dawgshit")
 

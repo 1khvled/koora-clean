@@ -17,9 +17,10 @@ export default async function handler(req, res) {
     return res.status(200).json({ count: 0, channels: [] });
   };
 
-  // Hard 8s timeout (serverless-friendly, inside the 10s Hobby budget).
+  // Hard 6s timeout (serverless-friendly: bundle + parallel verify must
+  // fit inside the 10s Hobby budget).
   const ctrl = new AbortController();
-  const to = setTimeout(() => ctrl.abort(), 8000);
+  const to = setTimeout(() => ctrl.abort(), 6000);
   try {
     const up = await fetch(SRC, {
       signal: ctrl.signal,
@@ -42,6 +43,7 @@ export default async function handler(req, res) {
 
     // Parse each flat {…} literal field-by-field with small regexes —
     // defensive by construction (no eval, no Function, no JSON.parse of JS).
+    // NOTE: no cap here — liveness filtering below decides the final 6.
     const out = [];
     const BLOCK_RE = /javascript:|data:|blob:|t\.me|telegram/i;
     for (const obj of m[1].matchAll(/\{([^{}]*)\}/g)) {
@@ -63,12 +65,40 @@ export default async function handler(req, res) {
         if (!Number.isFinite(id)) continue;
         if (out.some((c) => c.url === url)) continue;
         out.push({ id, name: name.slice(0, 60), url });
-        if (out.length >= 6) break;
       } catch { /* skip malformed entry, keep the rest */ }
     }
 
+    // Liveness gate (added 2026-09-10): hosts on these operasi die often
+    // (e.g. fabortvcdn.com currently serves an INVALID TLS cert — dead in
+    // every real browser, not just server-side). Verify candidates in
+    // parallel with short budgets and serve only what's actually reachable.
+    // beIN-named entries first (big-match nights ride beIN channels).
+    // beIN-named entries AND beIN URLs (e.g. .../1bein1/) first — big-match
+    // nights ride beIN channels.
+    const beinScore = (c) => (/bein/i.test(c.name + ' ' + c.url) ? 0 : 1);
+    const beinFirst = (a, b) => beinScore(a) - beinScore(b);
+    const alive = (await Promise.all(out.sort(beinFirst).map(async (c) => {
+      try {
+        const ctrl2 = new AbortController();
+        const to2 = setTimeout(() => ctrl2.abort(), 3500);
+        try {
+          const r = await fetch(c.url, {
+            signal: ctrl2.signal, redirect: 'manual',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml',
+              'Referer': 'https://ahamadsport.yusf-dara1000.workers.dev/',
+            },
+          });
+          // Status is the signal — drop the body without downloading it.
+          try { if (r.body && r.body.cancel) await r.body.cancel(); } catch {}
+          return (r.ok || (r.status >= 300 && r.status < 400)) ? c : null;
+        } finally { clearTimeout(to2); }
+      } catch { return null; }
+    }))).filter(Boolean).slice(0, 6);
+
     res.setHeader('Cache-Control', 'public, s-maxage=120, max-age=60');
-    return res.status(200).json({ count: out.length, channels: out });
+    return res.status(200).json({ count: alive.length, channels: alive });
   } catch {
     return fail();
   }
