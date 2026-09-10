@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-10 (Alwan playability gate §30c, pending commit).
+> Last updated: 2026-09-10 (commit `06086a8`, Alwan playability gate §30c).
 
 ## 30c. Alwan playability gate (same day — "improve even further")
 
