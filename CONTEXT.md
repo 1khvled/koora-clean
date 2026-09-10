@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-10 (commit `ac21e6e`, Alwan liveness hardening §30b).
+> Last updated: 2026-09-10 (Alwan playability gate §30c, pending commit).
+
+## 30c. Alwan playability gate (same day — "improve even further")
+
+- Bare reachability wasn't enough: ok.ru returns HTTP 200 with near-identical
+  shells for DELETED videos. Learned the discriminators by comparing a live
+  embed vs bogus id: dead shells carry `yandexError('notFound')` /
+  "Автор данного видео не найден или заблокирован" / null movieId.
+- `api/alwan.js` now sniffs each candidate body: drop on dead markers or
+  stub pages (<2KB), require a nested player for iframe-network pages.
+  Verified: 3 dead ok.ru dropped (one browser-confirmed black screen with
+  the Russian error), null-movie embed dropped, koralive beIN kept.
+- Current yield: beIN (koralive) + live ok.ru only; dead ones auto-exclude
+  and self-heal back if re-uploaded (revalidated every load, 120s edge).
 
 ## 30b. Alwan liveness hardening (same day — user: Kurdish site, big UCL nights?)
 

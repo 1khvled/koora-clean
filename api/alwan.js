@@ -68,34 +68,46 @@ export default async function handler(req, res) {
       } catch { /* skip malformed entry, keep the rest */ }
     }
 
-    // Liveness gate (added 2026-09-10): hosts on these operasi die often
-    // (e.g. fabortvcdn.com currently serves an INVALID TLS cert — dead in
-    // every real browser, not just server-side). Verify candidates in
-    // parallel with short budgets and serve only what's actually reachable.
-    // beIN-named entries first (big-match nights ride beIN channels).
-    // beIN-named entries AND beIN URLs (e.g. .../1bein1/) first — big-match
-    // nights ride beIN channels.
+    // Playability gate (hardened): a bare 200 is NOT enough — ok.ru returns
+    // 200 with near-identical shells for DELETED videos, and hosts die with
+    // invalid TLS while staying "reachable". Each candidate is fetched and
+    // sniffed for player-ready vs dead markers (verified: `notFound` appears
+    // only in dead ok.ru shells). beIN entries first (big nights ride beIN).
     const beinScore = (c) => (/bein/i.test(c.name + ' ' + c.url) ? 0 : 1);
     const beinFirst = (a, b) => beinScore(a) - beinScore(b);
-    const alive = (await Promise.all(out.sort(beinFirst).map(async (c) => {
+    const DEAD_RE = /notFound|videoDeleted|video_deleted|video-removed|contentDeleted|videoUnavailable/i;
+    const sniffAlive = async (c) => {
       try {
         const ctrl2 = new AbortController();
-        const to2 = setTimeout(() => ctrl2.abort(), 3500);
+        const to2 = setTimeout(() => ctrl2.abort(), 5000);
+        const headers = {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml',
+          'Referer': 'https://ahamadsport.yusf-dara1000.workers.dev/',
+        };
+        const get = (u) => fetch(u, { signal: ctrl2.signal, redirect: 'manual', headers });
         try {
-          const r = await fetch(c.url, {
-            signal: ctrl2.signal, redirect: 'manual',
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml',
-              'Referer': 'https://ahamadsport.yusf-dara1000.workers.dev/',
-            },
-          });
-          // Status is the signal — drop the body without downloading it.
-          try { if (r.body && r.body.cancel) await r.body.cancel(); } catch {}
-          return (r.ok || (r.status >= 300 && r.status < 400)) ? c : null;
+          let r = await get(c.url);
+          // Follow one same-scheme redirect, then sniff the final page
+          // (redirect shells have no body to sniff).
+          if (r.status >= 300 && r.status < 400 && r.headers.get('location')) {
+            try { r = await get(new URL(r.headers.get('location'), c.url).toString()); } catch { return null; }
+          }
+          if (!r.ok) return null;
+          const ct = (r.headers.get('content-type') || '').toLowerCase();
+          if (!ct.includes('text/html')) return c; // non-HTML embeds pass on status
+          const clen = +(r.headers.get('content-length') || 0);
+          if (clen > 800000) return c; // huge shell — accept on status, don't buffer
+          const html = await r.text();
+          if (html.length < 2000) return null; // stub/block page, not a player
+          if (DEAD_RE.test(html)) return null; // deleted/removed video shells
+          if (/ok\.ru\//i.test(c.url)) return c; // 200 + full shell + no dead markers
+          // iframe-network pages must actually contain a nested player
+          return /<iframe|jwplayer|clappr|albaplayer|\.m3u8|bein/i.test(html) ? c : null;
         } finally { clearTimeout(to2); }
       } catch { return null; }
-    }))).filter(Boolean).slice(0, 6);
+    };
+    const alive = (await Promise.all(out.sort(beinFirst).map(sniffAlive))).filter(Boolean).slice(0, 6);
 
     res.setHeader('Cache-Control', 'public, s-maxage=120, max-age=60');
     return res.status(200).json({ count: alive.length, channels: alive });
