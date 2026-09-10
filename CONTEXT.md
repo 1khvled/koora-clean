@@ -4,7 +4,16 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-10 (commit `64044ce`, Alwan extra source §30).
+> Last updated: 2026-09-10 (scorers removed §31, pending commit).
+
+## 31. Goal scorers REMOVED (2026-09-10, user: "remove the goal scored things dawgshit")
+
+- Deleted `api/scorers.js` (`git rm`) + every index trace: `data-mid`
+  attrs, `.sc` CSS + wrap rules, `SCORERS`/`loadScorers`/`paintScorers`/
+  `fmtScorers`, the 180s interval and its `loadDay` hook. Verified zero
+  references remain, no `/api/scorers` traffic, rows render clean.
+- Goal data still lives where it belongs: the player page FotMob section
+  (lineups timeline + events), untouched.
 
 ## 30. Alwan Sport extra channels (2026-09-10, user gave a worker link + "send a subagent")
 
