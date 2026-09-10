@@ -49,6 +49,8 @@ export default async function handler(req, res) {
     ['فيلادلفيا', ['philadelphia']], ['كولومبوس', ['columbus']],
     ['مونتريال', ['montreal']], ['شارلوت', ['charlotte']],
     ['لوس أنجلوس', ['los', 'angeles']], ['نيويورك', ['new', 'york']],
+    ['فانكوفر', ['vancouver']], ['وايت كابس', ['whitecaps']], ['غالاكسي', ['galaxy']],
+    ['اتحاد العاصمة', ['usm', 'alger']], ['شبيبة الأبيار', ['el', 'biar']],
   ];
   const applyAlias = (toks, rawNorm) => {
     let out = [...toks];
@@ -98,12 +100,25 @@ export default async function handler(req, res) {
     if (!arLeague || !enText) return false;
     const words = new Set(enText.toLowerCase().replace(/-/g, ' ').split(/[^a-z]+/).filter(w => w.length > 3));
     if (!words.size) return false;
+    // Full table mirror of api/fotmob.js leagueHitEn MAP — keep in sync.
     const MAP = [
       ['أبطال أوروبا', ['champions', 'league']], ['الأوروبي', ['europa']], ['المؤتمر', ['conference']],
       ['الإنجليز', ['england', 'premier']], ['الإسبان', ['spain', 'laliga', 'la', 'liga']],
       ['الإيطال', ['italy', 'serie']], ['الألمان', ['germany', 'bundesliga']],
-      ['الفرنس', ['france', 'ligue']], ['السعود', ['saudi', 'arabia', 'pro']],
-      ['روشن', ['saudi', 'roshn']], ['الأمريك', ['united', 'states', 'mls', 'major', 'soccer']],
+      ['الفرنس', ['france', 'ligue']], ['البرتغال', ['portugal', 'primeira']],
+      ['الهولند', ['netherlands', 'eredivisie']], ['التركي', ['turkey', 'turkiye', 'super', 'lig']],
+      ['السعود', ['saudi', 'arabia', 'pro']], ['روشن', ['saudi', 'roshn']],
+      ['الإسكتلند', ['scotland', 'scottish']], ['البرازيل', ['brazil', 'brasileiro']],
+      ['الأرجنتين', ['argentina', 'liga', 'profesional']], ['المكسيك', ['mexico', 'liga']],
+      ['الأمريك', ['united', 'states', 'mls', 'major', 'soccer']], ['كأس العالم', ['world', 'cup']],
+      ['اليونان', ['greece']], ['بلجيك', ['belgium']], ['النمسا', ['austria']],
+      ['سويسر', ['switzerland', 'swiss']], ['الدنمارك', ['denmark', 'danish']],
+      ['النرويج', ['norway']], ['السويد', ['sweden']], ['كروات', ['croatia']],
+      ['صرب', ['serbia']], ['التشيك', ['czech']], ['بولند', ['poland', 'ekstraklasa']],
+      ['أوكران', ['ukraine']], ['اليابان', ['japan', 'league']], ['كوريا', ['korea']],
+      ['الصين', ['china']], ['أسترال', ['australia', 'league']], ['المغرب', ['morocco', 'botola']],
+      ['الجزائر', ['algeria', 'algerian', 'ligue']], ['تونس', ['tunisia', 'ligue']], ['مصر', ['egypt', 'egyptian']],
+      ['الإمارات', ['uae', 'emirates']], ['قطر', ['qatar', 'stars']],
     ];
     return MAP.some(([ar, toks]) => arLeague.includes(normHamza(ar)) && toks.some(v => words.has(v)));
   };
