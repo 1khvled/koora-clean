@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-10 (Alwan liveness hardening §30b, pending commit).
+> Last updated: 2026-09-10 (commit `ac21e6e`, Alwan liveness hardening §30b).
 
 ## 30b. Alwan liveness hardening (same day — user: Kurdish site, big UCL nights?)
 
