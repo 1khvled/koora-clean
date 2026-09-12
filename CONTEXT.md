@@ -4,7 +4,30 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (fallback removed + sources hidden, see CONTEXT 39).
+> Last updated: 2026-09-12 (share + flash + favs/bell + server memory, see CONTEXT 40).
+
+## 40. Share button + score flash + favorites/bell + server memory (2026-09-12, user picked from suggestions)
+
+- **Share button (player).** Icon button in controls copies the short `?m=&d=`
+  link (clipboard API + textarea fallback, toast confirm). Static HTML uses
+  entities (`&#128279;`) — JS `\u{}` escapes are INVALID in markup (caught
+  in review: stars/bell/share initially emitted literal escape text).
+- **Score-change flash (index).** `loadDay` diffs `score_home/score_away` vs
+  previous poll; changed live rows get `.flash` (gold pulse, reduced-motion
+  off) + toast naming the scorer team (max 2, else count). Finished matches
+  excluded via `isLive` gate; first load never flashes.
+- **Favorites + bell.** Star buttons on the player match card (valid HTML —
+  buttons, not links) persist teams in `koora_favs`; index gains a
+  favorites filter chip. Bell button (controls row, persisted per match):
+  Notification at kickoff (armed timer) + on goals (watches FotMob live
+  scores each 60s refresh and header ticks, vibrate included), toast
+  fallback, survives reload.
+- **Server memory.** Manual server picks saved per match
+  (`koora:srv:<id>`); next open auto-resumes it if still listed.
+  Auto-advance (watchdog) deliberately does NOT overwrite memory.
+- Verified: `node --check` both inlines; 6/6 runtime assertions on the
+  SHIPPED index script with stubbed DOM (goal detect + team name + flash
+  class + fav filter; harness bugs fixed, not product). Mirrors identical.
 
 ## 39. Fallback match-page removed + source brands hidden (2026-09-12, user: "remove page, say no links, don't expose sources")
 

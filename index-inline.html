@@ -118,6 +118,9 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .m .t b{margin-inline-start:auto;font-weight:900;font-size:16px;flex:none}
 .m .go{flex:none;color:var(--muted);font-size:18px}
 .m.is-live{border-inline-start:4px solid var(--live)}
+.m.flash{animation:rowflash 2.2s ease-out 2}
+@keyframes rowflash{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 3px var(--gold)}}
+@media (prefers-reduced-motion:reduce){.m.flash{animation:none}}
 #empty{text-align:center;color:var(--muted);padding:40px 0;font-weight:600}
 .loading{text-align:center;color:var(--muted);padding:40px 0;font-weight:600}
 .toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;
@@ -169,6 +172,8 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
 let ALL = [], DAY = 'today', LEAGUE = 'all';
+let FAVONLY = false;
+const GOAL_IDS = []; let GOAL_MSG = '';
 
 function toast(msg){
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
@@ -628,12 +633,32 @@ async function loadDay(day, silent){
   ALL = data.filter(x => x && typeof x === 'object');
   const fAt = Date.now();
   for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }
+  try {
+    const cur = {};
+    for (const m of ALL) cur[m.id] = String(m.score_home ?? '') + '-' + String(m.score_away ?? '');
+    const prv = loadDay._ps || null;
+    loadDay._ps = cur;
+    GOAL_IDS.length = 0; GOAL_MSG = '';
+    if (prv){
+      const who = [];
+      for (const m of ALL){
+        if (prv[m.id] === undefined || prv[m.id] === cur[m.id] || !isLive(m)) continue;
+        GOAL_IDS.push(m.id);
+        const pp = String(prv[m.id]).split('-'), cc = String(cur[m.id]).split('-');
+        const ph = parseFloat(pp[0]), ch = parseFloat(cc[0]), pa = parseFloat(pp[1]), ca = parseFloat(cc[1]);
+        if (isFinite(ch) && isFinite(ph) && ch === ph + 1) who.push(m.home);
+        else if (isFinite(ca) && isFinite(pa) && ca === pa + 1) who.push(m.away);
+      }
+            if (who.length) GOAL_MSG = '\u{026bd} \u0647\u062f\u0641: ' + who.slice(0, 2).join('\u060c ') + (who.length > 2 ? ' (+' + (who.length - 2) + ')' : '');
+    }
+  } catch {}
   // Rebuild chips on silent too (new leagues appear mid-day); the LEAGUE
   // selection survives because it's matched by value, defaulting to 'all'
   // if the previously selected league vanished.
   if (LEAGUE !== 'all' && !ALL.some(m => (m.league_text || m.league || '').trim() === LEAGUE)) LEAGUE = 'all';
   buildChips();
   render(silent);
+  if (GOAL_MSG) toast(GOAL_MSG);
   refreshEspn();
 }
 
@@ -692,6 +717,12 @@ function leagueRank(lg){
 }
 const byLeague = (a, b) => leagueRank(a.league_text || a.league) - leagueRank(b.league_text || b.league);
 
+function favGet(){
+  try {
+    const a = JSON.parse(localStorage.getItem('koora_favs') || '[]');
+    return Array.isArray(a) ? a.filter(x => typeof x === 'string') : [];
+  } catch { return []; }
+}
 let LEAGUE_LIST = []; // raw league names parallel to chip indexes (never in DOM)
 function buildChips(){
   LEAGUE_LIST = [...new Set(ALL.map(m => (m.league_text || m.league || '').trim()).filter(Boolean).filter(l => !isHiddenLg(l)))]
@@ -699,6 +730,16 @@ function buildChips(){
   const box = $('#leagueChips');
   box.innerHTML = `<button class="chip${LEAGUE === 'all' ? ' on' : ''}" data-i="-1">الكل</button>` +
     LEAGUE_LIST.map((l, i) => `<button class="chip${LEAGUE === l ? ' on' : ''}" data-i="${i}">${tx(l)}</button>`).join('');
+  try {
+    const favs = favGet();
+    if (favs.length){
+      const b = document.createElement('button');
+      b.className = 'chip' + (FAVONLY ? ' on' : '');
+      b.textContent = '\u{02605} \u0627\u0644\u0645\u0641\u0636\u0644\u0629 (' + favs.length + ')';
+      b.onclick = () => { FAVONLY = !FAVONLY; b.classList.toggle('on', FAVONLY); render(); };
+      box.prepend(b);
+    }
+  } catch {}
   $$('.chip', box).forEach(c => c.onclick = () => {
     const i = +c.dataset.i;
     LEAGUE = i < 0 ? 'all' : LEAGUE_LIST[i];
@@ -710,9 +751,11 @@ function buildChips(){
 
 function filtered(){
   const q = ($('#searchInput').value || '').trim().toLowerCase();
+  const F = FAVONLY ? favGet() : null;
   return ALL.filter(m => {
     if (LEAGUE !== 'all' && (m.league_text || m.league || '').trim() !== LEAGUE) return false;
     if (q && !(((m.home || '') + ' ' + (m.away || '') + ' ' + (m.league_text || m.league || '')).toLowerCase().includes(q))) return false;
+    if (F && !F.includes(m.home) && !F.includes(m.away)) return false;
     return true;
   });
 }
@@ -724,7 +767,7 @@ function rowCard(m){
   const live = isLive(m);
   // Status column shows the minute for live matches (never stale "لم تبدأ").
   const top = live ? (st.txt === 'مباشر' ? '•' : st.txt) : (tx((m.time_text || '').trim()) || '–');
-  return `<a class="m${live ? ' is-live' : ''}" href="${playerLink(m)}">
+  return `<a class="m${live ? ' is-live' : ''}${GOAL_IDS.includes(m.id) ? ' flash' : ''}" href="${playerLink(m)}">
     <div class="st"><div class="t">${top}</div>
       <div class="s ${st.cls}">${tx(st.txt)}</div></div>
     <div class="teams">

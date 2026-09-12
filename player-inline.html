@@ -75,6 +75,8 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .mcard .mid .lg{font-size:11px;color:var(--muted);font-weight:700;margin-top:4px;
   max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mcard .mid .tm{font-size:12px;font-weight:800;margin-top:2px}
+.tstar{font-family:var(--font);background:none;border:0;color:var(--gold);font-size:20px;min-width:44px;min-height:44px;cursor:pointer;opacity:.5;padding:0}
+.tstar.on{opacity:1}
 /* sources */
 .src-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 2px 8px}
 .src-head h2{font-size:14px;font-weight:900;margin:0;display:flex;align-items:center;gap:8px}
@@ -285,9 +287,9 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
     </div>
   </div>
   <div class="mcard" id="matchCard" hidden>
-    <div class="team"><img id="homeLogo" alt=""><b id="homeName">—</b></div>
+    <div class="team"><img id="homeLogo" alt=""><b id="homeName">—</b><button class="tstar" id="starH" aria-label="fav">&#9734;</button></div>
     <div class="mid"><div class="vs" id="matchState">…</div><div class="tm" id="matchTime">—</div><div class="lg" id="matchLeague">—</div></div>
-    <div class="team"><img id="awayLogo" alt=""><b id="awayName">—</b></div>
+    <div class="team"><img id="awayLogo" alt=""><b id="awayName">—</b><button class="tstar" id="starA" aria-label="fav">&#9734;</button></div>
   </div>
   <div class="src-head">
     <h2>📡 مصادر البث <span class="n" id="srvCount" hidden>0</span></h2>
@@ -298,6 +300,8 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
   <div class="controls">
     <button class="btn" id="btnFull">⛶ ملء الشاشة</button>
     <button class="btn ghost" id="btnReload">⟳ إعادة تحميل</button>
+    <button class="btn ghost" id="btnShare" aria-label="share">&#128279;</button>
+    <button class="btn ghost" id="btnBell" aria-label="notifications">&#128276;</button>
   </div>
   <div class="status" id="status">محظور: 0</div>
   <section class="minfo" id="minfo" hidden>
@@ -337,6 +341,95 @@ if (qs.get('href') || qs.get('home') || qs.get('away')){
   gtP = decFull(qs.get('gt')); shP = decFull(qs.get('sh')); saP = decFull(qs.get('sa'));
   geP = safeDec(qs.get('ge'));
   if (qs.get('id')) id = qs.get('id');
+}
+function favGet(){
+  try {
+    const a = JSON.parse(localStorage.getItem('koora_favs') || '[]');
+    return Array.isArray(a) ? a.filter(x => typeof x === 'string') : [];
+  } catch { return []; }
+}
+function favHas(n){ return !!n && favGet().includes(n); }
+function favToggle(n){
+  if (!n) return;
+  const f = favGet(), i = f.indexOf(n);
+  if (i >= 0) f.splice(i, 1); else f.push(n);
+  try { localStorage.setItem('koora_favs', JSON.stringify([...new Set(f)].slice(0, 30))); } catch {}
+  paintStars();
+  toast(i >= 0 ? '\u0623\u0632\u064a\u0644\u062a \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0644\u0629' : '\u0623\u0636\u064a\u0641\u062a \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0644\u0629');
+}
+function paintStars(){
+  try {
+    const sh = document.getElementById('starH'), sa = document.getElementById('starA');
+    if (sh){ sh.textContent = favHas(home) ? '\u2605' : '\u2606'; sh.classList.toggle('on', favHas(home)); }
+    if (sa){ sa.textContent = favHas(away) ? '\u2605' : '\u2606'; sa.classList.toggle('on', favHas(away)); }
+  } catch {}
+}
+let bellOn = false, bellTimer = 0;
+function bellPaint(){ try { document.getElementById('btnBell').textContent = bellOn ? '\u{1f514}' : '\u{1f515}'; } catch {} }
+function notifyMe(title, body){
+  try { if (navigator.vibrate) navigator.vibrate(200); } catch {}
+  try {
+    if (window.Notification && Notification.permission === 'granted'){
+      const n = new Notification(title, body ? { body } : undefined);
+      setTimeout(() => { try { n.close(); } catch {} }, 8000);
+    }
+  } catch {}
+  toast(title + (body ? ' — ' + body : ''));
+}
+function bellArm(){
+  if (!bellOn) return;
+  if (bellTimer){ clearTimeout(bellTimer); bellTimer = 0; }
+  if (!isLiveP() && !isEndedP() && startP){
+    const ms = Date.parse(startP) - Date.now();
+    if (ms > 0 && ms < 12 * 3600 * 1000)
+      bellTimer = setTimeout(() => { bellTimer = 0; notifyMe(home + ' × ' + away, '\u0628\u062f\u0623\u062a \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629'); bellArm(); }, ms);
+  }
+}
+function bellScores(){
+  try {
+    if (miData && miData.home && miData.away && miData.home.score != null && miData.away.score != null)
+      return [miData.home.score, miData.away.score, miData.home.name, miData.away.name];
+  } catch {}
+  if (shP !== '' && saP !== '') return [shP, saP, home, away];
+  return null;
+}
+function bellGoalCheck(){
+  if (!bellOn) return;
+  const sc = bellScores();
+  if (!sc) return;
+  const key = sc[0] + '-' + sc[1];
+  if (!bellGoalCheck._l){ bellGoalCheck._l = key; return; }
+  if (bellGoalCheck._l === key) return;
+  const pp = String(bellGoalCheck._l).split('-'), ch = Number(sc[0]), ca = Number(sc[1]);
+  const ph = Number(pp[0]), pa = Number(pp[1]);
+  bellGoalCheck._l = key;
+  if (ch === ph + 1 && ca === pa) notifyMe('\u{026bd} \u0647\u062f\u0641', sc[2]);
+  else if (ca === pa + 1 && ch === ph) notifyMe('\u{026bd} \u0647\u062f\u0641', sc[3]);
+  else notifyMe('\u062a\u063a\u064a\u0631\u062a \u0627\u0644\u0646\u062a\u064a\u062c\u0629', ch + ' - ' + ca);
+}
+async function bellToggle(){
+  if (!('Notification' in window)){ toast('\u0627\u0644\u062a\u0646\u0628\u064a\u0647\u0627\u062a \u063a\u064a\u0631 \u0645\u062f\u0639\u0648\u0645\u0629'); return; }
+  if (Notification.permission === 'denied'){ toast('\u0641\u0639\u0644 \u0627\u0644\u062a\u0646\u0628\u064a\u0647\u0627\u062a \u0645\u0646 \u0627\u0644\u0645\u062a\u0635\u0641\u062d'); return; }
+  if (Notification.permission !== 'granted'){
+    try { if (await Notification.requestPermission() !== 'granted'){ toast('\u062a\u0639\u0630\u0631 \u0627\u0644\u062a\u0641\u0639\u064a\u0644'); return; } }
+    catch { return; }
+  }
+  bellOn = !bellOn;
+  try {
+    if (id) localStorage.setItem('koora:bell:' + id, bellOn ? '1' : '0');
+  } catch {}
+  if (!bellOn && bellTimer){ clearTimeout(bellTimer); bellTimer = 0; }
+  bellPaint();
+  toast(bellOn ? '\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u062a\u0646\u0628\u064a\u0647' : '\u062a\u0645 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u062a\u0646\u0628\u064a\u0647');
+  if (bellOn){ bellGoalCheck(); bellArm(); }
+}
+function bellRestore(){
+  try {
+    if (id && localStorage.getItem('koora:bell:' + id) === '1' &&
+        window.Notification && Notification.permission === 'granted'){
+      bellOn = true; bellPaint(); bellArm();
+    }
+  } catch {}
 }
 function paintTitle(){
   document.getElementById('matchTitle').textContent =
@@ -810,7 +903,7 @@ function headerMinute(now){
   }
   return showMinute(P(), now);
 }
-function tickHeader(){ try { if (home || away) paintMatch(home, away, homeLogo, awayLogo, leagueP); } catch {} }
+function tickHeader(){ try { if (home || away) paintMatch(home, away, homeLogo, awayLogo, leagueP); } catch {} try { bellGoalCheck(); } catch {} }
 function dec(s){
   return String(s == null ? '' : s).replace(/&#0?39;/g, '’').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 }
@@ -935,10 +1028,20 @@ function safeSrc(u){
   if (/^https?:\/\//i.test(s) || s[0] === '/') return s;
   return '';
 }
+function srvMemKey(){ return id ? 'koora:srv:' + id : ''; }
+function srvRemember(url){ try { const k = srvMemKey(); if (k && url) localStorage.setItem(k, url); } catch {} }
+function srvRecall(list){
+  try {
+    const k = srvMemKey(); if (!k) return -1;
+    const u = localStorage.getItem(k); if (!u) return -1;
+    return list.findIndex(s => s && (s.play || s.url) === u);
+  } catch { return -1; }
+}
 function goServer(i, auto, _tried){
   if (!serverList.length) return;
   srvIdx = ((i % serverList.length) + serverList.length) % serverList.length;
   const s = serverList[srvIdx];
+  if (!auto) srvRemember(s && (s.play || s.url));
   let src = safeSrc(s && (s.play || s.url));
   // Never load ad/telegram URLs even if an upstream smuggles one in as a
   // "server" — skip to the next instead of leaving a stale highlight.
@@ -1023,7 +1126,7 @@ async function loadRealPlayer(){
       } catch { return []; }
     })();
     const data = await fetchApi();
-    if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP);
+    if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP); paintStars();
     let list = [];
     if (data && Array.isArray(data.servers) && data.servers.length) list = data.servers;
     else if (data) {
@@ -1038,7 +1141,7 @@ async function loadRealPlayer(){
       if (alwan.length) list.push(...alwan);
     } catch {}
     showServersFromList(list);
-    if (serverList.length) goServer(0, false);
+    if (serverList.length){ const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); }
     else toast('لا يوجد بث متاح حالياً');
     loadRealPlayer._busy = false;
   } catch (e){
@@ -1048,6 +1151,22 @@ async function loadRealPlayer(){
 
 /* first click is absorbed so popups never open */
 clickShield.addEventListener('click', () => clickShield.classList.add('hidden'));
+document.getElementById('starH').onclick = () => favToggle(home);
+document.getElementById('starA').onclick = () => favToggle(away);
+document.getElementById('btnBell').onclick = () => bellToggle();
+document.getElementById('btnShare').onclick = async () => {
+  const url = location.href;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(url);
+    else {
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); ta.remove();
+    }
+    toast('\u062a\u0645 \u0646\u0633\u062e \u0631\u0627\u0628\u0637 \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629');
+  } catch { toast('\u062a\u0639\u0630\u0631 \u0627\u0644\u0646\u0633\u062e'); }
+};
 
 /* fullscreen (Safari returns undefined, not a Promise — guard it) */
 document.getElementById('btnFull').onclick = () => {
@@ -1230,6 +1349,7 @@ async function miRefresh(){
     renderMi();
     paintExactStatus(d);
     if (d.finished) miClearTimer();
+    try { bellGoalCheck(); } catch {}
   } catch {}
 }
 function miEvIcon(e){
@@ -1494,6 +1614,8 @@ async function refreshEspnOne(){
   stampUpstream();
   await refreshEspnOne();
   paintMatch(home, away, homeLogo, awayLogo, leagueP);
+  paintStars();
+  bellRestore();
   loadRealPlayer();
   loadMatchInfo();
   setInterval(tickHeader, 20000);
