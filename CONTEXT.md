@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (Supabase analytics + admin page, see CONTEXT 41).
+> Last updated: 2026-09-12 (admin renamed + key-exposure finding, see CONTEXT 42).
+
+## 42. Admin page renamed to obscure URL + anon-key exposure finding (2026-09-12, user: "no one can find it, hackers can't, right?")
+
+- **Rename:** `admin.html` -> `dzt3ch456.html` (dropped the `@` — breaks clean
+  URLs; alphanumeric only). Nothing linked to it; sitemap never listed it;
+  robots disallow + `noindex` updated. Live at
+  `https://kooraadz.vercel.app/dzt3ch456.html`.
+- **Honest security picture (told to owner):** obscurity keeps Google/casual
+  users out, and the rename defeats common-path scanners — BUT the Supabase
+  anon key ships in the public site JS by design, and the finance tables
+  carry `anon_all` (ALL commands) policies. So anyone with the key can
+  read/write finance rows WITHOUT ever finding the admin page. The admin
+  page itself leaks nothing (aggregate counts only). Real fix if wanted: a
+  separate free Supabase project for koora, then swap 2 constants
+  (SB_URL/SB_KEY) — full isolation, finance DB unreachable.
 
 ## 41. Supabase analytics: views/likes/refs + admin page (2026-09-12, user: "easiest free DB for admin KPI page")
 

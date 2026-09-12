@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Sitemap: https://kooraadz.vercel.app/sitemap.xml
-Disallow: /admin.html
+Disallow: /dzt3ch456.html
