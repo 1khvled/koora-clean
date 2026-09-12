@@ -47,6 +47,7 @@ export default {
           const away = getAttr('data-away');
           const league = getAttr('data-league');
           const start = getAttr('data-start');
+          const gameends = getAttr('data-gameends');
           const status = getAttr('data-status-code');
           const official = getAttr('data-official-status');
           const gameTime = getAttr('data-game-time');
@@ -65,6 +66,7 @@ export default {
             away,
             league,
             start,
+            gameends,
             status,
             official_status: official,
             game_time: gameTime,
