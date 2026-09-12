@@ -1,0 +1,41 @@
+# كورة لايف (Koora Live)
+
+> Live football scores, fixtures and live-minute tracker with same-team
+> streams. Arabic-first (RTL), no account needed, updates every minute.
+
+## Leagues covered
+- الدوري الإنجليزي (English Premier League)
+- الدوري الإسباني (La Liga)
+- الدوري الإيطالي (Serie A)
+- الدوري الألماني (Bundesliga)
+- الدوري الفرنسي (Ligue 1)
+- الدوري السعودي (Saudi Pro League / Roshn)
+- الدوري الأمريكي الممتاز (Major League Soccer)
+- الدوري التركي (Super Lig)
+- الدوري الجزائري (Algerian Ligue 1)
+- دوري أبطال أوروبا (UEFA Champions League)
+- دوري أبطال أفريقيا (CAF Champions League qualifiers)
+
+## Live data
+- Homepage lists today / yesterday / tomorrow fixtures with live minutes,
+  half (1H/HT/2H) and full-time scores, refreshed every 45 seconds.
+- Live minutes fuse three sources: ESPN public API clock, FotMob exact
+  status, then wall-clock estimation. Finished matches show final scores.
+- Each match links to a short player page: /player.html?m=<match-id>&d=today
+  (match snapshot loads from storage, then the day API by id).
+- Machine-readable schedule: every listed page embeds schema.org JSON-LD
+  (SportsEvent with startDate, EventLive/EventCompleted status; live games
+  also expose BroadcastEvent with isLiveBroadcast). Full URL list (refreshed
+  hourly) at /api/sitemap.
+
+## Pages
+- / : match list, live board, league groups, search, day tabs
+- /player.html : match stream page (servers, lineups, stats, events)
+- /api/matches?day=today|yesterday|tomorrow : fixture JSON
+- /api/sitemap : XML sitemap (core pages + today matches)
+
+## Notes
+- Language: Arabic (ar, RTL). Tagline: بث نظيف بدون إعلانات.
+- Bots (search + AI assistants) are welcome on all public pages.
+- No official broadcast affiliation is claimed; team names, scores and
+  kickoff times are factual match data.
