@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (commit `0b0a63e`, yacinelive source + English removal §35).
+> Last updated: 2026-09-12 (live list + league priority §36, pending commit).
+
+## 36. Live list replaces swipe rail + Prem/LaLiga/UCL first (2026-09-12, user: "live UI irritating, big leagues first")
+
+- **Rail deleted.** The 78vw snap-scroll cards (one match per swipe, duplicated
+  scores, noisy gold badges) are gone — `liveCard` + rail CSS removed. Live
+  matches now render as the same calm row component as everything else in one
+  vertical list with slim league dividers, red edge + red minute intact.
+- **League priority everywhere:** Prem (0) → La Liga (1) → UCL (2) → rest (3,
+  stable) via `leagueRank`+`byLeague`, applied to the live list, the league
+  group order, AND the filter chips. Verified: live dividers, groups and
+  chips all come out in that order.
+- Verified with 7 mock matches across 5 leagues: order correct on all three
+  surfaces, `scrollW=390`, zero errors, mirrors in sync.
 
 ## 35. YacineLive source IN, English sources OUT (2026-09-12, owner: new site + "delete english")
 
