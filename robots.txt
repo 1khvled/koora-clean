@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 Sitemap: https://kooraadz.vercel.app/sitemap.xml
 Disallow: /dzt3ch456.html
+Sitemap: https://kooraadz.vercel.app/api/sitemap

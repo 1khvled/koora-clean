@@ -43,7 +43,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:44px;
   display:inline-flex;align-items:center;background:var(--card)}
 .title{flex:1;min-width:0;text-align:center}
-.title strong{display:block;font-size:16px;font-weight:900;white-space:nowrap;
+.title h1{display:block;margin:0;font-size:16px;font-weight:900;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
 .title small{color:var(--muted);font-size:12px;font-weight:600}
 /* stage */
@@ -275,7 +275,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 <div class="wrap">
   <div class="head">
     <a class="back" href="./index.html">‹ عودة</a>
-    <div class="title"><strong id="matchTitle">جاري التحميل…</strong><small>بث نظيف بدون إعلانات</small></div>
+    <div class="title"><h1 id="matchTitle">جاري التحميل…</h1><small>بث نظيف بدون إعلانات</small></div>
     <span style="width:76px;flex:none"></span>
   </div>
   <div class="stage">
@@ -479,6 +479,7 @@ function paintTitle(){
   document.getElementById('matchTitle').textContent =
     (home || away) ? `${home} × ${away}` : 'مشاهدة المباراة';
   if (home || away) document.title = `مشاهدة ${home} × ${away} بث مباشر — كورة لايف`;
+  try { const md = document.querySelector('meta[name="description"]'); if (md && (home || away)) md.setAttribute('content', document.title); } catch {}
 }
 /* Short-link snapshot: sessionStorage (same-tab instant) → localStorage
    (12h TTL) → matchday API lookup (d, today, yesterday, tomorrow). */
