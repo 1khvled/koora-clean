@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (yacinelive source + English removal §35, pending commit).
+> Last updated: 2026-09-12 (commit `0b0a63e`, yacinelive source + English removal §35).
 
 ## 35. YacineLive source IN, English sources OUT (2026-09-12, owner: new site + "delete english")
 
