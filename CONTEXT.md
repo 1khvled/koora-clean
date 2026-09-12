@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (live list + league priority §36, pending commit).
+> Last updated: 2026-09-12 (commit `26b1dfd`, live list + league priority §36).
 
 ## 36. Live list replaces swipe rail + Prem/LaLiga/UCL first (2026-09-12, user: "live UI irritating, big leagues first")
 
