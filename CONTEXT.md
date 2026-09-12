@@ -39,8 +39,11 @@
   assertions against a REAL 82KB ESPN fixture (Spurs found, min 93) and a
   blocked-edge stub. `node --check` both inlines, ESM imports of
   `api/espn.js` + `worker.js` green, mirrors byte-identical.
-- Post-push check REQUIRED: curl the live `/api/espn` (Vercel egress may be
-  edge-blocked like the sandbox — client direct path covers that case).
+- Live egress verdict (2026-09-12, post-push curl): Vercel IS edge-blocked —
+  live `/api/espn` returns `{"found":false,"ms":134,"blocked":true}` in
+  134ms. Endpoint itself deployed fine; the fast fail means clients take
+  the direct browser path as primary (residential IP sails through).
+  No code change needed — tiering works as designed.
 
 ## 37. Goated clock + arab-league filler + short player links (2026-09-12, user: "timing still dogshit, hide arab leagues but KSA, links huge")
 
