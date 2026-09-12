@@ -50,7 +50,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .brand{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
 .brand .ball{width:42px;height:42px;border-radius:50%;background:var(--grass);
   display:grid;place-items:center;font-size:22px;flex:none}
-.brand strong{display:block;font-size:20px;font-weight:900;line-height:1.2}
+.brand h1{display:block;font-size:20px;font-weight:900;line-height:1.2;margin:0}
 .brand small{display:block;color:#bfe3cf;font-size:12px;font-weight:600}
 /* day segmented control — overlaps header bottom edge */
 .days{display:flex;background:var(--card);border-radius:14px;padding:4px;gap:4px;
@@ -122,6 +122,11 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 @keyframes rowflash{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 3px var(--gold)}}
 @media (prefers-reduced-motion:reduce){.m.flash{animation:none}}
 #empty{text-align:center;color:var(--muted);padding:40px 0;font-weight:600}
+.seo{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.9}
+.seo h2{font-size:15px;font-weight:800;color:var(--ink);margin:0 2px 6px}
+.seo p{margin:6px 2px}
+.seo ul{margin:6px 0;padding-inline-start:22px;display:grid;gap:4px}
+.seo strong{color:var(--ink)}
 .loading{text-align:center;color:var(--muted);padding:40px 0;font-weight:600}
 .toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;
   transform:translateX(-50%) translateY(20px);background:var(--night);color:#fff;
@@ -136,7 +141,7 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   .toolbar{max-width:880px;margin:0 auto;width:100%}
   .days{max-width:880px;margin-left:auto;margin-right:auto}
   .m{padding:14px 16px}
-  .brand strong{font-size:22px}
+  .brand h1{font-size:22px}
 }
 </style>
 </head>
@@ -144,7 +149,7 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 <header class="topbar">
   <div class="brand">
     <span class="ball">⚽</span>
-    <div><strong>كورة لايف</strong><small>بث نظيف بدون إعلانات</small></div>
+    <div><h1>كورة لايف</h1><small>بث نظيف بدون إعلانات</small></div>
   </div>
 </header>
 <nav class="days" id="dayTabs" aria-label="اختر اليوم">
@@ -165,6 +170,7 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   <div id="leagues"></div>
   <div id="empty" hidden>لا توجد مباريات مطابقة لبحثك</div>
 </main>
+<section class="seo"><h2>مباريات اليوم بث مباشر</h2><p>جدول مباريات اليوم محدث باستمرار: مواعيد مباريات والنتائج لحظة بلحظة لأهم الدورييات.</p><ul><li><strong>الدوري الإنجليزي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري الإسباني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري الإيطالي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري الألماني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري الفرنسي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري السعودي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>دوري أبطال أوروبا:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li></ul><p>اختر المباراة من القائمة لفتح صفحة البث.</p></section>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -906,6 +912,14 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
     awayTeam: { '@type': 'SportsTeam', name: m.away || '' },
     url: new URL(playerLink(m), location.href).toString()
   }));
+  for (const m of list.slice(0, 50)){
+    if (!isLive(m)) continue;
+    graph.push({ '@type': 'BroadcastEvent', name: `${m.home || ''} ضد ${m.away || ''}`,
+      isLiveBroadcast: true, startDate: isoStart(m),
+      homeTeam: { '@type': 'SportsTeam', name: m.home || '' },
+      awayTeam: { '@type': 'SportsTeam', name: m.away || '' } });
+  }
+  graph.push({ '@type': 'WebSite', name: 'كورة لايف', url: location.origin + '/', inLanguage: 'ar' });
   const s = document.createElement('script');
   s.type = 'application/ld+json'; s.id = 'jsonld';
   s.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });

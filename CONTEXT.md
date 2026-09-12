@@ -4,7 +4,27 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-13 (admin v2 English + KPIs, see CONTEXT 43).
+> Last updated: 2026-09-13 (SEO+GEO pass, see CONTEXT 44).
+
+## 44. SEO + GEO visibility pass (2026-09-13, user: "work on SEO+GEO, make site visible")
+
+- **h1s (was: none on either page).** Index brand + player match title are
+  now single `<h1>`s with margin-reset CSS (zero visual change).
+- **Dynamic sitemap (`api/sitemap.js`).** Core pages + today's matches as
+  short `?m=&d=` URLs with lastmod/changefreq, 1h edge cache, fail-open to
+  core URLs. `robots.txt` Sitemap now points at it (static file kept).
+  Verified 7/7 against a stubbed upstream (fixture-id + slug-derived ids).
+- **GEO (`llms.txt`).** Bilingual site summary, league coverage, live-data
+  contract, page/API map for AI crawlers. Bots already welcome site-wide.
+- **Structured data:** live matches now also emit `BroadcastEvent`
+  (`isLiveBroadcast`) + a `WebSite` node beside the SportsEvents. Verified
+  9/9 on shipped code with stub DOM (2 Sports, 1 Broadcast with teams,
+  WebSite ar, EventLive status).
+- **Index SEO content:** visible schedule/coverage section (Prem/LaLiga/
+  Serie A/Bundesliga/Ligue 1/Saudi/UCL one-liners) + per-match player meta
+  description synced from the title at paint time.
+- Honest note to owner: rankings take weeks; the instant action on their
+  side is submitting `/api/sitemap` in Google Search Console.
 
 ## 43. Admin v2: English + real KPIs (2026-09-13, user: "english admin, not basic, improve it")
 
