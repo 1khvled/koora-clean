@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-10 (commit `06086a8`, Alwan playability gate §30c).
+> Last updated: 2026-09-12 (wall-clock kickoff inference §32, pending commit).
+
+## 32. Wall-clock kickoff inference (2026-09-12, user: "match 15' in but site says لم تبدأ" + flaky player)
+
+- **Root cause (proven live):** upstream still served NS/لم تبدأ for Spurs–
+  Everton at 15' elapsed. Their HTML carries `data-start` + `data-gameends`
+  (absolute ISO instants), so we no longer wait for them: if NOW is inside
+  [start−5min, gameends], the match IS live with minute = now − start.
+- `api/matches.js` (+ worker.js mirror) now pass `gameends` through;
+  `index.html` (`liveMinute` → `isLive`/`statusLabel`/`rowCard`) and
+  `player.html` (`liveMinuteP` → `isLiveP`, dynamic state label via new
+  `so/gt/sh/sa/ge` URL params) all use it. The card's hardcoded "بث مباشر"
+  label is now truthful per-state (مباشر/انتهت/لم تبدأ). Inference only ever
+  ADDS live — never overrides ended/upcoming.
+- Verified with a synthetic stale-NS match 15' in: live rail card + "15’",
+  player card "مباشر 15’", zero errors, mirrors in sync.
 
 ## 30c. Alwan playability gate (same day — "improve even further")
 

@@ -385,6 +385,16 @@ const offP = decFull(qs.get('so'));
 const gtP = decFull(qs.get('gt'));
 const shP = decFull(qs.get('sh'));
 const saP = decFull(qs.get('sa'));
+const geP = safeDec(qs.get('ge'));
+function liveMinuteP(){
+  try {
+    if (!startP || !geP) return null;
+    const s = Date.parse(startP), e = Date.parse(geP), n = Date.now();
+    if (!isFinite(s) || !isFinite(e)) return null;
+    if (n >= s - 5 * 60000 && n <= e) return Math.max(1, Math.floor((n - s) / 60000));
+    return null;
+  } catch { return null; }
+}
 function dec(s){
   return String(s == null ? '' : s).replace(/&#0?39;/g, '’').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 }
@@ -404,8 +414,10 @@ function decFull(s){
 }
 function isLiveP(){
   const s = [offP, gtP, timeP].join(' ');
-  return /جارية|مباشر|الشوط|استراحة|1H|2H|HT|LIVE/i.test(s) ||
-    (!!String(gtP || '').replace(/\D/g, '') && !isEndedP());
+  if (/جارية|مباشر|الشوط|استراحة/i.test(s)) return true;
+  if (/\b(1H|2H|HT|LIVE)\b/i.test(s)) return true;
+  if (!!String(gtP || '').replace(/\D/g, '') && !/:/.test(String(gtP || '')) && !isEndedP()) return true;
+  return liveMinuteP() != null;
 }
 function isEndedP(){
   return /انتهت|نهاية|FT|Full/i.test([offP, timeP].join(' '));
@@ -425,7 +437,9 @@ function paintMatch(h, a, hl, al, lg){
   if (isLiveP()){
     stEl.textContent = 'مباشر';
     stEl.classList.add('live');
-    tmEl.textContent = (gtP || timeP || '').trim() || '•';
+    // Stale timeP ("لم تبدأ") must not shadow a live minute.
+    const inf = liveMinuteP();
+    tmEl.textContent = gtP.trim() || (inf != null ? inf + '’' : (timeP || '').trim()) || '•';
   } else if (isEndedP()){
     stEl.textContent = 'انتهت';
     stEl.classList.remove('live');

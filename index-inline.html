@@ -177,13 +177,27 @@ function workerBase(){
 /* match state helpers — same api/matches.js contract.
    Word-boundaried Latin codes (HT/LIVE/FT) so "Tonight"/"After" never match;
    game_time counts as live only when minute-like (digits, no clock colon). */
+/* Wall-clock kickoff inference: upstream often sleeps 10-20min past kickoff
+   (still NS at 15'). start+gameends are absolute ISO instants, so if NOW is
+   inside the window the match IS live regardless of stale status fields.
+   Only ever ADDS live — never overrides ended/upcoming. */
+function liveMinute(m){
+  try {
+    if (!m || !m.start || !m.gameends) return null;
+    const s = Date.parse(m.start), e = Date.parse(m.gameends), n = Date.now();
+    if (!isFinite(s) || !isFinite(e)) return null;
+    if (n >= s - 5 * 60000 && n <= e) return Math.max(1, Math.floor((n - s) / 60000));
+    return null;
+  } catch { return null; }
+}
 function isLive(m){
   if (!m || typeof m !== 'object') return false;
   const s = [m.official_status, m.status, m.game_time, m.result_text].join(' ');
   if (/جارية|مباشر|الشوط|استراحة/i.test(s)) return true;
   if (/\b(1H|2H|HT|LIVE)\b/i.test(s)) return true;
   const gt = String(m.game_time || '');
-  return !!gt.replace(/\D/g, '') && !/:/.test(gt) && !isEnded(m);
+  if (!!gt.replace(/\D/g, '') && !/:/.test(gt) && !isEnded(m)) return true;
+  return liveMinute(m) != null;
 }
 function isEnded(m){
   if (!m || typeof m !== 'object') return false;
@@ -191,16 +205,21 @@ function isEnded(m){
   return /انتهت|نهاية|\bFT\b|\bFull-?Time\b/i.test(s);
 }
 function statusLabel(m){
-  // Decode first so `63&#039;` doesn't gain a second minute mark.
+  // Decode first so `63&#039;` doesn't gain a second minute mark. When the
+  // upstream minute is missing but wall-clock says live, show computed minute.
   const gt = dec(m.game_time || '').trim();
-  if (isLive(m)) return { cls: 'live', txt: gt ? (/['’]$/.test(gt) ? gt : gt + '’') : 'مباشر' };
+  const inf = liveMinute(m);
+  if (isLive(m)){
+    const t = gt ? (/['’]$/.test(gt) ? gt : gt + '’') : (inf != null ? inf + '’' : 'مباشر');
+    return { cls: 'live', txt: t };
+  }
   if (isEnded(m)) return { cls: '', txt: 'انتهت' };
   return { cls: '', txt: dec(m.time_text || '').trim() || '—' };
 }
 function playerLink(m){
   const q = new URLSearchParams({ id: m.id || '', href: m.href || '', home: m.home || '', away: m.away || '',
     hl: m.home_logo || '', al: m.away_logo || '', lg: m.league_text || m.league || '', tm: m.time_text || m.game_time || '', st: m.start || '',
-    so: m.official_status || m.status || '', gt: m.game_time || '', sh: m.score_home ?? '', sa: m.score_away ?? '' });
+    so: m.official_status || m.status || '', gt: m.game_time || '', sh: m.score_home ?? '', sa: m.score_away ?? '', ge: m.gameends || '' });
   return 'player.html?' + q.toString();
 }
 /* SEC: every match field comes from a third-party scrape — escape before
@@ -322,8 +341,11 @@ function rowCard(m){
   const st = statusLabel(m);
   const sh = (m.score_home !== '' && m.score_home != null) ? tx(m.score_home) : '';
   const sa = (m.score_away !== '' && m.score_away != null) ? tx(m.score_away) : '';
-  return `<a class="m${isLive(m) ? ' is-live' : ''}" href="${playerLink(m)}">
-    <div class="st"><div class="t">${tx((m.time_text || '').trim()) || '–'}</div>
+  const live = isLive(m);
+  // Status column shows the minute for live matches (never stale "لم تبدأ").
+  const top = live ? (st.txt === 'مباشر' ? '•' : st.txt) : (tx((m.time_text || '').trim()) || '–');
+  return `<a class="m${live ? ' is-live' : ''}" href="${playerLink(m)}">
+    <div class="st"><div class="t">${top}</div>
       <div class="s ${st.cls}">${tx(st.txt)}</div></div>
     <div class="teams">
       <div class="t">${logoImg(m.home_logo)}<span>${tx(m.home || '')}</span><b>${sh}</b></div>
