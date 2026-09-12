@@ -355,6 +355,26 @@ export default async function handler(req, res) {
       const s = String(u || '');
       return /^https:\/\//i.test(s) && !/[\s<>"]/.test(s) ? s.slice(0, 160) : '';
     };
+    // Exact live status from FotMob's own clock (authoritative — beats both
+    // URL params and wall-clock inference for the player card).
+    let live = { min: '', half: '' };
+    try {
+      const st = header.status || {};
+      const halves = st.halfs || {};
+      const done = (k) => !!(halves[k + 'Started'] && halves[k + 'Ended']);
+      const open = (k) => !!(halves[k + 'Started'] && !halves[k + 'Ended']);
+      let half = '';
+      if (general.finished) half = 'FT';
+      else if (open('secondHalf')) half = '2H';
+      else if (open('firstHalf')) half = '1H';
+      else if (done('firstHalf') && !halves.secondHalfStarted) half = 'HT';
+      let min = '';
+      if (st.liveTime && st.liveTime.short) {
+        const digits = String(st.liveTime.short).replace(/[^0-9+]/g, '');
+        if (digits) min = digits + '’';
+      }
+      live = { min, half };
+    } catch {}
     return res.status(200).json({
       found: true,
       matchId: best.id,
@@ -363,6 +383,7 @@ export default async function handler(req, res) {
       started: !!general.started,
       finished: !!general.finished,
       league: str40(general.leagueName || best.league),
+      live,
       lineups: { home: side(lineup.homeTeam), away: side(lineup.awayTeam) },
       stats, periods, events, topPlayers,
     });
