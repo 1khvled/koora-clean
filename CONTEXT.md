@@ -4,7 +4,23 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (commit `f41441d`, FotMob exact status + Streamed source §33).
+> Last updated: 2026-09-12 (sandbox verdict + vipbox direct §34, pending commit).
+
+## 34. Sandbox verdict: KEEP it + vipbox goes direct (2026-09-12, user: "remove sandbox, EN players dead", Edge 152)
+
+- **A/B tested with real embeds, sandbox vs none: IDENTICAL.** Vipbox loads
+  no media in either mode (bot-gated, plus it tries top-frame hijacks both
+  ways); Streamed `embed.st` pulls stream bytes in BOTH modes. The sandbox
+  is provably NOT what blocks playback — removing it would only reopen the
+  popup flood this project exists to kill. KEPT, with evidence.
+- **Real fix for EN playback:** vipbox entries now use the DIRECT page URL
+  instead of the `/api/vip` proxy. Rationale: the nested stream provider
+  gates on the parent page's URL — proxied pages arrive with our origin and
+  get denied; the genuine vipbox URL is allowlisted. `api/vip.js` deleted
+  (`git rm`) since nothing references it anymore (also removes a limited
+  open-proxy surface).
+- Verified locally pre-push: same 4 AR + 6 EN shape, direct vipbox URLs,
+  no `play` fields emitted; mirrors in sync.
 
 ## 33. FotMob exact status + Streamed source (2026-09-12, user: "use fotmob for exact starter" + "more reliable sources, test locally before push")
 

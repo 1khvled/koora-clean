@@ -265,11 +265,14 @@ export default async function handler(req, res) {
           const vh = await vr.text();
           const vt = (vh.match(/<title>([^<]*)<\/title>/i) || [])[1] || '';
           if (!new RegExp(`Video\\s*${n}\\b`, 'i').test(vt)) return null;
+          // NOTE: direct page URL on purpose (no /api/vip proxy). The nested
+          // stream provider gates on the parent page's URL — proxied pages
+          // arrive with OUR origin and get denied, while the genuine vipbox
+          // URL is allowlisted. Verified by A/B test 2026-09-12.
           return {
             label: `Video ${n}`,
             sub: best.clock || undefined,
             url: u,
-            play: `/api/vip?u=${encodeURIComponent(u)}`,
             kind: 'en',
             via: 'vipbox',
           };
