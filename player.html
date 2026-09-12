@@ -860,7 +860,7 @@ function paintMatch(h, a, hl, al, lg){
 /* boot() below paints after the short-link snapshot resolves. */
 
 /* multi-server state — one unified server grid.
-   supports new servers[] plus legacy embedUrl/livePage/fallbackUrl
+   supports new servers[] plus legacy embedUrl/livePage
    (startP is defined with the other params above) */
 let serverList = [], srvIdx = 0, blockTimes = [];
 const serversEl = document.getElementById('servers');
@@ -869,7 +869,6 @@ const srvNow = document.getElementById('srvNow');
 const srcNote = document.getElementById('srcNote');
 function kindTag(s){
   if (!s) return '';
-  if (s.kind === 'fallback') return 'احتياطي';
   if (s.kind === 'direct') return 'مباشر';
   if (s.kind === 'live') return 'واجهة كاملة';
   if (s.kind === 'tv') return 'قناة ٢٤/٧';
@@ -880,9 +879,15 @@ function subTag(s){
   // ad-block cosmetic lists remove page elements that mention stream brands.
   return [kindTag(s), s && s.sub].filter(Boolean).join(' • ');
 }
+function dispName(s, i){
+  // Source-hiding: buttons never carry upstream brand names — numbered
+  // plain. Only 24/7 TV channels keep real names (that IS the content).
+  if (s && s.kind === 'tv' && s.label) return s.label;
+  return 'سيرفر ' + (i + 1);
+}
 function btnHtml(s, i, on){
   // SEC: labels/subs come from upstream scrapes — decode then escape.
-  return `<button class="srv${on ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${esc(decFull(s.label)) || ('سيرفر ' + (i + 1))}</b><span>${esc(decFull(subTag(s)))}</span></span></button>`;
+  return `<button class="srv${on ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${esc(decFull(dispName(s, i)))}</b><span>${esc(decFull(subTag(s)))}</span></span></button>`;
 }
 function showSkeleton(){
   serversEl.innerHTML = [1, 2, 3].map(i =>
@@ -899,7 +904,7 @@ function showServersFromList(list){
   serverList = [...ar];
   srvIdx = 0;
   if (!ar.length){
-    serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>لا توجد سيرفرات</b><span>اضغط لإعادة المحاولة</span></span></button>`;
+    serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>لا توجد روابط بث</b><span>لا يوجد بث متاح حالياً — اضغط لإعادة المحاولة</span></span></button>`;
     document.getElementById('retryBtn').onclick = () => loadRealPlayer();
     srvCount.hidden = true;
     srvNow.textContent = 'لا يوجد بث متاح حالياً';
@@ -911,17 +916,13 @@ function showServersFromList(list){
   }
   paintNow();
   if (ar.length){
-    const fb = ar.filter(s => s.kind === 'fallback').length;
-    const live = ar.length - fb;
     srcNote.hidden = false;
-    srcNote.textContent = live > 0
-      ? `${live} سيرفر بث مباشر${fb ? ' + صفحة المباراة كاحتياطي' : ''} — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.`
-      : 'لا يوجد بث مباشر حالياً — تُعرض صفحة المباراة كحل احتياطي.';
+    srcNote.textContent = `${ar.length} سيرفر بث مباشر — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.`;
   }
 }
 function paintNow(){
   const s = serverList[srvIdx];
-  srvNow.textContent = s ? `تشاهد الآن: ${s.label || ('سيرفر ' + (srvIdx + 1))} (${srvIdx + 1}/${serverList.length})` : '';
+  srvNow.textContent = s ? `تشاهد الآن: ${dispName(s, srvIdx)} (${srvIdx + 1}/${serverList.length})` : '';
   [...serversEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
 }
 /* SEC: stream URLs come from third-party scrapes — only http(s) absolute or
@@ -967,7 +968,7 @@ async function loadRealPlayer(){
     if (!demoSrc){ toast('رابط البروكسي المحفوظ غير صالح'); return; }
     iframe.src = demoSrc;
     lastCleanSrc = demoSrc;
-    showServersFromList([{ label: 'سيرفر تجريبي', url: demoSrc, kind: 'direct', via: 'demo' }]);
+    showServersFromList([{ label: 'سيرفر تجريبي', url: demoSrc, kind: 'direct' }]);
     return;
   }
   // Robust load: 12s timeout + one automatic retry. Previously a hung API
@@ -1002,7 +1003,7 @@ async function loadRealPlayer(){
     }
   };
   try {
-    // 24/7 fallback channels (/api/alwan): kicked off BEFORE awaiting the
+    // 24/7 channels (/api/alwan): kicked off BEFORE awaiting the
     // match API so both fly in parallel; fail-silent — a dead endpoint must
     // never break match streams.
     const alwanP = (async () => {
@@ -1017,7 +1018,7 @@ async function loadRealPlayer(){
           return j.channels
             .filter(c => c && typeof c.url === 'string' && /^https:\/\//i.test(c.url))
             .slice(0, 6)
-            .map(c => ({ label: String(c.name || '').slice(0, 30), url: c.url, kind: 'tv', via: 'alwan' }));
+            .map(c => ({ label: String(c.name || '').slice(0, 30), url: c.url, kind: 'tv' }));
         } finally { clearTimeout(ato); }
       } catch { return []; }
     })();
@@ -1026,28 +1027,19 @@ async function loadRealPlayer(){
     let list = [];
     if (data && Array.isArray(data.servers) && data.servers.length) list = data.servers;
     else if (data) {
-      if (data.embedUrl) list.push({ label: 'المشغّل الرئيسي', url: data.embedUrl, kind: 'leaf', via: data.via || 'hd7livex' });
-      if (data.livePage) list.push({ label: 'سيرفرات بديلة', url: data.livePage, kind: 'live', via: data.via || 'hd7livex' });
-      if (data.fallbackUrl) list.push({ label: 'صفحة المباراة (احتياطي)', url: data.fallbackUrl, kind: 'fallback', via: 'fallback' });
+      if (data.embedUrl) list.push({ label: 'المشغّل الرئيسي', url: data.embedUrl, kind: 'leaf' });
+      if (data.livePage) list.push({ label: 'سيرفرات بديلة', url: data.livePage, kind: 'live' });
     }
-    // Merge 24/7 channels right BEFORE the fallback entry (after hd7 leafs).
-    // showServersFromList dedups by url + drops unplayable srcs, and goServer
-    // skips BLOCK_RE hits — no extra guard needed here.
+    // Merge 24/7 channels after the match servers. showServersFromList
+    // dedups by url + drops unplayable srcs, and goServer skips BLOCK_RE
+    // hits — no extra guard needed here.
     try {
       const alwan = await alwanP;
-      if (alwan.length){
-        const fbIdx = list.findIndex(s => s && s.kind === 'fallback');
-        if (fbIdx >= 0) list.splice(fbIdx, 0, ...alwan);
-        else list.push(...alwan);
-      }
+      if (alwan.length) list.push(...alwan);
     } catch {}
     showServersFromList(list);
-    if (serverList.length){
-      goServer(0, false);
-      if (serverList[0].kind === 'fallback') toast('لا يوجد بث مباشر — صفحة المباراة');
-    } else {
-      toast('لا يوجد بث متاح حالياً');
-    }
+    if (serverList.length) goServer(0, false);
+    else toast('لا يوجد بث متاح حالياً');
     loadRealPlayer._busy = false;
   } catch (e){
     failBox();

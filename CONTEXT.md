@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (ESPN real minutes, see CONTEXT 38).
+> Last updated: 2026-09-12 (fallback removed + sources hidden, see CONTEXT 39).
+
+## 39. Fallback match-page removed + source brands hidden (2026-09-12, user: "remove page, say no links, don't expose sources")
+
+- **Fallback page GONE.** `api/player.js` no longer serves `fallbackUrl` /
+  the `fallback` entry; player never iframes the match page. Empty result
+  (after the 24/7 channels merge) shows the no-links state ("no stream
+  links" + retry). `found:false` now means zero servers, message updated.
+- **Sources hidden (UI choke point + JSON).** New `dispName()`: every server
+  button + "watching now" line shows plain numbered names — upstream brand
+  labels never reach the screen (only 24/7 TV channels keep real names,
+  that IS the content). Server: yacine labels genericized, all brand
+  `via` values (`kooralive`/`hd7livex`/`yacine`/`fallback`/`mixed`) replaced
+  with generic `direct`/`live`/`none`; provider strings purged from client
+  code/comments. Server internals (fetch URLs, resolver names) stay as-is —
+  invisible to browsers.
+- Verified: `node --check` player inline + ESM `import()` of `api/player.js`
+  green, zero `fallbackUrl`/`fallback`-kind/`hd7livex` refs in player UI
+  paths, mirrors byte-identical.
 
 ## 38. ESPN real minutes — free API hooked, no scraping (2026-09-12, user: "find some free API, hook it, no scraping")
 
