@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (FotMob exact status + Streamed source §33, pending commit).
+> Last updated: 2026-09-12 (commit `f41441d`, FotMob exact status + Streamed source §33).
 
 ## 33. FotMob exact status + Streamed source (2026-09-12, user: "use fotmob for exact starter" + "more reliable sources, test locally before push")
 
