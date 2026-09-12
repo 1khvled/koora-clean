@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (sandbox verdict + vipbox direct §34, pending commit).
+> Last updated: 2026-09-12 (commit `f4d5489`, sandbox verdict + vipbox direct §34).
 
 ## 34. Sandbox verdict: KEEP it + vipbox goes direct (2026-09-12, user: "remove sandbox, EN players dead", Edge 152)
 
