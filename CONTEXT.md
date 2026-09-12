@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (admin renamed + key-exposure finding, see CONTEXT 42).
+> Last updated: 2026-09-13 (admin v2 English + KPIs, see CONTEXT 43).
+
+## 43. Admin v2: English + real KPIs (2026-09-13, user: "english admin, not basic, improve it")
+
+- **Full rewrite in English** (`dzt3ch456.html`, LTR, zero Arabic). 6 KPI
+  cards: views today / range total (+WoW % vs prior equal period) / likes /
+  matches / avg-day / best day. 7/14/30-day range switch (client-side
+  recompute from one 60d fetch), views-per-day + likes-per-day canvas charts
+  (gridlines, DPR-aware), top-matches table with live filter, traffic-source
+  table with share %, CSV export, manual + 60s auto refresh.
+- Verified: 11/11 runtime assertions on the SHIPPED file with stubbed DOM
+  (cards incl. delta, both charts data paths, tables, range switch;
+  one TZ artifact in the harness fixed, not product). `node --check`
+  clean, byte audit: no Arabic, only intended punctuation.
 
 ## 42. Admin page renamed to obscure URL + anon-key exposure finding (2026-09-12, user: "no one can find it, hackers can't, right?")
 
