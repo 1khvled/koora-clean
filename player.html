@@ -100,10 +100,6 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .srv.on::after{content:"";position:absolute;inset-inline-end:8px;top:8px;width:9px;
   height:9px;border-radius:50%;background:var(--live);
   box-shadow:0 0 0 3px rgba(224,32,46,.18)}
-.srv.en .meta b{direction:ltr;unicode-bidi:plaintext}
-.srv .enbadge{flex:none;font-size:10px;font-weight:900;background:#1e3a30;color:#9fd3b4;
-  border-radius:6px;padding:2px 7px;letter-spacing:.5px}
-.srv.on .enbadge{background:var(--gold);color:#231a00}
 /* match info (FotMob): stats, lineups, ratings, events */
 .minfo{margin-top:14px;background:var(--card);border:1px solid var(--line);
   border-radius:var(--radius);padding:14px}
@@ -299,12 +295,6 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
   </div>
   <div class="servers" id="servers"></div>
   <p class="src-note" id="srcNote" hidden></p>
-  <div class="src-head" id="enHead" hidden>
-    <h2>🇬🇧 مصادر إنجليزية <span class="n" id="enCount" hidden>0</span></h2>
-    <small>تعليق إنجليزي • VIPBox</small>
-  </div>
-  <div class="servers" id="enServers" hidden></div>
-  <p class="src-note" id="enNote" hidden></p>
   <div class="controls">
     <button class="btn" id="btnFull">⛶ ملء الشاشة</button>
     <button class="btn ghost" id="btnReload">⟳ إعادة تحميل</button>
@@ -452,55 +442,44 @@ function paintMatch(h, a, hl, al, lg){
 }
 paintMatch(home, away, homeLogo, awayLogo, leagueP);
 
-/* multi-server state — one unified list, two views: Arabic grid + English grid.
-   supports new servers[]/enServers[] plus legacy embedUrl/livePage/fallbackUrl
+/* multi-server state — one unified server grid.
+   supports new servers[] plus legacy embedUrl/livePage/fallbackUrl
    (startP is defined with the other params above) */
 let serverList = [], srvIdx = 0, blockTimes = [];
 const serversEl = document.getElementById('servers');
 const srvCount = document.getElementById('srvCount');
 const srvNow = document.getElementById('srvNow');
 const srcNote = document.getElementById('srcNote');
-const enHead = document.getElementById('enHead');
-const enEl = document.getElementById('enServers');
-const enCount = document.getElementById('enCount');
-const enNote = document.getElementById('enNote');
 function kindTag(s){
   if (!s) return '';
   if (s.kind === 'fallback') return 'احتياطي';
   if (s.kind === 'direct') return 'مباشر';
   if (s.kind === 'live') return 'واجهة كاملة';
-  if (s.kind === 'en') return 'إنجليزي';
   if (s.kind === 'tv') return 'قناة ٢٤/٧';
   return 'سيرفر';
 }
 function subTag(s){
   // NOTE: keep brand names OUT of button text (only kind + time) — some
-  // ad-block cosmetic lists remove page elements that mention stream brands,
-  // which once left an EN header with zero visible buttons.
-  if (s && s.kind === 'en') return [kindTag(s), s.sub].filter(Boolean).join(' • ');
-  return [kindTag(s), s.sub].filter(Boolean).join(' • ');
+  // ad-block cosmetic lists remove page elements that mention stream brands.
+  return [kindTag(s), s && s.sub].filter(Boolean).join(' • ');
 }
 function btnHtml(s, i, on){
-  const en = s.kind === 'en';
-  // SEC: labels/subs come from upstream scrapes (hd7 tab names, vipbox titles) — decode then escape.
-  return `<button class="srv${en ? ' en' : ''}${on ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${esc(decFull(s.label)) || ('سيرفر ' + (i + 1))}</b><span>${esc(decFull(subTag(s)))}</span></span>${en ? '<span class="enbadge">EN</span>' : ''}</button>`;
+  // SEC: labels/subs come from upstream scrapes — decode then escape.
+  return `<button class="srv${on ? ' on' : ''}" data-i="${i}"><span class="num">${i + 1}</span><span class="meta"><b>${esc(decFull(s.label)) || ('سيرفر ' + (i + 1))}</b><span>${esc(decFull(subTag(s)))}</span></span></button>`;
 }
 function showSkeleton(){
   serversEl.innerHTML = [1, 2, 3].map(i =>
     `<button class="srv skel" disabled><span class="num">${i}</span><span class="meta"><b>…</b><span>جاري البحث…</span></span></button>`
   ).join('');
-  enEl.innerHTML = '';
   srvCount.hidden = true;
-  enCount.hidden = true;
   srvNow.textContent = 'جاري البحث عن السيرفرات…';
   srcNote.hidden = true;
-  enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
 }
-function showServersFromList(list, enList){
+function showServersFromList(list){
   // Drop unplayable URLs up-front so counts never include dead servers.
   const dedup = (arr) => (arr || []).filter(s => s && s.url && safeSrc(s.play || s.url)).filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
-  const ar = dedup(list), en = dedup(enList);
-  serverList = [...ar, ...en].filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
+  const ar = dedup(list);
+  serverList = [...ar];
   srvIdx = 0;
   if (!ar.length){
     serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>لا توجد سيرفرات</b><span>اضغط لإعادة المحاولة</span></span></button>`;
@@ -512,22 +491,6 @@ function showServersFromList(list, enList){
     srvCount.textContent = ar.length;
     serversEl.innerHTML = ar.map((s) => btnHtml(s, serverList.indexOf(s), serverList.indexOf(s) === 0)).join('');
     [...serversEl.children].forEach(b => { if (b.id !== 'retryBtn') b.onclick = () => goServer(+b.dataset.i, false); });
-  }
-  if (en.length){
-    // Populate the grid FIRST, reveal the header only after — so a header
-    // with no buttons can never be left on screen, whatever happens.
-    enEl.innerHTML = en.map((s) => btnHtml(s, serverList.indexOf(s), false)).join('');
-    [...enEl.children].forEach(b => b.onclick = () => goServer(+b.dataset.i, false));
-    enCount.textContent = en.length;
-    enNote.textContent = 'مصادر VIPBox الخاصة بهذه المباراة بتعليق إنجليزي — جرّب Video 2 أو 3 إذا تقطّع الأول.';
-    if (enEl.children.length){
-      enHead.hidden = false; enEl.hidden = false; enNote.hidden = false;
-      enCount.hidden = false;
-    } else {
-      enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
-    }
-  } else {
-    enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
   }
   paintNow();
   if (ar.length){
@@ -543,7 +506,6 @@ function paintNow(){
   const s = serverList[srvIdx];
   srvNow.textContent = s ? `تشاهد الآن: ${s.label || ('سيرفر ' + (srvIdx + 1))} (${srvIdx + 1}/${serverList.length})` : '';
   [...serversEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
-  [...enEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
 }
 /* SEC: stream URLs come from third-party scrapes — only http(s) absolute or
    site-relative paths may ever reach the iframe. This kills `javascript:`,
@@ -602,9 +564,7 @@ async function loadRealPlayer(){
     loadRealPlayer._busy = false;
     serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>تعذّر التحميل</b><span>اضغط لإعادة المحاولة</span></span></button>`;
     document.getElementById('retryBtn').onclick = () => loadRealPlayer();
-    enEl.innerHTML = '';
     srvCount.hidden = true;
-    enHead.hidden = true; enEl.hidden = true; enNote.hidden = true;
     srcNote.hidden = true;
     srvNow.textContent = 'تحقق من الاتصال ثم أعد المحاولة';
     toast('تعذّر تحميل البث — تحقق من الاتصال');
@@ -653,7 +613,6 @@ async function loadRealPlayer(){
       if (data.livePage) list.push({ label: 'سيرفرات بديلة', url: data.livePage, kind: 'live', via: data.via || 'hd7livex' });
       if (data.fallbackUrl) list.push({ label: 'صفحة المباراة (احتياطي)', url: data.fallbackUrl, kind: 'fallback', via: 'fallback' });
     }
-    const enList = (data && Array.isArray(data.enServers)) ? data.enServers : [];
     // Merge 24/7 channels right BEFORE the fallback entry (after hd7 leafs).
     // showServersFromList dedups by url + drops unplayable srcs, and goServer
     // skips BLOCK_RE hits — no extra guard needed here.
@@ -665,10 +624,7 @@ async function loadRealPlayer(){
         else list.push(...alwan);
       }
     } catch {}
-    showServersFromList(list, enList);
-    // Play from the UNIFIED list (Arabic first, English fallback) — using only
-    // the Arabic `list` here left a black player when Arabic was empty but
-    // English videos existed.
+    showServersFromList(list);
     if (serverList.length){
       goServer(0, false);
       if (serverList[0].kind === 'fallback') toast('لا يوجد بث مباشر — صفحة المباراة');

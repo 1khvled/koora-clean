@@ -4,7 +4,27 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (commit `f4d5489`, sandbox verdict + vipbox direct §34).
+> Last updated: 2026-09-12 (yacinelive source + English removal §35, pending commit).
+
+## 35. YacineLive source IN, English sources OUT (2026-09-12, owner: new site + "delete english")
+
+- **Probe:** yacinelive.online is the same AlbaYallaShoot family (Arabic
+  names) and its cards link DIRECTLY to per-match stream pages
+  (`shooot.yala-go.online/.../sport-N.html`), each holding a static
+  `playerv5.php` embed on the alive `yasirtv.com` host (the fabortvcdn twin
+  is TLS-dead — same key, different host). Player shell confirmed 200 with
+  no framing denial.
+- **New `resolveYacine`:** list → shooot page → playerv5/albaplayer extract,
+  all static. Arabic→Arabic direct normalized matching (no transliteration),
+  straight+swapped order, threshold ≥2.5/4 tuned on the live page (exact
+  4.00, next 0.00–2.00). Merged after hd7 as `ياسين N` buttons.
+- **English deleted:** `resolveVipboxMatch` + `resolveStreamed` + all fuzzy
+  machinery (AR_TR/trAr/normLat/editDist/EN_STOP/LEAGUE_MAP/leagueHit/wallMin)
+  removed from `api/player.js`; EN section (HTML/CSS/JS incl. badges, grids,
+  legacy note) removed from player. `enServers:[]`/`enCount:0` kept in
+  responses for mixed-version safety.
+- Verified end-to-end on a live card (رحيمو): 4 servers incl. working yacine
+  leaf; render/switch clean on 390+768, zero errors; mirrors in sync.
 
 ## 34. Sandbox verdict: KEEP it + vipbox goes direct (2026-09-12, user: "remove sandbox, EN players dead", Edge 152)
 

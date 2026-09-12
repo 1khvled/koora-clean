@@ -5,8 +5,6 @@ export default async function handler(req, res) {
   // the /api/matches self-lookup (also used by local tests).
   const qHome = (req.query.home || '').toString();
   const qAway = (req.query.away || '').toString();
-  const qStart = (req.query.start || '').toString();
-  const qLeague = (req.query.lg || req.query.league || '').toString();
 
   // Fetch with a hard timeout (serverless-friendly). Default 6s: typical
   // upstreams answer in 1-3s; hung ones must die fast inside the 10s budget.
@@ -122,237 +120,64 @@ export default async function handler(req, res) {
     } catch { return null; }
   };
   
-  // VIPBox English section (added 2026-09-08, fixed same day): the vipbox
-  // player is JS-rendered + encrypted (no static iframe to extract), but its
-  // /football-schedule IS static HTML with English titles. We map OUR match
-  // (Arabic names) to THEIR slug via Arabic->Latin transliteration + fuzzy
-  // token scoring (tuned on 11 real pairs: correct title always wins), with
-  // league-token + wall-clock bonuses. Returns ONLY this match's verified
-  // videos (Video 1..3, each status-checked) — never other matches.
-  // Fail-open: no confident match -> [] and the section stays hidden.
-  const AR_TR = {
-    'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a', 'ء': '', 'ؤ': 'w', 'ئ': 'y',
-    'ب': 'b', 'ة': 'a', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh',
-    'د': 'd', 'ذ': 'd', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh',
-    'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh',
-    'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
-    'ه': 'h', 'و': 'o', 'ي': 'y', 'ى': 'a', 'ـ': '', ' ': ' ',
+// YacineLive (added 2026-09-12): same AlbaYallaShoot theme family, ARABIC
+// names (no transliteration needed — direct normalized matching). Chain, all
+// statically fetchable:
+//   yacinelive.online/matches-today/ -> shooot.yala-go.online/.../sport-N.html
+//     -> playerv5.php embed (yasirtv host, alive; fabortvcdn twin is TLS-dead)
+// Returns { playerSrc, servers: [{label, url}] } or null. Fail-open.
+const teamScore = (q, c) => {
+  if (!q || !c) return 0;
+  if (q === c) return 2;
+  if (q.includes(c) || c.includes(q)) return 1.5;
+  const qt = q.split(' ').filter(t => t.length > 1);
+  const ct = c.split(' ').filter(t => t.length > 1);
+  if (!qt.length || !ct.length) return 0;
+  let hit = 0;
+  for (const t of qt) {
+    if (ct.some(u => u === t || (u.length > 2 && t.length > 2 && (u.includes(t) || t.includes(u))))) hit++;
+  }
+  return hit / Math.max(qt.length, ct.length);
+};
+const resolveYacine = async (home, away) => {
+  const nH = normAr(home), nA = normAr(away);
+  if (!nH && !nA) return null;
+  const UA = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml',
   };
-  const EN_STOP = new Set(['vs', 'fc', 'sc', 'ac', 'cf', 'as', 'kf', 'fk', 'sk', 'if', 'bk', 'cd', 'ud', 'ssc']);
-  const trAr = (s) => (s || '').replace(/[ً-ْٰ]/g, '').split('')
-    .map(c => AR_TR[c] !== undefined ? AR_TR[c] : c).join('')
-    .toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
-  const normLat = (s) => (s || '').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
-  const editDist = (a, b) => {
-    const m = a.length, n = b.length;
-    if (!m) return n; if (!n) return m;
-    let prev = [...Array(n + 1).keys()], cur = new Array(n + 1);
-    for (let i = 1; i <= m; i++) {
-      cur[0] = i;
-      for (let j = 1; j <= n; j++)
-        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-      const tmp = prev; prev = cur; cur = tmp;
+  try {
+    const dayRes = await fetchT('https://yacinelive.online/matches-today/', { headers: { ...UA, Referer: 'https://yacinelive.online/' } });
+    if (!dayRes.ok) return null;
+    const day = await dayRes.text();
+    // One block per match card; link = shooot stream page, names = TM_Name spans.
+    const blocks = day.split('AY_Match').slice(1);
+    let best = null;
+    let bestScore = -1;
+    for (const b of blocks) {
+      const link = (b.match(/<a[^>]+href="([^"]*shooot[^"]*)"/i) || [])[1];
+      const names = [...b.matchAll(/TM_Name">([^<]+)</gi)].map(m => normAr(m[1]));
+      if (!link || names.length < 2) continue;
+      const straight = teamScore(nH, names[0]) + teamScore(nA, names[1]);
+      const swapped = teamScore(nH, names[1]) + teamScore(nA, names[0]);
+      const score = Math.max(straight, swapped);
+      if (score > bestScore) { bestScore = score; best = link; }
     }
-    return prev[n];
-  };
-  const fuzzyArEn = (home, away, enTitle) => {
-    const arToks = trAr(home + ' ' + away).split(' ').filter(t => t.length >= 2);
-    // Conflate letters Arabic has no distinct form for: v->f, p->b
-    // (ليفربول/liverpool, نابولي/napoli, فياريال/villarreal).
-    const enToks = normLat(enTitle).replace(/v/g, 'f').replace(/p/g, 'b')
-      .split(' ').filter(t => t && !EN_STOP.has(t));
-    if (!arToks.length || !enToks.length) return 99;
-    let total = 0;
-    for (const t of arToks) {
-      let best = Infinity;
-      for (const e of enToks) {
-        const d = editDist(t, e) / Math.max(t.length, e.length);
-        if (d < best) best = d;
-      }
-      total += best;
-    }
-    return total;
-  };
-  // Arabic league substring -> vipbox schedule tokens (tokens are countries
-  // like 'england'/'saudi-arabia' or competitions like 'champions-league').
-  const LEAGUE_MAP = [
-    ['أبطال أوروبا', ['champions-league']], ['الأوروبي', ['europa-league']],
-    ['المؤتمر', ['conference-league']], ['الإنجليز', ['england', 'premier-league']],
-    ['الإسبان', ['spain', 'la-liga']], ['الإيطال', ['italy', 'serie-a']],
-    ['الألمان', ['germany', 'bundesliga']], ['الفرنس', ['france', 'ligue-1']],
-    ['البرتغال', ['portugal']], ['الهولند', ['netherlands']], ['التركي', ['turkey', 'turkiye']],
-    ['السعود', ['saudi-arabia']], ['روشن', ['saudi-arabia']], ['الإسكتلند', ['scotland']],
-    ['البرازيل', ['brazil']], ['الأرجنتين', ['argentina']], ['المكسيك', ['mexico']],
-    ['أمريك', ['united-states']], ['كأس العالم', ['worldcup']], ['كوبا', ['copa-america']],
-    ['اليونان', ['greece']], ['بلجيك', ['belgium']], ['النمسا', ['austria']],
-    ['سويسر', ['switzerland']], ['الدنمارك', ['denmark']], ['النرويج', ['norway']],
-    ['السويد', ['sweden']], ['كروات', ['croatia']], ['صرب', ['serbia']],
-    ['التشيك', ['czech-republic']], ['بولند', ['poland']], ['أوكران', ['ukraine']],
-    ['اليابان', ['japan']], ['كوريا', ['south-korea', 'korea']], ['الصين', ['china']],
-    ['أسترال', ['australia']], ['المغرب', ['morocco']], ['الجزائر', ['algeria']],
-    ['تونس', ['tunisia']], ['الإمارات', ['uae']], ['قطر', ['qatar']],
-  ];
-  // Hamza-insensitive: upstream writes اوروبا while the map has أوروبا.
-  const normHamza = (s) => (s || '').replace(/[أإآ]/g, 'ا');
-  const leagueHit = (arLeague, vipToken) => {
-    if (!arLeague || !vipToken) return false;
-    arLeague = normHamza(arLeague);
-    const tok = vipToken.toLowerCase();
-    return LEAGUE_MAP.some(([ar, toks]) =>
-      arLeague.includes(normHamza(ar)) && toks.some(v => tok === v || tok.includes(v) || v.includes(tok)));
-  };
-  // Wall-clock HH:MM straight from the ISO strings (no Date/TZ math — the two
-  // sites use different zones, so this is a soft bonus only, never a filter).
-  const wallMin = (iso) => {
-    const m = (iso || '').match(/T(\d{2}):(\d{2})/);
-    return m ? (+m[1]) * 60 + (+m[2]) : null;
-  };
-  const resolveVipboxMatch = async (home, away, startIso, leagueAr) => {
-    if (!normAr(home) && !normAr(away)) return [];
-    const UA = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml',
-      'Referer': 'https://vipbox.lc/',
+    // Both teams must substantially match (>= 2.5 of max 4).
+    if (!best || bestScore < 2.5) return null;
+    const spRes = await fetchT(best, { headers: { ...UA, Referer: 'https://yacinelive.online/matches-today/' } });
+    if (!spRes.ok) return null;
+    const sp = await spRes.text();
+    const urls = [...sp.matchAll(/(https:\/\/[a-z0-9.\-]+\/(?:playerv5\.php[^"'<\s]*|albaplayer[^"'<\s]*))/gi)]
+      .map(m => fixUrl(m[1])).filter(Boolean);
+    const clean = [...new Set(urls)].slice(0, 2);
+    if (!clean.length) return null;
+    return {
+      playerSrc: clean[0],
+      servers: clean.map((u, i) => ({ label: `ياسين ${i + 1}`, url: u })),
     };
-    try {
-      const r = await fetchT('https://vipbox.lc/football-schedule', { headers: UA }, 8000);
-      if (!r.ok) return [];
-      const html = await r.text();
-      const anchors = [...html.matchAll(/<a[^>]+href="\/onair\/football\/([A-Za-z0-9\-]+)"[^>]*title="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
-      const seen = new Set();
-      const items = [];
-      for (const a of anchors) {
-        const slug = a[1].toLowerCase();
-        const title = (a[2] || '').trim().replace(/\s+/g, ' ');
-        if (!slug || !title || seen.has(slug)) continue;
-        seen.add(slug);
-        const inner = a[3] || '';
-        const tM = inner.match(/<span[^>]+content="([^"]+)"[^>]*>/i);
-        const kickoff = tM ? tM[1] : null;
-        const clock = (kickoff && (kickoff.match(/(\d{2}:\d{2})/) || [])[1]) || '';
-        const lM = inner.match(/vip-box\s+([a-z\-]+)/i);
-        const league = lM ? lM[1].toLowerCase() : '';
-        items.push({ slug, title, kickoff, clock, league });
-      }
-      if (!items.length) return [];
-      // Rank by fuzzy name score only. League/kickoff are CORROBORATION
-      // (never filters — the two sites use different timezones and the league
-      // map can miss). Tuned 2026-09-08 on 10 cases: 4/4 present matches
-      // accepted, 6/6 absent correctly rejected (incl. the Atalanta/Atlante
-      // near-collision, killed by the corroboration clause).
-      const refMin = wallMin(startIso);
-      const scored = items.map(it => ({ ...it, fz: fuzzyArEn(home, away, it.title) }))
-        .sort((x, y) => x.fz - y.fz);
-      const best = scored[0];
-      const second = scored[1];
-      if (!best || best.fz > 1.4) return [];
-      if (second && (second.fz - best.fz) < 0.25) return [];
-      const lh = leagueHit(leagueAr, best.league);
-      let dd = null;
-      if (refMin !== null && best.kickoff && wallMin(best.kickoff) !== null) {
-        const d = Math.abs(wallMin(best.kickoff) - refMin);
-        dd = Math.min(d, 1440 - d);
-      }
-      if (!lh && (dd === null || dd > 45)) return [];
-      // Verify Video 1..3 exist (status + title) so we never show dead
-      // buttons — in parallel with short budgets (sequential 3x6s + 8s
-      // schedule blew the 10s serverless limit under load).
-      const vids = (await Promise.all([1, 2, 3].map(async (n) => {
-        try {
-          const u = `https://vipbox.lc/live/football/${best.slug}-${n}`;
-          const vr = await fetchT(u, { headers: UA }, 5000);
-          if (!vr.ok) return null;
-          const vh = await vr.text();
-          const vt = (vh.match(/<title>([^<]*)<\/title>/i) || [])[1] || '';
-          if (!new RegExp(`Video\\s*${n}\\b`, 'i').test(vt)) return null;
-          // NOTE: direct page URL on purpose (no /api/vip proxy). The nested
-          // stream provider gates on the parent page's URL — proxied pages
-          // arrive with OUR origin and get denied, while the genuine vipbox
-          // URL is allowlisted. Verified by A/B test 2026-09-12.
-          return {
-            label: `Video ${n}`,
-            sub: best.clock || undefined,
-            url: u,
-            kind: 'en',
-            via: 'vipbox',
-          };
-        } catch { return null; }
-      }))).filter(Boolean);
-      return vids;
-    } catch { return []; }
-  };
-  // Streamed (added 2026-09-12): free, no-auth, DOCUMENTED JSON API —
-  //   GET {base}/api/matches/football -> [{id, title, date(ms), teams, sources:[{source,id}]}]
-  //   GET {base}/api/stream/{source}/{id} -> [{embedUrl, language, hd, viewers}]
-  // Only non-empty stream entries are surfaced (echo/admin shells return []).
-  // Entries are iframed (embed.st shells, no framing headers); the existing
-  // click-shield/SW/popup-guard stack covers them like all iframe sources.
-  // Mirrors: streamed.pk primary, streamed.st fallback (operator rotates).
-  const STREAMED_BASES = ['https://streamed.pk', 'https://streamed.st'];
-  const resolveStreamed = async (home, away, startIso) => {
-    if (!normAr(home) && !normAr(away)) return [];
-    const UA = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
-      'Accept': 'application/json, text/plain, */*',
-    };
-    const refMin = (() => {
-      const m = (startIso || '').match(/T(\d{2}):(\d{2})/);
-      return m ? (+m[1]) * 60 + (+m[2]) : null;
-    })();
-    const refMs = startIso ? Date.parse(startIso) : NaN;
-    try {
-      let list = null;
-      for (const base of STREAMED_BASES) {
-        try {
-          const r = await fetchT(`${base}/api/matches/football`, { headers: UA }, 7000);
-          if (!r.ok) continue;
-          const j = await r.json();
-          if (Array.isArray(j) && j.length) { list = { base, items: j }; break; }
-        } catch {}
-      }
-      if (!list) return [];
-      // Absolute epoch times on both sides — exact proximity, no TZ hacks.
-      // Only matches in a live-ish window (started ≤105min ago, starts ≤30min ahead).
-      const nowMs = Date.now();
-      const pool = list.items.filter(m => m && m.title && typeof m.date === 'number'
-        && (nowMs - m.date) <= 105 * 60000 && (m.date - nowMs) <= 30 * 60000);
-      if (!pool.length) return [];
-      const scored = pool.map(it => {
-        const t = (it.teams && it.teams.home && it.teams.away)
-          ? `${it.teams.home.name} vs ${it.teams.away.name}` : (it.title || '');
-        return { ...it, _t: t, fz: fuzzyArEn(home, away, t) };
-      }).sort((x, y) => x.fz - y.fz);
-      const best = scored[0], second = scored[1];
-      if (!best || best.fz > 1.4) return [];
-      if (second && (second.fz - best.fz) < 0.25) return [];
-      // Query every source in parallel; keep entries with real embed URLs.
-      const got = (await Promise.all(((best.sources || []).slice(0, 6)).map(async (s) => {
-        try {
-          if (!s || !s.source || !s.id) return [];
-          const r = await fetchT(`${list.base}/api/stream/${encodeURIComponent(s.source)}/${encodeURIComponent(s.id)}`,
-            { headers: UA }, 6000);
-          if (!r.ok) return [];
-          const j = await r.json();
-          return Array.isArray(j) ? j : [];
-        } catch { return []; }
-      }))).flat().filter(e => e && typeof e.embedUrl === 'string' && /^https:\/\//i.test(e.embedUrl));
-      // Prefer English + HD + most viewers (deduped, cap 3).
-      const seen = new Set();
-      return got
-        .filter(e => { if (seen.has(e.embedUrl)) return false; seen.add(e.embedUrl); return true; })
-        .sort((a, b) => {
-          const en = (x) => /english/i.test(x.language || '') ? 0 : 1;
-          if (en(a) !== en(b)) return en(a) - en(b);
-          if (!!a.hd !== !!b.hd) return a.hd ? -1 : 1;
-          return (b.viewers || 0) - (a.viewers || 0);
-        })
-        .slice(0, 3)
-        .map((e, i) => ({
-          label: `${e.language || 'Stream'} ${i + 1}${e.hd ? ' • HD' : ''}`,
-          url: e.embedUrl, kind: 'en', via: 'streamed',
-        }));
-    } catch { return []; }
-  };
+  } catch { return null; }
+};
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=30');
@@ -469,19 +294,12 @@ export default async function handler(req, res) {
     // Clean direct src if we got one.
     if (playerSrc && playerSrc.startsWith('//')) playerSrc = 'https:' + playerSrc;
 
-    // Always try the hd7livex multi-server chain too (it is the only source
-    // proven to yield playable leaf embeds). Merged below with direct/fallback.
-    // VIPBox schedule resolves in parallel (independent fetch, fail-open).
-    const [hd7, vipServers, streamedServers] = await Promise.all([
+    // hd7livex multi-server chain + yacine, in parallel (fail-open each).
+    const [hd7, yacine] = await Promise.all([
       resolveHd7(matchHome, matchAway).catch(() => null),
-      resolveVipboxMatch(matchHome, matchAway, qStart || null, qLeague || null).catch(() => []),
-      resolveStreamed(matchHome, matchAway, qStart || null).catch(() => []),
+      resolveYacine(matchHome, matchAway).catch(() => null),
     ]);
-    const seenEn = new Set();
-    const enServers = [];
-    for (const s of [...(vipServers || []), ...(streamedServers || [])]) {
-      if (s && s.url && !seenEn.has(s.url)) { seenEn.add(s.url); enServers.push(s); }
-    }
+    const enServers = []; // English section removed 2026-09-12 (owner request)
 
     const servers = [];
     const pushUnique = (entry) => {
@@ -500,6 +318,11 @@ export default async function handler(req, res) {
         label: s.label || `سيرفر ${i + 1}`,
         url: s.url, livePage: s.livePage, m9: s.m9, leaf: s.leaf,
         kind: 'leaf', via: 'hd7livex',
+      }));
+    }
+    if (yacine && yacine.servers) {
+      yacine.servers.forEach((s) => pushUnique({
+        label: s.label, url: s.url, kind: 'leaf', via: 'yacine',
       }));
     }
     // Last resort: the match page itself (frontend iframes it via cleaning proxy).
