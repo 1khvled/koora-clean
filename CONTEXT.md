@@ -4,7 +4,43 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (goated clock + filler + short links, see CONTEXT 37).
+> Last updated: 2026-09-12 (ESPN real minutes, see CONTEXT 38).
+
+## 38. ESPN real minutes — free API hooked, no scraping (2026-09-12, user: "find some free API, hook it, no scraping")
+
+- **Source: ESPN public scoreboard JSON** (`site.api.espn.com/apis/site/v2/sports/
+  soccer/<slug>/scoreboard?dates=YYYYMMDD` — no key, no auth, official feed).
+  Verified live shapes pre-build: `status.displayClock` (`67'`, `45'+2'`,
+  `90'+6'`), `status.type.name` (IN_PROGRESS/HALFTIME/FULL_TIME/SCHEDULED),
+  `period`, UTC `date`, competitors (name/abbr/score). KSA slug `ksa.1`
+  confirmed with real games. Sandbox datacenter IP is Akamai-denied, so the
+  design is two-tier with fail-open everywhere.
+- **New `api/espn.js` (Vercel) + `/api/espn` route in `worker.js`.**
+  `?home=&away=&start=&lg=` → best event `{found,min,half,status,clock,
+  detail,h,a,slug}` (minutes only — scores untouched). League map
+  (AR→slug, champions-before-europa ordering), UTC-date + prev-day fallback,
+  browser UA, 6s budget, 30s edge cache. Fuzzy = proven fotmob set extracted
+  byte-exact (transliteration + devowel + aliases + token scorer, gates
+  0.55 direct / 0.85+margin, kickoff within 150min). `{blocked:true}` when
+  the edge denies us.
+- **Clients (both pages, identical ESPN-CLIENT block).** Trust order now:
+  ESPN > FotMob > upstream-anchored > wall. `showMinute` core extended with
+  the ESPN anchor (freshness 10min, same half caps) — core still
+  byte-identical across pages. Server `/api/espn` first (worker-aware),
+  then direct browser fetch of the single mapped league scoreboard
+  (90s pool cache, 8s timeout) with the same gates. Index re-anchors live
+  rows every 60s; player anchors in boot + 60s re-anchor with header priority.
+- **Caught by verification:** fuzzy-block extraction overlapped (dup consts —
+  `node --check` FALSE-PASSED the ESM files; real `import()` correctly
+  failed). Lesson: ESM files must be import-checked, never only --check.
+  Also fixed an over-broad champions fragment (CAF CL mis-mapped).
+- Verified: 26/26 client assertions (incl. real Hilal 0.458 / Spurs 0.183
+  fuzzy scores, Bournemouth trap rejected, CAF slug empty) + 10/10 server
+  assertions against a REAL 82KB ESPN fixture (Spurs found, min 93) and a
+  blocked-edge stub. `node --check` both inlines, ESM imports of
+  `api/espn.js` + `worker.js` green, mirrors byte-identical.
+- Post-push check REQUIRED: curl the live `/api/espn` (Vercel egress may be
+  edge-blocked like the sandbox — client direct path covers that case).
 
 ## 37. Goated clock + arab-league filler + short player links (2026-09-12, user: "timing still dogshit, hide arab leagues but KSA, links huge")
 

@@ -430,6 +430,238 @@ function bumpBlocked(){
   }
 }
 
+/* ESPN real minutes — free public JSON API (no key, no scraping).
+   Server /api/espn first (trimmed, edge-cached); direct browser fetch as
+   fallback (residential IPs sail past the edge bot-wall that blocks
+   datacenters). Fuzzy core = proven fotmob set (renamed espn*). */
+/* ESPN-CLIENT-START */
+const ESP_AR_TR = {
+    'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a', 'ء': '', 'ؤ': 'w', 'ئ': 'y',
+    'ب': 'b', 'ة': 'a', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh',
+    'د': 'd', 'ذ': 'd', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh',
+    'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh',
+    'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+    'ه': 'h', 'و': 'o', 'ي': 'y', 'ى': 'a', 'ـ': '', ' ': ' ',
+  };
+  const ESP_EN_STOP = new Set(['vs', 'fc', 'sc', 'ac', 'cf', 'as', 'kf', 'fk', 'sk', 'if', 'bk', 'cd', 'ud', 'ssc']);
+  const espnNormAr = (s) => (s || '').toString()
+    .replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+    .replace(/[ً-ْٰ]/g, '').replace(/\s+/g, ' ').trim();
+  const espnTrAr = (s) => (s || '').replace(/[ً-ْٰ]/g, '').split('')
+    .map(c => ESP_AR_TR[c] !== undefined ? ESP_AR_TR[c] : c).join('')
+    .toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const espnNormLat = (s) => (s || '').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const espnEditDist = (a, b) => {
+    const m = a.length, n = b.length;
+    if (!m) return n; if (!n) return m;
+    let prev = [...Array(n + 1).keys()], cur = new Array(n + 1);
+    for (let i = 1; i <= m; i++) {
+      cur[0] = i;
+      for (let j = 1; j <= n; j++)
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      const tmp = prev; prev = cur; cur = tmp;
+    }
+    return prev[n];
+  };
+  // Vowel-insensitive: Arabic script omits short vowels, so الفتح/fateh only
+  // align consonant-to-consonant (validated 2026-09-09: fixes Fateh-type
+  // misses, improves every correct margin, wrong cases still gate out).
+  const espnNoVow = (s) => s.replace(/[aeiou]/g, '');
+  // Abbreviations + notorious transliterations: [arabic fragment, english
+  // tokens]. Applied as token SUBSTITUTION (fragment's own tokens dropped)
+  // before scoring. Dot/dash-tolerant ('دي.سي.' matches 'دي سي').
+  const espnNormFrag = (s) => espnNormAr(s).replace(/[.\-_/]/g, ' ').replace(/\s+/g, ' ').trim();
+  const ESP_ALIAS = [
+    ['دي سي', ['dc', 'united']], ['ديسي', ['dc', 'united']],
+    ['فيلادلفيا', ['philadelphia']], ['كولومبوس', ['columbus']],
+    ['مونتريال', ['montreal']], ['شارلوت', ['charlotte']],
+    ['لوس أنجلوس', ['los', 'angeles']], ['نيويورك', ['new', 'york']],
+    ['فانكوفر', ['vancouver']], ['وايت كابس', ['whitecaps']], ['غالاكسي', ['galaxy']],
+    ['اتحاد العاصمة', ['usm', 'alger']], ['شبيبة الأبيار', ['el', 'biar']],
+  ];
+  const espnApplyAlias = (toks, rawNorm) => {
+    // toks arrive already devoweled — compare devoweled drop-sets too.
+    let out = [...toks];
+    const flat = ' ' + rawNorm.replace(/[.\-_/]/g, ' ') + ' ';
+    for (const [frag, en] of ESP_ALIAS) {
+      const nf = espnNormFrag(frag);
+      if (!nf || (!flat.includes(' ' + nf + ' ') && !flat.replace(/\s+/g, '').includes(nf.replace(/\s+/g, '')))) continue;
+      const drop = new Set((espnTrAr(frag) + ' ' + espnTrAr(frag.replace(/\s+/g, ''))).split(' ').map(espnNoVow).filter(t => t.length >= 2));
+      out = out.filter(t => !drop.has(t));
+      out = out.concat(en.map(espnNoVow).filter(t => t.length >= 2));
+    }
+    return [...new Set(out)];
+  };
+const ESPN_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
+function espnNormH(s){ return String(s || '').replace(/[\u0623\u0625\u0622]/g, '\u0627').toLowerCase(); }
+const ESPN_LG = [
+  ['\u0627\u0628\u0637\u0627\u0644 \u0627\u0648\u0631\u0648\u0628\u0627', 'uefa.champions'], ['\u062f\u0648\u0631\u064a \u0627\u0644\u0627\u0628\u0637\u0627\u0644', 'uefa.champions'], ['champions league', 'uefa.champions'],
+  ['\u0627\u0644\u0627\u0648\u0631\u0648\u0628\u064a', 'uefa.europa'], ['europa', 'uefa.europa'],
+  ['\u0627\u0644\u0627\u0646\u062c\u0644\u064a\u0632', 'eng.1'], ['premier', 'eng.1'],
+  ['\u0627\u0644\u0627\u0633\u0628\u0627\u0646', 'esp.1'], ['laliga', 'esp.1'], ['la liga', 'esp.1'],
+  ['\u0627\u0644\u0627\u064a\u0637\u0627\u0644', 'ita.1'], ['serie', 'ita.1'],
+  ['\u0627\u0644\u0627\u0644\u0645\u0627\u0646', 'ger.1'], ['bundesliga', 'ger.1'],
+  ['\u0627\u0644\u0641\u0631\u0646\u0633', 'fra.1'], ['ligue 1', 'fra.1'],
+  ['\u0627\u0644\u0647\u0648\u0644\u0646\u062f', 'ned.1'], ['eredivisie', 'ned.1'],
+  ['\u0627\u0644\u0628\u0631\u062a\u063a\u0627\u0644', 'por.1'], ['primeira', 'por.1'],
+  ['\u0627\u0644\u062a\u0631\u0643', 'tur.1'], ['super lig', 'tur.1'],
+  ['\u062a\u0634\u0627\u0645\u0628\u064a\u0648\u0646\u0634\u064a\u0628', 'eng.2'], ['championship', 'eng.2'],
+  ['\u0627\u0644\u0627\u0645\u0631\u064a\u0643', 'usa.1'], ['mls', 'usa.1'], ['major league', 'usa.1'],
+  ['\u0627\u0644\u0633\u0639\u0648\u062f', 'ksa.1'], ['\u0631\u0648\u0634\u0646', 'ksa.1'], ['saudi', 'ksa.1'], ['roshn', 'ksa.1']
+];
+function espnSlugFor(lg){
+  const s = espnNormH(lg);
+  if (!s) return '';
+  for (const [frag, slug] of ESPN_LG) if (s.includes(frag)) return slug;
+  return '';
+}
+function espnYmd(iso, back){
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const t = new Date(d.getTime() + (back ? -86400000 : 0));
+  return t.toISOString().slice(0, 10).replace(/-/g, '');
+}
+// ESPN clock: "67'" -> 67, "45'+2'" -> 47, "90'+6'" -> 96.
+function parseEspnClock(c){
+  const t = String(c == null ? '' : c);
+  const m = t.match(/(\d{1,3})\s*'\s*\+\s*(\d{1,2})\s*'/) || t.match(/(\d{1,3})\s*'/);
+  if (!m) return null;
+  const v = (+m[1]) + (+(m[2] || 0));
+  return (v >= 1 && v <= 130) ? v : null;
+}
+function espnHalfOf(n, period){
+  if (n === 'STATUS_HALFTIME') return 'HT';
+  if (n === 'STATUS_FULL_TIME') return 'FT';
+  if (n === 'STATUS_IN_PROGRESS') return period === 2 ? 2 : (period === 1 ? 1 : null);
+  return null;
+}
+function espnStatusOf(n){
+  if (n === 'STATUS_IN_PROGRESS') return 'live';
+  if (n === 'STATUS_HALFTIME') return 'ht';
+  if (n === 'STATUS_FULL_TIME') return 'ft';
+  return 'sched';
+}
+function espnTrim(ev, slug){
+  try {
+    const comp = (ev.competitions || [])[0] || {};
+    const sts = ev.status || comp.status || {};
+    const cs = comp.competitors || [];
+    const h = cs.find(c => c.homeAway === 'home') || {};
+    const a = cs.find(c => c.homeAway === 'away') || {};
+    const tn = sts.type || {};
+    return {
+      eid: String(ev.id || ''), slug, date: ev.date || comp.date || '',
+      clock: sts.displayClock || '', min: parseEspnClock(sts.displayClock),
+      half: espnHalfOf(tn.name, sts.period), status: espnStatusOf(tn.name),
+      detail: tn.shortDetail || tn.detail || '',
+      h: { name: (h.team || {}).displayName || '', abbr: (h.team || {}).abbreviation || '' },
+      a: { name: (a.team || {}).displayName || '', abbr: (a.team || {}).abbreviation || '' }
+    };
+  } catch { return null; }
+}
+function espnSideDist(arToks, enToks){
+  if (!arToks.length || !enToks.length) return 99;
+  let tot = 0;
+  for (const t of arToks) {
+    let best = Infinity;
+    for (const e of enToks) {
+      const d = espnEditDist(t, e) / Math.max(t.length, e.length);
+      if (d < best) best = d;
+    }
+    tot += best;
+  }
+  return tot / arToks.length;
+}
+function espnEnToks(name){
+  return espnNormLat(name || '').replace(/v/g, 'f').replace(/p/g, 'b')
+    .split(' ').map(espnNoVow).filter(t => t && t.length >= 2 && !ESP_EN_STOP.has(t));
+}
+function espnArToks(s){
+  return espnApplyAlias(
+    espnTrAr(s).split(' ').map(espnNoVow).filter(t => t.length >= 2), espnNormAr(s));
+}
+function espnOrderScore(arH, arA, enH, enA){
+  return (espnSideDist(arH, enH) + espnSideDist(arA, enA)) / 2;
+}
+function espnMatchScore(qH, qA, ev){
+  const arH = espnArToks(qH), arA = espnArToks(qA);
+  const enH = espnEnToks(ev.h.name), enA = espnEnToks(ev.a.name);
+  return Math.min(espnOrderScore(arH, arA, enH, enA), espnOrderScore(arH, arA, enA, enH));
+}
+// Best event for our fixture: kickoff within 150min + fuzzy gates.
+function espnPick(home, away, start, events){
+  const qT = Date.parse(start);
+  const scored = [];
+  for (const ev of events || []) {
+    if (!ev || !ev.h.name || !ev.a.name) continue;
+    if (ev.status !== 'live' && ev.status !== 'ht' && ev.status !== 'ft') continue;
+    if (isFinite(qT) && ev.date) {
+      const dd = Math.abs(Date.parse(ev.date) - qT);
+      if (!isFinite(dd) || dd > 150 * 60000) continue;
+    }
+    scored.push([espnMatchScore(home, away, ev), ev]);
+  }
+  scored.sort((a, b) => a[0] - b[0]);
+  if (!scored.length) return null;
+  const [best, bev] = scored[0];
+  const second = scored.length > 1 ? scored[1][0] : 99;
+  if (best <= 0.55 || (best <= 0.85 && (second - best) >= 0.08)) return bev;
+  return null;
+}
+// Direct browser fetch (fallback when the server path is edge-blocked).
+// One league scoreboard per call; pools cached 90s across matches.
+async function espnDirect(home, away, start, lg){
+  const slug = espnSlugFor(lg);
+  if (!slug) return null;
+  const d0 = espnYmd(start, false);
+  if (!d0) return null;
+  const dates = [d0];
+  const hr = new Date(start).getUTCHours();
+  if (!isNaN(hr) && hr < 4) { const dp = espnYmd(start, true); if (dp && dp !== d0) dates.push(dp); }
+  espnDirect._c = espnDirect._c || {};
+  const now = Date.now();
+  let pool = [];
+  for (const dt of dates) {
+    const ck = slug + '|' + dt;
+    let list = (espnDirect._c[ck] && (now - espnDirect._c[ck].at) < 90000) ? espnDirect._c[ck].evs : null;
+    if (!list) {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 8000);
+      try {
+        const r = await fetch(`${ESPN_API}/${slug}/scoreboard?dates=${dt}`, {
+          signal: ctrl.signal,
+          headers: { 'Accept': 'application/json', 'Referer': 'https://www.espn.com/' }
+        });
+        if (!r.ok) throw new Error('http ' + r.status);
+        const j = await r.json();
+        list = ((j && j.events) || []).map(e => espnTrim(e, slug)).filter(Boolean);
+        espnDirect._c[ck] = { at: now, evs: list };
+      } finally { clearTimeout(to); }
+    }
+    pool = pool.concat(list || []);
+  }
+  return espnPick(home, away, start, pool);
+}
+// Server first (trimmed + cached), direct fallback. Returns event or null.
+async function espnResolve(home, away, start, lg){
+  try {
+    const q = new URLSearchParams({ home: home || '', away: away || '', start: start || '', lg: lg || '' });
+    let wb = '';
+    try { wb = workerBase(); } catch {}
+    for (const b of wb ? [wb.replace(/\/$/, ''), ''] : ['']) {
+      try {
+        const r = await fetch(b + '/api/espn?' + q.toString(), { cache: 'no-store' });
+        if (r.ok) { const j = await r.json(); if (j && j.found) return j; }
+      } catch {}
+    }
+  } catch {}
+  try { return await espnDirect(home, away, start, lg); } catch {}
+  return null;
+}
+function anchorEspn(o, ev){
+  o._ebase = ev.min; o._eat = Date.now(); o._ehalf = ev.half;
+}
+/* ESPN-CLIENT-END */
 /* match header card — filled instantly from URL params, enriched by API.
    Computes its OWN live/ended state (same rules as index) instead of trusting
    the possibly-stale tm param — a match that kicked off after the index
@@ -501,6 +733,17 @@ function wallMap(o, now){
    wall map as fallback. Anchors (o._base at o._at) are stamped on data load. */
 function showMinute(o, now){
   now = now || Date.now();
+  // ESPN real minute rides on top whenever fresh (hooked API, not scraped).
+  const eb = o ? o._ebase : null;
+  if (eb != null && (now - (o._eat || 0)) < 10 * 60000){
+    const et = eb + Math.floor((now - (o._eat || now)) / 60000);
+    if (et >= 1 && et <= 130){
+      const eh = o._ehalf;
+      if ((eh === 1 || eh === 'HT') && et > 57) return eh === 'HT' ? { brk: true } : { min: 45, plus: 12 };
+      if (et > 90) return { min: 90, plus: Math.min(et - 90, 20) };
+      return { min: et, plus: 0 };
+    }
+  }
   const b = o ? o._base : null;
   if (b != null){
     const ticked = b + Math.floor((now - (o._at || now)) / 60000);
@@ -537,6 +780,7 @@ function isEnded(m){
    top whenever minfo delivers it. */
 let PM = { _base: null, _at: 0 };
 let FOT = null;
+let PE = { base: null, half: null, at: 0 };
 function P(){
   return { official_status: offP, status: '', game_time: gtP, result_text: timeP,
     time_text: timeP, start: startP, gameends: geP, _base: PM._base, _at: PM._at };
@@ -547,6 +791,15 @@ function isEndedP(){ return isEnded(P()); }
 function stampUpstream(){ try { PM._base = parseMin(gtP || timeP); PM._at = Date.now(); } catch {} }
 function headerMinute(now){
   now = now || Date.now();
+  // ESPN real minute first (hooked API), then FotMob exact, then fused clock.
+  if (PE.base != null && (now - PE.at) < 10 * 60000){
+    const pt = PE.base + Math.floor((now - PE.at) / 60000);
+    if (pt >= 1 && pt <= 130){
+      if ((PE.half === 1 || PE.half === 'HT') && pt > 57) return PE.half === 'HT' ? { brk: true } : { min: 45, plus: 12 };
+      if (pt > 90) return { min: 90, plus: Math.min(pt - 90, 20) };
+      return { min: pt, plus: 0 };
+    }
+  }
   if (FOT && FOT.base != null && (now - FOT.at) < 8 * 60000){
     const t = FOT.base + Math.floor((now - FOT.at) / 60000);
     if (t >= 1 && t <= 130){
@@ -1221,6 +1474,18 @@ function openMiPop(btn){
   document.addEventListener('keydown', miEscDown);
 }
 
+async function refreshEspnOne(){
+  try {
+    if (!home && !away) return false;
+    const ev = await espnResolve(home, away, startP, leagueP);
+    if (ev && ev.min != null && (ev.status === 'live' || ev.status === 'ht') &&
+        (ev.half === 1 || ev.half === 2 || ev.half === 'HT')){
+      PE = { base: ev.min, half: ev.half, at: Date.now() };
+      return true;
+    }
+  } catch {}
+  return false;
+}
 /* Startup: short links resolve their snapshot first (storage → API),
    then paint + streams + FotMob + the 20s header tick (fused minutes keep
    advancing between the 60s FotMob refreshes). */
@@ -1235,10 +1500,12 @@ function openMiPop(btn){
     paintTitle();
   }
   stampUpstream();
+  await refreshEspnOne();
   paintMatch(home, away, homeLogo, awayLogo, leagueP);
   loadRealPlayer();
   loadMatchInfo();
   setInterval(tickHeader, 20000);
+  setInterval(async () => { try { if (await refreshEspnOne()) tickHeader(); } catch {} }, 60000);
 })();
 
 </script>
