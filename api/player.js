@@ -278,6 +278,79 @@ export default async function handler(req, res) {
       return vids;
     } catch { return []; }
   };
+  // Streamed (added 2026-09-12): free, no-auth, DOCUMENTED JSON API —
+  //   GET {base}/api/matches/football -> [{id, title, date(ms), teams, sources:[{source,id}]}]
+  //   GET {base}/api/stream/{source}/{id} -> [{embedUrl, language, hd, viewers}]
+  // Only non-empty stream entries are surfaced (echo/admin shells return []).
+  // Entries are iframed (embed.st shells, no framing headers); the existing
+  // click-shield/SW/popup-guard stack covers them like all iframe sources.
+  // Mirrors: streamed.pk primary, streamed.st fallback (operator rotates).
+  const STREAMED_BASES = ['https://streamed.pk', 'https://streamed.st'];
+  const resolveStreamed = async (home, away, startIso) => {
+    if (!normAr(home) && !normAr(away)) return [];
+    const UA = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
+      'Accept': 'application/json, text/plain, */*',
+    };
+    const refMin = (() => {
+      const m = (startIso || '').match(/T(\d{2}):(\d{2})/);
+      return m ? (+m[1]) * 60 + (+m[2]) : null;
+    })();
+    const refMs = startIso ? Date.parse(startIso) : NaN;
+    try {
+      let list = null;
+      for (const base of STREAMED_BASES) {
+        try {
+          const r = await fetchT(`${base}/api/matches/football`, { headers: UA }, 7000);
+          if (!r.ok) continue;
+          const j = await r.json();
+          if (Array.isArray(j) && j.length) { list = { base, items: j }; break; }
+        } catch {}
+      }
+      if (!list) return [];
+      // Absolute epoch times on both sides — exact proximity, no TZ hacks.
+      // Only matches in a live-ish window (started ≤105min ago, starts ≤30min ahead).
+      const nowMs = Date.now();
+      const pool = list.items.filter(m => m && m.title && typeof m.date === 'number'
+        && (nowMs - m.date) <= 105 * 60000 && (m.date - nowMs) <= 30 * 60000);
+      if (!pool.length) return [];
+      const scored = pool.map(it => {
+        const t = (it.teams && it.teams.home && it.teams.away)
+          ? `${it.teams.home.name} vs ${it.teams.away.name}` : (it.title || '');
+        return { ...it, _t: t, fz: fuzzyArEn(home, away, t) };
+      }).sort((x, y) => x.fz - y.fz);
+      const best = scored[0], second = scored[1];
+      if (!best || best.fz > 1.4) return [];
+      if (second && (second.fz - best.fz) < 0.25) return [];
+      // Query every source in parallel; keep entries with real embed URLs.
+      const got = (await Promise.all(((best.sources || []).slice(0, 6)).map(async (s) => {
+        try {
+          if (!s || !s.source || !s.id) return [];
+          const r = await fetchT(`${list.base}/api/stream/${encodeURIComponent(s.source)}/${encodeURIComponent(s.id)}`,
+            { headers: UA }, 6000);
+          if (!r.ok) return [];
+          const j = await r.json();
+          return Array.isArray(j) ? j : [];
+        } catch { return []; }
+      }))).flat().filter(e => e && typeof e.embedUrl === 'string' && /^https:\/\//i.test(e.embedUrl));
+      // Prefer English + HD + most viewers (deduped, cap 3).
+      const seen = new Set();
+      return got
+        .filter(e => { if (seen.has(e.embedUrl)) return false; seen.add(e.embedUrl); return true; })
+        .sort((a, b) => {
+          const en = (x) => /english/i.test(x.language || '') ? 0 : 1;
+          if (en(a) !== en(b)) return en(a) - en(b);
+          if (!!a.hd !== !!b.hd) return a.hd ? -1 : 1;
+          return (b.viewers || 0) - (a.viewers || 0);
+        })
+        .slice(0, 3)
+        .map((e, i) => ({
+          label: `${e.language || 'Stream'} ${i + 1}${e.hd ? ' • HD' : ''}`,
+          url: e.embedUrl, kind: 'en', via: 'streamed',
+        }));
+    } catch { return []; }
+  };
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=30');
   
@@ -396,11 +469,16 @@ export default async function handler(req, res) {
     // Always try the hd7livex multi-server chain too (it is the only source
     // proven to yield playable leaf embeds). Merged below with direct/fallback.
     // VIPBox schedule resolves in parallel (independent fetch, fail-open).
-    const [hd7, vipServers] = await Promise.all([
+    const [hd7, vipServers, streamedServers] = await Promise.all([
       resolveHd7(matchHome, matchAway).catch(() => null),
       resolveVipboxMatch(matchHome, matchAway, qStart || null, qLeague || null).catch(() => []),
+      resolveStreamed(matchHome, matchAway, qStart || null).catch(() => []),
     ]);
-    const enServers = vipServers || [];
+    const seenEn = new Set();
+    const enServers = [];
+    for (const s of [...(vipServers || []), ...(streamedServers || [])]) {
+      if (s && s.url && !seenEn.has(s.url)) { seenEn.add(s.url); enServers.push(s); }
+    }
 
     const servers = [];
     const pushUnique = (entry) => {

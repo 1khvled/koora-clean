@@ -809,6 +809,29 @@ async function miFetch(){
     return await r.json();
   } finally { clearTimeout(to); }
 }
+/* FotMob exact status overrides the header card — authoritative live minute,
+   half and final score. Beats URL params and wall-clock inference whenever
+   minfo data is present (e.g. upstream still says "لم تبدأ" 15' in). */
+function paintExactStatus(d){
+  try {
+    const stEl = document.getElementById('matchState');
+    const tmEl = document.getElementById('matchTime');
+    if (!stEl || !tmEl || !d) return;
+    if (d.finished){
+      stEl.textContent = 'انتهت';
+      stEl.classList.remove('live');
+      if (d.home.score != null && d.away.score != null)
+        tmEl.textContent = `${d.home.score} - ${d.away.score}`;
+      return;
+    }
+    if (d.started){
+      const lv = d.live || {};
+      stEl.textContent = 'مباشر';
+      stEl.classList.add('live');
+      tmEl.textContent = lv.min || ({ '1H': 'الشوط الأول', 'HT': 'استراحة', '2H': 'الشوط الثاني' }[lv.half] || '•');
+    }
+  } catch {}
+}
 async function loadMatchInfo(){
   const box = document.getElementById('minfo');
   if (!home && !away) return;
@@ -819,6 +842,7 @@ async function loadMatchInfo(){
     miData = d;
     document.getElementById('minfoSrc').textContent = (d.league ? d.league + ' • ' : '') + 'FotMob';
     if (!renderMi()) throw 0;
+    paintExactStatus(d);
     miArmTimer();
     box.hidden = false;
   } catch { box.hidden = true; miClearTimer(); }
@@ -831,6 +855,7 @@ async function miRefresh(){
     document.getElementById('minfoSrc').textContent = (d.league ? d.league + ' • ' : '') + 'FotMob';
     closeMiPop();
     renderMi();
+    paintExactStatus(d);
     if (d.finished) miClearTimer();
   } catch {}
 }

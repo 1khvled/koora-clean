@@ -4,7 +4,30 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (commit `d4f804c`, wall-clock kickoff inference §32).
+> Last updated: 2026-09-12 (FotMob exact status + Streamed source §33, pending commit).
+
+## 33. FotMob exact status + Streamed source (2026-09-12, user: "use fotmob for exact starter" + "more reliable sources, test locally before push")
+
+- **Exact status (FotMob `header.status`):** `liveTime.short` (sanitized to
+  digits) + half derived from `halfs` timestamps (1H/HT/2H/FT). `api/fotmob`
+  returns `live:{min,half}`; player `paintExactStatus` overrides the header
+  card on every minfo load/refresh (beats URL params AND wall-clock).
+  Verified locally: stale "لم تبدأ / Did not start" → "مباشر / 46’".
+- **Streamed (NEW reliable source):** free, no-auth, DOCUMENTED JSON API
+  (`/api/matches/football` 165 games with epoch-ms dates + sources;
+  `/api/stream/{source}/{id}` → `{embedUrl,language,hd,viewers}`).
+  `resolveStreamed` filters to a live window (started ≤105min ago, starts
+  ≤30min ahead — absolute epochs, no TZ hacks), gates fuzzy 1.4/margin 0.25,
+  queries all sources in parallel, keeps only non-empty embeds, prefers
+  English → HD → viewers, cap 3, mirrors pk→st. embed.st shells have no
+  framing headers; nested player loads via JS under our standard guards.
+- Dead ends documented: ppv.to/DAMITV (domain SEIZED), StreamEast original
+  (shut down 2025, mirrors are copycats), echo/admin shells (always `[]` —
+  only delta/golf carry streams).
+- Verified LOCALLY before push (per owner rule): real `api/player.js` on the
+  live Spurs game → 4 AR + 6 EN (3 vipbox + 3 Streamed incl. 16.5k-viewer
+  English HD), real `api/fotmob.js` → 46' 1H; render tests green, mirrors in
+  sync. Nothing pushed until all green.
 
 ## 32. Wall-clock kickoff inference (2026-09-12, user: "match 15' in but site says لم تبدأ" + flaky player)
 
