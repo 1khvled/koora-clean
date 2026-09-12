@@ -311,26 +311,24 @@ const resolveYacine = async (home, away) => {
       servers.push(entry);
     };
     if (playerSrc) {
-      pushUnique({ label: 'المصدر المباشر', url: playerSrc, livePage: null, kind: 'direct', via: 'kooralive' });
+      pushUnique({ label: 'المصدر المباشر', url: playerSrc, livePage: null, kind: 'direct', via: 'direct' });
     }
     if (hd7 && hd7.servers) {
       hd7.servers.forEach((s, i) => pushUnique({
         label: s.label || `سيرفر ${i + 1}`,
         url: s.url, livePage: s.livePage, m9: s.m9, leaf: s.leaf,
-        kind: 'leaf', via: 'hd7livex',
+        kind: 'leaf', via: 'live',
       }));
     }
     if (yacine && yacine.servers) {
-      yacine.servers.forEach((s) => pushUnique({
-        label: s.label, url: s.url, kind: 'leaf', via: 'yacine',
+      yacine.servers.forEach((s, i) => pushUnique({
+        label: 'سيرفر ' + (i + 1), url: s.url, kind: 'leaf',
       }));
     }
-    // Last resort: the match page itself (frontend iframes it via cleaning proxy).
-    pushUnique({ label: 'صفحة المباراة (احتياطي)', url: target, livePage: null, kind: 'fallback', via: 'fallback' });
 
     // found = a real playable embed exists (post-filter, not the raw inputs —
-    // a dropped javascript: URL must not report found:true with the fallback).
-    const hasPlayable = servers.some(s => s.kind !== 'fallback');
+    // a dropped javascript: URL must not report found:true).
+    const hasPlayable = servers.length > 0;
     if (hasPlayable) {
       const first = servers[0].url;
       return res.status(200).json({
@@ -341,18 +339,17 @@ const resolveYacine = async (home, away) => {
         playerSrc: first,
         playerHtml,
         found: true,
-        via: playerSrc && hd7 ? 'mixed' : (hd7 ? 'hd7livex' : 'direct'),
+        via: hasPlayable ? 'live' : 'none',
         livePage: (hd7 && hd7.livePage) || null,
         embedUrl: first,
-        fallbackUrl: target,
         count: servers.length,
         servers,
         enCount: (enServers || []).length,
         enServers: enServers || [],
       });
     } else {
-      // No playable embed anywhere — still return the tab list (if any) plus
-      // the fallback so the UI can show "1 source • fallback" instead of zero.
+      // No playable embed anywhere — return the empty list so the UI shows
+      // the no-links state.
       return res.status(200).json({
         id,
         href: target,
@@ -361,12 +358,11 @@ const resolveYacine = async (home, away) => {
         playerSrc: null,
         playerHtml: null,
         found: false,
-        fallbackUrl: target,
         count: servers.length,
         servers,
         enCount: (enServers || []).length,
         enServers: enServers || [],
-        message: 'No direct player found, use fallbackUrl with cleaning'
+        message: 'No playable stream found'
       });
     }
   } catch (e) {
