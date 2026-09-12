@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (wall-clock kickoff inference §32, pending commit).
+> Last updated: 2026-09-12 (commit `d4f804c`, wall-clock kickoff inference §32).
 
 ## 32. Wall-clock kickoff inference (2026-09-12, user: "match 15' in but site says لم تبدأ" + flaky player)
 
