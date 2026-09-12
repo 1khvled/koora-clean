@@ -1,0 +1,163 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#071f19">
+<title>لوحد الإدارة — Koora</title>
+<style>
+:root{--night:#071f19;--pitch:#0b3d2e;--grass:#16a34a;--paper:#f2f5f2;--card:#fff;
+  --ink:#141b26;--muted:#64748b;--line:#e2e8f0;--live:#e0202e;--radius:14px;
+  --font:"Cairo",system-ui,"Segoe UI",Tahoma,Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);font-variant-numeric:tabular-nums}
+.wrap{max-width:760px;margin:0 auto;padding:12px 16px 32px}
+.head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.back{flex:none;text-decoration:none;color:var(--ink);font-weight:800;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:44px;display:inline-flex;align-items:center;background:var(--card)}
+.title{flex:1;text-align:center}
+.title strong{display:block;font-size:17px;font-weight:900}
+.title small{color:var(--muted);font-size:12px;font-weight:600}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;text-align:center}
+.card .n{font-size:26px;font-weight:900}
+.card .l{font-size:12px;color:var(--muted);font-weight:700}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+.panel h3{font-size:14px;font-weight:800;margin:0 0 10px;color:var(--pitch)}
+canvas{width:100%;display:block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:start;padding:7px 6px;border-top:1px solid var(--line)}
+thead th{border-top:0;color:var(--muted);font-size:12px}
+td.num,th.num{text-align:end;font-weight:800}
+.status{text-align:center;color:var(--muted);font-size:12px;font-weight:600}
+@media (min-width:640px){.cards{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <a class="back" href="./index.html">‹</a>
+    <div class="title"><strong>لوحد الإدارة</strong><small>إحصائيات المشاهدات والإعجابات</small></div>
+    <span style="width:76px;flex:none"></span>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="n" id="kToday">–</div><div class="l">مشاهدات اليوم</div></div>
+    <div class="card"><div class="n" id="kWeek">–</div><div class="l">مشاهدات 7 أيام</div></div>
+    <div class="card"><div class="n" id="kLikes">–</div><div class="l">مجموع الإعجابات</div></div>
+    <div class="card"><div class="n" id="kMatches">–</div><div class="l">المباريات</div></div>
+  </div>
+  <section class="panel"><h3>المشاهدات اليومية (آخر 14 يوم)</h3><canvas id="chViews" height="170"></canvas></section>
+  <section class="panel"><h3>الأكثر مشاهدة</h3>
+    <table id="tTop"><thead><tr><th>المباراة</th><th class="num">مشاهدات</th><th class="num">إعجابات</th></tr></thead><tbody><tr><td>…</td><td></td><td></td></tr></tbody></table>
+  </section>
+  <section class="panel"><h3>مصادر الزيارات</h3>
+    <table id="tRefs"><thead><tr><th>المصدر</th><th class="num">زيارات</th></tr></thead><tbody><tr><td>…</td><td></td></tr></tbody></table>
+  </section>
+  <div class="status" id="admStatus">جاري التحميل…</div>
+</div>
+<script>
+'use strict';
+const SB_URL = 'https://fvuxrevpoildgfpzowpd.supabase.co';
+const SB_KEY = 'sb_publishable_Jqwz2YOoFvMlOjWJMt2Iug_IR8pDerC';
+async function sbGet(path){
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), 10000);
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/' + path, { signal: ctrl.signal,
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
+    if (!r.ok) throw new Error('http ' + r.status);
+    return await r.json();
+  } finally { clearTimeout(to); }
+}
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function dayStr(d){
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function drawBars(cv, pairs){
+  try {
+    const dpr = window.devicePixelRatio || 1;
+    const W = cv.clientWidth || 600, H = 170;
+    cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d');
+    g.scale(dpr, dpr);
+    g.clearRect(0, 0, W, H);
+    if (!pairs.length) return;
+    const max = Math.max(...pairs.map(p => p[1]), 1);
+    const bw = Math.min(34, (W - 20) / pairs.length - 8);
+    const step = (W - 20) / pairs.length;
+    g.textAlign = 'center';
+    pairs.forEach((p, i) => {
+      const h = Math.max(3, (H - 44) * p[1] / max);
+      const x = 10 + step * i + (step - bw) / 2, y = H - 26 - h;
+      g.fillStyle = i === pairs.length - 1 ? '#16a34a' : '#0b3d2e';
+      g.beginPath();
+      if (g.roundRect) g.roundRect(x, y, bw, h, 4); else g.rect(x, y, bw, h);
+      g.fill();
+      g.fillStyle = '#141b26';
+      g.font = '800 12px Cairo, sans-serif';
+      g.fillText(String(p[1]), x + bw / 2, y - 5);
+      g.fillStyle = '#64748b';
+      g.font = '700 10px Cairo, sans-serif';
+      g.fillText(String(p[0]).slice(5), x + bw / 2, H - 10);
+    });
+  } catch {}
+}
+async function loadAdmin(){
+  const st = document.getElementById('admStatus');
+  try { st.textContent = 'جاري التحميل…'; } catch {}
+  try {
+    const now = new Date();
+    const d14 = dayStr(new Date(now.getTime() - 13 * 86400000));
+    const d7 = dayStr(new Date(now.getTime() - 6 * 86400000));
+    const [views, likes, refs] = await Promise.all([
+      sbGet('koora_views?select=match_id,day,views&day=gte.' + d14 + '&order=day&limit=2000'),
+      sbGet('koora_like_counts?select=match_id,likes&order=likes.desc&limit=20'),
+      sbGet('koora_refs?select=day,ref_host,hits&day=gte.' + d7 + '&order=hits.desc&limit=50')
+    ]);
+    if (!views || !likes || !refs) throw new Error('api');
+    const today = dayStr(now);
+    const byDay = new Map(), byMatch = new Map();
+    let tot7 = 0, totToday = 0;
+    for (const v of views) {
+      byDay.set(v.day, (byDay.get(v.day) || 0) + v.views);
+      if (v.day >= d7) {
+        tot7 += v.views;
+        if (v.match_id !== '__index') byMatch.set(v.match_id, (byMatch.get(v.match_id) || 0) + v.views);
+      }
+      if (v.day === today) totToday += v.views;
+    }
+    const likeMap = new Map((likes || []).map(l => [l.match_id, l.likes]));
+    let totLikes = 0;
+    for (const n of likeMap.values()) totLikes += n;
+    document.getElementById('kToday').textContent = totToday;
+    document.getElementById('kWeek').textContent = tot7;
+    document.getElementById('kLikes').textContent = totLikes;
+    document.getElementById('kMatches').textContent = byMatch.size;
+    const days = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = dayStr(new Date(now.getTime() - i * 86400000));
+      days.push([d, byDay.get(d) || 0]);
+    }
+    drawBars(document.getElementById('chViews'), days);
+    const top = [...byMatch.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    document.querySelector('#tTop tbody').innerHTML = top.length
+      ? top.map(([m, v]) => `<tr><td>${esc(m)}</td><td class="num">${v}</td><td class="num">${likeMap.get(m) || ''}</td></tr>`).join('')
+      : '<tr><td>–</td><td></td><td></td></tr>';
+    const byRef = new Map();
+    for (const r of refs) byRef.set(r.ref_host, (byRef.get(r.ref_host) || 0) + r.hits);
+    const rtop = [...byRef.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    document.querySelector('#tRefs tbody').innerHTML = rtop.length
+      ? rtop.map(([h, n]) => `<tr><td>${esc(h)}</td><td class="num">${n}</td></tr>`).join('')
+      : '<tr><td>–</td><td></td></tr>';
+    try { st.textContent = 'آخر تحديث ' + new Date().toLocaleTimeString(); } catch {}
+  } catch {
+    try { st.textContent = 'تعذر التحميل'; } catch {}
+  }
+}
+loadAdmin();
+setInterval(() => { if (!document.hidden) loadAdmin(); }, 60000);
+</script>
+</body>
+</html>

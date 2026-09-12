@@ -569,6 +569,61 @@ function anchorEspn(o, ev){
   o._ebase = ev.min; o._eat = Date.now(); o._ehalf = ev.half;
 }
 /* ESPN-CLIENT-END */
+/* Supabase analytics (free Postgres): counters via SECURITY DEFINER
+   RPCs callable with the public anon key; RLS locks base tables to
+   read-aggregates. Fail-silent — analytics never breaks the page. */
+/* SB-CORE-START */
+const SB_URL = 'https://fvuxrevpoildgfpzowpd.supabase.co';
+const SB_KEY = 'sb_publishable_Jqwz2YOoFvMlOjWJMt2Iug_IR8pDerC';
+function sbDay(d){
+  const t = d || new Date();
+  return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+}
+async function sbRpc(fn, args){
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 6000);
+    try {
+      const r = await fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', signal: ctrl.signal,
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify(args || {}) });
+      if (!r.ok) return null;
+      return await r.json();
+    } finally { clearTimeout(to); }
+  } catch { return null; }
+}
+async function sbGet(path){
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const r = await fetch(SB_URL + '/rest/v1/' + path, { signal: ctrl.signal,
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
+      if (!r.ok) return null;
+      return await r.json();
+    } finally { clearTimeout(to); }
+  } catch { return null; }
+}
+function sbVid(){
+  try {
+    let v = localStorage.getItem('koora_vid');
+    if (!v){
+      v = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem('koora_vid', v);
+    }
+    return v;
+  } catch { return 'anon'; }
+}
+function sbRefHost(){
+  try {
+    const r = document.referrer;
+    if (!r) return 'direct';
+    const h = new URL(r).hostname.replace(/^www\./, '');
+    if (h === location.hostname) return 'internal';
+    return h.slice(0, 100);
+  } catch { return 'direct'; }
+}
+/* SB-CORE-END */
 /* SEC: every match field comes from a third-party scrape — escape before
    innerHTML or a compromised upstream owns the page (attr breakout + <img onerror>). */
 function esc(s){
@@ -612,6 +667,16 @@ async function fetchData(day, silent){ // silent = background refresh: keep scro
   return null;
 }
 
+function sbTrackIndex(){
+  // Explicit day opens only (never the 45s silent polls — no inflation).
+  try {
+    sbRpc('koora_bump_view', { p_match: '__index', p_day: sbDay() });
+    if (!sessionStorage.getItem('koora_refd')){
+      sessionStorage.setItem('koora_refd', '1');
+      sbRpc('koora_bump_ref', { p_day: sbDay(), p_host: sbRefHost() });
+    }
+  } catch {}
+}
 async function loadDay(day, silent){
   if (silent && document.hidden) return; // #2: no refresh while tab hidden
   const myReq = ++reqSeq;
@@ -658,6 +723,7 @@ async function loadDay(day, silent){
   if (LEAGUE !== 'all' && !ALL.some(m => (m.league_text || m.league || '').trim() === LEAGUE)) LEAGUE = 'all';
   buildChips();
   render(silent);
+  if (!silent){ try { sbTrackIndex(); } catch {} }
   if (GOAL_MSG) toast(GOAL_MSG);
   refreshEspn();
 }

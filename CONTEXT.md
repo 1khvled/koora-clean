@@ -4,7 +4,33 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (share + flash + favs/bell + server memory, see CONTEXT 40).
+> Last updated: 2026-09-12 (Supabase analytics + admin page, see CONTEXT 41).
+
+## 41. Supabase analytics: views/likes/refs + admin page (2026-09-12, user: "easiest free DB for admin KPI page")
+
+- **Choice: Supabase Postgres on the EXISTING project** (user picked reuse
+  over a new project — finance tables untouched, everything is `koora_*`).
+  Free tier is plenty for counters. Anon publishable key is embedded in-page
+  (public by design); all writes go through hardened RPCs, never direct.
+- **Schema (`koora_analytics_v1` migration, verified live):** `koora_views`
+  (match_id, day → views), `koora_likes` (match_id, voter PK → toggle),
+  `koora_refs` (day, ref_host → hits), `koora_like_counts` view. RPCs:
+  `koora_bump_view` / `koora_toggle_like` / `koora_bump_ref` (SECURITY
+  DEFINER, fixed search_path, length guards). Smoke-tested: view 1→2,
+  like 1→0, refs insert, smoke rows deleted.
+- **RLS posture (advisor-reviewed, all findings intentional):** anon SELECT
+  only on views/refs aggregates; `koora_likes` base has NO policies at all
+  (RPC-only — strictest); like-counts view deliberately exposes only
+  counts; anon-executable RPCs are the design (length-validated, koora
+  tables only). No IPs/voter PII stored — voter is a random browser id.
+- **Frontend:** shared SB core (identical both pages, asserted) — view
+  tracking (explicit day opens only, never the 45s silent polls), referrer
+  host once per session (`direct`/`internal`/hostname). Player like bar
+  (heart + live count, local liked-set, server count wins). All fail-silent.
+- **New `admin.html` (NO mirror — standalone page, not app shell):** KPI
+  cards (today / 7d views / likes / matches), 14d views canvas chart, top
+  matches + referrers tables, 60s refresh. Unlinked + `robots.txt`
+  disallow + `noindex` (no fake auth — data is non-sensitive aggregates).
 
 ## 40. Share button + score flash + favorites/bell + server memory (2026-09-12, user picked from suggestions)
 
