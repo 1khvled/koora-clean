@@ -322,19 +322,86 @@ function safeDec(v){
 function esc(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-const id = qs.get('id') || '';
-const href = safeDec(qs.get('href'));
-const home = decFull(qs.get('home'));
-const away = decFull(qs.get('away'));
-const startP = decFull(qs.get('st'));
-
+const bootDay = qs.get('d') || 'today';
+let id = qs.get('m') || qs.get('id') || '';
+let href = safeDec(qs.get('href'));
+let home = '', away = '', startP = '';
+let homeLogo = safeDec(qs.get('hl'));
+let awayLogo = safeDec(qs.get('al'));
+let leagueP = '', timeP = '', offP = '', gtP = '', shP = '', saP = '', geP = '';
+/* Legacy long links (?id=&href=&home=… — 800+ chars of %-encoded Arabic)
+   fill vars directly; short links (?m=<id>&d=<day>) resolve below. */
+if (qs.get('href') || qs.get('home') || qs.get('away')){
+  home = decFull(qs.get('home')); away = decFull(qs.get('away')); startP = decFull(qs.get('st'));
+  leagueP = decFull(qs.get('lg')); timeP = decFull(qs.get('tm')); offP = decFull(qs.get('so'));
+  gtP = decFull(qs.get('gt')); shP = decFull(qs.get('sh')); saP = decFull(qs.get('sa'));
+  geP = safeDec(qs.get('ge'));
+  if (qs.get('id')) id = qs.get('id');
+}
+function paintTitle(){
+  document.getElementById('matchTitle').textContent =
+    (home || away) ? `${home} × ${away}` : 'مشاهدة المباراة';
+  if (home || away) document.title = `مشاهدة ${home} × ${away} بث مباشر — كورة لايف`;
+}
+/* Short-link snapshot: sessionStorage (same-tab instant) → localStorage
+   (12h TTL) → matchday API lookup (d, today, yesterday, tomorrow). */
+function readSnap(sid){
+  if (!sid) return null;
+  const k = 'koora:m:' + sid;
+  try { const s = sessionStorage.getItem(k); if (s) return JSON.parse(s); } catch {}
+  try {
+    const s = localStorage.getItem(k);
+    if (s){ const o = JSON.parse(s); if (o && (Date.now() - (o._at || 0)) < 12 * 3600 * 1000) return o; }
+  } catch {}
+  return null;
+}
+async function fetchSnap(sid, day){
+  const days = [];
+  for (const d of [day || 'today', 'today', 'yesterday', 'tomorrow']) if (!days.includes(d)) days.push(d);
+  const urls = [];
+  try {
+    const wb = (localStorage.getItem('koora_worker') || '').trim();
+    if (wb) for (const d of days) urls.push(wb.replace(/\/$/, '') + '/api/matches?day=' + d);
+  } catch {}
+  for (const d of days) urls.push('/api/matches?day=' + d);
+  for (const u of urls){
+    try {
+      const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) continue;
+      const j = await r.json();
+      if (!Array.isArray(j)) continue;
+      const f = j.find(m => m && String(m.id) === String(sid));
+      if (f) return f;
+    } catch {}
+  }
+  return null;
+}
+function applySnap(o){
+  if (!o || typeof o !== 'object') return false;
+  const g = k => (o[k] == null ? '' : String(o[k]));
+  // API shape (full match) or snapshot shape (short keys) — accept both.
+  href = g('href'); home = g('home'); away = g('away');
+  homeLogo = g('hl') || g('home_logo'); awayLogo = g('al') || g('away_logo');
+  leagueP = g('lg') || g('league_text') || g('league');
+  timeP = g('tm') || g('time_text') || g('game_time');
+  startP = g('st') || g('start');
+  offP = g('so') || g('official_status') || g('status');
+  gtP = g('gt') || g('game_time');
+  shP = g('sh') || (o.score_home != null ? String(o.score_home) : '');
+  saP = g('sa') || (o.score_away != null ? String(o.score_away) : '');
+  geP = g('ge') || g('gameends');
+  if (!home && !away) return false;
+  try {
+    sessionStorage.setItem('koora:m:' + id, JSON.stringify({ id: String(id),
+      href, home, away, hl: homeLogo, al: awayLogo, lg: leagueP, tm: timeP,
+      st: startP, so: offP, gt: gtP, sh: shP, sa: saP, ge: geP, _at: Date.now() }));
+  } catch {}
+  return true;
+}
 const iframe = document.getElementById('player');
 const shield = document.getElementById('shield');
 const clickShield = document.getElementById('clickShield');
 const statusEl = document.getElementById('status');
-document.getElementById('matchTitle').textContent =
-  (home || away) ? `${home} × ${away}` : 'مشاهدة المباراة';
-if (home || away) document.title = `مشاهدة ${home} × ${away} بث مباشر — كورة لايف`; // #9
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -367,24 +434,130 @@ function bumpBlocked(){
    Computes its OWN live/ended state (same rules as index) instead of trusting
    the possibly-stale tm param — a match that kicked off after the index
    rendered must not say "لم تبدأ" next to a live player. */
-const homeLogo = safeDec(qs.get('hl'));
-const awayLogo = safeDec(qs.get('al'));
-const leagueP = decFull(qs.get('lg'));
-const timeP = decFull(qs.get('tm'));
-const offP = decFull(qs.get('so'));
-const gtP = decFull(qs.get('gt'));
-const shP = decFull(qs.get('sh'));
-const saP = decFull(qs.get('sa'));
-const geP = safeDec(qs.get('ge'));
-function liveMinuteP(){
+/* header vars live in the boot block above (short-link aware). */
+/* GOATED CLOCK v1 — fused live-minute estimator.
+   Upstream can never know REAL minutes (stoppage, VAR, late kickoffs, long
+   breaks), so two sources fuse by trust order:
+     1. upstream minute (game_time/time_text) ANCHORED at fetch time, then
+        ticked +1/min locally — stays alive between polls instead of freezing
+        on a stale number (player page additionally anchors the FotMob exact
+        minute, the truth when present);
+     2. wall-clock map from start/gameends (45 play + 15 break + 45 play),
+        half-aware with stoppage display (45+x' / 90+x').
+   Inference only ever ADDS live — never overrides ended/upcoming. */
+/* GOATED-CLOCK-START */
+function parseMin(s){
+  const t = String(s == null ? '' : s).trim();
+  if (!t || t.indexOf(':') >= 0) return null; // clock time "19:30" — not a minute
+  const m = t.match(/(\d{1,3})(?:\s*\+\s*(\d{1,2}))?/);
+  if (!m) return null;
+  if (t.indexOf("'") < 0 && t.indexOf('’') < 0 && t.length > 6) return null; // stray digits in prose
+  const v = (+m[1]) + (+(m[2] || 0));
+  return (v >= 1 && v <= 130) ? v : null;
+}
+function halfOf(o){
+  const s = [o.official_status, o.status, o.game_time, o.result_text].join(' ');
+  if (/استراح|بين الشوطين|\bHT\b/i.test(s)) return 'HT';
+  if (/الثاني|\b2H\b/i.test(s)) return 2;
+  if (/الشوط|\b1H\b/i.test(s)) return 1;
+  return null;
+}
+function fmtMin(a){
+  if (!a || a.min == null) return '';
+  return a.plus > 0 ? (a.min + '+' + a.plus + '’') : (a.min + '’');
+}
+/* wall-clock map: raw elapsed -> match minute. Half-aware; stoppage shown as
+   45+x' / 90+x'. 25' grace past gameends (VAR, long stoppage); null outside. */
+function wallMap(o, now){
   try {
-    if (!startP || !geP) return null;
-    const s = Date.parse(startP), e = Date.parse(geP), n = Date.now();
+    if (!o || !o.start || !o.gameends) return null;
+    const s = Date.parse(o.start), e = Date.parse(o.gameends);
+    const n = now || Date.now();
     if (!isFinite(s) || !isFinite(e)) return null;
-    if (n >= s - 5 * 60000 && n <= e) return Math.max(1, Math.floor((n - s) / 60000));
+    if (n < s || n > e + 25 * 60000) return null;
+    const el = Math.floor((n - s) / 60000);
+    const half = halfOf(o);
+    if (half === 'HT') return { brk: true };
+    if (half === 1){
+      if (el <= 45) return { min: Math.max(1, el), plus: 0 };
+      if (el <= 58) return { min: 45, plus: Math.min(el - 45, 12) };
+      return { brk: true }; // deep in the break with stale 1H status
+    }
+    if (half === 2){
+      const b = el <= 60 ? 46 : el - 15;
+      if (b <= 90) return { min: Math.max(46, b), plus: 0 };
+      return { min: 90, plus: Math.min(b - 90, 20) };
+    }
+    if (el <= 44) return { min: Math.max(1, el), plus: 0 };
+    if (el <= 47) return { min: 45, plus: el - 45 };
+    if (el <= 60) return { brk: true };
+    const b2 = el - 15;
+    if (b2 <= 90) return { min: b2, plus: 0 };
+    if (b2 <= 110) return { min: 90, plus: b2 - 90 };
     return null;
   } catch { return null; }
 }
+/* fused display minute: anchored upstream first (ticks between polls),
+   wall map as fallback. Anchors (o._base at o._at) are stamped on data load. */
+function showMinute(o, now){
+  now = now || Date.now();
+  const b = o ? o._base : null;
+  if (b != null){
+    const ticked = b + Math.floor((now - (o._at || now)) / 60000);
+    if (ticked < 1 || ticked > 130) return wallMap(o, now);
+    const h = halfOf(o);
+    if ((h === 1 || h === 'HT') && ticked > 57) return h === 'HT' ? { brk: true } : { min: 45, plus: 12 };
+    if (ticked > 90) return { min: 90, plus: Math.min(ticked - 90, 20) };
+    return { min: ticked, plus: 0 };
+  }
+  return wallMap(o, now);
+}
+function liveMinute(m, now){
+  const a = showMinute(m, now);
+  return a && a.min != null ? a.min : null;
+}
+function isLive(m, now){
+  if (!m || typeof m !== 'object') return false;
+  if (isEnded(m)) return false; // ended first: stale windows never shadow FT
+  const s = [m.official_status, m.status, m.game_time, m.result_text].join(' ');
+  if (/جارية|مباشر|الشوط|استراحة/i.test(s)) return true;
+  if (/\b(1H|2H|HT|LIVE)\b/i.test(s)) return true;
+  const gt = String(m.game_time || '');
+  if (!!gt.replace(/\D/g, '') && !/:/.test(gt)) return true;
+  return wallMap(m, now || Date.now()) != null;
+}
+function isEnded(m){
+  if (!m || typeof m !== 'object') return false;
+  const s = [m.official_status, m.status, m.result_text].join(' ');
+  return /انتهت|نهاية|\bFT\b|\bFull-?Time\b/i.test(s);
+}
+/* GOATED-CLOCK-END */
+/* player twins: P() adapts boot vars to the shared match shape, so the
+   clock above is byte-identical to index. FotMob exact (FOT) anchors on
+   top whenever minfo delivers it. */
+let PM = { _base: null, _at: 0 };
+let FOT = null;
+function P(){
+  return { official_status: offP, status: '', game_time: gtP, result_text: timeP,
+    time_text: timeP, start: startP, gameends: geP, _base: PM._base, _at: PM._at };
+}
+function liveMinuteP(now){ return liveMinute(P(), now); }
+function isLiveP(now){ return isLive(P(), now); }
+function isEndedP(){ return isEnded(P()); }
+function stampUpstream(){ try { PM._base = parseMin(gtP || timeP); PM._at = Date.now(); } catch {} }
+function headerMinute(now){
+  now = now || Date.now();
+  if (FOT && FOT.base != null && (now - FOT.at) < 8 * 60000){
+    const t = FOT.base + Math.floor((now - FOT.at) / 60000);
+    if (t >= 1 && t <= 130){
+      if ((FOT.half === 1 || FOT.half === 'HT') && t > 57) return FOT.half === 'HT' ? { brk: true } : { min: 45, plus: 12 };
+      if (t > 90) return { min: 90, plus: Math.min(t - 90, 20) };
+      return { min: t, plus: 0 };
+    }
+  }
+  return showMinute(P(), now);
+}
+function tickHeader(){ try { if (home || away) paintMatch(home, away, homeLogo, awayLogo, leagueP); } catch {} }
 function dec(s){
   return String(s == null ? '' : s).replace(/&#0?39;/g, '’').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 }
@@ -402,16 +575,6 @@ function decFull(s){
   }
   return out;
 }
-function isLiveP(){
-  const s = [offP, gtP, timeP].join(' ');
-  if (/جارية|مباشر|الشوط|استراحة/i.test(s)) return true;
-  if (/\b(1H|2H|HT|LIVE)\b/i.test(s)) return true;
-  if (!!String(gtP || '').replace(/\D/g, '') && !/:/.test(String(gtP || '')) && !isEndedP()) return true;
-  return liveMinuteP() != null;
-}
-function isEndedP(){
-  return /انتهت|نهاية|FT|Full/i.test([offP, timeP].join(' '));
-}
 function paintMatch(h, a, hl, al, lg){
   const card = document.getElementById('matchCard');
   if (!h && !a) return;
@@ -419,28 +582,29 @@ function paintMatch(h, a, hl, al, lg){
   document.getElementById('homeName').textContent = h || '—';
   document.getElementById('awayName').textContent = a || '—';
   const hi = document.getElementById('homeLogo'), ai = document.getElementById('awayLogo');
-  if (hl){ hi.src = hl; hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
-  if (al){ ai.src = al; ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
+  if (hl){ if (hi.getAttribute('src') !== hl) hi.src = hl; hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
+  if (al){ if (ai.getAttribute('src') !== al) ai.src = al; ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
   document.getElementById('matchLeague').textContent = lg || 'بث نظيف بدون إعلانات';
   const stEl = document.getElementById('matchState');
   const tmEl = document.getElementById('matchTime');
-  if (isLiveP()){
-    stEl.textContent = 'مباشر';
-    stEl.classList.add('live');
-    // Stale timeP ("لم تبدأ") must not shadow a live minute.
-    const inf = liveMinuteP();
-    tmEl.textContent = gtP.trim() || (inf != null ? inf + '’' : (timeP || '').trim()) || '•';
-  } else if (isEndedP()){
+  if (isEndedP()){
     stEl.textContent = 'انتهت';
     stEl.classList.remove('live');
     tmEl.textContent = (shP !== '' && saP !== '') ? `${shP} - ${saP}` : (timeP || '').trim();
+  } else if (isLiveP()){
+    stEl.textContent = 'مباشر';
+    stEl.classList.add('live');
+    // Stale timeP must not shadow a fused minute (anchored upstream →
+    // FotMob exact → wall map).
+    const hm = headerMinute();
+    tmEl.textContent = (hm && hm.min != null) ? fmtMin(hm) : (hm && hm.brk) ? 'استراحة' : (timeP || '').trim() || '•';
   } else {
     stEl.textContent = 'لم تبدأ';
     stEl.classList.remove('live');
     tmEl.textContent = (timeP || '').trim();
   }
 }
-paintMatch(home, away, homeLogo, awayLogo, leagueP);
+/* boot() below paints after the short-link snapshot resolves. */
 
 /* multi-server state — one unified server grid.
    supports new servers[] plus legacy embedUrl/livePage/fallbackUrl
@@ -774,6 +938,7 @@ function paintExactStatus(d){
     const tmEl = document.getElementById('matchTime');
     if (!stEl || !tmEl || !d) return;
     if (d.finished){
+      FOT = null;
       stEl.textContent = 'انتهت';
       stEl.classList.remove('live');
       if (d.home.score != null && d.away.score != null)
@@ -782,9 +947,16 @@ function paintExactStatus(d){
     }
     if (d.started){
       const lv = d.live || {};
+      try {
+        const b = parseMin(lv.min);
+        FOT = b != null ? { base: b, half: ({ '1H': 1, 'HT': 'HT', '2H': 2 })[lv.half] || null, at: Date.now() } : null;
+      } catch { FOT = null; }
       stEl.textContent = 'مباشر';
       stEl.classList.add('live');
-      tmEl.textContent = lv.min || ({ '1H': 'الشوط الأول', 'HT': 'استراحة', '2H': 'الشوط الثاني' }[lv.half] || '•');
+      const hm = headerMinute();
+      tmEl.textContent = (hm && hm.min != null) ? fmtMin(hm)
+        : (hm && hm.brk) ? 'استراحة'
+        : (lv.min || ({ '1H': 'الشوط الأول', 'HT': 'استراحة', '2H': 'الشوط الثاني' }[lv.half] || '•'));
     }
   } catch {}
 }
@@ -1049,8 +1221,25 @@ function openMiPop(btn){
   document.addEventListener('keydown', miEscDown);
 }
 
-loadRealPlayer();
-loadMatchInfo();
+/* Startup: short links resolve their snapshot first (storage → API),
+   then paint + streams + FotMob + the 20s header tick (fused minutes keep
+   advancing between the 60s FotMob refreshes). */
+(async function boot(){
+  paintTitle();
+  if (id && !href && !home && !away){
+    document.getElementById('matchTitle').textContent = 'جاري تحميل بيانات المباراة…';
+    try {
+      const s = readSnap(id) || await fetchSnap(id, bootDay);
+      if (s) applySnap(s);
+    } catch {}
+    paintTitle();
+  }
+  stampUpstream();
+  paintMatch(home, away, homeLogo, awayLogo, leagueP);
+  loadRealPlayer();
+  loadMatchInfo();
+  setInterval(tickHeader, 20000);
+})();
 
 </script>
 </body>

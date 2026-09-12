@@ -4,7 +4,44 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-12 (commit `26b1dfd`, live list + league priority §36).
+> Last updated: 2026-09-12 (goated clock + filler + short links, see CONTEXT 37).
+
+## 37. Goated clock + arab-league filler + short player links (2026-09-12, user: "timing still dogshit, hide arab leagues but KSA, links huge")
+
+- Commit `dd15f45`, pushed to `origin main`.
+
+- **GOATED CLOCK v1 (fused live-minute estimator).** Upstream can never know
+  REAL minutes (stoppage, VAR, late kickoffs, long breaks), so two sources
+  fuse by trust order, byte-identical in index.html + player.html
+  (`GOATED-CLOCK-START/END` markers, asserted equal): (1) upstream minute
+  (`game_time`/`time_text` via new `parseMin`, incl. `45 +2'` stoppage forms,
+  clock-times rejected) ANCHORED at fetch time (`_base`/`_at` stamped in
+  `loadDay`, `stampUpstream` on player) then ticked +1/min locally — stays
+  alive between polls instead of freezing; half-aware caps (1H freezes at
+  45+12, HT shows break, 2H runs to 90+x'); (2) half-aware wall map from
+  `start`/`gameends` (45+15+45, `45+x'`/`90+x'` stoppage display, 25' grace
+  past `gameends`, half from status words incl. `halfOf`). `isLive`/`statusLabel`
+  (`paintMatch` on player) check ended FIRST — a stale live window can never
+  shadow FT again. Index repaints every 30s without fetching; player header
+  ticks every 20s (logo `src` guard stops flicker) and additionally anchors
+  the FotMob exact minute (`FOT`, 8min TTL, re-anchored on each 60s minfo
+  refresh — the truth when present).
+- **Arab-league filler.** `HIDE_AR` (19 domestic leagues AR+EN, e.g. الجزائري)
+  collapses into one slim `<details class="arab-more">` row with count (+ red
+  dot when any hidden match is live) instead of spamming the page; excluded
+  from chips/live/groups, search overrides the hiding. KSA (السعودي/
+  Saudi/roshn, checked FIRST so mixed cups stay) is exempt and pinned at
+  league rank 3 (after Prem/LaLiga/UCL). Server Egyptian skip untouched.
+- **Short player links.** `playerLink` now emits `player.html?m=<id>&d=<day>`
+  (~25 chars vs 800+ of %-encoded Arabic x13 params). Snapshot rides in
+  `sessionStorage` (same-tab instant, cached on every render) + `localStorage`
+  (12h TTL) with a matchday-API lookup fallback (`d,today,yesterday,tomorrow`,
+  worker-aware); legacy long URLs still parse first. `api/player.js` needed
+  no change (already resolves `href` from `id` server-side).
+- Verified: 33/33 node assertions on the shipped core (Spurs-like
+  19:30+03/67' case ticks 67->68, break/stoppage/grace mapping, ended-first,
+  hide-list incl. Romania trap, ranks), `node --check` both inline scripts,
+  goated core byte-identical across pages, mirrors byte-identical.
 
 ## 36. Live list replaces swipe rail + Prem/LaLiga/UCL first (2026-09-12, user: "live UI irritating, big leagues first")
 
