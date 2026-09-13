@@ -5,6 +5,7 @@ export default async function handler(req, res) {
   // the /api/matches self-lookup (also used by local tests).
   const qHome = (req.query.home || '').toString();
   const qAway = (req.query.away || '').toString();
+  const qStart = (req.query.start || req.query.st || '').toString();
 
   // Fetch with a hard timeout (serverless-friendly). Default 6s: typical
   // upstreams answer in 1-3s; hung ones must die fast inside the 10s budget.
@@ -55,7 +56,7 @@ export default async function handler(req, res) {
       return { livePage: liveUrl, m9: m9Url, leaf };
     } catch { return null; }
   };
-  const resolveHd7 = async (home, away) => {
+  const resolveHd7 = async (home, away, startIso) => {
     const nH = normAr(home), nA = normAr(away);
     if (!nH && !nA) return null;
     const UA = {
@@ -63,16 +64,38 @@ export default async function handler(req, res) {
       'Accept': 'text/html,application/xhtml+xml',
     };
     try {
-      const dayRes = await fetchT('https://hd7livex.com/matches-today/', { headers: { ...UA, Referer: 'https://hd7livex.com/' } });
-      if (!dayRes.ok) return null;
-      const day = await dayRes.text();
-      const noscr = day.replace(/<script[\s\S]*?<\/script>/gi, '');
-      // Card links use single quotes: class='alba_sports_events_link' href='...' title='...'
-      const cards = [...noscr.matchAll(/class='alba_sports_events_link'\s+href='([^']+)'\s+title='([^']+)'/gi)];
+      // Date-aware: try the day that matches the kickoff (today/yesterday/tomorrow)
+      // in parallel — sequential 3×6s would blow budget and misses yesterday
+      // fixtures when only today is checked (reported: Spurs-Everton 2026-09-12
+      // shown as 6× generic beIN).
+      const segs = ['https://hd7livex.com/matches-today/', 'https://hd7livex.com/yesterday-matches/', 'https://hd7livex.com/tomorrow-matches/'];
+      // Prefer the segment whose date matches startIso if provided
+      let probeSegs = segs;
+      try {
+        if (startIso) {
+          const d = new Date(startIso);
+          const now = new Date();
+          const diff = Math.floor((d - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+          if (diff < 0) probeSegs = [segs[1], segs[0], segs[2]];
+          else if (diff > 0) probeSegs = [segs[2], segs[0], segs[1]];
+        }
+      } catch {}
+      const dayPages = await Promise.all(probeSegs.map(async (u) => {
+        try {
+          const r = await fetchT(u, { headers: { ...UA, Referer: 'https://hd7livex.com/' } }, 5000);
+          return r.ok ? await r.text() : '';
+        } catch { return ''; }
+      }));
       let pageUrl = null;
-      for (const c of cards) {
-        const title = normAr(c[2]);
-        if ((nH && title.includes(nH)) || (nA && title.includes(nA))) { pageUrl = c[1]; break; }
+      for (const day of dayPages) {
+        if (!day) continue;
+        const noscr = day.replace(/<script[\s\S]*?<\/script>/gi, '');
+        const cards = [...noscr.matchAll(/class='alba_sports_events_link'\s+href='([^']+)'\s+title='([^']+)'/gi)];
+        for (const c of cards) {
+          const title = normAr(c[2]);
+          if ((nH && title.includes(nH)) || (nA && title.includes(nA))) { pageUrl = c[1]; break; }
+        }
+        if (pageUrl) break;
       }
       if (!pageUrl) return null;
 
@@ -139,7 +162,7 @@ const teamScore = (q, c) => {
   }
   return hit / Math.max(qt.length, ct.length);
 };
-const resolveYacine = async (home, away) => {
+const resolveYacine = async (home, away, startIso) => {
   const nH = normAr(home), nA = normAr(away);
   if (!nH && !nA) return null;
   const UA = {
@@ -147,14 +170,29 @@ const resolveYacine = async (home, away) => {
     'Accept': 'text/html,application/xhtml+xml',
   };
   try {
-    const dayRes = await fetchT('https://yacinelive.online/matches-today/', { headers: { ...UA, Referer: 'https://yacinelive.online/' } });
-    if (!dayRes.ok) return null;
-    const day = await dayRes.text();
-    // One block per match card; link = shooot stream page, names = TM_Name spans.
-    const blocks = day.split('AY_Match').slice(1);
+    const segsY = ['https://yacinelive.online/matches-today/', 'https://yacinelive.online/yesterday-matches/', 'https://yacinelive.online/tomorrow-matches/'];
+    let probeY = segsY;
+    try {
+      if (startIso) {
+        const d = new Date(startIso);
+        const now = new Date();
+        const diff = Math.floor((d - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+        if (diff < 0) probeY = [segsY[1], segsY[0], segsY[2]];
+        else if (diff > 0) probeY = [segsY[2], segsY[0], segsY[1]];
+      }
+    } catch {}
+    const yPages = await Promise.all(probeY.map(async (u) => {
+      try {
+        const r = await fetchT(u, { headers: { ...UA, Referer: 'https://yacinelive.online/' } }, 5000);
+        return r.ok ? await r.text() : '';
+      } catch { return ''; }
+    }));
     let best = null;
     let bestScore = -1;
-    for (const b of blocks) {
+    for (const day of yPages) {
+      if (!day) continue;
+      const blocks = day.split('AY_Match').slice(1);
+      for (const b of blocks) {
       const link = (b.match(/<a[^>]+href="([^"]*shooot[^"]*)"/i) || [])[1];
       const names = [...b.matchAll(/TM_Name">([^<]+)</gi)].map(m => normAr(m[1]));
       if (!link || names.length < 2) continue;
@@ -162,6 +200,7 @@ const resolveYacine = async (home, away) => {
       const swapped = teamScore(nH, names[1]) + teamScore(nA, names[0]);
       const score = Math.max(straight, swapped);
       if (score > bestScore) { bestScore = score; best = link; }
+    }
     }
     // Both teams must substantially match (>= 2.5 of max 4).
     if (!best || bestScore < 2.5) return null;
@@ -190,6 +229,8 @@ const resolveYacine = async (home, away) => {
   // Try to get player from kooralive match page
   let target = href;
   let matchHome = qHome, matchAway = qAway;
+  let targetStart = (typeof qStart !== 'undefined' ? qStart : '') || '';
+  // qStart is start query param; will be enriched from match lookup below if needed
   if ((!target || (!matchHome && !matchAway)) && id) {
     // If only id, try to find href + team names from matches API
     // (host-header-influenced URL is safe: any href it yields still passes
@@ -202,6 +243,7 @@ const resolveYacine = async (home, away) => {
       const match = matches.find(m => String(m && m.id) === String(id));
       if (match) {
         if (!target) target = match.href;
+        if (!targetStart && match.start) targetStart = match.start;
         if (!matchHome) matchHome = match.home || '';
         if (!matchAway) matchAway = match.away || '';
       }
@@ -293,8 +335,8 @@ const resolveYacine = async (home, away) => {
 
     // hd7livex multi-server chain + yacine, in parallel (fail-open each).
     const [hd7, yacine] = await Promise.all([
-      resolveHd7(matchHome, matchAway).catch(() => null),
-      resolveYacine(matchHome, matchAway).catch(() => null),
+      resolveHd7(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
+      resolveYacine(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
     ]);
     const enServers = []; // English section removed 2026-09-12 (owner request)
 

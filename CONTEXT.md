@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-13 (athikoora + player speed, see CONTEXT 47).
+> Last updated: 2026-09-13 (hide generic when miss + date-aware resolvers, see CONTEXT 48).
+
+## 48. Fix: hide unrelated beIN fallbacks + date-aware match resolvers (2026-09-13, user: screenshot shows 6× generic beIN, "dogshit, not related to match")
+
+- **Root cause.** Player showed 6× “قناة بين سبورتس 10/9/8…” with zero
+  match-specific servers. Two bugs conspired: (1) generic 24/7 tier
+  (Alwan+Athikoora) was appended even when `list` was empty, so a miss looked
+  like 6 results; (2) `resolveHd7`/`resolveYacine` only scraped
+  `matches-today/`, so yesterday fixtures (user’s Spurs-Everton 2026-09-12,
+  id 4742062) could never match and always fell through to the generic tier.
+- **Fix 1 — gate the fallback.** `chanP` now merges only if `list.length`
+  already has a match leaf/live — empty list stays empty and the UI correctly
+  shows “لا توجد روابط بث — اضغط لإعادة المحاولة” instead of unrelated beIN.
+- **Fix 2 — date-aware resolvers.** Both resolvers now accept `startIso` and
+  probe `matches-today/`, `yesterday-matches/`, `tomorrow-matches/` in
+  parallel (5s, reordered to prefer the kickoff’s day), matching the way the
+  player was already date-aware for ESPN/FotMob. Server sting probes also
+  parallelized earlier remain. `api/player.js` was `node --check` clean after
+  the duplicate-`let best` fix.
 
 ## 47. Athikoora extra sources + player speed pass (2026-09-13, user: "extra player sources https://kora.athikoora.com/ also take so much for the thing to know that the match started and links are loading")
 
