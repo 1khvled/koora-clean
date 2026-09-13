@@ -748,6 +748,16 @@ async function loadDay(day, silent){
   if (!silent){ try { sbTrackIndex(); } catch {} }
   if (GOAL_MSG) toast(GOAL_MSG);
   refreshEspn();
+  // Prefetch player data for live matches so player opens instantly (edge cache warm)
+  try {
+    if (!silent && list.some(isLive)) {
+      const lives = list.filter(isLive).slice(0, 4);
+      for (const m of lives) {
+        const q = new URLSearchParams({ id: m.id || '', home: m.home || '', away: m.away || '', start: m.start || '', lg: m.league_text || m.league || '' }).toString();
+        fetch('/api/player?' + q, { cache: 'no-store', priority: 'low' }).catch(()=>{});
+      }
+    }
+  } catch {}
 }
 
 setInterval(() => loadDay(DAY, true), 45000); // #2: silent score refresh every 45s

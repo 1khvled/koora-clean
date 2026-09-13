@@ -7,12 +7,28 @@ export default async function handler(req, res) {
   const qAway = (req.query.away || '').toString();
   const qStart = (req.query.start || req.query.st || '').toString();
 
-  // Fetch with a hard timeout (serverless-friendly). Default 6s: typical
+  // Fetch with a hard timeout (serverless-friendly). Default 4s: typical
   // upstreams answer in 1-3s; hung ones must die fast inside the 10s budget.
-  const fetchT = (url, opts = {}, ms = 6000) => {
+  const fetchT = (url, opts = {}, ms = 4000) => {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ms);
     return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
+  };
+  // In-memory HTML cache for yacine/hd7 day pages (60s) — avoids 3× fetch per match
+  const _htmlCache = globalThis.__kooraHtmlCache || (globalThis.__kooraHtmlCache = new Map());
+  const fetchCached = async (url, opts, ms) => {
+    const key = url;
+    const hit = _htmlCache.get(key);
+    if (hit && Date.now() - hit.at < 60000) return { ok: true, text: async () => hit.html, headers: { get: () => null } , status: 200 };
+    try {
+      const r = await fetchT(url, opts, ms);
+      if (r.ok) {
+        const html = await r.text();
+        _htmlCache.set(key, { at: Date.now(), html });
+        return { ok: true, text: async () => html, headers: r.headers, status: r.status };
+      }
+      return r;
+    } catch (e) { throw e; }
   };
 
   // Arabic-loose normalize so upstream name variants still match
@@ -85,7 +101,7 @@ export default async function handler(req, res) {
       } catch {}
       const dayPages = await Promise.all(probeSegs.map(async (u) => {
         try {
-          const r = await fetchT(u, { headers: { ...UA, Referer: 'https://hd7livex.com/' } }, 3500);
+          const r = await fetchCached(u, { headers: { ...UA, Referer: 'https://hd7livex.com/' } }, 2200);
           return r.ok ? await r.text() : '';
         } catch { return ''; }
       }));
@@ -186,7 +202,7 @@ const resolveYacine = async (home, away, startIso) => {
     } catch {}
     const yPages = await Promise.all(probeY.map(async (u) => {
       try {
-        const r = await fetchT(u, { headers: { ...UA, Referer: 'https://yacinelive.online/' } }, 3500);
+        const r = await fetchCached(u, { headers: { ...UA, Referer: 'https://yacinelive.online/' } }, 2200);
         return r.ok ? await r.text() : '';
       } catch { return ''; }
     }));
@@ -210,7 +226,7 @@ const resolveYacine = async (home, away, startIso) => {
     }
     // Both teams must substantially match (>= 2.5 of max 4).
     if (!best || bestScore < 2.5) return null;
-    const spRes = await fetchT(best, { headers: { ...UA, Referer: 'https://yacinelive.online/matches-today/' } });
+    const spRes = await fetchT(best, { headers: { ...UA, Referer: 'https://yacinelive.online/matches-today/' } }, 2800);
     if (!spRes.ok) return null;
     const sp = await spRes.text();
     const urls = [...sp.matchAll(/((?:https?:)?\/\/[a-z0-9._:\-]+\/(?:playerv5\.php[^"'<\s]*|albaplayer[^"'<\s]*|live\.php[^"'<\s]*))/gi)]
@@ -339,7 +355,7 @@ const resolveYacine = async (home, away, startIso) => {
 
     // hd7+yacine in parallel with 7.5s global cap — previously waited for slowest (up to 12s).
     // If one host is slow/403, the other still returns quickly; client shows progressive.
-    const hdYacineDeadline = new Promise(r => setTimeout(() => r([null, null]), 7500));
+    const hdYacineDeadline = new Promise(r => setTimeout(() => r([null, null]), 5200));
     const hdYacineWork = Promise.all([
       resolveHd7(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
       resolveYacine(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
