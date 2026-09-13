@@ -740,11 +740,20 @@ async function loadDay(day, silent){
       b.classList.toggle('on', on);
       b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    if (!hadStale) { $('#loading').hidden = false; $('#leagues').innerHTML = ''; }
+    const hasSSR = !hadStale && document.getElementById('ssr-fallback');
+    if (!hadStale && !hasSSR) { $('#loading').hidden = false; $('#leagues').innerHTML = ''; }
+    else if (hasSSR) { $('#loading').hidden = true; /* keep SSR visible while fetching */ }
     else $('#loading').hidden = true;
     $('#liveSec').hidden = true; $('#empty').hidden = true;
   }
-  const data = await fetchData(day, silent);
+  let data = await fetchData(day, silent);
+  // Auto-retry 3× without manual refresh (whole site was needing hammering)
+  for (let _r = 0; !data && _r < 3; _r++) {
+    await new Promise(r => setTimeout(r, 900 * (_r + 1)));
+    if (myReq !== reqSeq) return;
+    if (document.hidden) return;
+    data = await fetchData(day, true);
+  }
   if (myReq !== reqSeq) return; // a newer day request already won
   $('#loading').hidden = true;
   // Offline/failure: keep the stale list on screen, toast only when explicit.

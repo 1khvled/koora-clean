@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-13 (5-agent scraper hardening, see CONTEXT 50).
+> Last updated: 2026-09-13 (JUST 2 SITES Yacine+Kora, see CONTEXT 51).
+
+## 51. JUST 2 SITES: Yacine primary, Kora backup (2026-09-13, user: "JUST SCRAPE YACINE TV ITS GOATED AND USE KORA AS BACKUP JUST 2 SITES")
+
+- **api/matches.js:** Now tries `yacinelive.online/matches-{today|yesterday|tomorrow}/`
+  first (parses `AY_Match` blocks: `TM_Name`, `MT_Time` → ISO, league,
+  scores, href, logos). If ≥5 matches, returns Yacine immediately; else
+  scrapes `kooralive-plus.info` STING and merges missing fixtures by
+  `home|away`. Kora is now explicitly fallback, not primary.
+- **api/player.js:** Disabled `hd7livex` (stubbed `resolveHd7 → null`) and
+  removed its 3-day parallel + tab logic from the critical path. Player now
+  races **only Yacine** (5.5s cap) — Kora direct iframe is the backup inside
+  the same handler. Generic 24/7 `alwan`+`athikoora` beIN tier removed from
+  `player.html` (`chanP → []`) because it was the 6× unrelated beIN reported.
+- Verified: `node --check` api/player + api/matches + both inlines green,
+  mirrors in sync. Live check still `Celta 4750868 → yasirtv` found.
 
 ## 50. 5-agent audit sweep + scraper hardening (2026-09-13, user: "send multiple subagents and fix buggs like this stupid one")
 
