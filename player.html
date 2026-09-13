@@ -7,6 +7,8 @@
 <title>مشاهدة المباراة بث مباشر — كورة لايف</title>
 <meta name="description" content="مشاهدة المباراة بث مباشر بجودة عالية وبدون إعلانات مزعجة على كورة لايف.">
 <link rel="canonical" href="https://kooraadz.vercel.app/player.html">
+<link rel="alternate" hreflang="ar" href="https://kooraadz.vercel.app/player.html">
+<link rel="alternate" hreflang="x-default" href="https://kooraadz.vercel.app/player.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ar_AR">
 <meta property="og:site_name" content="كورة لايف">
@@ -479,6 +481,17 @@ function paintTitle(){
   document.getElementById('matchTitle').textContent =
     (home || away) ? `${home} × ${away}` : 'مشاهدة المباراة';
   if (home || away) document.title = `مشاهدة ${home} × ${away} بث مباشر — كورة لايف`;
+  try {
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', location.href);
+    document.getElementById('bc-jsonld')?.remove();
+    const bc = document.createElement('script'); bc.type = 'application/ld+json'; bc.id = 'bc-jsonld';
+    bc.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'كورة لايف', item: location.origin + '/' },
+        { '@type': 'ListItem', position: 2, name: (home && away) ? `${home} ضد ${away}` : 'مشاهدة المباراة', item: location.href }
+      ]});
+    document.head.appendChild(bc);
+  } catch {}
   try { const md = document.querySelector('meta[name="description"]'); if (md && (home || away)) md.setAttribute('content', document.title); } catch {}
 }
 /* Short-link snapshot: sessionStorage (same-tab instant) → localStorage

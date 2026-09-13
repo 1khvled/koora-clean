@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  // Dynamic sitemap: core pages + today's match pages (short ?m=&d= links).
+  // Dynamic sitemap: core pages + 3-day match pages (short ?m=&d= links).
   // Fail-open: upstream failure still returns the core URLs. Edge-cached 1h.
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
@@ -15,50 +15,60 @@ export default async function handler(req, res) {
     { loc: base + '/index.html', changefreq: 'hourly', priority: '0.9' },
     { loc: base + '/player.html', changefreq: 'hourly', priority: '0.8' },
   ];
+  const segs = [
+    ['today-matches/', 'today'],
+    ['yesterday-matches/', 'yesterday'],
+    ['tomorrow-matches/', 'tomorrow'],
+  ];
   try {
-    const ctrl = new AbortController();
-    const to = setTimeout(() => ctrl.abort(), 8000);
-    let html = '';
-    try {
-      const upstream = await fetch('https://kooralive-plus.info/today-matches/', {
-        signal: ctrl.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'text/html,application/xhtml+xml',
-          'Referer': 'https://kooralive-plus.info/',
-        },
-      });
-      if (upstream.ok) html = await upstream.text();
-    } finally { clearTimeout(to); }
+    const htmls = await Promise.all(segs.map(async ([seg]) => {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 7000);
+      try {
+        const r = await fetch('https://kooralive-plus.info/' + seg, {
+          signal: ctrl.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html,application/xhtml+xml',
+            'Referer': 'https://kooralive-plus.info/',
+          },
+        });
+        return r.ok ? await r.text() : '';
+      } catch { return ''; }
+      finally { clearTimeout(to); }
+    }));
     const seen = new Set();
-    const anchorRegex = /<a\s[^>]*href=(["'])(.*?)\1[^>]*>/gi;
-    let m;
-    while ((m = anchorRegex.exec(html)) !== null) {
-      const tag = m[0];
-      if (!tag.includes('data-home')) continue;
-      const getAttr = (name) => {
-        const mm = tag.match(new RegExp(name + '\\s*=\\s*(["\'])(.*?)\\1'));
-        return mm ? mm[2] : '';
-      };
-      const href = m[2];
-      let sid = getAttr('data-fixture-id');
-      if (!sid && href) {
-        try {
-          const slug = decodeURIComponent(href).split('/').filter(Boolean).pop() || '';
-          if (slug && slug !== 'matches') sid = 'slug-' + slug.slice(0, 80);
-        } catch {}
+    htmls.forEach((html, idx) => {
+      const d = segs[idx][1];
+      const anchorRegex = /<a\s[^>]*href=(["'])(.*?)\1[^>]*>/gi;
+      let m;
+      while ((m = anchorRegex.exec(html)) !== null) {
+        const tag = m[0];
+        if (!tag.includes('data-home')) continue;
+        const getAttr = (name) => {
+          const mm = tag.match(new RegExp(name + '\\s*=\\s*(["\'])(.*?)\\1'));
+          return mm ? mm[2] : '';
+        };
+        const href = m[2];
+        let sid = getAttr('data-fixture-id');
+        if (!sid && href) {
+          try {
+            const slug = decodeURIComponent(href).split('/').filter(Boolean).pop() || '';
+            if (slug && slug !== 'matches') sid = 'slug-' + slug.slice(0, 80);
+          } catch {}
+        }
+        if (!sid || seen.has(sid)) continue;
+        seen.add(sid);
+        const start = getAttr('data-start');
+        const dm = (start || '').match(/^(\d{4}-\d{2}-\d{2})/);
+        urls.push({
+          loc: base + '/player.html?m=' + encodeURIComponent(sid) + '&d=' + d,
+          changefreq: 'hourly',
+          priority: '0.7',
+          lastmod: dm ? dm[1] : undefined,
+        });
       }
-      if (!sid || seen.has(sid)) continue;
-      seen.add(sid);
-      const start = getAttr('data-start');
-      const dm = (start || '').match(/^(\d{4}-\d{2}-\d{2})/);
-      urls.push({
-        loc: base + '/player.html?m=' + encodeURIComponent(sid) + '&d=today',
-        changefreq: 'hourly',
-        priority: '0.7',
-        lastmod: dm ? dm[1] : undefined,
-      });
-    }
+    });
   } catch {}
   const body = ['<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
