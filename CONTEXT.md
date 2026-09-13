@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-13 (hide generic when miss + date-aware resolvers, see CONTEXT 48).
+> Last updated: 2026-09-13 (yacine any-host + kooralive-optional, see CONTEXT 49).
+
+## 49. Yacine live miss: any-host + kooralive-optional (2026-09-13, user: screenshot 5' + 45' live on yacinelive not scraped)
+
+- **Host filter was shooot-only.** `AY_Match` block for Celta Vigo 45'
+  (2026-09-13, id 4750868) links to `kora.athikoora.com/2026/03/on-2.html`,
+  Coventry 5' to `shots.yala-go.online` — both missed by
+  `/shooot/` regex. Now `https://` any-host (minus `/`) with generic fallback,
+  verified live: `kora.athikoora.com` → `playerv5.php?match=4750868` found.
+- **404 before yacine.** `api/player` 404'd when `target` missing (Championship
+  Coventry-Brighton not on kooralive, so `id` lookup fails) before trying
+  hd7/yacine. Now kooralive fetch is optional — `kooraHtml` empty on miss,
+  still probes hd7/yacine via `home/away/start`. Verified: dummy href +
+  Coventry names now → `yasirtv playerv5 4742068` found (was 404).
 
 ## 48. Fix: hide unrelated beIN fallbacks + date-aware match resolvers (2026-09-13, user: screenshot shows 6× generic beIN, "dogshit, not related to match")
 
