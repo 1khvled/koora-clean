@@ -520,16 +520,19 @@ async function fetchSnap(sid, day){
     if (wb) for (const d of days) urls.push(wb.replace(/\/$/, '') + '/api/matches?day=' + d);
   } catch {}
   for (const d of days) urls.push('/api/matches?day=' + d);
-  for (const u of urls){
+  // Parallel probe, 4s budget each — previous sequential walk could stall 20s+.
+  const probes = await Promise.all(urls.map(async (u) => {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 4000);
     try {
-      const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' });
-      if (!r.ok) continue;
+      const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store', signal: ctrl.signal });
+      if (!r.ok) return null;
       const j = await r.json();
-      if (!Array.isArray(j)) continue;
-      const f = j.find(m => m && String(m.id) === String(sid));
-      if (f) return f;
-    } catch {}
-  }
+      if (!Array.isArray(j)) return null;
+      return j.find(m => m && String(m.id) === String(sid)) || null;
+    } catch { return null; } finally { clearTimeout(to); }
+  }));
+  for (const f of probes) if (f) return f;
   return null;
 }
 function applySnap(o){
@@ -1212,8 +1215,9 @@ async function loadRealPlayer(){
     const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP });
     for (let attempt = 1; attempt <= 2; attempt++){
       srvNow.textContent = attempt > 1 ? 'إعادة المحاولة…' : 'جاري تحميل البث…';
+      const ms = attempt > 1 ? 5000 : 7000;
       const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), 12000);
+      const to = setTimeout(() => ctrl.abort(), ms);
       try {
         const r = await fetch('/api/player?' + q.toString() + (attempt > 1 ? '&retry=1' : ''), { cache: 'no-store', signal: ctrl.signal });
         if (!r.ok) throw new Error('http ' + r.status);
@@ -1224,24 +1228,33 @@ async function loadRealPlayer(){
     }
   };
   try {
-    // 24/7 channels (/api/alwan): kicked off BEFORE awaiting the
-    // match API so both fly in parallel; fail-silent — a dead endpoint must
-    // never break match streams.
-    const alwanP = (async () => {
-      try {
-        const actrl = new AbortController();
-        const ato = setTimeout(() => actrl.abort(), 8000);
+    // 24/7 channels (/api/alwan + /api/athikoora): kicked off BEFORE
+    // awaiting the match API so all fly in parallel; fail-silent — a dead
+    // endpoint must never break match streams. Athikoora adds beIN 1-10
+    // from the Blogger JSON feed as extra fallback tier.
+    const chanP = (async () => {
+      const fetchChan = async (path) => {
         try {
-          const r = await fetch('/api/alwan', { cache: 'no-store', signal: actrl.signal });
-          if (!r.ok) return [];
-          const j = await r.json();
-          if (!j || !Array.isArray(j.channels)) return [];
-          return j.channels
-            .filter(c => c && typeof c.url === 'string' && /^https:\/\//i.test(c.url))
-            .slice(0, 6)
-            .map(c => ({ label: String(c.name || '').slice(0, 30), url: c.url, kind: 'tv' }));
-        } finally { clearTimeout(ato); }
-      } catch { return []; }
+          const ctrl = new AbortController();
+          const to = setTimeout(() => ctrl.abort(), 5000);
+          try {
+            const r = await fetch(path, { cache: 'no-store', signal: ctrl.signal });
+            if (!r.ok) return [];
+            const j = await r.json();
+            if (!j || !Array.isArray(j.channels)) return [];
+            return j.channels
+              .filter(c => c && typeof c.url === 'string' && /^https:\/\//i.test(c.url))
+              .slice(0, 6)
+              .map(c => ({ label: String(c.name || '').slice(0, 30), url: c.url, kind: 'tv' }));
+          } finally { clearTimeout(to); }
+        } catch { return []; }
+      };
+      const [alwan, athi] = await Promise.all([fetchChan('/api/alwan'), fetchChan('/api/athikoora')]);
+      // dedup by url, keep origin order (alwan first, then athikoora fill)
+      const seen = new Set();
+      const out = [];
+      for (const c of [...alwan, ...athi]) if (!seen.has(c.url)) { seen.add(c.url); out.push(c); if (out.length >= 8) break; }
+      return out;
     })();
     const data = await fetchApi();
     if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP); paintStars();
@@ -1255,8 +1268,8 @@ async function loadRealPlayer(){
     // dedups by url + drops unplayable srcs, and goServer skips BLOCK_RE
     // hits — no extra guard needed here.
     try {
-      const alwan = await alwanP;
-      if (alwan.length) list.push(...alwan);
+      const chans = await chanP;
+      if (chans.length) list.push(...chans);
     } catch {}
     showServersFromList(list);
     if (serverList.length){ const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); }
@@ -1721,20 +1734,27 @@ async function refreshEspnOne(){
    then paint + streams + FotMob + the 20s header tick (fused minutes keep
    advancing between the 60s FotMob refreshes). */
 (async function boot(){
+  // Optimistic paint — show header instantly from URL/snapshot cache,
+  // then enrich in background. Previous boot awaited fetchSnap + ESPN
+  // before first paint, so "لم تبدأ" lingered seconds on short links.
+  const snap0 = id ? readSnap(id) : null;
+  if (snap0) { try { applySnap(snap0); } catch {} }
   paintTitle();
-  if (id && !href && !home && !away){
-    document.getElementById('matchTitle').textContent = 'جاري تحميل بيانات المباراة…';
-    try {
-      const s = readSnap(id) || await fetchSnap(id, bootDay);
-      if (s) applySnap(s);
-    } catch {}
-    paintTitle();
-  }
   stampUpstream();
-  await refreshEspnOne();
   paintMatch(home, away, homeLogo, awayLogo, leagueP);
   paintStars();
   bellRestore();
+  tickHeader();
+  // Background enrich: snapshot fetch (if still missing) + ESPN
+  if (id && !href && !home && !away && !snap0) {
+    fetchSnap(id, bootDay).then(s => {
+      if (s && applySnap(s)) {
+        paintTitle(); stampUpstream(); paintMatch(home, away, homeLogo, awayLogo, leagueP);
+        paintStars(); tickHeader(); try { bellArm(); } catch {}
+      }
+    }).catch(()=>{});
+  }
+  refreshEspnOne().then(ok => { if (ok) tickHeader(); }).catch(()=>{});
   sbTrackMatch();
   loadRealPlayer();
   loadMatchInfo();
