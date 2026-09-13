@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071f19">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <title>كورة لايف — مباريات اليوم بث مباشر بدون إعلانات</title>
 <meta name="description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة. جدول المباريات، النتائج المباشرة، والقنوات الناقلة.">
 <link rel="canonical" href="https://kooraadz.vercel.app/index.html">
@@ -135,6 +136,12 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .faq details{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;background:var(--card)}
 .faq summary{font-weight:800;cursor:pointer;min-height:44px;display:flex;align-items:center}
 .faq p{margin:8px 2px 0;color:var(--muted)}
+.ssr-note{font-size:12px;color:var(--muted);font-weight:700;margin:0 2px 6px}
+.ssr-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.ssr-list li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+.ssr-list a{color:inherit;text-decoration:none;font-weight:700}
+.ssr-list small{color:var(--muted);font-weight:600}
+.ssr-more{margin:8px 2px 0;font-size:12px}
 .loading{text-align:center;color:var(--muted);padding:40px 0;font-weight:600}
 .toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;
   transform:translateX(-50%) translateY(20px);background:var(--night);color:#fff;
@@ -175,7 +182,7 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
     <div class="sec-title"><span class="dot"></span> جارية الآن <span class="count" id="liveCount"></span></div>
     <div class="live-list" id="liveRail"></div>
   </section>
-  <div id="leagues"></div>
+  <div id="leagues"><div id="ssr-fallback"><p class="ssr-note">مباريات اليوم — يتم تحديث تلقائيا</p><ul class="ssr-list"><li><a href="/player.html?m=4621360&amp;d=today">كانساس سيتي ويزردز ضد لوس أنجلوس — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621361&amp;d=today">سانت لويس سيتي ضد مينيسوتا يونايتد — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621362&amp;d=today">دالاس ضد بورتلاند تيمبرز — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621358&amp;d=today">ريال سالت لايك ضد نيويورك سيتي — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621359&amp;d=today">كولورادو رابيدز ضد مونتريال امباكت — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621356&amp;d=today">لوس أنجلوس غالاكسي ضد سياتيل ساونديرز — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621357&amp;d=today">سان خوسيه إرثكويكس ضد هيوستن دينامو — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621354&amp;d=today">شيكاغو فاير ضد نيو إنغلاند ريفوليوشن — لم تبدأ</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621355&amp;d=today">فانكوفر وايت كابس ضد أوستن — لم تبدأ</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4750868&amp;d=today">سيلتا فيجو ضد مالقا — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4750867&amp;d=today">ليفانتي ضد برشلونة — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4750869&amp;d=today">خيتافي ضد ديبورتيفو لاكورونيا — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4750862&amp;d=today">ريال سوسيداد ضد أتلتيكو مدريد — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4805164&amp;d=today">كي في زد ضد السويحلي — لم تبدأ</a> <small>دوري أبطال أفريقيا - تصفيات</small></li></ul><p class="ssr-more"><a href="/api/sitemap">جميع المباريات</a></p></div></div>
   <div id="empty" hidden>لا توجد مباريات مطابقة لبحثك</div>
 </main>
 <section class="seo"><h2>مباريات اليوم بث مباشر</h2><p>جدول مباريات اليوم محدث باستمرار: مواعيد مباريات والنتائج لحظة بلحظة لأهم الدورييات.</p><ul><li><a href="#" data-lg-link><strong>الدوري الإنجليزي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الإسباني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الإيطالي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الألماني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الفرنسي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري السعودي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>دوري أبطال أوروبا:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li></ul><p>اختر المباراة من القائمة لفتح صفحة البث.</p></section>
@@ -661,7 +668,7 @@ function tx(s){ return esc(dec(s)); }
 function logoImg(src, alt){
   const u = dec(src);
   if (!u || !/^(https?:\/\/|\.\/|\/)/i.test(u)) return '';
-  return `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.display='none'">`;
+  return `<img src="${esc(u)}" alt="${esc(dec(alt || ''))}" loading="lazy" onerror="this.style.display='none'">`;
 }
 
 let reqSeq = 0; // concurrency guard: stale day responses are ignored
@@ -852,14 +859,15 @@ function rowCard(m){
     <div class="st"><div class="t">${top}</div>
       <div class="s ${st.cls}">${tx(st.txt)}</div></div>
     <div class="teams">
-      <div class="t">${logoImg(m.home_logo)}<span>${tx(m.home || '')}</span><b>${sh}</b></div>
-      <div class="t">${logoImg(m.away_logo)}<span>${tx(m.away || '')}</span><b>${sa}</b></div>
+      <div class="t">${logoImg(m.home_logo, m.home)}<span>${tx(m.home || '')}</span><b>${sh}</b></div>
+      <div class="t">${logoImg(m.away_logo, m.away)}<span>${tx(m.away || '')}</span><b>${sa}</b></div>
     </div>
     <div class="go">‹</div>
   </a>`;
 }
 
 function render(silent){
+  try { document.getElementById('ssr-fallback')?.remove(); } catch {}
   const rail = $('#liveRail');
   const list = filtered();
   cacheMatches(list, DAY);
@@ -928,6 +936,7 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
       homeTeam: { '@type': 'SportsTeam', name: m.home || '' },
       awayTeam: { '@type': 'SportsTeam', name: m.away || '' } });
   }
+  graph.push({ '@type': 'Organization', name: 'كورة لايف', url: location.origin + '/', logo: location.origin + '/icon-512.png' });
   graph.push({ '@type': 'WebSite', name: 'كورة لايف', url: location.origin + '/', inLanguage: 'ar',
     potentialAction: { '@type': 'SearchAction', target: location.origin + '/?q={search_term_string}', 'query-input': 'required name=search_term_string' } });
   graph.push({ '@type': 'FAQPage', mainEntity: [
