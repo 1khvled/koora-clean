@@ -253,38 +253,36 @@ const resolveYacine = async (home, away, startIso) => {
     } catch {}
   }
   
-  if (!target) {
-    res.setHeader('Cache-Control', 'no-store');
-    return res.status(404).json({ error: 'Match not found', id });
-  }
-
-  // Ensure target is a full URL
-  if (!target.startsWith('http')) target = 'https://kooralive-plus.info' + target;
-
-  // SEC (SSRF): `href` is user input — the server must never fetch arbitrary
-  // hosts (cloud metadata 169.254.169.254, intranet, etc.). Only our scrape
-  // origin is allowed; everything else is a 400. Exact-or-subdomain match —
-  // never substring (kooralive-plus.info.evil.com must fail).
+  // Allow yacine/hd7 lookup even when kooralive has no entry for this
+  // fixture (e.g. Championship Coventry-Brighton is on yacinelive but not on
+  // kooralive — previously 404'd before trying yacine, reported).
   let targetHost = '';
-  try { targetHost = new URL(target).hostname.toLowerCase(); } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'bad href' }); }
-  if (!(targetHost === 'kooralive-plus.info' || targetHost.endsWith('.kooralive-plus.info'))){
-    res.setHeader('Cache-Control', 'no-store');
-    return res.status(400).json({ error: 'href host not allowed' });
+  let kooraHtml = '';
+  let playerHtml = null;
+  let playerSrc = null;
+  if (target) {
+    if (!target.startsWith('http')) target = 'https://kooralive-plus.info' + target;
+    try { targetHost = new URL(target).hostname.toLowerCase(); } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'bad href' }); }
+    if (!(targetHost === 'kooralive-plus.info' || targetHost.endsWith('.kooralive-plus.info'))){
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(400).json({ error: 'href host not allowed' });
+    }
+    try {
+      const upstream = await fetchT(target, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'text/html,application/xhtml+xml',
+          'Referer': 'https://kooralive-plus.info/',
+        }
+      }, 6000);
+      kooraHtml = await upstream.text();
+    } catch { kooraHtml = ''; }
   }
 
   try {
-    const upstream = await fetchT(target, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Referer': 'https://kooralive-plus.info/',
-      }
-    }, 6000);
-    const html = await upstream.text();
+    const html = kooraHtml;
     
     // Try to find player iframe directly in HTML (if already rendered)
-    let playerHtml = null;
-    let playerSrc = null;
     
     // Look for iframe with yasirtv, romabar, or similar (single or double quotes)
     const iframeMatch = html.match(/<iframe[^>]*src=(["'])([^"']*(?:yasirtv|romabar|alba|player)[^"']*)\1[^>]*>/i);
