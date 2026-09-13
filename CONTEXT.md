@@ -4,7 +4,30 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-13 (SEO v3 SSR + images, see CONTEXT 46).
+> Last updated: 2026-09-13 (athikoora + player speed, see CONTEXT 47).
+
+## 47. Athikoora extra sources + player speed pass (2026-09-13, user: "extra player sources https://kora.athikoora.com/ also take so much for the thing to know that the match started and links are loading")
+
+- **Athikoora probe.** Homepage is Blogger with obfuscated match timers; feeds
+  at `/feeds/posts/default?alt=json` hold the actual players — 10 beIN
+  channel posts (1-10) each with an `<iframe src=".../albaplayer/...">` or
+  `playerv5.php` (yasirtv/baranewss/matchlivehd hosts). Today's label page
+  and `/p/matches-today` are empty/404 — no per-match scraping to do; the
+  value is the 24/7 tier (big-match fallback alongside Alwan).
+- **New `api/athikoora.js`.** Fetches the Blogger JSON feed (6s), extracts
+  iframe srcs, filters to known player hosts, dedups, beIN-first, cap 6,
+  `s-maxage=120`, fail-open `{count:0}`. Verified live: Blogger returns 10
+  posts, 5 extracted (barane/matchlive/yasirtv hosts; some ad iframes filtered).
+- **Server speed (`api/player.js`).** Sting API bases were sequential
+  (3×7s = 21s worst). Now `Promise.all` parallel at 5s. Kooralive page
+  fetch tightened 8s→6s. Saves up to ~15s on the critical path.
+- **Player speed (`player.html`).** Boot was blocking: `await fetchSnap` +
+  `await ESPN` before first paint, so "لم تبدأ" lingered. Now optimistic:
+  instant paint from URL params / `sessionStorage` cache, `fetchSnap` in
+  background repaints when it lands, ESPN repaints via `tickHeader`.
+  `fetchSnap` parallelized (was sequential walk, no timeout) → 4× parallel
+  at 4s. `fetchApi` 12s→7s/5s. 24/7 tier now `chanP` parallel Alwan+Athikoora
+  at 5s (8 cap deduped) instead of Alwan-only 8s.
 
 ## 46. SEO v3: crawlable SSR fallback, image alt, Organization, breadcrumb, sitemap images (2026-09-13, user: "more SEO")
 

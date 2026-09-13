@@ -234,7 +234,7 @@ const resolveYacine = async (home, away) => {
         'Accept': 'text/html,application/xhtml+xml',
         'Referer': 'https://kooralive-plus.info/',
       }
-    }, 8000);
+    }, 6000);
     const html = await upstream.text();
     
     // Try to find player iframe directly in HTML (if already rendered)
@@ -259,7 +259,8 @@ const resolveYacine = async (home, away) => {
         'https://kooralive24.com',
         'https://www.romabar.info',
       ];
-      for (const base of apiBases) {
+      // Parallel probe — sequential 3×7s could blow the 10s budget.
+      const probe = await Promise.all(apiBases.map(async (base) => {
         try {
           const apiRes = await fetchT(base + '/wp-json/sting/v1/iframes', {
             headers: {
@@ -272,23 +273,19 @@ const resolveYacine = async (home, away) => {
               'Sec-Fetch-Mode': 'cors',
               'Sec-Fetch-Dest': 'empty',
             }
-          }, 7000);
-          if (!apiRes.ok) continue;
+          }, 5000);
+          if (!apiRes.ok) return null;
           const apiData = await apiRes.json();
-          if (!Array.isArray(apiData)) continue; // {"error":"Unauthorized origin"} when locked
-          const match = apiData.find(m =>
-            String(m.match_id) === String(id) || String(m.id) === String(id));
+          if (!Array.isArray(apiData)) return null;
+          const match = apiData.find(m => String(m.match_id) === String(id) || String(m.id) === String(id));
           if (match && match.code) {
-            // Extract src from code (single or double quotes)
             const srcMatch = match.code.match(/src=(["'])([^"']+)\1/);
-            if (srcMatch) {
-              playerSrc = srcMatch[2];
-              playerHtml = match.code;
-              break;
-            }
+            if (srcMatch) return { src: srcMatch[2], html: match.code };
           }
         } catch {}
-      }
+        return null;
+      }));
+      for (const r of probe) if (r && r.src) { playerSrc = r.src; playerHtml = r.html; break; }
     }
     
     // Clean direct src if we got one.
