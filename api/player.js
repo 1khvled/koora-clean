@@ -101,7 +101,7 @@ export default async function handler(req, res) {
       } catch {}
       const dayPages = await Promise.all(probeSegs.map(async (u) => {
         try {
-          const r = await fetchCached(u, { headers: { ...UA, Referer: 'https://hd7livex.com/' } }, 2200);
+          const r = await fetchCached(u, { headers: { ...UA, Referer: 'https://hd7livex.com/' } }, 3200);
           return r.ok ? await r.text() : '';
         } catch { return ''; }
       }));
@@ -202,7 +202,7 @@ const resolveYacine = async (home, away, startIso) => {
     } catch {}
     const yPages = await Promise.all(probeY.map(async (u) => {
       try {
-        const r = await fetchCached(u, { headers: { ...UA, Referer: 'https://yacinelive.online/' } }, 2200);
+        const r = await fetchCached(u, { headers: { ...UA, Referer: 'https://yacinelive.online/' } }, 3200);
         return r.ok ? await r.text() : '';
       } catch { return ''; }
     }));
@@ -355,7 +355,7 @@ const resolveYacine = async (home, away, startIso) => {
 
     // hd7+yacine in parallel with 7.5s global cap — previously waited for slowest (up to 12s).
     // If one host is slow/403, the other still returns quickly; client shows progressive.
-    const hdYacineDeadline = new Promise(r => setTimeout(() => r([null, null]), 5200));
+    const hdYacineDeadline = new Promise(r => setTimeout(() => r([null, null]), 6800));
     const hdYacineWork = Promise.all([
       resolveHd7(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
       resolveYacine(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
