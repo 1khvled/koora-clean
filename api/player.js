@@ -76,6 +76,7 @@ export default async function handler(req, res) {
     } catch { return null; }
   };
   const resolveHd7 = async (home, away, startIso) => {
+    return null; // DISABLED: user wants JUST 2 sites (Yacine + Kora backup)
     const nH = normAr(home), nA = normAr(away);
     if (!nH && !nA) return null;
     const UA = {
@@ -353,14 +354,12 @@ const resolveYacine = async (home, away, startIso) => {
     // Clean direct src if we got one.
     if (playerSrc && playerSrc.startsWith('//')) playerSrc = 'https:' + playerSrc;
 
-    // hd7+yacine in parallel with 7.5s global cap — previously waited for slowest (up to 12s).
-    // If one host is slow/403, the other still returns quickly; client shows progressive.
-    const hdYacineDeadline = new Promise(r => setTimeout(() => r([null, null]), 6800));
-    const hdYacineWork = Promise.all([
-      resolveHd7(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
+    // JUST 2 SITES: Yacine primary, Kora backup (hd7 disabled per user)
+    const yacine = await Promise.race([
       resolveYacine(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
+      new Promise(r => setTimeout(() => r(null), 5500))
     ]);
-    const [hd7, yacine] = await Promise.race([hdYacineWork, hdYacineDeadline]);
+    const hd7 = null;
     const enServers = []; // English section removed 2026-09-12 (owner request)
 
     const servers = [];
@@ -375,13 +374,7 @@ const resolveYacine = async (home, away, startIso) => {
     if (playerSrc) {
       pushUnique({ label: 'المصدر المباشر', url: playerSrc, livePage: null, kind: 'direct', via: 'direct' });
     }
-    if (hd7 && hd7.servers) {
-      hd7.servers.forEach((s, i) => pushUnique({
-        label: s.label || `سيرفر ${i + 1}`,
-        url: s.url, livePage: s.livePage, m9: s.m9, leaf: s.leaf,
-        kind: 'leaf', via: 'live',
-      }));
-    }
+    // hd7 disabled — JUST 2 SITES
     if (yacine && yacine.servers) {
       yacine.servers.forEach((s, i) => pushUnique({
         label: 'سيرفر ' + (i + 1), url: s.url, kind: 'leaf',

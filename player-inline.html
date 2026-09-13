@@ -1269,34 +1269,10 @@ async function loadRealPlayer(){
     }
   };
   try {
-    // 24/7 channels (/api/alwan + /api/athikoora): kicked off BEFORE
-    // awaiting the match API so all fly in parallel; fail-silent — a dead
-    // endpoint must never break match streams. Athikoora adds beIN 1-10
-    // from the Blogger JSON feed as extra fallback tier.
-    const chanP = (async () => {
-      const fetchChan = async (path) => {
-        try {
-          const ctrl = new AbortController();
-          const to = setTimeout(() => ctrl.abort(), 3000);
-          try {
-            const r = await fetch(path, { cache: 'no-store', signal: ctrl.signal });
-            if (!r.ok) return [];
-            const j = await r.json();
-            if (!j || !Array.isArray(j.channels)) return [];
-            return j.channels
-              .filter(c => c && typeof c.url === 'string' && /^https:\/\//i.test(c.url))
-              .slice(0, 6)
-              .map(c => ({ label: String(c.name || '').slice(0, 30), url: c.url, kind: 'tv' }));
-          } finally { clearTimeout(to); }
-        } catch { return []; }
-      };
-      const [alwan, athi] = await Promise.all([fetchChan('/api/alwan'), fetchChan('/api/athikoora')]);
-      // dedup by url, keep origin order (alwan first, then athikoora fill)
-      const seen = new Set();
-      const out = [];
-      for (const c of [...alwan, ...athi]) if (!seen.has(c.url)) { seen.add(c.url); out.push(c); if (out.length >= 8) break; }
-      return out;
-    })();
+    // JUST 2 SITES: no 24/7 beIN fallback — those 6× generic channels were
+    // unrelated to the fixture (reported). Player now shows only match-specific
+    // servers from Yacine (+ Kora direct). Fail-silent.
+    const chanP = (async () => [] )();
     const data = await fetchApi();
     if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP); paintStars();
     let list = [];
@@ -1310,10 +1286,8 @@ async function loadRealPlayer(){
     // hits — no extra guard needed here.
     try {
       const chans = await chanP;
-      // Only append 24/7 beIN fallbacks when a real match server exists —
-      // showing 6× 'قناة بين سبورتس' alone is unrelated to the fixture and
-      // was reported as dogshit (user screenshot: 0 match servers → 6 generic).
-      if (chans.length && list.length) list.push(...chans);
+      // JUST 2 SITES: no generic fallback to append
+      if (chans.length && list.length) { /* disabled */ }
     } catch {}
     showServersFromList(list);
     if (serverList.length){ _autoRetries = 0; const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); try { srvCacheSet(serverList); } catch {} }
