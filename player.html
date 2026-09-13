@@ -1224,14 +1224,29 @@ async function loadRealPlayer(){
   // In-flight guard: rapid retry taps must not spawn parallel fetches.
   if (loadRealPlayer._busy) return;
   loadRealPlayer._busy = true;
+  let _autoRetries = 0;
   const failBox = () => {
     loadRealPlayer._busy = false;
-    serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>تعذّر التحميل</b><span>اضغط لإعادة المحاولة</span></span></button>`;
-    document.getElementById('retryBtn').onclick = () => loadRealPlayer();
-    srvCount.hidden = true;
-    srcNote.hidden = true;
-    srvNow.textContent = 'تحقق من الاتصال ثم أعد المحاولة';
-    toast('تعذّر تحميل البث — تحقق من الاتصال');
+    const cached = srvCacheGet();
+    if (cached && cached.length) {
+      showServersFromList(cached);
+      const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false);
+      srvNow.textContent = 'البث من الذاكرة — إعادة المحاولة…';
+      toast('تعذّر التحديث — عرض البث المحفوظ');
+    } else {
+      serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>تعذّر التحميل</b><span>اضغط لإعادة المحاولة</span></span></button>`;
+      document.getElementById('retryBtn').onclick = () => loadRealPlayer();
+      srvCount.hidden = true;
+      srcNote.hidden = true;
+      srvNow.textContent = 'تحقق من الاتصال ثم أعد المحاولة';
+      toast('تعذّر تحميل البث — تحقق من الاتصال');
+    }
+    if (_autoRetries < 4) {
+      _autoRetries++;
+      const wait = _autoRetries * 2000;
+      srvNow.textContent = 'إعادة المحاولة تلقائياً خلال ' + (wait/1000) + ' ث…';
+      setTimeout(() => { if (!serverList.length || serverList.every(s=>s.kind==='tv')) loadRealPlayer(); }, wait);
+    }
   };
   const fetchApi = async () => {
     const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP });
@@ -1301,11 +1316,11 @@ async function loadRealPlayer(){
       if (chans.length && list.length) list.push(...chans);
     } catch {}
     showServersFromList(list);
-    if (serverList.length){ const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); try { srvCacheSet(serverList); } catch {} }
+    if (serverList.length){ _autoRetries = 0; const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); try { srvCacheSet(serverList); } catch {} }
     else {
       const fb = srvCacheGet();
       if (fb && fb.length) { showServersFromList(fb); const ri2 = srvRecall(serverList); goServer(ri2 >= 0 ? ri2 : 0, false); toast('البث من الذاكرة — جاري التحديث'); }
-      else toast('لا يوجد بث متاح حالياً');
+      else { failBox(); return; }
     }
     loadRealPlayer._busy = false;
   } catch (e){
