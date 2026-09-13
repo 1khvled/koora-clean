@@ -672,18 +672,34 @@ function logoImg(src, alt){
 }
 
 let reqSeq = 0; // concurrency guard: stale day responses are ignored
-async function fetchData(day, silent){ // silent = background refresh: keep scroll + LEAGUE filter
+async function fetchData(day, silent){
   const wb = workerBase();
   const urls = [];
   if (wb) urls.push(wb.replace(/\/$/, '') + '/api/matches?day=' + day);
   urls.push('/api/matches?day=' + day);
-  if (day === 'today') urls.push('./matches.json'); // static fallback is today's data only
+  if (day === 'today') urls.push('./matches.json');
+  // Parallel race — sequential walk was up to 12s (3×4s). Now fastest wins.
+  const racers = urls.map(async (u) => {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 3500);
+    try {
+      // First try uses edge cache (no bust) for instant; bust only on retry via loadDay silent
+      const bust = silent ? '' : '';
+      const r = await fetch(u + bust, { cache: silent ? 'no-store' : 'default', signal: ctrl.signal });
+      if (!r.ok) return null;
+      const j = await r.json();
+      return Array.isArray(j) ? j : null;
+    } catch { return null; } finally { clearTimeout(to); }
+  });
+  const results = await Promise.all(racers);
+  for (const r of results) if (r) return r;
+  // Fallback bust cache if all missed
   for (const u of urls){
     try {
-      const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' });
+      const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout(3000) });
       if (!r.ok) continue;
       const j = await r.json();
-      if (Array.isArray(j)) return j; // [] is a valid empty day, not a failure
+      if (Array.isArray(j)) return j;
     } catch {}
   }
   return null;
@@ -699,17 +715,33 @@ function sbTrackIndex(){
     }
   } catch {}
 }
+function loadStale(day){
+  try {
+    const raw = localStorage.getItem('koora:all:' + day);
+    if (!raw) return false;
+    const o = JSON.parse(raw);
+    if (!o || !Array.isArray(o.data) || Date.now() - o.at > 90000) return false;
+    ALL = o.data.filter(x => x && typeof x === 'object');
+    const fAt = Date.now();
+    for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }
+    buildChips(); render(true);
+    $('#loading').hidden = true;
+    return true;
+  } catch { return false; }
+}
 async function loadDay(day, silent){
-  if (silent && document.hidden) return; // #2: no refresh while tab hidden
+  if (silent && document.hidden) return;
   const myReq = ++reqSeq;
   DAY = day;
+  const hadStale = !silent && loadStale(day);
   if (!silent){
     $$('#dayTabs button').forEach(b => {
       const on = b.dataset.day === day;
       b.classList.toggle('on', on);
       b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    $('#loading').hidden = false; $('#leagues').innerHTML = '';
+    if (!hadStale) { $('#loading').hidden = false; $('#leagues').innerHTML = ''; }
+    else $('#loading').hidden = true;
     $('#liveSec').hidden = true; $('#empty').hidden = true;
   }
   const data = await fetchData(day, silent);
@@ -720,6 +752,7 @@ async function loadDay(day, silent){
   ALL = data.filter(x => x && typeof x === 'object');
   const fAt = Date.now();
   for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }
+  try { localStorage.setItem('koora:all:' + day, JSON.stringify({ at: Date.now(), data: ALL })); } catch {}
   try {
     const cur = {};
     for (const m of ALL) cur[m.id] = String(m.score_home ?? '') + '-' + String(m.score_away ?? '');

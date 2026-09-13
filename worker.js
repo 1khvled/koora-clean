@@ -19,6 +19,12 @@ export default {
       if (day === 'yesterday') target = 'https://kooralive-plus.info/yesterday-matches/';
       else if (day === 'tomorrow') target = 'https://kooralive-plus.info/tomorrow-matches/';
       else if (day === 'today') target = 'https://kooralive-plus.info/today-matches/';
+      const _wc = globalThis.__kooraWorkerCache || (globalThis.__kooraWorkerCache = new Map());
+      const _wk = 'w:' + day;
+      const _hit = _wc.get(_wk);
+      if (_hit && Date.now() - _hit.at < 45000) {
+        return new Response(JSON.stringify(_hit.data), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=30', ...cors } });
+      }
       try {
         const upstream = await fetch(target, {
           headers: {
@@ -27,7 +33,7 @@ export default {
             'Referer': 'https://kooralive-plus.info/',
           },
           cf: { cacheTtl: 60 },
-          signal: AbortSignal.timeout(8000),
+          signal: AbortSignal.timeout(4000),
         });
         if (!upstream.ok) return new Response(JSON.stringify({ error: 'upstream failed' }), { status: 502, headers: { 'content-type': 'application/json', ...cors } });
         const clen0 = +(upstream.headers.get('content-length') || 0);
@@ -91,7 +97,8 @@ export default {
             league_text: leagueMatch ? leagueMatch[2].trim() : league,
           });
         }
-        return new Response(JSON.stringify(matches), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=30', ...cors } });
+        _wc.set(_wk, { at: Date.now(), data: matches });
+        return new Response(JSON.stringify(matches), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=30, stale-while-revalidate=60', ...cors } });
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'content-type': 'application/json', ...cors } });
       }
