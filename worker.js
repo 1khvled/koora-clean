@@ -30,19 +30,22 @@ export default {
           signal: AbortSignal.timeout(8000),
         });
         if (!upstream.ok) return new Response(JSON.stringify({ error: 'upstream failed' }), { status: 502, headers: { 'content-type': 'application/json', ...cors } });
+        const clen0 = +(upstream.headers.get('content-length') || 0);
+        if (clen0 > 2500000) return new Response(JSON.stringify({ error: 'upstream too large' }), { status: 502, headers: { 'content-type': 'application/json', ...cors } });
         const html = await upstream.text();
+        if (html.length > 3000000) return new Response(JSON.stringify({ error: 'upstream too large' }), { status: 502, headers: { 'content-type': 'application/json', ...cors } });
         const matches = [];
-        const anchorRegex = /<a href="([^"]*)"[^>]*>/g;
+        const anchorRegex = /<a\s[^>]*href=(["'])(.*?)\1[^>]*>/gi;
         let m;
         while ((m = anchorRegex.exec(html)) !== null) {
           const tag = m[0];
           if (!tag.includes('data-home')) continue;
           const getAttr = (name) => {
-            const mm = tag.match(new RegExp(name + '="([^"]*)"'));
-            return mm ? mm[1] : '';
+            const mm = tag.match(new RegExp(name + '\\s*=\\s*(["\'])(.*?)\\1', 'i'));
+            return mm ? mm[2] : '';
           };
-          const href = m[1];
-          const id = getAttr('data-fixture-id');
+          const href = m[2];
+          const idRaw = getAttr('data-fixture-id');
           const home = getAttr('data-home');
           const away = getAttr('data-away');
           const league = getAttr('data-league');
@@ -53,14 +56,23 @@ export default {
           const gameTime = getAttr('data-game-time');
           const scoreHome = getAttr('data-score-home');
           const scoreAway = getAttr('data-score-away');
-          if (league.includes('المصري') || league.includes('Egypt')) continue;
-      const after = html.substring(m.index, m.index + 4000);
-          const logos = [...after.matchAll(/<img[^>]*src="([^"]*)"/g)];
-          const timeMatch = after.match(/<div id="STING-web-Match-Time">([^<]*)<\/div>/);
-          const resultMatch = after.match(/<div id="STING-web-Result">([^<]*)<\/div>/);
-          const leagueMatch = after.match(/<div class="STING-web-Match-Info">([^<]*)<\/div>/);
+          if (/المصري|مصرى/i.test(league) || /egypt/i.test(league)) continue;
+          const after = html.substring(m.index, m.index + 4000);
+          const imgsAll = [...after.matchAll(/<img[^>]*src=(["'])(.*?)\1/gi)].map(x => x[2]).filter(Boolean);
+          const teamImgs = imgsAll.filter(u => /logo/i.test(u));
+          const logos = (teamImgs.length >= 2 ? teamImgs : imgsAll).slice(0, 2);
+          const timeMatch = after.match(/<div[^>]*id\s*=\s*(["'])STING-web-Match-Time\1[^>]*>([^<]*)<\/div>/i);
+          const resultMatch = after.match(/<div[^>]*id\s*=\s*(["'])STING-web-Result\1[^>]*>([^<]*)<\/div>/i);
+          const leagueMatch = after.match(/<div[^>]*class\s*=\s*(["'])[^"']*STING-web-Match-Info[^"']*\1[^>]*>([^<]*)<\/div>/i);
+          let sid = idRaw;
+          if (!sid && href) {
+            try {
+              const slug = decodeURIComponent(href).split('/').filter(Boolean).pop() || '';
+              if (slug && slug !== 'matches') sid = 'slug-' + slug.slice(0, 80);
+            } catch {}
+          }
           matches.push({
-            id: id || `match-${matches.length}`,
+            id: sid || `match-${matches.length}`,
             href,
             home,
             away,
@@ -72,11 +84,11 @@ export default {
             game_time: gameTime,
             score_home: scoreHome,
             score_away: scoreAway,
-            home_logo: logos[0] ? logos[0][1] : '',
-            away_logo: logos[1] ? logos[1][1] : '',
-            time_text: timeMatch ? timeMatch[1].trim() : '',
-            result_text: resultMatch ? resultMatch[1].trim() : '',
-            league_text: leagueMatch ? leagueMatch[1].trim() : league,
+            home_logo: logos[0] || '',
+            away_logo: logos[1] || '',
+            time_text: timeMatch ? timeMatch[2].trim() : '',
+            result_text: resultMatch ? resultMatch[2].trim() : '',
+            league_text: leagueMatch ? leagueMatch[2].trim() : league,
           });
         }
         return new Response(JSON.stringify(matches), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=30', ...cors } });

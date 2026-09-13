@@ -4,7 +4,29 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-13 (yacine any-host + kooralive-optional, see CONTEXT 49).
+> Last updated: 2026-09-13 (5-agent scraper hardening, see CONTEXT 50).
+
+## 50. 5-agent audit sweep + scraper hardening (2026-09-13, user: "send multiple subagents and fix buggs like this stupid one")
+
+- **Sweep.** 5 parallel audit agents (player scraper / matches+sitemap /
+  24/7 channels / player boot / index SEO) reported 40+ fragilities; triaged
+  to load-bearing fixes below (rest deferred with reasons).
+- **Player scraper (`api/player.js`).** Hardened 8 brittle points that would
+  have caused the next yacine-live outage: `fixUrl` now handles `http`/`//`/
+  site-relative with base; `resolveOneLive` m9/leaf, `liveM`, hd7 cards,
+  `albaplayer_name` ul, `Live` tabs all quote-agnostic (`'","` + `\s*`);
+  yacine `TM_Name` tag-boundary, playerv5 `//`/`_`/`:port` hosts,
+  direct iframe allowlist adds `yala-go|yacinelive|kora|shooot|shots`; host
+  filter now covers real yacine kora.athikoora `shooot`-only miss already
+  fixed in 49, now fully covered.
+- **Worker `api/matches` drift fixed.** `worker.js:35` anchorRegex was
+  `"`-only and `href` first-attr; now `(["'])` + `/gi` like `api/matches.js`.
+  `getAttr` now `i` flag + `\s*=\s*`. Added slug fallback (was `match-N`),
+  Egyptian filter now case-insensitive, logos now `teamImgs` filtered + both
+  quotes, time/result/league now quote-agnostic, added 2.5 MB `content-length`
+  guard. Verified: `node --check` player/matches/worker + player inline all
+  green, mirrors in sync. Deferred: alwan liveness tweaks, SearchAction
+  old syntax, SSR ordering — not load-bearing for the reported miss.
 
 ## 49. Yacine live miss: any-host + kooralive-optional (2026-09-13, user: screenshot 5' + 45' live on yacinelive not scraped)
 

@@ -28,10 +28,13 @@ export default async function handler(req, res) {
   // Old code returned ONLY the first tab's leaf; now we resolve ALL tabs so
   // the player can offer N selectable servers instead of 1-2 generic buttons.
   // Returns { playerSrc, livePage, servers: [{label, livePage, m9, embedUrl}] } or null.
-  const fixUrl = (u) => {
+  const fixUrl = (u, base) => {
     if (!u) return null;
+    u = u.trim();
     if (u.startsWith('//')) return 'https:' + u;
-    if (u.startsWith('https://')) return u;
+    if (/^https?:\/\//i.test(u)) return u;
+    if (u.startsWith('/') && base) try { return new URL(u, base).toString(); } catch { return null; }
+    if (u.startsWith('/') ) return u;
     return null;
   };
   const resolveOneLive = async (liveUrl, referer, UA, ms = 6000) => {
@@ -39,18 +42,18 @@ export default async function handler(req, res) {
       const lvRes = await fetchT(liveUrl, { headers: { ...UA, Referer: referer } }, ms);
       if (!lvRes.ok) return null;
       const lv = await lvRes.text();
-      const m9M = lv.match(/<iframe[^>]+src="([^"]*\/m9\/[^"]+)"[^>]*>/i)
-        || lv.match(/<iframe[^>]+src="([^"]+)"/i);
+      const m9M = lv.match(/<iframe[^>]+src\s*=\s*(["'])([^"']*\/m9\/[^"']+)\1[^>]*>/i)
+        || lv.match(/<iframe[^>]+src\s*=\s*(["'])([^"']+)\1[^>]*>/i);
       if (!m9M) return { livePage: liveUrl, m9: null, leaf: null };
-      const m9Url = fixUrl(m9M[1]);
+      const m9Url = fixUrl(m9M[2], liveUrl);
       if (!m9Url) return { livePage: liveUrl, m9: null, leaf: null };
       let leaf = null;
       try {
         const m9Res = await fetchT(m9Url, { headers: { ...UA, Referer: liveUrl } }, ms);
         if (m9Res.ok) {
           const m9 = await m9Res.text();
-          const leafM = m9.match(/<iframe[^>]+src="([^"]+)"/i);
-          if (leafM) leaf = fixUrl(leafM[1]);
+          const leafM = m9.match(/<iframe[^>]+src\s*=\s*(["'])([^"']+)\1[^>]*>/i);
+          if (leafM) leaf = fixUrl(leafM[2], m9Url);
         }
       } catch {}
       return { livePage: liveUrl, m9: m9Url, leaf };
@@ -90,10 +93,10 @@ export default async function handler(req, res) {
       for (const day of dayPages) {
         if (!day) continue;
         const noscr = day.replace(/<script[\s\S]*?<\/script>/gi, '');
-        const cards = [...noscr.matchAll(/class='alba_sports_events_link'\s+href='([^']+)'\s+title='([^']+)'/gi)];
+        const cards = [...noscr.matchAll(/alba_sports_events_link[^>]*href\s*=\s*(["'])([^"']+)\1[^>]*title\s*=\s*(["'])([^"']+)\3/gi)];
         for (const c of cards) {
-          const title = normAr(c[2]);
-          if ((nH && title.includes(nH)) || (nA && title.includes(nA))) { pageUrl = c[1]; break; }
+          const href = c[2], title = normAr(c[4]);
+          if ((nH && title.includes(nH)) || (nA && title.includes(nA))) { pageUrl = href; break; }
         }
         if (pageUrl) break;
       }
@@ -102,9 +105,9 @@ export default async function handler(req, res) {
       const mpRes = await fetchT(pageUrl, { headers: { ...UA, Referer: 'https://hd7livex.com/matches-today/' } });
       if (!mpRes.ok) return null;
       const mp = await mpRes.text();
-      const liveM = mp.match(/<iframe[^>]+src="([^"]+)"/i);
+      const liveM = mp.match(/<iframe[^>]+src\s*=\s*(["'])([^"']+)\1[^>]*>/i);
       if (!liveM) return null;
-      const firstLive = fixUrl(liveM[1]);
+      const firstLive = fixUrl(liveM[2] || liveM[1], pageUrl);
       if (!firstLive) return null;
 
       // Collect every Live tab from the AlbaPlayer server list.
@@ -115,13 +118,13 @@ export default async function handler(req, res) {
         const lvRes = await fetchT(firstLive, { headers: { ...UA, Referer: pageUrl } });
         if (lvRes.ok) {
           const lv = await lvRes.text();
-          const ulM = lv.match(/<ul class="albaplayer_name">([\s\S]*?)<\/ul>/i);
+          const ulM = lv.match(/<ul[^>]*class\s*=\s*["'][^"']*albaplayer_name[^"']*["'][^>]*>([\s\S]*?)<\/ul>/i);
           const scope = ulM ? ulM[1] : lv;
-          const links = [...scope.matchAll(/<a[^>]+href="([^"]*\/live\/[^"]+)"[^>]*>([^<]+)<\/a>/gi)];
+          const links = [...scope.matchAll(/<a[^>]+href\s*=\s*(["'])([^"']*\/live\/[^"']+)\1[^>]*>([^<]+)<\/a>/gi)];
           const seen = new Set([firstLive]);
           for (const l of links) {
-            const u = fixUrl(l[1]);
-            const label = (l[2] || '').trim().replace(/\s+/g, ' ');
+            const u = fixUrl(l[2], pageUrl);
+            const label = (l[3] || '').trim().replace(/\s+/g, ' ');
             if (u && !seen.has(u)) { seen.add(u); tabs.push({ url: u, label }); }
           }
         }
@@ -197,7 +200,7 @@ const resolveYacine = async (home, away, startIso) => {
       // kora.athikoora.com live pages (e.g. Celta Vigo 45' on 2026-09-13, reported).
       const rawLink = (b.match(/<a[^>]+href="(https:\/\/[^"]+)"/i) || [])[1] || (b.match(/<a[^>]+href="([^"]+)"/i) || [])[1];
       const link = rawLink && rawLink !== "/" && rawLink.startsWith("http") ? rawLink : null;
-      const names = [...b.matchAll(/TM_Name">([^<]+)</gi)].map(m => normAr(m[1]));
+      const names = [...b.matchAll(/TM_Name[^>]*>([^<]+)</gi)].map(m => normAr(m[1]));
       if (!link || names.length < 2) continue;
       const straight = teamScore(nH, names[0]) + teamScore(nA, names[1]);
       const swapped = teamScore(nH, names[1]) + teamScore(nA, names[0]);
@@ -210,8 +213,8 @@ const resolveYacine = async (home, away, startIso) => {
     const spRes = await fetchT(best, { headers: { ...UA, Referer: 'https://yacinelive.online/matches-today/' } });
     if (!spRes.ok) return null;
     const sp = await spRes.text();
-    const urls = [...sp.matchAll(/(https:\/\/[a-z0-9.\-]+\/(?:playerv5\.php[^"'<\s]*|albaplayer[^"'<\s]*))/gi)]
-      .map(m => fixUrl(m[1])).filter(Boolean);
+    const urls = [...sp.matchAll(/((?:https?:)?\/\/[a-z0-9._:\-]+\/(?:playerv5\.php[^"'<\s]*|albaplayer[^"'<\s]*|live\.php[^"'<\s]*))/gi)]
+      .map(m => fixUrl(m[1], best)).filter(Boolean);
     const clean = [...new Set(urls)].slice(0, 2);
     if (!clean.length) return null;
     return {
@@ -285,7 +288,7 @@ const resolveYacine = async (home, away, startIso) => {
     // Try to find player iframe directly in HTML (if already rendered)
     
     // Look for iframe with yasirtv, romabar, or similar (single or double quotes)
-    const iframeMatch = html.match(/<iframe[^>]*src=(["'])([^"']*(?:yasirtv|romabar|alba|player)[^"']*)\1[^>]*>/i);
+    const iframeMatch = html.match(/<iframe[^>]*src\s*=\s*(["'])([^"']*(?:yasirtv|romabar|alba|player|yala-go|yacinelive|kora|shooot|shots)[^"']*)\1[^>]*>/i);
     if (iframeMatch) {
       playerSrc = iframeMatch[2];
       playerHtml = iframeMatch[0];
