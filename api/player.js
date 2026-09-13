@@ -85,7 +85,7 @@ export default async function handler(req, res) {
       } catch {}
       const dayPages = await Promise.all(probeSegs.map(async (u) => {
         try {
-          const r = await fetchT(u, { headers: { ...UA, Referer: 'https://hd7livex.com/' } }, 5000);
+          const r = await fetchT(u, { headers: { ...UA, Referer: 'https://hd7livex.com/' } }, 3500);
           return r.ok ? await r.text() : '';
         } catch { return ''; }
       }));
@@ -186,7 +186,7 @@ const resolveYacine = async (home, away, startIso) => {
     } catch {}
     const yPages = await Promise.all(probeY.map(async (u) => {
       try {
-        const r = await fetchT(u, { headers: { ...UA, Referer: 'https://yacinelive.online/' } }, 5000);
+        const r = await fetchT(u, { headers: { ...UA, Referer: 'https://yacinelive.online/' } }, 3500);
         return r.ok ? await r.text() : '';
       } catch { return ''; }
     }));
@@ -277,7 +277,7 @@ const resolveYacine = async (home, away, startIso) => {
           'Accept': 'text/html,application/xhtml+xml',
           'Referer': 'https://kooralive-plus.info/',
         }
-      }, 6000);
+      }, 4000);
       kooraHtml = await upstream.text();
     } catch { kooraHtml = ''; }
   }
@@ -319,7 +319,7 @@ const resolveYacine = async (home, away, startIso) => {
               'Sec-Fetch-Mode': 'cors',
               'Sec-Fetch-Dest': 'empty',
             }
-          }, 5000);
+          }, 3000);
           if (!apiRes.ok) return null;
           const apiData = await apiRes.json();
           if (!Array.isArray(apiData)) return null;
@@ -337,11 +337,14 @@ const resolveYacine = async (home, away, startIso) => {
     // Clean direct src if we got one.
     if (playerSrc && playerSrc.startsWith('//')) playerSrc = 'https:' + playerSrc;
 
-    // hd7livex multi-server chain + yacine, in parallel (fail-open each).
-    const [hd7, yacine] = await Promise.all([
+    // hd7+yacine in parallel with 7.5s global cap — previously waited for slowest (up to 12s).
+    // If one host is slow/403, the other still returns quickly; client shows progressive.
+    const hdYacineDeadline = new Promise(r => setTimeout(() => r([null, null]), 7500));
+    const hdYacineWork = Promise.all([
       resolveHd7(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
       resolveYacine(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
     ]);
+    const [hd7, yacine] = await Promise.race([hdYacineWork, hdYacineDeadline]);
     const enServers = []; // English section removed 2026-09-12 (owner request)
 
     const servers = [];
