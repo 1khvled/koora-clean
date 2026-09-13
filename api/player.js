@@ -193,7 +193,10 @@ const resolveYacine = async (home, away, startIso) => {
       if (!day) continue;
       const blocks = day.split('AY_Match').slice(1);
       for (const b of blocks) {
-      const link = (b.match(/<a[^>]+href="([^"]*shooot[^"]*)"/i) || [])[1];
+      // Accept any stream page host (shooot/shots/kora.athikoora etc.) — was shooot-only and missed
+      // kora.athikoora.com live pages (e.g. Celta Vigo 45' on 2026-09-13, reported).
+      const rawLink = (b.match(/<a[^>]+href="(https:\/\/[^"]+)"/i) || [])[1] || (b.match(/<a[^>]+href="([^"]+)"/i) || [])[1];
+      const link = rawLink && rawLink !== "/" && rawLink.startsWith("http") ? rawLink : null;
       const names = [...b.matchAll(/TM_Name">([^<]+)</gi)].map(m => normAr(m[1]));
       if (!link || names.length < 2) continue;
       const straight = teamScore(nH, names[0]) + teamScore(nA, names[1]);
