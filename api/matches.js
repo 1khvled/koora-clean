@@ -12,8 +12,15 @@ export default async function handler(req, res) {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  // Edge caches 60s (every other 45s poll is instant), browsers 30s (scores stay fresh).
-  res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=60');
+  // Edge: 30s fresh + 60s stale-while-revalidate (instant even during revalidate)
+  res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
+  // In-memory 45s cache — avoids re-scraping kooralive for every concurrent user
+  const _mc = globalThis.__kooraMatchesCache || (globalThis.__kooraMatchesCache = new Map());
+  const cacheKey = 'm:' + day;
+  const hit = _mc.get(cacheKey);
+  if (hit && Date.now() - hit.at < 45000) {
+    return res.status(200).json(hit.data);
+  }
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   // Decode entities ONCE at the scrape (WordPress sends 63&#039;, sometimes
@@ -33,7 +40,7 @@ export default async function handler(req, res) {
   try {
     // Hard timeout so a hung upstream can't burn the serverless invocation.
     const ctrl = new AbortController();
-    const to = setTimeout(() => ctrl.abort(), 8000);
+    const to = setTimeout(() => ctrl.abort(), 4000);
     const upstream = await fetch(target, {
       signal: ctrl.signal,
       headers: {
@@ -113,6 +120,7 @@ export default async function handler(req, res) {
         league_text: decFull(leagueMatch ? leagueMatch[1].trim() : league),
       });
     }
+    _mc.set(cacheKey, { at: Date.now(), data: matches });
     return res.status(200).json(matches);
   } catch (e) {
     res.setHeader('Cache-Control', 'no-store');
