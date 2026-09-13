@@ -70,8 +70,11 @@ export default async function handler(req, res) {
         const hrefM = b.match(/<a[^>]+href="(https:\/\/[^"]+)"/i) || b.match(/<a[^>]+href='([^']+)'/i) || b.match(/<a[^>]+href="([^"]+)"/i);
         const href = hrefM ? hrefM[1] || hrefM[2] : '';
         if (!href || href === '/' || href === '#') continue;
+        if (!/(yala-go|kora\.athikoora|yacinelive|shooot|shots)/i.test(href)) continue;
         const names = [...b.matchAll(/TM_Name[^>]*>([^<]+)</gi)].map(m => decFull(m[1].trim()));
         if (names.length < 2) continue;
+        // Require at least one Arabic letter in team names (filters ad blocks)
+        if (!/[\u0600-\u06FF]/.test(names[0] + names[1])) continue;
         const home = names[0], away = names[1];
         if (!home || !away) continue;
         // Logos
@@ -158,11 +161,13 @@ export default async function handler(req, res) {
     // GOATED: Yacine first
     const yHtml = await fetchWithTimeout(yacineTarget, 4000, 'https://yacinelive.online/');
     let matches = yHtml ? parseYacine(yHtml) : [];
-    // If Yacine gave us at least 5 matches, use it. Otherwise fallback to Kora (backup).
-    if (matches.length >= 5) {
-      _mc.set(cacheKey, { at: Date.now(), data: matches });
-      return res.status(200).json(matches);
+    // If Yacine gave us at least 5 *valid* matches (with time), use it. Otherwise fallback.
+    const validY = matches.filter(m => m.time_text && m.home && m.away);
+    if (validY.length >= 5) {
+      _mc.set(cacheKey, { at: Date.now(), data: validY });
+      return res.status(200).json(validY);
     }
+    matches = validY;
     // Kora backup — original STING scrape
     const kHtml = await fetchWithTimeout(koraTarget, 4000, 'https://kooralive-plus.info/');
     if (!kHtml) {
