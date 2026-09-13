@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       while ((m = anchorRegex.exec(html)) !== null) {
         const tag = m[0];
         if (!tag.includes('data-home')) continue;
-        const getAttr = (name) => {
+      const getAttr = (name) => {
           const mm = tag.match(new RegExp(name + '\\s*=\\s*(["\'])(.*?)\\1'));
           return mm ? mm[2] : '';
         };
@@ -59,6 +59,8 @@ export default async function handler(req, res) {
         }
         if (!sid || seen.has(sid)) continue;
         seen.add(sid);
+        const after = html.slice(m.index, m.index + 4000);
+        const imgs = [...after.matchAll(/<img[^>]*src=(["'])(.*?)\1/gi)].map(x => x[2]).slice(0, 2);
         const start = getAttr('data-start');
         const dm = (start || '').match(/^(\d{4}-\d{2}-\d{2})/);
         urls.push({
@@ -66,13 +68,14 @@ export default async function handler(req, res) {
           changefreq: 'hourly',
           priority: '0.7',
           lastmod: dm ? dm[1] : undefined,
+          imgs,
         });
       }
     });
   } catch {}
   const body = ['<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    .concat(urls.map(u => '  <url><loc>' + esc(u.loc) + '</loc>' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">']
+    .concat(urls.map(u => '  <url><loc>' + esc(u.loc) + '</loc>' + (u.imgs ? u.imgs.map(src => '<image:image><image:loc>' + esc(src) + '</image:loc></image:image>').join('') : '') +
       (u.lastmod ? '<lastmod>' + u.lastmod + '</lastmod>' : '') +
       '<changefreq>' + u.changefreq + '</changefreq>' +
       '<priority>' + u.priority + '</priority></url>'))

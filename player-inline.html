@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071f19">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <title>مشاهدة المباراة بث مباشر — كورة لايف</title>
 <meta name="description" content="مشاهدة المباراة بث مباشر بجودة عالية وبدون إعلانات مزعجة على كورة لايف.">
 <link rel="canonical" href="https://kooraadz.vercel.app/player.html">
@@ -79,6 +80,8 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .mcard .mid .tm{font-size:12px;font-weight:800;margin-top:2px}
 .tstar{font-family:var(--font);background:none;border:0;color:var(--gold);font-size:20px;min-width:44px;min-height:44px;cursor:pointer;opacity:.5;padding:0}
 .tstar.on{opacity:1}
+.crumb{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;gap:6px;align-items:center}
+.crumb a{color:inherit;text-decoration:none;border-bottom:1px dashed var(--line)}
 .likebar{display:flex;justify-content:center;margin-top:10px}
 .like{font-family:var(--font);background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:999px;min-height:44px;padding:8px 18px;font-size:15px;font-weight:800;cursor:pointer}
 .like.on{color:var(--live);border-color:var(--live)}
@@ -275,6 +278,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 </head>
 <body>
 <div class="wrap">
+  <nav class="crumb" aria-label="breadcrumb"><a href="/">الرئيسية</a> <span aria-hidden="true">›</span> <span id="crumbCur">مشاهدة المباراة</span></nav>
   <div class="head">
     <a class="back" href="./index.html">‹ عودة</a>
     <div class="title"><h1 id="matchTitle">جاري التحميل…</h1><small>بث نظيف بدون إعلانات</small></div>
@@ -481,6 +485,7 @@ function paintTitle(){
   document.getElementById('matchTitle').textContent =
     (home || away) ? `${home} × ${away}` : 'مشاهدة المباراة';
   if (home || away) document.title = `مشاهدة ${home} × ${away} بث مباشر — كورة لايف`;
+  try { const c = document.getElementById('crumbCur'); if (c) c.textContent = (home && away) ? `${home} ضد ${away}` : c.textContent; } catch {}
   try {
     document.querySelector('link[rel="canonical"]')?.setAttribute('href', location.href);
     document.getElementById('bc-jsonld')?.remove();

@@ -4,7 +4,23 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-13 (SEO/GEO v2, see CONTEXT 45).
+> Last updated: 2026-09-13 (SEO v3 SSR + images, see CONTEXT 46).
+
+## 46. SEO v3: crawlable SSR fallback, image alt, Organization, breadcrumb, sitemap images (2026-09-13, user: "more SEO")
+
+- **Crawlable fallback (biggest gap).** Index was JS-only — crawlers saw
+  empty `#leagues`. Now ships a 14-match SSR snapshot inside `#leagues`
+  (today's fixtures as plain `<a href="/player.html?m=&d=">` with team + time
+  + league), fetched at patch time. JS removes it on first render
+  (progressive enhancement, not cloaking). Pinned as static fallback for
+  no-JS bots; live data overwrites it within seconds for users.
+- **Images:** team logos now carry `alt="team name"` (was empty) — image
+  SEO + a11y; sitemap now emits `<image:image>` per match (up to 2 logos).
+- **Head:** `max-image-preview:large` on both pages, `Organization` node
+  beside `WebSite`, visible breadcrumb (`Home > match`) on player with
+  matching `BreadcrumbList` JSON-LD (canonical rewritten per match).
+- Verified: syntax clean on both inlines + sitemap, fallback present, alt +
+  org + breadcrumb + image sitemap markers present, mirrors in sync.
 
 ## 45. SEO/GEO v2: SearchAction, FAQ,ItemList, linked leagues, 3-day sitemap, breadcrumb (2026-09-13, user: "first get traffic, improve SEO/GEO")
 
