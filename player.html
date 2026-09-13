@@ -1269,7 +1269,10 @@ async function loadRealPlayer(){
     // hits — no extra guard needed here.
     try {
       const chans = await chanP;
-      if (chans.length) list.push(...chans);
+      // Only append 24/7 beIN fallbacks when a real match server exists —
+      // showing 6× 'قناة بين سبورتس' alone is unrelated to the fixture and
+      // was reported as dogshit (user screenshot: 0 match servers → 6 generic).
+      if (chans.length && list.length) list.push(...chans);
     } catch {}
     showServersFromList(list);
     if (serverList.length){ const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); }
