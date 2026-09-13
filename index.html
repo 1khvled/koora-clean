@@ -7,6 +7,8 @@
 <title>كورة لايف — مباريات اليوم بث مباشر بدون إعلانات</title>
 <meta name="description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة. جدول المباريات، النتائج المباشرة، والقنوات الناقلة.">
 <link rel="canonical" href="https://kooraadz.vercel.app/index.html">
+<link rel="alternate" hreflang="ar" href="https://kooraadz.vercel.app/index.html">
+<link rel="alternate" hreflang="x-default" href="https://kooraadz.vercel.app/index.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ar_AR">
 <meta property="og:site_name" content="كورة لايف">
@@ -127,6 +129,12 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .seo p{margin:6px 2px}
 .seo ul{margin:6px 0;padding-inline-start:22px;display:grid;gap:4px}
 .seo strong{color:var(--ink)}
+.seo a{color:inherit;text-decoration:none;border-bottom:1px dashed var(--line)}
+.seo a:hover{color:var(--pitch)}
+.faq{margin-top:14px}
+.faq details{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;background:var(--card)}
+.faq summary{font-weight:800;cursor:pointer;min-height:44px;display:flex;align-items:center}
+.faq p{margin:8px 2px 0;color:var(--muted)}
 .loading{text-align:center;color:var(--muted);padding:40px 0;font-weight:600}
 .toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;
   transform:translateX(-50%) translateY(20px);background:var(--night);color:#fff;
@@ -170,7 +178,8 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   <div id="leagues"></div>
   <div id="empty" hidden>لا توجد مباريات مطابقة لبحثك</div>
 </main>
-<section class="seo"><h2>مباريات اليوم بث مباشر</h2><p>جدول مباريات اليوم محدث باستمرار: مواعيد مباريات والنتائج لحظة بلحظة لأهم الدورييات.</p><ul><li><strong>الدوري الإنجليزي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري الإسباني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري الإيطالي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري الألماني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري الفرنسي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>الدوري السعودي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><strong>دوري أبطال أوروبا:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li></ul><p>اختر المباراة من القائمة لفتح صفحة البث.</p></section>
+<section class="seo"><h2>مباريات اليوم بث مباشر</h2><p>جدول مباريات اليوم محدث باستمرار: مواعيد مباريات والنتائج لحظة بلحظة لأهم الدورييات.</p><ul><li><a href="#" data-lg-link><strong>الدوري الإنجليزي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الإسباني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الإيطالي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الألماني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الفرنسي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري السعودي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>دوري أبطال أوروبا:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li></ul><p>اختر المباراة من القائمة لفتح صفحة البث.</p></section>
+<section class="seo faq"><h2>أسئلة شائعة</h2><details><summary>كيف أشاهد</summary><p>اختر المباراة</p></details><details><summary>هل البث مجاني</summary><p>نعم</p></details><details><summary>ما البطولات</summary><p>الدوري الإنج</p></details><details><summary>لماذا الدقيقة</summary><p>الدقيقة محسوبة</p></details></section>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -919,7 +928,15 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
       homeTeam: { '@type': 'SportsTeam', name: m.home || '' },
       awayTeam: { '@type': 'SportsTeam', name: m.away || '' } });
   }
-  graph.push({ '@type': 'WebSite', name: 'كورة لايف', url: location.origin + '/', inLanguage: 'ar' });
+  graph.push({ '@type': 'WebSite', name: 'كورة لايف', url: location.origin + '/', inLanguage: 'ar',
+    potentialAction: { '@type': 'SearchAction', target: location.origin + '/?q={search_term_string}', 'query-input': 'required name=search_term_string' } });
+  graph.push({ '@type': 'FAQPage', mainEntity: [
+    { '@type': 'Question', name: 'كيف أشاهد', acceptedAnswer: { '@type': 'Answer', text: 'اختر المباراة' } },
+    { '@type': 'Question', name: 'هل البث مجاني', acceptedAnswer: { '@type': 'Answer', text: 'نعم' } },
+    { '@type': 'Question', name: 'ما البطولات', acceptedAnswer: { '@type': 'Answer', text: 'الدوري الإنج' } },
+    { '@type': 'Question', name: 'لماذا الدقيقة', acceptedAnswer: { '@type': 'Answer', text: 'الدقيقة محسوبة' } }
+  ]});
+  if (list.length) graph.push({ '@type': 'ItemList', name: 'مباريات اليوم', numberOfItems: list.length, itemListElement: list.slice(0, 20).map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(playerLink(m), location.href).toString(), name: `${m.home || ''} ضد ${m.away || ''}` })) });
   const s = document.createElement('script');
   s.type = 'application/ld+json'; s.id = 'jsonld';
   s.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
@@ -931,6 +948,7 @@ $('#searchInput').addEventListener('input', () => { // debounced: no DOM churn p
   clearTimeout(searchT);
   searchT = setTimeout(render, 160);
 });
+document.addEventListener('click', e => { const a = e.target.closest('[data-lg-link]'); if (!a) return; e.preventDefault(); try { const lg = a.textContent.replace(/:.*/, '').trim(); if (lg){ LEAGUE = lg; buildChips(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } } catch {} });
 $$('#dayTabs button').forEach(b => b.onclick = () => { LEAGUE = 'all'; loadDay(b.dataset.day); });
 document.querySelector('#dayTabs')?.setAttribute('role', 'tablist');
 $$('#dayTabs button').forEach(b => { b.setAttribute('role', 'tab'); if (!b.hasAttribute('aria-selected')) b.setAttribute('aria-selected', b.classList.contains('on') ? 'true' : 'false'); });

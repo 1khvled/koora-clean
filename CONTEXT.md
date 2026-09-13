@@ -4,7 +4,23 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-13 (SEO+GEO pass, see CONTEXT 44).
+> Last updated: 2026-09-13 (SEO/GEO v2, see CONTEXT 45).
+
+## 45. SEO/GEO v2: SearchAction, FAQ,ItemList, linked leagues, 3-day sitemap, breadcrumb (2026-09-13, user: "first get traffic, improve SEO/GEO")
+
+- **Fix:** `WebSite` JSON-LD was duplicated every 45s silent render —
+  now single node with `SearchAction` (`?q={search_term_string}`) for
+  sitelinks box.
+- **Index:** added `FAQPage` (4 Q/A) + visible FAQ accordion + `ItemList`
+  of today's fixtures; league names in SEO block now link internally
+  (deep-filter gate) so crawlers follow them.
+- **Player:** `BreadcrumbList` (Home > match), canonical now rewritten to
+  the actual `?m=&d=` URL, `hreflang` on both pages.
+- **Sitemap:** 3-day parallel fetch (today/yesterday/tomorrow) with correct
+  `&d=` per day, lastmod from kickoff date. `llms.txt` kept (already
+  verified GEO artifact).
+- Verified: sitemap 5/5 + JSON-LD 5/5 on shipped code, syntax clean, mirrors
+  in sync.
 
 ## 44. SEO + GEO visibility pass (2026-09-13, user: "work on SEO+GEO, make site visible")
 
