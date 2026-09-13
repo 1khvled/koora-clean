@@ -523,7 +523,7 @@ async function fetchSnap(sid, day){
   // Parallel probe, 4s budget each — previous sequential walk could stall 20s+.
   const probes = await Promise.all(urls.map(async (u) => {
     const ctrl = new AbortController();
-    const to = setTimeout(() => ctrl.abort(), 4000);
+    const to = setTimeout(() => ctrl.abort(), 3000);
     try {
       const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store', signal: ctrl.signal });
       if (!r.ok) return null;
@@ -1150,6 +1150,24 @@ function safeSrc(u){
   return '';
 }
 function srvMemKey(){ return id ? 'koora:srv:' + id : ''; }
+function srvCacheGet(){
+  try {
+    const k = srvMemKey() + ':cache';
+    const raw = localStorage.getItem(k);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (!o || !Array.isArray(o.servers) || !o.at) return null;
+    if (Date.now() - o.at > 12 * 3600 * 1000) return null;
+    return o.servers;
+  } catch { return null; }
+}
+function srvCacheSet(servers){
+  try {
+    if (!servers || !servers.length) return;
+    const k = srvMemKey() + ':cache';
+    localStorage.setItem(k, JSON.stringify({ at: Date.now(), servers: servers.slice(0, 8) }));
+  } catch {}
+}
 function srvRemember(url){ try { const k = srvMemKey(); if (k && url) localStorage.setItem(k, url); } catch {} }
 function srvRecall(list){
   try {
@@ -1183,7 +1201,11 @@ function rearmShield(){
 }
 
 async function loadRealPlayer(){
-  showSkeleton();
+  const cached = srvCacheGet();
+  if (cached && cached.length) {
+    showServersFromList(cached);
+    srvNow.textContent = 'جاري تحديث البث…';
+  } else showSkeleton();
   if (qs.get('demo') === '1' && !href){
     const wb = workerBase();
     const demoSrc = safeSrc(wb
@@ -1213,17 +1235,21 @@ async function loadRealPlayer(){
   };
   const fetchApi = async () => {
     const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP });
-    for (let attempt = 1; attempt <= 2; attempt++){
-      srvNow.textContent = attempt > 1 ? 'إعادة المحاولة…' : 'جاري تحميل البث…';
-      const ms = attempt > 1 ? 5000 : 7000;
+    for (let attempt = 1; attempt <= 3; attempt++){
+      srvNow.textContent = attempt > 1 ? 'إعادة المحاولة ' + attempt + '…' : 'جاري تحميل البث…';
+      const ms = attempt === 1 ? 4000 : attempt === 2 ? 3000 : 2500;
       const ctrl = new AbortController();
       const to = setTimeout(() => ctrl.abort(), ms);
       try {
-        const r = await fetch('/api/player?' + q.toString() + (attempt > 1 ? '&retry=1' : ''), { cache: 'no-store', signal: ctrl.signal });
+        const r = await fetch('/api/player?' + q.toString() + (attempt > 1 ? '&retry=' + attempt : ''), { cache: 'no-store', signal: ctrl.signal });
         if (!r.ok) throw new Error('http ' + r.status);
-        return await r.json();
+        const j = await r.json();
+        // Treat found:false with 0 servers as retryable for 1 more attempt (upstream flake)
+        if (!j.found && (!j.servers || !j.servers.length) && attempt < 3) throw new Error('no servers yet');
+        return j;
       } catch (e){
-        if (attempt === 2) throw e;
+        if (attempt === 3) throw e;
+        await new Promise(r => setTimeout(r, 400 * attempt));
       } finally { clearTimeout(to); }
     }
   };
@@ -1236,7 +1262,7 @@ async function loadRealPlayer(){
       const fetchChan = async (path) => {
         try {
           const ctrl = new AbortController();
-          const to = setTimeout(() => ctrl.abort(), 5000);
+          const to = setTimeout(() => ctrl.abort(), 3000);
           try {
             const r = await fetch(path, { cache: 'no-store', signal: ctrl.signal });
             if (!r.ok) return [];
@@ -1275,8 +1301,12 @@ async function loadRealPlayer(){
       if (chans.length && list.length) list.push(...chans);
     } catch {}
     showServersFromList(list);
-    if (serverList.length){ const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); }
-    else toast('لا يوجد بث متاح حالياً');
+    if (serverList.length){ const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); try { srvCacheSet(serverList); } catch {} }
+    else {
+      const fb = srvCacheGet();
+      if (fb && fb.length) { showServersFromList(fb); const ri2 = srvRecall(serverList); goServer(ri2 >= 0 ? ri2 : 0, false); toast('البث من الذاكرة — جاري التحديث'); }
+      else toast('لا يوجد بث متاح حالياً');
+    }
     loadRealPlayer._busy = false;
   } catch (e){
     failBox();
