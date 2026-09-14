@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-14 (messistat sponsor banners, see CONTEXT 52).
+> Last updated: 2026-09-14 (one slim English footer banner, see CONTEXT 53).
+
+## 53. Banners slimmed: Arabic out, one English footer leaderboard (2026-09-14, user: "too big, put a banner at the very end" → "remove the arabic one keep the english one")
+
+- **Supersedes 52.** Removed both Arabic slots (index top, player
+  mid-banner) and the mid-page English slot (was between `</main>` and
+  SEO). Each page now has exactly ONE banner at the very bottom: index
+  → after the FAQ section; player → after minfo (last inside `.wrap`).
+- **Slim:** `.ad-wrap` capped at 728px leaderboard width, centered
+  (was full content width up to 880px). Removed the now-dead
+  `.ad-bottom` rule + 880px media override.
+- **Deleted `ads/messi-stats-ar.jpg`** (unused; source still in owner's
+  Downloads). Only `ads/messi-stats-en.jpg` (1600×400, 82KB) ships.
+- Verified: 2 messistat refs per file (CSS comment + 1 link), zero
+  `messi-stats-ar`/`ad-bottom` refs, inline JS syntax OK ×4, mirrors in
+  sync.
 
 ## 52. Messistat sponsor banners (2026-09-14, user: "advertise my other website messistat.com, small banner ads" + 2 Gemini creatives)
 
