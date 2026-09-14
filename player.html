@@ -16,11 +16,19 @@
 <meta property="og:title" content="مشاهدة المباراة بث مباشر — كورة لايف">
 <meta property="og:description" content="بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
 <meta property="og:url" content="https://kooraadz.vercel.app/player.html">
-<meta property="og:image" content="https://kooraadz.vercel.app/icon-512.png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
+<meta property="og:image" content="https://kooraadz.vercel.app/og-cover.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="كورة لايف">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="مشاهدة المباراة بث مباشر — كورة لايف">
+<meta name="twitter:description" content="بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
+<meta name="twitter:image" content="https://kooraadz.vercel.app/og-cover.png">
+<!-- Google Search Console: create a property for https://kooraadz.vercel.app/, choose the HTML-tag method,
+     and paste the code below (replace REPLACE_WITH_SEARCH_CONSOLE_CODE). -->
+<meta name="google-site-verification" content="REPLACE_WITH_SEARCH_CONSOLE_CODE">
+<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"كورة لايف","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebPage","@id":"https://kooraadz.vercel.app/player.html#page","url":"https://kooraadz.vercel.app/player.html","name":"مشاهدة المباراة بث مباشر — كورة لايف","inLanguage":"ar","isPartOf":{"@id":"https://kooraadz.vercel.app/#site"}}]}</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -285,7 +293,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 <div class="wrap">
   <nav class="crumb" aria-label="breadcrumb"><a href="/">الرئيسية</a> <span aria-hidden="true">›</span> <span id="crumbCur">مشاهدة المباراة</span></nav>
   <div class="head">
-    <a class="back" href="./index.html">‹ عودة</a>
+    <a class="back" href="/">‹ عودة</a>
     <div class="title"><h1 id="matchTitle">جاري التحميل…</h1><small>بث نظيف بدون إعلانات</small></div>
     <span style="width:76px;flex:none"></span>
   </div>
@@ -301,9 +309,9 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
     </div>
   </div>
   <div class="mcard" id="matchCard" hidden>
-    <div class="team"><img id="homeLogo" alt=""><b id="homeName">—</b><button class="tstar" id="starH" aria-label="fav">&#9734;</button></div>
+    <div class="team"><img id="homeLogo" alt="شعار الفريق المضيف"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="fav">&#9734;</button></div>
     <div class="mid"><div class="vs" id="matchState">…</div><div class="tm" id="matchTime">—</div><div class="lg" id="matchLeague">—</div></div>
-    <div class="team"><img id="awayLogo" alt=""><b id="awayName">—</b><button class="tstar" id="starA" aria-label="fav">&#9734;</button></div>
+    <div class="team"><img id="awayLogo" alt="شعار الفريق الضيف"><b id="awayName">—</b><button class="tstar" id="starA" aria-label="fav">&#9734;</button></div>
   </div>
   <div class="likebar"><button class="like" id="btnLike" aria-label="like">&#9825;<span id="likeCount"></span></button></div>
   <div class="src-head">
@@ -1055,8 +1063,8 @@ function paintMatch(h, a, hl, al, lg){
   document.getElementById('homeName').textContent = h || '—';
   document.getElementById('awayName').textContent = a || '—';
   const hi = document.getElementById('homeLogo'), ai = document.getElementById('awayLogo');
-  if (hl){ if (hi.getAttribute('src') !== hl) hi.src = hl; hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
-  if (al){ if (ai.getAttribute('src') !== al) ai.src = al; ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
+  if (hl){ if (hi.getAttribute('src') !== hl) hi.src = hl; hi.alt = h || 'شعار الفريق'; hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
+  if (al){ if (ai.getAttribute('src') !== al) ai.src = al; ai.alt = a || 'شعار الفريق'; ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
   document.getElementById('matchLeague').textContent = lg || 'بث نظيف بدون إعلانات';
   const stEl = document.getElementById('matchState');
   const tmEl = document.getElementById('matchTime');
@@ -1552,9 +1560,9 @@ function renderMi(){
   };
   const hLogo = logoOk(d.home && d.home.logo), aLogo = logoOk(d.away && d.away.logo);
   const scoreHtml = `<div class="fm-score"><div class="lg">${esc(decFull(d.league || ''))}</div><div class="row">`
-    + `<div class="tm">${hLogo ? `<img src="${esc(hLogo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.home.name))}</b></div>`
+    + `<div class="tm">${hLogo ? `<img src="${esc(hLogo)}" alt="${esc(decFull(d.home.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.home.name))}</b></div>`
     + `<div class="mid"><div class="gl">${d.home.score != null ? d.home.score : '–'} - ${d.away.score != null ? d.away.score : '–'}</div><div class="st">${statusTxt}</div></div>`
-    + `<div class="tm">${aLogo ? `<img src="${esc(aLogo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.away.name))}</b></div>`
+    + `<div class="tm">${aLogo ? `<img src="${esc(aLogo)}" alt="${esc(decFull(d.away.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.away.name))}</b></div>`
     + `</div><div class="scorers"><div>${scorers(true)}</div><div>${scorers(false)}</div></div></div>`;
   // --- clickable pitch dots (button dots; coach has no dot and never pops) ---
   const dot = (p, mirror, homeFlag, teamName, starter) => {
@@ -1580,7 +1588,7 @@ function renderMi(){
     const photo = photoUrl(p.pid);
     const lbl = esc(decFull(p.short || p.name));
     return `<button type="button" class="pdot" data-pid="${esc(p.pid || '')}" style="left:${left}%;top:${top}%" aria-haspopup="dialog" aria-label="${lbl}">${evb}`
-      + `<span class="pimg"><i>${esc(initials(p.short || p.name))}</i>${photo ? `<img src="${photo}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`
+      + `<span class="pimg"><i>${esc(initials(p.short || p.name))}</i>${photo ? `<img src="${photo}" alt="${esc(decFull(p.short || p.name))}" loading="lazy" onerror="this.remove()">` : ''}</span>`
       + `${badge}<span class="pname"><b>${esc(decFull(p.num))}</b> ${lbl}</span></button>`;
   };
   const tH = (d.lineups && d.lineups.home) || {}, tA = (d.lineups && d.lineups.away) || {};
@@ -1588,7 +1596,7 @@ function renderMi(){
   let pitchHtml = '';
   if (hasPitch){
     const tline = (t, logo, cls) =>
-      `<div class="teamline ${cls}">${t.rating != null && isFinite(t.rating) ? `<span class="trate">${Number(t.rating).toFixed(1)}</span>` : ''}${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<span>${esc(decFull(t.name))}</span><span class="fm2">${esc(decFull(t.formation))}</span></div>`;
+      `<div class="teamline ${cls}">${t.rating != null && isFinite(t.rating) ? `<span class="trate">${Number(t.rating).toFixed(1)}</span>` : ''}${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(t.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<span>${esc(decFull(t.name))}</span><span class="fm2">${esc(decFull(t.formation))}</span></div>`;
     pitchHtml = `<div class="pitch"><div class="ln half"></div><div class="ln circ"></div><div class="ln boxT"></div><div class="ln boxB"></div>`
       + tline(tH, hLogo, 'tH')
       + (tH.starters || []).map(p => dot(p, false, true, tH.name, true)).join('')
@@ -1611,7 +1619,7 @@ function renderMi(){
       ? `<div class="sub" style="margin-top:6px">الغائبون</div>` + (t.unavailable || []).map(p =>
         `<div class="unav"><span>🚑</span><span class="nm">${esc(decFull(p.name))}${p.reason ? ' <small class="sub">(' + esc(decFull(p.reason)) + ')</small>' : ''}</span></div>`).join('')
       : '';
-    return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(t.name))}</b><span class="fm">${esc(decFull(t.formation))}${t.rating != null && isFinite(t.rating) ? ' • ' + Number(t.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
+    return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(t.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(t.name))}</b><span class="fm">${esc(decFull(t.formation))}${t.rating != null && isFinite(t.rating) ? ' • ' + Number(t.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
   };
   let listsHtml = '';
   if (d.lineups && (d.lineups.home || d.lineups.away)){
@@ -1717,7 +1725,7 @@ function openMiPop(btn){
   el.id = 'miPop';
   el.setAttribute('role', 'dialog');
   el.setAttribute('data-pid', pid);
-  el.innerHTML = `<div class="mh">${photo ? `<img src="${photo}" alt="" loading="lazy" onerror="this.remove()">` : ''}`
+  el.innerHTML = `<div class="mh">${photo ? `<img src="${photo}" alt="${esc(decFull(p.short || p.name))}" loading="lazy" onerror="this.remove()">` : ''}`
     + `<span class="tt"><b>${esc(decFull(p.short || p.name))}</b><small>${esc(decFull(p.num))} • ${esc(decFull(info.team))}</small></span>`
     + `<button type="button" class="mx" aria-label="إغلاق">✕</button></div>`
     + `<div style="margin-top:6px">${rPill(p.rating)}</div>`

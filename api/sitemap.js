@@ -12,7 +12,6 @@ export default async function handler(req, res) {
     .replace(/"/g, '&quot;');
   const urls = [
     { loc: base + '/', changefreq: 'hourly', priority: '1.0' },
-    { loc: base + '/index.html', changefreq: 'hourly', priority: '0.9' },
     { loc: base + '/player.html', changefreq: 'hourly', priority: '0.8' },
   ];
   const segs = [

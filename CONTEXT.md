@@ -4,7 +4,49 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-14 (one slim English footer banner, see CONTEXT 53).
+> Last updated: 2026-09-14 (SEO indexability pass, see CONTEXT 54).
+
+## 54. SEO indexability pass (2026-09-14, user: "Google isn't showing my website" + 17-item SEO list)
+
+- **Why Google wasn't showing the site.** No single noindex bug — public pages
+  already served `index,follow` over HTTPS (HSTS preload live). The real
+  blockers: (a) canonical split — `index.html` canonicalized to `/index.html`
+  while `/` also served + both listed across sitemaps; (b) 7 internal links
+  were `href="#"` (JS-only filter, zero crawl equity); (c) league headings
+  injected as `<h3>` before the `<h2>` SEO sections (skipped hierarchy);
+  (d) all schema was JS-injected (invisible to no-JS crawlers); (e) duplicate
+  crawlable mirrors `/index-inline.html` + `/player-inline.html` (56/92KB,
+  `index,follow`); (f) OG image was a 512px square icon, player had no
+  twitter title/desc; (g) player team/player images had empty `alt=""`;
+  (h) no `vercel.json` (no `/index.html`→`/` redirect, no security headers).
+- **Fixes (`index.html`, `player.html`, mirrors kept byte-identical).**
+  Canonical/hreflang/`og:url` → `https://kooraadz.vercel.app/` (player keeps
+  self `/player.html`; its JS still upgrades canonical per match `?m=&d=`).
+  New `og-cover.png` (1200×630, 33KB, PIL gradient + icon) wired to
+  `og:image` + `summary_large_image` + `twitter:image`; player gains
+  `twitter:title/description`. Static `Organization`+`WebSite` (index) /
+  `Organization`+`WebPage` (player) JSON-LD in `<head>`; dynamic SportsEvent/
+  breadcrumb JS untouched. League links → `/?league=<url-encoded>` with
+  `?league=` boot filter (click handler still instant, no reload). League
+  template + CSS `.league > h3` → `h2`. Player: back link `./index.html`→`/`,
+  static logo alts + `paintMatch` sets `alt` to team names, minfo/lineup/
+  photo templates carry team/player-name alts. GSC
+  `google-site-verification` placeholder meta on both pages (owner pastes code
+  from search.google.com/search-console).
+- **Crawl files.** `robots.txt`: added `Disallow: /index-inline.html`,
+  `/player-inline.html` (dzt3ch456 stays `noindex`+disallowed — intentional,
+  do NOT "remove" that one). `sitemap.xml`: added `lastmod`. `api/sitemap.js`:
+  dropped duplicate `/index.html` URL. New `vercel.json`: permanent
+  `/index.html`→`/` redirect + HSTS/nosniff/referrer/SAMEORIGIN headers.
+- **Images/vitals/HTTPS/slugs.** Icons 1.5–4.7KB + ad 82KB already lean;
+  `shots/` is gitignored (never ships). Above-fold keeps width/height (zero
+  CLS) + lazy below-fold; fonts already `display=swap` + preconnect. HTTPS +
+  HSTS-preload verified live; player `?m=&d=` short links kept (canonicals
+  self-resolve, sitemap escapes `&amp;` correctly).
+- Verified: 48/48 `seo_verify.py` checks (1×H1, hierarchy, no `href="#"`,
+  no empty alts, JSON-LD parses, XML/sitemap/vercel.json parse), `node
+  --check` api/sitemap + both inline scripts green, mirrors SHA256-identical.
+  Live push pending Vercel redeploy + GSC submit (see reply for steps).
 
 ## 53. Banners slimmed: Arabic out, one English footer leaderboard (2026-09-14, user: "too big, put a banner at the very end" → "remove the arabic one keep the english one")
 
