@@ -4,7 +4,30 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-13 (JUST 2 SITES Yacine+Kora, see CONTEXT 51).
+> Last updated: 2026-09-14 (messistat sponsor banners, see CONTEXT 52).
+
+## 52. Messistat sponsor banners (2026-09-14, user: "advertise my other website messistat.com, small banner ads" + 2 Gemini creatives)
+
+- **Assets (`ads/` NEW).** Owner's Downloads had only 1 of the 2 named
+  files (`yhve8hyhve8hyhve.jpg` missing → used the existing
+  `9whix39whix39whi.jpg` + `byck4rbyck4rbyck.jpg`). Resized with PIL
+  LANCZOS + JPEG q68 progressive: `ads/messi-stats-ar.jpg` (1200×670,
+  140KB, Arabic creative) + `ads/messi-stats-en.jpg` (1600×400, 82KB,
+  ultra-wide English leaderboard). Originals were 2.6 + 3.6 MB — never
+  ship those raw.
+- **Slots (2 per page, all `https://messistat.com`, `target=_blank`,
+  `rel="sponsored noopener"`, tiny `إعلان` label, `loading=lazy`,
+  width/height set = zero CLS).** Index: AR banner under the toolbar,
+  EN leaderboard between `</main>` and the SEO block. Player (dark
+  theme, same component): AR banner after the status line / before
+  minfo, EN leaderboard after minfo. New `.ad`/`.ad-wrap` CSS per theme.
+- **Mirrors kept in sync** (`index-inline.html`, `player-inline.html`
+  got the identical banner hunks; their older JS left untouched).
+- Verified: diff is pure additions (32 insertions, 0 deletions), inline
+  JS syntax OK on all 4 pages via `vm.Script`, 3 messistat refs per
+  file (1 CSS comment + 2 links). Banners are same-origin images so the
+  SW ad-blocker passthrough doesn't touch them; no JS/render paths
+  modified (`#leagues`/`#servers` writes never touch the ad divs).
 
 ## 51. JUST 2 SITES: Yacine primary, Kora backup (2026-09-13, user: "JUST SCRAPE YACINE TV ITS GOATED AND USE KORA AS BACKUP JUST 2 SITES")
 

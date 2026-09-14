@@ -273,6 +273,11 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
   text-align:center;border:1px solid var(--line)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
+/* sponsor banners (messistat.com) — small, labeled, lazy-loaded */
+.ad-wrap{margin-top:10px}
+.ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card)}
+.ad img{display:block;width:100%;height:auto}
+.ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 8px}
 @media (prefers-reduced-motion:reduce){.click-shield{transition:none}}
 </style>
 </head>
@@ -314,6 +319,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
     <button class="btn ghost" id="btnBell" aria-label="notifications">&#128276;</button>
   </div>
   <div class="status" id="status">محظور: 0</div>
+  <div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="ميسي ستات — إعلان"><span class="tag">إعلان</span><img src="./ads/messi-stats-ar.jpg" alt="ميسي ستات — كل إحصائيات ليونيل ميسي في مكان واحد" loading="lazy" decoding="async" width="1200" height="670"></a></div>
   <section class="minfo" id="minfo" hidden>
     <div class="src-head" style="margin-top:0">
       <h2>📊 بيانات المباراة</h2>
@@ -321,6 +327,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
     </div>
     <div id="minfoBody"><div class="loading">جاري تحميل التشكيلة والتقييمات…</div></div>
   </section>
+  <div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag">إعلان</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 </div>
 <div class="toast" id="toast"></div>
 
