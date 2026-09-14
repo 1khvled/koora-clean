@@ -150,13 +150,11 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
-/* sponsor banners (messistat.com) — small, labeled, lazy-loaded */
-.ad-wrap{max-width:760px;margin:12px auto 0;padding:0 16px}
+/* sponsor banner (messistat.com) — one slim footer leaderboard, labeled, lazy */
+.ad-wrap{max-width:728px;margin:14px auto;padding:0 16px}
 .ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow)}
 .ad img{display:block;width:100%;height:auto}
 .ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 8px}
-.ad-bottom{margin-bottom:2px}
-@media (min-width:768px){.ad-wrap{max-width:880px}}
 /* tablets/desktops: wider content */
 @media (min-width:768px){
   main{max-width:880px}
@@ -183,7 +181,6 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   <input id="searchInput" type="search" placeholder="ابحث عن فريق أو بطولة…" autocomplete="off">
   <div class="chips" id="leagueChips"></div>
 </div>
-<div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="ميسي ستات — إعلان"><span class="tag">إعلان</span><img src="./ads/messi-stats-ar.jpg" alt="ميسي ستات — كل إحصائيات ليونيل ميسي في مكان واحد" loading="lazy" decoding="async" width="1200" height="670"></a></div>
 <main id="content">
   <div class="loading" id="loading">جاري تحميل المباريات…</div>
   <section id="liveSec" hidden>
@@ -193,9 +190,9 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   <div id="leagues"><div id="ssr-fallback"><p class="ssr-note">مباريات اليوم — يتم تحديث تلقائيا</p><ul class="ssr-list"><li><a href="/player.html?m=4621360&amp;d=today">كانساس سيتي ويزردز ضد لوس أنجلوس — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621361&amp;d=today">سانت لويس سيتي ضد مينيسوتا يونايتد — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621362&amp;d=today">دالاس ضد بورتلاند تيمبرز — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621358&amp;d=today">ريال سالت لايك ضد نيويورك سيتي — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621359&amp;d=today">كولورادو رابيدز ضد مونتريال امباكت — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621356&amp;d=today">لوس أنجلوس غالاكسي ضد سياتيل ساونديرز — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621357&amp;d=today">سان خوسيه إرثكويكس ضد هيوستن دينامو — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621354&amp;d=today">شيكاغو فاير ضد نيو إنغلاند ريفوليوشن — لم تبدأ</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621355&amp;d=today">فانكوفر وايت كابس ضد أوستن — لم تبدأ</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4750868&amp;d=today">سيلتا فيجو ضد مالقا — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4750867&amp;d=today">ليفانتي ضد برشلونة — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4750869&amp;d=today">خيتافي ضد ديبورتيفو لاكورونيا — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4750862&amp;d=today">ريال سوسيداد ضد أتلتيكو مدريد — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4805164&amp;d=today">كي في زد ضد السويحلي — لم تبدأ</a> <small>دوري أبطال أفريقيا - تصفيات</small></li></ul><p class="ssr-more"><a href="/api/sitemap">جميع المباريات</a></p></div></div>
   <div id="empty" hidden>لا توجد مباريات مطابقة لبحثك</div>
 </main>
-<div class="ad-wrap ad-bottom"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag">إعلان</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 <section class="seo"><h2>مباريات اليوم بث مباشر</h2><p>جدول مباريات اليوم محدث باستمرار: مواعيد مباريات والنتائج لحظة بلحظة لأهم الدورييات.</p><ul><li><a href="#" data-lg-link><strong>الدوري الإنجليزي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الإسباني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الإيطالي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الألماني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري الفرنسي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>الدوري السعودي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="#" data-lg-link><strong>دوري أبطال أوروبا:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li></ul><p>اختر المباراة من القائمة لفتح صفحة البث.</p></section>
 <section class="seo faq"><h2>أسئلة شائعة</h2><details><summary>كيف أشاهد</summary><p>اختر المباراة</p></details><details><summary>هل البث مجاني</summary><p>نعم</p></details><details><summary>ما البطولات</summary><p>الدوري الإنج</p></details><details><summary>لماذا الدقيقة</summary><p>الدقيقة محسوبة</p></details></section>
+<div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag">إعلان</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 <div class="toast" id="toast"></div>
 
 <script>
