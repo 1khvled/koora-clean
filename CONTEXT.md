@@ -20,6 +20,10 @@
 - Verified: 2 messistat refs per file (CSS comment + 1 link), zero
   `messi-stats-ar`/`ad-bottom` refs, inline JS syntax OK ×4, mirrors in
   sync.
+- **Cleanup lesson:** `git add -A` swept local-only `shots/` +
+  `_watch.html` into the push — immediately reverted with
+  `git rm --cached` (disk files kept) + new `.gitignore`
+  (`shots/`, `_watch.html`). Future agents: never `add -A` here.
 
 ## 52. Messistat sponsor banners (2026-09-14, user: "advertise my other website messistat.com, small banner ads" + 2 Gemini creatives)
 
