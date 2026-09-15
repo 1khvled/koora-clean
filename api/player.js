@@ -1,11 +1,12 @@
+import { rl, cap, selfOrigin, fetchableUrl, readCapped } from './_sec.js';
 export default async function handler(req, res) {
-  const id = (req.query.id || '').toString();
-  const href = (req.query.href || '').toString();
+  const id = cap(req.query.id || '', 160);
+  const href = cap(req.query.href || '', 500);
   // Optional: team names (Arabic) so the hd7livex resolver can run without
   // the /api/matches self-lookup (also used by local tests).
-  const qHome = (req.query.home || '').toString();
-  const qAway = (req.query.away || '').toString();
-  const qStart = (req.query.start || req.query.st || '').toString();
+  const qHome = cap(req.query.home || '', 120);
+  const qAway = cap(req.query.away || '', 120);
+  const qStart = cap(req.query.start || req.query.st || '', 64);
 
   // Fetch with a hard timeout (serverless-friendly). Default 4s: typical
   // upstreams answer in 1-3s; hung ones must die fast inside the 10s budget.
@@ -55,13 +56,16 @@ export default async function handler(req, res) {
   };
   const resolveOneLive = async (liveUrl, referer, UA, ms = 6000) => {
     try {
+      liveUrl = fetchableUrl(liveUrl);
+      if (!liveUrl) return null;
       const lvRes = await fetchT(liveUrl, { headers: { ...UA, Referer: referer } }, ms);
       if (!lvRes.ok) return null;
       const lv = await lvRes.text();
       const m9M = lv.match(/<iframe[^>]+src\s*=\s*(["'])([^"']*\/m9\/[^"']+)\1[^>]*>/i)
         || lv.match(/<iframe[^>]+src\s*=\s*(["'])([^"']+)\1[^>]*>/i);
       if (!m9M) return { livePage: liveUrl, m9: null, leaf: null };
-      const m9Url = fixUrl(m9M[2], liveUrl);
+      let m9Url = fixUrl(m9M[2], liveUrl);
+      m9Url = m9Url && fetchableUrl(m9Url);
       if (!m9Url) return { livePage: liveUrl, m9: null, leaf: null };
       let leaf = null;
       try {
@@ -227,6 +231,8 @@ const resolveYacine = async (home, away, startIso) => {
     }
     // Both teams must substantially match (>= 2.5 of max 4).
     if (!best || bestScore < 2.5) return null;
+    best = fetchableUrl(best);
+    if (!best) return null;
     const spRes = await fetchT(best, { headers: { ...UA, Referer: 'https://yacinelive.online/matches-today/' } }, 2800);
     if (!spRes.ok) return null;
     const sp = await spRes.text();
@@ -243,6 +249,7 @@ const resolveYacine = async (home, away, startIso) => {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=30');
+  if (!rl(req, res, 'player')) return;
   
   if (!id && !href) {
     res.setHeader('Cache-Control', 'no-store'); // errors must never cache
@@ -259,9 +266,9 @@ const resolveYacine = async (home, away, startIso) => {
     // (host-header-influenced URL is safe: any href it yields still passes
     // the kooralive allowlist below before being fetched).
     try {
-      const matchesRes = await fetchT(`https://${req.headers.host}/api/matches?day=today`, {}, 7000);
+      const matchesRes = await fetchT(selfOrigin(req) + '/api/matches?day=today', {}, 7000);
       if (!matchesRes.ok) throw 0;
-      const matches = await matchesRes.json();
+      const matches = JSON.parse(await readCapped(matchesRes, 1500000));
       if (!Array.isArray(matches)) throw 0;
       const match = matches.find(m => String(m && m.id) === String(id));
       if (match) {
@@ -281,7 +288,7 @@ const resolveYacine = async (home, away, startIso) => {
   let playerHtml = null;
   let playerSrc = null;
   if (target) {
-    if (!target.startsWith('http')) target = 'https://kooralive-plus.info' + target;
+    if (!/^https?:\/\//i.test(target)) target = 'https://kooralive-plus.info' + target;
     try { targetHost = new URL(target).hostname.toLowerCase(); } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'bad href' }); }
     if (!(targetHost === 'kooralive-plus.info' || targetHost.endsWith('.kooralive-plus.info'))){
       res.setHeader('Cache-Control', 'no-store');
@@ -295,7 +302,8 @@ const resolveYacine = async (home, away, startIso) => {
           'Referer': 'https://kooralive-plus.info/',
         }
       }, 4000);
-      kooraHtml = await upstream.text();
+      if (!upstream.ok) throw 0;
+      kooraHtml = await readCapped(upstream, 3000000);
     } catch { kooraHtml = ''; }
   }
 
@@ -367,7 +375,7 @@ const resolveYacine = async (home, away, startIso) => {
       if (!entry || !entry.url) return;
       // SEC: only http(s) URLs leave the server — kills javascript:/data:
       // URL smuggling from compromised upstreams (client re-checks too).
-      if (!/^https?:\/\//i.test(entry.url)) return;
+      if (!/^https:\/\//i.test(entry.url)) return;
       if (servers.some(s => s.url === entry.url)) return;
       servers.push(entry);
     };

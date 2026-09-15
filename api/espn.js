@@ -1,15 +1,17 @@
+import { rl, cap, fetchableUrl } from './_sec.js';
 export default async function handler(req, res) {
   // ESPN real minutes (free public JSON API, no key, no scraping).
   // GET ?home=&away=&start=&lg= -> best matching event with the REAL live
   // clock (displayClock "67'"), half and status. Fuzzy machinery is the
   // proven fotmob set (copied byte-exact — keep in sync if that changes).
   // Fail-open {found:false}; {blocked:true} when ESPN edge denies us.
-  const qHome = ((req.query.home || '')).toString();
-  const qAway = ((req.query.away || '')).toString();
-  const qStart = ((req.query.start || '')).toString();
-  const qLeague = ((req.query.lg || req.query.league || '')).toString();
+  const qHome = cap(req.query.home || '', 120);
+  const qAway = cap(req.query.away || '', 120);
+  const qStart = cap(req.query.start || '', 64);
+  const qLeague = cap(req.query.lg || req.query.league || '', 80);
 
   res.setHeader('Access-Control-Allow-Origin', '*');
+  if (!rl(req, res, 'espn')) return;
   res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30');
 
 const AR_TR = {

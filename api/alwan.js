@@ -1,3 +1,4 @@
+import { rl, cap, fetchableUrl } from './_sec.js';
 export default async function handler(req, res) {
   // 24/7 generic fallback channels extracted from the Alwan Sport app.js bundle
   // (added 2026-09-10): the bundle is a static public JS file (~30KB, no auth)
@@ -19,6 +20,7 @@ export default async function handler(req, res) {
 
   // Hard 6s timeout (serverless-friendly: bundle + parallel verify must
   // fit inside the 10s Hobby budget).
+  if (!rl(req, res, 'alwan')) return;
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), 6000);
   try {
@@ -91,7 +93,7 @@ export default async function handler(req, res) {
           // Follow one same-scheme redirect, then sniff the final page
           // (redirect shells have no body to sniff).
           if (r.status >= 300 && r.status < 400 && r.headers.get('location')) {
-            try { r = await get(new URL(r.headers.get('location'), c.url).toString()); } catch { return null; }
+            try { const nx = new URL(r.headers.get('location'), c.url).toString(); if (!fetchableUrl(nx)) return null; r = await get(nx); } catch { return null; }
           }
           if (!r.ok) return null;
           const ct = (r.headers.get('content-type') || '').toLowerCase();
