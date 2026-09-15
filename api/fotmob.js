@@ -1,3 +1,4 @@
+import { rl, cap, fetchableUrl } from './_sec.js';
 export default async function handler(req, res) {
   // FotMob match-data bridge (added 2026-09-09): lineups, player ratings,
   // team stats, top players and match events for the player page.
@@ -7,12 +8,13 @@ export default async function handler(req, res) {
   //   /api/data/matchDetails?matchId=  -> lineup/stats/playerStats/events
   // Only trimmed, display-ready JSON leaves the server. Fail-open: anything
   // unresolved -> {found:false} and the frontend hides the section.
-  const qHome = ((req.query.home || '')).toString();
-  const qAway = ((req.query.away || '')).toString();
-  const qStart = ((req.query.start || '')).toString();
-  const qLeague = ((req.query.lg || req.query.league || '')).toString();
+  const qHome = cap(req.query.home || '', 120);
+  const qAway = cap(req.query.away || '', 120);
+  const qStart = cap(req.query.start || '', 64);
+  const qLeague = cap(req.query.lg || req.query.league || '', 80);
 
   res.setHeader('Access-Control-Allow-Origin', '*');
+  if (!rl(req, res, 'fotmob')) return;
   res.setHeader('Cache-Control', 'public, max-age=60');
 
   const fetchT = (url, ms = 9000) => {

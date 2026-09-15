@@ -1,9 +1,11 @@
+import { rl, readCapped } from './_sec.js';
 export default async function handler(req, res) {
   // Dynamic sitemap: core pages + 3-day match pages (short ?m=&d= links).
   // Fail-open: upstream failure still returns the core URLs. Edge-cached 1h.
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=3600');
+  if (!rl(req, res, 'sitemap', 120, 60000)) return;
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const base = 'https://kooraadz.vercel.app';
@@ -32,7 +34,11 @@ export default async function handler(req, res) {
             'Referer': 'https://kooralive-plus.info/',
           },
         });
-        return r.ok ? await r.text() : '';
+        if (!r.ok) return '';
+        const cl = +(r.headers.get('content-length') || 0);
+        if (cl > 2500000) return '';
+        const tx = await r.text();
+        return tx && tx.length <= 3000000 ? tx : '';
       } catch { return ''; }
       finally { clearTimeout(to); }
     }));

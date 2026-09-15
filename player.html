@@ -1159,7 +1159,8 @@ function paintNow(){
    included). Reload reuses lastCleanSrc, which was validated here. */
 function safeSrc(u){
   const s = String(u == null ? '' : u).trim();
-  if (!s || /[\s<>"]/.test(s)) return '';
+  if (!s || /[\s<>"]/.test(s)) return ''
+  if (s.startsWith('//') || s.startsWith('\\')) return '';
   if (/^https?:\/\//i.test(s) || s[0] === '/') return s;
   return '';
 }

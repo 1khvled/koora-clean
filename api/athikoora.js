@@ -1,3 +1,4 @@
+import { rl, cap, fetchableUrl } from './_sec.js';
 export default async function handler(req, res) {
   // Athikoora 24/7 beIN channels — Blogger JSON feed (public, no auth).
   // These are the "قناة بين سبورتس" posts whose HTML holds an <iframe> to an
@@ -9,6 +10,7 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({ count: 0, channels: [] });
   };
+  if (!rl(req, res, 'athikoora')) return;
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), 6000);
   try {

@@ -21,10 +21,15 @@ export default {
         }
         const ct = (upstream.headers.get('content-type')||'').toLowerCase();
         if(!ct.includes('text/html')){
+          const ncl = +(upstream.headers.get('content-length')||0);
+          if(ncl > 3000000) return new Response('upstream too large', {status:502});
           const body = await upstream.arrayBuffer();
           return new Response(body, {status: upstream.status, headers:{'content-type':ct,'access-control-allow-origin':'*','cache-control':'no-store'}});
         }
+        const hcl = +(upstream.headers.get('content-length')||0);
+        if(hcl > 3000000) return new Response('upstream too large', {status:502});
         let html = await upstream.text();
+        if(html.length > 4000000) return new Response('upstream too large', {status:502});
         html = html.replace(/<script[^>]*src=["'][^"']*cl\.mayhapmonisms[^"']*["'][^>]*>\s*<\/script>/gi, '<!-- ad removed -->');
         html = html.replace(/<script[^>]*src=["'][^"']*additionalheritagenose[^"']*["'][^>]*>[\s\S]*?<\/script>/gi, '<!-- ad removed -->');
         html = html.replace(/<script[^>]*src=["'][^"']*ferritegathers[^"']*["'][^>]*>\s*<\/script>/gi, '<!-- ad removed -->');
@@ -35,7 +40,7 @@ export default {
         if(html.includes('</head>')) html=html.replace('</head>', inject+'</head>');
         else html=inject+html;
         return new Response(html, {headers:{'content-type':'text/html; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-cleaned-by':'koora-clean'}});
-      }catch(e){ return new Response('Proxy error: '+e.message, {status:500}); }
+      }catch(e){ return new Response('Proxy error', {status:500}); }
     }
 
     const files = {
@@ -666,26 +671,41 @@ export default {
     // allow only kooralive / romabar / yasirtv
     let t;
     try { t = new URL(target); } catch { return new Response('Invalid url', {status:400}); }
-    const allowed = ['kooralive-plus.info', 'romabar.info', 'yasirtv.com', '912acsss', 'sir-tv.tv', 'yalllashoot'];
+    const allowed = ['kooralive-plus.info', 'romabar.info', 'yasirtv.com', 'sir-tv.tv'];
     // SEC: exact-or-subdomain match — the old substring check (plus a bare
     // 'kooralive' entry) allowed evil-kooralive.com / x.evil.com style bypass.
-    const hostOk = allowed.some(h => t.hostname === h || t.hostname.endsWith('.' + h));
+    const hostOk = t.protocol === 'https:' && allowed.some(h => t.hostname === h || t.hostname.endsWith('.' + h));
     if (!hostOk) return new Response('Host not allowed. Use kooralive-plus.info or romabar.info', {status:403});
 
-    // fetch upstream
-    const upstream = await fetch(t.toString(), {
-      headers: {
-        'User-Agent': request.headers.get('User-Agent') || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Referer': 'https://kooralive-plus.info/',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
-      },
-      cf: { cacheTtl: 0 }
-    });
+    // fetch upstream - manual redirects so an allowlisted page can never
+    // bounce fetch() onto an off-allowlist host silently.
+    const getUp = (u) => {
+      const x = new URL(u);
+      if (x.protocol !== 'https:' || !allowed.some(h => x.hostname === h || x.hostname.endsWith('.' + h))) throw new Error('off-allowlist');
+      return fetch(u, {
+        headers: {
+          'User-Agent': request.headers.get('User-Agent') || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Referer': 'https://kooralive-plus.info/',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
+        },
+        cf: { cacheTtl: 0 },
+        redirect: 'manual',
+        signal: AbortSignal.timeout(8000),
+      });
+    };
+    let upstream;
+    try {
+      upstream = await getUp(t.toString());
+      for (let hop = 0; hop < 3 && upstream.status >= 300 && upstream.status < 400 && upstream.headers.get('location'); hop++)
+        upstream = await getUp(new URL(upstream.headers.get('location'), upstream.url).toString());
+    } catch { return new Response('Upstream fetch failed', { status: 502 }); }
 
     const contentType = upstream.headers.get('content-type') || '';
     // if not HTML (e.g. JSON API), just pass through with cleaning if needed
     if (!contentType.includes('text/html')) {
+      const bcl = +(upstream.headers.get('content-length') || 0);
+      if (bcl > 3000000) return new Response('upstream too large', { status: 502 });
       const body = await upstream.arrayBuffer();
       return new Response(body, {
         status: upstream.status,
@@ -697,7 +717,10 @@ export default {
       });
     }
 
+    const icl = +(upstream.headers.get('content-length') || 0);
+    if (icl > 3000000) return new Response('upstream too large', { status: 502 });
     let html = await upstream.text();
+    if (html.length > 4000000) return new Response('upstream too large', { status: 502 });
 
     // ===== 1. REMOVE AD SCRIPTS that create the popup =====
     // cl.mayhapmonisms.com, additionalheritagenose.com, yh.ferritegathers.com, cloudflareinsights beacon is ok but remove if it triggers popup

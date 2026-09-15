@@ -1,3 +1,4 @@
+import { rl, cap, fetchableUrl } from './_sec.js';
 export default async function handler(req, res) {
   const day = (req.query.day || 'today').toString();
   let yacineTarget = 'https://yacinelive.online/matches-today/';
@@ -17,6 +18,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
+  if (!rl(req, res, 'matches')) return;
   const _mc = globalThis.__kooraMatchesCache || (globalThis.__kooraMatchesCache = new Map());
   const cacheKey = 'm:' + day;
   const hit = _mc.get(cacheKey);
@@ -50,7 +52,10 @@ export default async function handler(req, res) {
         }
       });
       if (!r.ok) return null;
+      const cl = +(r.headers.get('content-length') || 0);
+      if (cl > 2500000) return null;
       const text = await r.text();
+      if (!text || text.length > 3000000) return null;
       return text;
     } catch { return null; } finally { clearTimeout(to); }
   };

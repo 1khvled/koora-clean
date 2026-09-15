@@ -100,7 +100,7 @@ export default {
         _wc.set(_wk, { at: Date.now(), data: matches });
         return new Response(JSON.stringify(matches), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=30, stale-while-revalidate=60', ...cors } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'content-type': 'application/json', ...cors } });
+        return new Response(JSON.stringify({ error: 'upstream failed' }), { status: 500, headers: { 'content-type': 'application/json', ...cors } });
       }
     }
 
@@ -340,11 +340,16 @@ export default {
         for (let hop = 0; hop < 3 && upstream.status >= 300 && upstream.status < 400 && upstream.headers.get('location'); hop++)
           upstream = await proxied(new URL(upstream.headers.get('location'), upstream.url).toString());
         const ct = (upstream.headers.get('content-type') || '').toLowerCase();
-        if (!ct.includes('text/html')) {
+        if(!ct.includes('text/html')) {
+          const ncl = +(upstream.headers.get('content-length') || 0);
+          if (ncl > 3000000) return new Response('upstream too large', { status: 502, headers: cors });
           const body = await upstream.arrayBuffer();
           return new Response(body, { status: upstream.status, headers: { 'content-type': ct, 'access-control-allow-origin': '*', 'cache-control': 'no-store' } });
         }
+        const hcl = +(upstream.headers.get('content-length') || 0);
+        if (hcl > 3000000) return new Response('upstream too large', { status: 502, headers: cors });
         let html = await upstream.text();
+        if (html.length > 4000000) return new Response('upstream too large', { status: 502, headers: cors });
         html = html.replace(/<script[^>]*src=["'][^"']*cl\.mayhapmonisms[^"']*["'][^>]*>\s*<\/script>/gi, '<!-- ad removed -->');
         html = html.replace(/<script[^>]*src=["'][^"']*additionalheritagenose[^"']*["'][^>]*>[\s\S]*?<\/script>/gi, '<!-- ad removed -->');
         html = html.replace(/<script[^>]*src=["'][^"']*ferritegathers[^"']*["'][^>]*>\s*<\/script>/gi, '<!-- ad removed -->');
@@ -354,7 +359,7 @@ export default {
         if (html.includes('</head>')) html = html.replace('</head>', inject + '</head>'); else html = inject + html;
         return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'no-store', 'x-cleaned-by': 'koora-clean' } });
       } catch (e) {
-        return new Response('Proxy error: ' + e.message, { status: 500, headers: cors });
+        return new Response('Proxy error', { status: 500, headers: cors });
       }
     }
     return new Response('Koora Clean Worker — use /api/matches?day=today or ?url=https://...', { headers: { 'content-type': 'text/plain', ...cors } });

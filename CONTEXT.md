@@ -4,7 +4,55 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-14 (SEO indexability pass, see CONTEXT 54).
+> Last updated: 2026-09-15 (full security audit, see CONTEXT 55).
+
+## 55. Full security audit (2026-09-15, user: "complete security audit ... remove all weaknesses, make no mistakes")
+
+- **CRITICAL (reported, needs owner decision — NOT changed): shared Supabase
+  project.** The site's publishable anon key (`sb_publishable_...`, public in
+  page source by design) authenticates as `anon`, and this project's `anon_all`
+  (ALL, qual true) RLS policies cover every FinTrack finance table (holdings,
+  transactions, income, expenses, business, erp_*, config...). Proven live:
+  `curl .../rest/v1/holdings?select=id&limit=1` with the site key returns a
+  real row — so the whole world has read AND write on the finance data via
+  PostgREST. Only koora RPCs are anon-callable functions (3, intentional).
+  Fix requires isolation: new Supabase project for koora analytics + rotate
+  finance keys. Finance RLS deliberately untouched (FinTrack depends on it).
+- **DB fix applied (migration `harden_koora_rpc_date_bounds`).**
+  `koora_bump_view`/`koora_bump_ref` now reject `p_day` outside
+  [CURRENT_DATE-1, +1] (was: any date = history pollution + bloat) and ref
+  host capped at 100. Proven live: `p_day=2000-01-01` returns null, zero
+  `__sectest` rows. `koora_likes` stays policy-less (fail-closed; voter ids
+  never exposed), `koora_like_counts` SECURITY DEFINER view is intentional
+  (aggregates only). Linter WARNs on anon-EXECUTE RPCs are by design.
+- **New `api/_sec.js` (shared guards) + wired into all 6 handlers.**
+  Generous sliding-window limit (300 req/60s per endpoint+IP; last-XFF trusted
+  since Vercel appends the real IP; limiter never throws), `cap()` on every
+  query param, `hostBlocked()` (loopback/RFC1918/link-local+metadata/0.0.0.0/
+  ::1/localhost/single-label), `fetchableUrl()` (https-only, no userinfo,
+  default port, public host), `selfOrigin()` (Host allowlist, prod fallback),
+  `readCapped()` body bounds. `player.js`: +Host-fix, self-lookup JSON capped
+  1.5MB, koora HTML capped 3MB, gates on live/m9/yacine fetches, embeds
+  https-only. `matches/sitemap/espn/fotmob/alwan/athikoora`: +limits, caps,
+  alwan redirect re-gated. No hard per-IP bans (CGNAT would false-positive).
+- **Workers + headers + client.** `worker.js`/`worker-serve.js` outer: 3MB
+  body caps, generic errors (no `e.message` leak anywhere now). Inner template
+  proxy fixed properly: https-only, manual redirects with re-check, 8s
+  timeout, caps, junk allowlist entries dropped (syntax re-verified by
+  extraction). `vercel.json`: +CSP (`frame-ancestors/self`, `object-src
+  none`, no script-src — inline arch) + Permissions-Policy. `safeSrc`/
+  `logoImg` now reject protocol-relative `//` (browser treats `\` as `/`).
+  dzt back link → `/`. XSS posture re-verified (esc/dec/tx + safeSrc +
+  BLOCK_RE on all sinks). History scan: IPTV creds were env-only, bridge
+  removed; no JWT/service_role ever committed; no .env/maps tracked.
+- **Accepted as-is (documented):** no login/session/CSRF surface (stateless +
+  localStorage prefs; Supabase writes are preflighted JSON); dzt has no auth
+  gate — a JS password would be theater since anon SELECTs are public by
+  policy (real fix = server-gated dashboard, offered); DNS-rebinding residual
+  on scraped-host fetches; counter inflation possible (analytics-advisory).
+- Verified: 60/60 node handler+helper tests (incl. live upstream shapes),
+  `node --check` 8 api + 2 workers + inner template + 3 inline scripts,
+  migration proven live, mirrors SHA256-identical.
 
 ## 54. SEO indexability pass (2026-09-14, user: "Google isn't showing my website" + 17-item SEO list)
 
