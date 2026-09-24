@@ -1,34 +1,36 @@
 <!doctype html>
-<html dir="rtl" lang="ar">
+<html dir="ltr" lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071f19">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<title>كورة لايف — مباريات اليوم بث مباشر بدون إعلانات</title>
-<meta name="description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة. جدول المباريات، النتائج المباشرة، والقنوات الناقلة.">
+<title>Koora Live — Today's matches, live streams</title>
+<meta name="description" content="Today's football matches live: kickoff times, live scores and clean streams. Schedules, results and channels.">
 <link rel="canonical" href="https://kooraadz.vercel.app/">
-<link rel="alternate" hreflang="ar" href="https://kooraadz.vercel.app/">
+<link rel="alternate" hreflang="en" href="https://kooraadz.vercel.app/">
+<link rel="alternate" hreflang="fr" href="https://kooraadz.vercel.app/?lang=fr">
 <link rel="alternate" hreflang="x-default" href="https://kooraadz.vercel.app/">
 <meta property="og:type" content="website">
-<meta property="og:locale" content="ar_AR">
-<meta property="og:site_name" content="كورة لايف">
-<meta property="og:title" content="كورة لايف — مباريات اليوم بث مباشر">
-<meta property="og:description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:site_name" content="Koora Live">
+<meta property="og:title" content="Koora Live — Today's matches live">
+<meta property="og:description" content="Today's football live: clean HD streams with no annoying popups.">
 <meta property="og:url" content="https://kooraadz.vercel.app/">
 <meta property="og:image" content="https://kooraadz.vercel.app/og-cover.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="كورة لايف">
+<meta property="og:image:alt" content="Koora Live">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://kooraadz.vercel.app/og-cover.png">
-<meta name="twitter:title" content="كورة لايف — مباريات اليوم بث مباشر">
-<meta name="twitter:description" content="مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
+<meta name="twitter:title" content="Koora Live — Today's matches live">
+<meta name="twitter:description" content="Today's football live: clean HD streams with no annoying popups.">
 <!-- Google Search Console: create a property for https://kooraadz.vercel.app/, choose the HTML-tag method,
      and paste the code below (replace REPLACE_WITH_SEARCH_CONSOLE_CODE). -->
 <meta name="google-site-verification" content="REPLACE_WITH_SEARCH_CONSOLE_CODE">
-<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"كورة لايف","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebSite","@id":"https://kooraadz.vercel.app/#site","url":"https://kooraadz.vercel.app/","name":"كورة لايف","inLanguage":"ar","publisher":{"@id":"https://kooraadz.vercel.app/#org"},"potentialAction":{"@type":"SearchAction","target":"https://kooraadz.vercel.app/?q={search_term_string}","query-input":"required name=search_term_string"}}]}</script>
+<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"Koora Live","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebSite","@id":"https://kooraadz.vercel.app/#site","url":"https://kooraadz.vercel.app/","name":"Koora Live","inLanguage":"en","publisher":{"@id":"https://kooraadz.vercel.app/#org"},"potentialAction":{"@type":"SearchAction","target":"https://kooraadz.vercel.app/?q={search_term_string}","query-input":"required name=search_term_string"}}]}</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -161,6 +163,9 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow)}
 .ad img{display:block;width:100%;height:auto}
 .ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 8px}
+.lang{display:flex;gap:6px;position:relative;z-index:1;margin-top:10px}
+.lang button{font-family:var(--font);border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
+.lang button.on{background:#fff;color:var(--pitch);border-color:#fff}
 /* tablets/desktops: wider content */
 @media (min-width:768px){
   main{max-width:880px}
@@ -175,30 +180,31 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 <header class="topbar">
   <div class="brand">
     <span class="ball">⚽</span>
-    <div><h1>كورة لايف</h1><small>بث نظيف بدون إعلانات</small></div>
+    <div><h1 data-i18n="brand">Koora Live</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
+    <div class="lang" role="group" aria-label="Language / Langue"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button></div>
   </div>
 </header>
-<nav class="days" id="dayTabs" aria-label="اختر اليوم">
-  <button data-day="yesterday">أمس</button>
-  <button data-day="today" class="on">اليوم</button>
-  <button data-day="tomorrow">الغد</button>
+<nav class="days" id="dayTabs" aria-label="Day" data-i18n-aria="chooseDay">
+  <button data-day="yesterday" data-i18n="yesterday">Yesterday</button>
+  <button data-day="today" class="on" data-i18n="today">Today</button>
+  <button data-day="tomorrow" data-i18n="tomorrow">Tomorrow</button>
 </nav>
 <div class="toolbar">
-  <input id="searchInput" type="search" placeholder="ابحث عن فريق أو بطولة…" autocomplete="off">
+  <input id="searchInput" type="search" placeholder="Search team or league…" data-i18n-ph="searchPh" autocomplete="off">
   <div class="chips" id="leagueChips"></div>
 </div>
 <main id="content">
-  <div class="loading" id="loading">جاري تحميل المباريات…</div>
+  <div class="loading" id="loading" data-i18n="loading">Loading matches…</div>
   <section id="liveSec" hidden>
-    <div class="sec-title"><span class="dot"></span> جارية الآن <span class="count" id="liveCount"></span></div>
+    <div class="sec-title"><span class="dot"></span> <span data-i18n="liveNow">Live now</span> <span class="count" id="liveCount"></span></div>
     <div class="live-list" id="liveRail"></div>
   </section>
-  <div id="leagues"><div id="ssr-fallback"><p class="ssr-note">مباريات اليوم — يتم تحديث تلقائيا</p><ul class="ssr-list"><li><a href="/player.html?m=4621360&amp;d=today">كانساس سيتي ويزردز ضد لوس أنجلوس — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621361&amp;d=today">سانت لويس سيتي ضد مينيسوتا يونايتد — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621362&amp;d=today">دالاس ضد بورتلاند تيمبرز — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621358&amp;d=today">ريال سالت لايك ضد نيويورك سيتي — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621359&amp;d=today">كولورادو رابيدز ضد مونتريال امباكت — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621356&amp;d=today">لوس أنجلوس غالاكسي ضد سياتيل ساونديرز — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621357&amp;d=today">سان خوسيه إرثكويكس ضد هيوستن دينامو — انتهت</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621354&amp;d=today">شيكاغو فاير ضد نيو إنغلاند ريفوليوشن — لم تبدأ</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4621355&amp;d=today">فانكوفر وايت كابس ضد أوستن — لم تبدأ</a> <small>الدوري الأمريكي الممتاز</small></li><li><a href="/player.html?m=4750868&amp;d=today">سيلتا فيجو ضد مالقا — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4750867&amp;d=today">ليفانتي ضد برشلونة — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4750869&amp;d=today">خيتافي ضد ديبورتيفو لاكورونيا — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4750862&amp;d=today">ريال سوسيداد ضد أتلتيكو مدريد — لم تبدأ</a> <small>الدوري الإسباني</small></li><li><a href="/player.html?m=4805164&amp;d=today">كي في زد ضد السويحلي — لم تبدأ</a> <small>دوري أبطال أفريقيا - تصفيات</small></li></ul><p class="ssr-more"><a href="/api/sitemap">جميع المباريات</a></p></div></div>
-  <div id="empty" hidden>لا توجد مباريات مطابقة لبحثك</div>
+  <div id="leagues"><div id="ssr-fallback"><p class="ssr-note">Today's matches — auto-updating</p><ul class="ssr-list"><li><a href="/player.html?m=4621360&amp;d=today">Sporting Kansas City vs Los Angeles — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621361&amp;d=today">St. Louis City vs Minnesota United — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621362&amp;d=today">FC Dallas vs Portland Timbers — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621358&amp;d=today">Real Salt Lake vs New York City FC — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621359&amp;d=today">Colorado Rapids vs CF Montréal — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621356&amp;d=today">LA Galaxy vs Seattle Sounders — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621357&amp;d=today">San Jose vs Houston Dynamo — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621354&amp;d=today">Chicago Fire vs New England — Upcoming</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621355&amp;d=today">Vancouver Whitecaps vs Austin FC — Upcoming</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4750868&amp;d=today">Celta Vigo vs Málaga — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750867&amp;d=today">Levante vs Barcelona — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750869&amp;d=today">Getafe vs Deportivo La Coruña — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750862&amp;d=today">Real Sociedad vs Atlético Madrid — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4805164&amp;d=today">KVZ vs Al Swehly — Upcoming</a> <small>CAF Champions League qualifying</small></li></ul><p class="ssr-more"><a href="/api/sitemap">All matches</a></p></div></div>
+  <div id="empty" hidden data-i18n="empty">No matches match your search</div>
 </main>
-<section class="seo"><h2>مباريات اليوم بث مباشر</h2><p>جدول مباريات اليوم محدث باستمرار: مواعيد مباريات والنتائج لحظة بلحظة لأهم الدورييات.</p><ul><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A" data-lg-link><strong>الدوري الإنجليزي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D8%B3%D8%A8%D8%A7%D9%86%D9%8A" data-lg-link><strong>الدوري الإسباني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A" data-lg-link><strong>الدوري الإيطالي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A" data-lg-link><strong>الدوري الألماني:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D9%81%D8%B1%D9%86%D8%B3%D9%8A" data-lg-link><strong>الدوري الفرنسي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A" data-lg-link><strong>الدوري السعودي:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li><li><a href="/?league=%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A3%D8%A8%D8%B7%D8%A7%D9%84%20%D8%A3%D9%88%D8%B1%D9%88%D8%A8%D8%A7" data-lg-link><strong>دوري أبطال أوروبا:</strong> مباشر اليوم والنتائج لحظة بلحظة.</li></ul><p>اختر المباراة من القائمة لفتح صفحة البث.</p></section>
-<section class="seo faq"><h2>أسئلة شائعة</h2><details><summary>كيف أشاهد</summary><p>اختر المباراة</p></details><details><summary>هل البث مجاني</summary><p>نعم</p></details><details><summary>ما البطولات</summary><p>الدوري الإنج</p></details><details><summary>لماذا الدقيقة</summary><p>الدقيقة محسوبة</p></details></section>
-<div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag">إعلان</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
+<section class="seo"><h2 data-i18n="seoH">Today’s matches live</h2><p data-i18n="seoP">An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.</p><ul><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A" data-lg="الدوري الإنجليزي" data-lg-link><strong>Premier League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D8%B3%D8%A8%D8%A7%D9%86%D9%8A" data-lg="الدوري الإسباني" data-lg-link><strong>La Liga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A" data-lg="الدوري الإيطالي" data-lg-link><strong>Serie A:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A" data-lg="الدوري الألماني" data-lg-link><strong>Bundesliga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D9%81%D8%B1%D9%86%D8%B3%D9%8A" data-lg="الدوري الفرنسي" data-lg-link><strong>Ligue 1:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A" data-lg="الدوري السعودي" data-lg-link><strong>Saudi Pro League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A3%D8%A8%D8%B7%D8%A7%D9%84%20%D8%A3%D9%88%D8%B1%D9%88%D8%A8%D8%A7" data-lg="دوري أبطال أوروبا" data-lg-link><strong>UEFA Champions League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li></ul><p data-i18n="seoCta">Pick a match from the list to open its stream page.</p></section>
+<section class="seo faq"><h2 data-i18n="faqH">FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details></section>
+<div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -208,6 +214,305 @@ const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
 let ALL = [], DAY = 'today', LEAGUE = 'all';
 let FAVONLY = false;
 const GOAL_IDS = []; let GOAL_MSG = '';
+/* I18N — English + French interface. Match/team/league DATA stays exactly as
+   the upstream feed sends it (often Arabic); only the UI chrome translates.
+   Detection regexes (halfOf/isLive/isEnded/leagueRank/HIDE_AR/SAUDI_RE) and the
+   ESPN fuzzy matcher intentionally still match the Arabic data strings. */
+const I18N = {
+en: {
+brand: 'Koora Live', tagline: 'Clean streams, no popups',
+chooseDay: 'Choose day', yesterday: 'Yesterday', today: 'Today', tomorrow: 'Tomorrow',
+searchPh: 'Search team or league…', loading: 'Loading matches…', liveNow: 'Live now',
+empty: 'No matches match your search', all: 'All', favorites: 'Favorites',
+live: 'Live', halfBreak: 'HT', ended: 'FT', vs: 'vs', sport: 'Football',
+otherLeagues: 'Other competitions', hiddenLeagues: 'Other Arab leagues — hidden',
+loadFail: "Couldn't load matches — check your connection", goal: 'Goal',
+todayMatches: "Today's matches", ad: 'Ad',
+seoH: "Today's matches live",
+seoP: 'An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.',
+seoSuffix: 'live today with moment-by-moment scores.',
+seoCta: 'Pick a match from the list to open its stream page.',
+faqH: 'FAQ',
+fq1: 'How do I watch?', fa1: 'Pick a match from the list to open its stream.',
+fq2: 'Is the stream free?', fa2: 'Yes — every listed stream is free.',
+fq3: 'Which competitions are covered?', fa3: 'Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.',
+fq4: 'Why does the minute keep updating?', fa4: 'The minute fuses the live feed with kickoff times and refreshes automatically.',
+meta: {
+title: "Koora Live — Today's matches, live streams",
+desc: "Today's football matches live: kickoff times, live scores and clean streams. Schedules, results and channels.",
+ogTitle: "Koora Live — Today's matches live",
+ogDesc: "Today's football live: clean HD streams with no annoying popups."
+}
+},
+fr: {
+brand: 'Koora Live', tagline: 'Streams propres, sans popups',
+chooseDay: 'Choisir le jour', yesterday: 'Hier', today: "Aujourd'hui", tomorrow: 'Demain',
+searchPh: 'Rechercher une équipe ou une compétition…', loading: 'Chargement des matchs…', liveNow: 'En direct',
+empty: 'Aucun match pour votre recherche', all: 'Tout', favorites: 'Favoris',
+live: 'Direct', halfBreak: 'MT', ended: 'Terminé', vs: 'vs', sport: 'Football',
+otherLeagues: 'Autres compétitions', hiddenLeagues: 'Autres ligues arabes — masquées',
+loadFail: 'Chargement impossible — vérifiez votre connexion', goal: 'But',
+todayMatches: 'Matchs du jour', ad: 'Pub',
+seoH: 'Matchs du jour en direct',
+seoP: 'Un calendrier toujours à jour : horaires et résultats minute par minute des grandes compétitions.',
+seoSuffix: "en direct aujourd'hui avec les scores minute par minute.",
+seoCta: 'Choisissez un match pour ouvrir sa page de diffusion.',
+faqH: 'FAQ',
+fq1: 'Comment regarder ?', fa1: 'Choisissez un match pour ouvrir son stream.',
+fq2: 'Le stream est-il gratuit ?', fa2: 'Oui — tous les streams listés sont gratuits.',
+fq3: 'Quelles compétitions sont couvertes ?', fa3: 'Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League et la Ligue des champions.',
+fq4: 'Pourquoi la minute change-t-elle ?', fa4: 'La minute combine le flux en direct et les heures de coup d’envoi, avec actualisation auto.',
+meta: {
+title: 'Koora Live — Matchs du jour en direct',
+desc: 'Matchs de foot du jour en direct : horaires, scores en direct et streams propres. Calendrier, résultats et chaînes.',
+ogTitle: 'Koora Live — Matchs du jour en direct',
+ogDesc: 'Le foot en direct : des streams HD propres, sans popups agaçants.'
+}
+}
+};
+let LANG = 'en';
+function t(k){ const d = I18N[LANG] || I18N.en; const v = d[k]; return v !== undefined ? v : (I18N.en[k] !== undefined ? I18N.en[k] : k); }
+function applyStatic(){
+document.querySelectorAll('[data-i18n]').forEach(el => { const v = t(el.getAttribute('data-i18n')); if (typeof v === 'string') el.textContent = v; });
+document.querySelectorAll('[data-i18n-ph]').forEach(el => el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))));
+document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))));
+}
+function updateMeta(){
+const m = (I18N[LANG] || I18N.en).meta;
+if (!m) return;
+document.title = m.title;
+const md = document.querySelector('meta[name="description"]'); if (md) md.setAttribute('content', m.desc);
+const ogT = document.querySelector('meta[property="og:title"]'); if (ogT) ogT.setAttribute('content', m.ogTitle);
+const ogD = document.querySelector('meta[property="og:description"]'); if (ogD) ogD.setAttribute('content', m.ogDesc);
+const twT = document.querySelector('meta[name="twitter:title"]'); if (twT) twT.setAttribute('content', m.ogTitle);
+const twD = document.querySelector('meta[name="twitter:description"]'); if (twD) twD.setAttribute('content', m.ogDesc);
+const st = document.getElementById('static-jsonld');
+if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [
+{ '@type': 'Organization', '@id': 'https://kooraadz.vercel.app/#org', name: 'Koora Live', url: 'https://kooraadz.vercel.app/', logo: 'https://kooraadz.vercel.app/icon-512.png' },
+{ '@type': 'WebSite', '@id': 'https://kooraadz.vercel.app/#site', url: 'https://kooraadz.vercel.app/', name: 'Koora Live', inLanguage: LANG, publisher: { '@id': 'https://kooraadz.vercel.app/#org' }, potentialAction: { '@type': 'SearchAction', target: 'https://kooraadz.vercel.app/?q={search_term_string}', 'query-input': 'required name=search_term_string' } }
+]});
+}
+function setLang(l, save){
+if (!I18N[l]) return;
+LANG = l;
+try { document.documentElement.lang = l; document.documentElement.dir = 'ltr'; } catch (e) {}
+if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
+try { applyStatic(); updateMeta(); } catch (e) {}
+try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
+if (save !== false){ try { buildChips(); render(true); } catch (e) {} }
+}
+try {
+let init = 'en';
+try {
+const q0 = new URLSearchParams(location.search).get('lang');
+let s0 = null; try { s0 = localStorage.getItem('koora_lang'); } catch (e) {}
+if (q0 && I18N[q0]) init = q0;
+else if (s0 && I18N[s0]) init = s0;
+else if ((navigator.language || '').toLowerCase().indexOf('fr') === 0) init = 'fr';
+} catch (e) {}
+setLang(init, false);
+} catch (e) {}
+/* I18N-NAMES — runtime display translation for upstream Arabic names.
+   DATA OBJECTS ARE NEVER MUTATED: detection regexes, fuzzy matchers, caches,
+   favorites and filters keep reading the raw Arabic. Only rendered text goes
+   through dispTeam()/dispLeague(). Unknown names fall back to the raw text. */
+const TEAMMAP = {
+'ارسنال': 'Arsenal', 'آرسنال': 'Arsenal',
+'مانشستر سيتي': 'Man City', 'مانشستر يونايتد': 'Man United',
+'ليفربول': 'Liverpool', 'تشيلسي': 'Chelsea',
+'توتنهام': 'Tottenham', 'توتنهام هوتسبير': 'Tottenham',
+'نيوكاسل': 'Newcastle', 'نيوكاسل يونايتد': 'Newcastle',
+'استون فيلا': 'Aston Villa', 'برايتون': 'Brighton',
+'وست هام': 'West Ham', 'وست هام يونايتد': 'West Ham',
+'ايفرتون': 'Everton', 'فولهام': 'Fulham', 'برينتفورد': 'Brentford',
+'كريستال بالاس': 'Crystal Palace',
+'ولفرهامبتون': 'Wolves', 'وولفرهامبتون': 'Wolves',
+'بورنموث': 'Bournemouth',
+'نوتنغهام فورست': 'Nottingham Forest', 'نوتينغهام فورست': 'Nottingham Forest',
+'ليستر سيتي': 'Leicester', 'ليستر': 'Leicester',
+'ايبسويتش': 'Ipswich', 'ايبسويتش تاون': 'Ipswich',
+'ساوثهامبتون': 'Southampton', 'ليدز': 'Leeds', 'ليدز يونايتد': 'Leeds',
+'بيرنلي': 'Burnley', 'سندرلاند': 'Sunderland',
+'شيفيلد يونايتد': 'Sheffield Utd', 'نورويتش': 'Norwich',
+'وست بروميتش': 'West Brom', 'كوفنتري': 'Coventry',
+'ريال مدريد': 'Real Madrid', 'برشلونة': 'Barcelona',
+'اتلتيكو مدريد': 'Atlético Madrid', 'اتلتيك بلباو': 'Athletic Club',
+'فياريال': 'Villarreal', 'ريال بيتيس': 'Real Betis',
+'ريال سوسيداد': 'Real Sociedad', 'اشبيلية': 'Sevilla',
+'فالنسيا': 'Valencia', 'خيتافي': 'Getafe',
+'سيلتا فيجو': 'Celta Vigo', 'ليفانتي': 'Levante', 'مالقا': 'Málaga',
+'ديبورتيفو لاكورونيا': 'Deportivo La Coruña', 'اساسونا': 'Osasuna',
+'جيرونا': 'Girona', 'رايو فاليكانو': 'Rayo Vallecano', 'مايوركا': 'Mallorca',
+'اسبانيول': 'Espanyol', 'بلد الوليد': 'Valladolid', 'ريال بلد الوليد': 'Valladolid',
+'ليغانيس': 'Leganés', 'الافيس': 'Alavés',
+'انتر': 'Inter', 'انتر ميلان': 'Inter', 'ميلان': 'Milan', 'اي سي ميلان': 'Milan',
+'نابولي': 'Napoli', 'يوفنتوس': 'Juventus', 'روما': 'Roma', 'لاتسيو': 'Lazio',
+'اتالانتا': 'Atalanta', 'فيورنتينا': 'Fiorentina', 'بولونيا': 'Bologna',
+'تورينو': 'Torino', 'اودينيزي': 'Udinese', 'امبولي': 'Empoli',
+'ليتشي': 'Lecce', 'كالياري': 'Cagliari', 'جنوى': 'Genoa', 'بارما': 'Parma',
+'كومو': 'Como', 'هيلاس فيرونا': 'Verona', 'فيرونا': 'Verona',
+'مونزا': 'Monza', 'فينيزيا': 'Venezia', 'ساسولو': 'Sassuolo', 'سامبدوريا': 'Sampdoria',
+'بايرن ميونخ': 'Bayern', 'بايرن ميونيخ': 'Bayern',
+'بوروسيا دورتموند': 'Dortmund', 'دورتموند': 'Dortmund',
+'باير ليفركوزن': 'Leverkusen', 'لايبزيغ': 'RB Leipzig',
+'شتوتغارت': 'Stuttgart', 'اينتراخت فرانكفورت': 'Frankfurt',
+'مونشنغلادباخ': 'Gladbach', 'بوروسيا مونشنغلادباخ': 'Gladbach',
+'فولفسبورغ': 'Wolfsburg', 'فرايبورغ': 'Freiburg', 'هوفنهايم': 'Hoffenheim',
+'ماينز': 'Mainz', 'اوغسبورغ': 'Augsburg', 'فيردر بريمن': 'Werder Bremen',
+'يونيون برلين': 'Union Berlin', 'سانت باولي': 'St. Pauli',
+'بوخوم': 'Bochum', 'هايدنهايم': 'Heidenheim', 'هولشتاين كيل': 'Holstein Kiel',
+'هامبورغ': 'Hamburg', 'شالكه': 'Schalke', 'كولن': 'Köln', 'هيرتا برلين': 'Hertha',
+'باريس سان جيرمان': 'PSG', 'مارسيليا': 'Marseille', 'اولمبيك مارسيليا': 'Marseille',
+'موناكو': 'Monaco', 'ليل': 'Lille', 'ليون': 'Lyon', 'اولمبيك ليون': 'Lyon',
+'نيس': 'Nice', 'لانس': 'Lens', 'ستراسبورغ': 'Strasbourg',
+'رين': 'Rennes', 'ستاد رين': 'Rennes', 'نانت': 'Nantes', 'تولوز': 'Toulouse',
+'مونبلييه': 'Montpellier', 'اوكسير': 'Auxerre', 'سانت اتيان': 'St-Étienne',
+'لوهافر': 'Le Havre', 'انجيه': 'Angers', 'ريمس': 'Reims', 'ستاد ريمس': 'Reims',
+'بريست': 'Brest', 'ستاد بريست': 'Brest', 'باريس اف سي': 'Paris FC',
+'الهلال': 'Al Hilal', 'النصر': 'Al Nassr', 'الاتحاد': 'Al Ittihad',
+'الاهلي': 'Al Ahly', 'الشباب': 'Al Shabab', 'الاتفاق': 'Al Ettifaq',
+'الفتح': 'Al Fateh', 'التعاون': 'Al Taawoun', 'الفيحاء': 'Al Fayha',
+'ضمك': 'Damac', 'الخليج': 'Al Khaleej', 'الرائد': 'Al Raed',
+'الوحدة': 'Al Wehda', 'الاخدود': 'Al Okhdood', 'العروبة': 'Al Orubah',
+'الخلود': 'Al Kholood', 'الرياض': 'Al Riyadh', 'القادسية': 'Al Qadsiah',
+'نيوم': 'Neom', 'ابها': 'Abha', 'الطائي': 'Al Tai', 'الحزم': 'Al Hazem',
+'الفيصلي': 'Al Faisaly', 'الباطن': 'Al Batin', 'العدالة': 'Al Adalah',
+'الزمالك': 'Zamalek', 'بيراميدز': 'Pyramids', 'المصري': 'Al Masry',
+'انبي': 'ENPPI', 'بتروجت': 'Petrojet', 'البنك الاهلي': 'National Bank',
+'بترول اسيوط': 'Petrol Asyut', 'المقاولون العرب': 'Arab Contractors',
+'سموحة': 'Smouha', 'الاسماعيلي': 'Ismaily', 'غزل المحلة': 'Ghazl El Mahalla',
+'الاتحاد السكندري': 'Ittihad Alexandria', 'فاركو': 'Pharco',
+'سيراميكا': 'Ceramica', 'زد': 'ZED', 'الجونة': 'El Gouna',
+'طلائع الجيش': 'El Gaish', 'مودرن سبورت': 'Modern Sport',
+'منتخب السويس': 'Suez',
+'الوداد': 'Wydad', 'الوداد الرياضي': 'Wydad',
+'الرجاء': 'Raja', 'الرجاء الرياضي': 'Raja',
+'الجيش الملكي': 'FAR Rabat', 'نهضة بركان': 'RS Berkane', 'الفتح الرباطي': 'FUS Rabat',
+'الترجي': 'Espérance', 'الترجي الرياضي': 'Espérance',
+'النجم الساحلي': 'Étoile du Sahel', 'الصفاقسي': 'Sfaxien', 'النادي الصفاقسي': 'Sfaxien',
+'الافريقي': 'Club Africain', 'النادي الافريقي': 'Club Africain',
+'اتحاد العاصمة': 'USM Alger', 'مولودية الجزائر': 'MC Alger',
+'شباب بلوزداد': 'CR Belouizdad', 'وفاق سطيف': 'ES Sétif',
+'شبيبة القبائل': 'JS Kabylie', 'شبيبة الأبيار': 'JS El Biar',
+'السويحلي': 'Al Swehly', 'اهلي طرابلس': 'Al Ahli Tripoli',
+'المريخ': 'Al Merrikh', 'صن داونز': 'Sundowns', 'ماميلودي صن داونز': 'Sundowns',
+'كايزر تشيفز': 'Kaizer Chiefs', 'اورلاندو بايرتس': 'Orlando Pirates',
+'مازيمبي': 'TP Mazembe', 'السد': 'Al Sadd', 'الدحيل': 'Al Duhail',
+'الريان': 'Al Rayyan', 'الشارقة': 'Sharjah', 'العين': 'Al Ain',
+'الوحدات': 'Al Wehdat', 'الرمثا': 'Al Ramtha',
+'القوة الجوية': 'Al Quwa Al Jawiya', 'الزوراء': 'Al Zawraa',
+'العهد': 'Al Ahed', 'الكرامة': 'Al Karamah', 'تشرين': 'Tishreen',
+'السيب': 'Al Seeb', 'ظفار': 'Dhofar', 'المحرق': 'Al Muharraq',
+'الرفاع': 'Al Riffa', 'الكويت': 'Kuwait SC', 'القادسية الكويتي': 'Qadsia',
+'بورتو': 'Porto', 'بنفيكا': 'Benfica',
+'سبورتينغ لشبونة': 'Sporting CP', 'سبورتينغ': 'Sporting CP',
+'اياكس': 'Ajax', 'ايندهوفن': 'PSV', 'فينورد': 'Feyenoord',
+'سيلتيك': 'Celtic', 'رينجرز': 'Rangers',
+'غلطة سراي': 'Galatasaray', 'فنربخشة': 'Fenerbahçe',
+'بشكتاش': 'Beşiktaş', 'طرابزون سبور': 'Trabzonspor',
+'شاختار': 'Shakhtar', 'شاختار دونيتسك': 'Shakhtar',
+'دينامو زغرب': 'Dinamo Zagreb', 'النجم الاحمر': 'Red Star',
+'سالزبورغ': 'Salzburg', 'ريد بول سالزبورغ': 'Salzburg', 'شتورم غراتس': 'Sturm Graz',
+'كلوب بروج': 'Club Brugge', 'اندرلخت': 'Anderlecht',
+'سبارتا براغ': 'Sparta Prague', 'سلافيا براغ': 'Slavia Prague',
+'اولمبياكوس': 'Olympiacos', 'باناثينايكوس': 'Panathinaikos',
+'كانساس سيتي ويزردز': 'Sporting KC', 'لوس أنجلوس': 'Los Angeles',
+'لوس أنجلوس غالاكسي': 'LA Galaxy', 'سانت لويس سيتي': 'St. Louis City',
+'مينيسوتا يونايتد': 'Minnesota Utd', 'دالاس': 'FC Dallas',
+'بورتلاند تيمبرز': 'Portland Timbers', 'ريال سالت لايك': 'Real Salt Lake',
+'نيويورك سيتي': 'New York City FC', 'كولورادو رابيدز': 'Colorado Rapids',
+'مونتريال امباكت': 'CF Montréal', 'سياتل ساونديرز': 'Seattle Sounders',
+'سان خوسيه إرثكويكس': 'San Jose', 'هيوستن دينامو': 'Houston Dynamo',
+'شيكاغو فاير': 'Chicago Fire', 'نيو إنغلاند ريفوليوشن': 'New England',
+'فانكوفر وايت كابس': 'Vancouver Whitecaps', 'أوستن': 'Austin FC',
+'دي سي يونايتد': 'DC United', 'فيلادلفيا': 'Philadelphia Union',
+'كولومبوس': 'Columbus Crew', 'شارلوت': 'Charlotte FC',
+'نيويورك ريد بولز': 'NY Red Bulls', 'تورونتو': 'Toronto FC',
+'انتر ميامي': 'Inter Miami', 'اورلاندو': 'Orlando City',
+'اتلانتا يونايتد': 'Atlanta Utd', 'سينسيناتي': 'Cincinnati',
+'ناشفيل': 'Nashville', 'لوس أنجلوس اف سي': 'LAFC',
+'كي في زد': 'KVZ'
+};
+const LEAGUEMAP = {
+'الدوري الانجليزي': ['Premier League', 'Premier League'],
+'الدوري الانجليزي الممتاز': ['Premier League', 'Premier League'],
+'البريميرليغ': ['Premier League', 'Premier League'],
+'الدوري الاسباني': ['La Liga', 'La Liga'],
+'الليغا': ['La Liga', 'La Liga'],
+'الدوري الايطالي': ['Serie A', 'Serie A'],
+'الكالتشيو': ['Serie A', 'Serie A'],
+'الدوري الالماني': ['Bundesliga', 'Bundesliga'],
+'البوندسليغا': ['Bundesliga', 'Bundesliga'],
+'الدوري الفرنسي': ['Ligue 1', 'Ligue 1'],
+'الدوري السعودي': ['Saudi Pro League', 'Saudi Pro League'],
+'دوري روشن': ['Saudi Pro League', 'Saudi Pro League'],
+'روشن': ['Saudi Pro League', 'Saudi Pro League'],
+'الدوري الامريكي': ['Major League Soccer', 'Major League Soccer'],
+'الدوري الامريكي الممتاز': ['Major League Soccer', 'Major League Soccer'],
+'دوري ابطال اوروبا': ['UEFA Champions League', 'Ligue des champions'],
+'دوري الابطال': ['UEFA Champions League', 'Ligue des champions'],
+'الدوري الاوروبي': ['UEFA Europa League', 'Ligue Europa'],
+'اليوروباليغ': ['UEFA Europa League', 'Ligue Europa'],
+'دوري المؤتمر الاوروبي': ['UEFA Conference League', 'Ligue Conférence'],
+'دوري ابطال افريقيا': ['CAF Champions League', 'Ligue des champions CAF'],
+'دوري ابطال افريقيا - تصفيات': ['CAF Champions League qualifying', 'Qualifications Ligue des champions CAF'],
+'كاس الكونفدرالية': ['CAF Confederation Cup', 'Coupe de la Confédération CAF'],
+'الدوري التركي': ['Süper Lig', 'Süper Lig'],
+'السوبر ليغ': ['Süper Lig', 'Süper Lig'],
+'الدوري الهولندي': ['Eredivisie', 'Eredivisie'],
+'الدوري البرتغالي': ['Primeira Liga', 'Primeira Liga'],
+'الدوري المصري': ['Egyptian Premier League', "Championnat d'Égypte"],
+'الدوري المغربي': ['Botola', 'Botola'],
+'البطولة المغربية': ['Botola', 'Botola'],
+'الدوري الجزائري': ['Algerian Ligue 1', 'Ligue 1 algérienne'],
+'الدوري التونسي': ['Tunisian Ligue 1', 'Ligue 1 tunisienne'],
+'الدوري الاماراتي': ['UAE Pro League', 'Championnat des Émirats'],
+'الدوري القطري': ['Qatar Stars League', 'Championnat du Qatar'],
+'الدوري الكويتي': ['Kuwait Premier League', 'Championnat du Koweït'],
+'الدوري البحريني': ['Bahraini Premier League', 'Championnat de Bahreïn'],
+'الدوري العماني': ['Oman Professional League', "Championnat d'Oman"],
+'الدوري الاردني': ['Jordanian Pro League', 'Championnat de Jordanie'],
+'الدوري العراقي': ['Iraq Stars League', "Championnat d'Irak"],
+'الدوري اللبناني': ['Lebanese Premier League', 'Championnat du Liban'],
+'الدوري السوري': ['Syrian Premier League', 'Championnat de Syrie'],
+'الدوري اليمني': ['Yemeni League', 'Championnat du Yémen'],
+'الدوري الليبي': ['Libyan Premier League', 'Championnat de Libye'],
+'الدوري السوداني': ['Sudan Premier League', 'Championnat du Soudan'],
+'الدوري الموريتاني': ['Mauritanian Premier League', 'Championnat de Mauritanie'],
+'كاس اسبانيا': ['Copa del Rey', 'Copa del Rey'],
+'كاس ايطاليا': ['Coppa Italia', 'Coppa Italia'],
+'كاس فرنسا': ['Coupe de France', 'Coupe de France'],
+'كاس المانيا': ['DFB-Pokal', 'DFB-Pokal'],
+'كاس الاتحاد الانجليزي': ['FA Cup', 'FA Cup'],
+'كاس الرابطة': ['EFL Cup', 'EFL Cup'],
+'السوبر الاسباني': ['Supercopa', 'Supercopa'],
+'دوري الامم الاوروبية': ['UEFA Nations League', 'Ligue des nations'],
+'تصفيات كاس العالم': ['World Cup Qualifiers', 'Éliminatoires Coupe du monde'],
+'كاس العالم للاندية': ['FIFA Club World Cup', 'Coupe du monde des clubs']
+};
+function normKey(s){
+  return String(s == null ? '' : s)
+    .replace(/[\u0623\u0625\u0622]/g, '\u0627').replace(/\u0629/g, '\u0647').replace(/\u0649/g, '\u064a')
+    .replace(/[\u064B-\u0652\u0670\u0640]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim();
+}
+const TEAMN = {};
+try { for (const k in TEAMMAP) TEAMN[normKey(k)] = TEAMMAP[k]; } catch (e) {}
+const LEAGUEN = {};
+try { for (const k in LEAGUEMAP) LEAGUEN[normKey(k)] = LEAGUEMAP[k]; } catch (e) {}
+function dispTeam(n){
+  if (n == null || n === '') return n == null ? '' : n;
+  try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
+  return n;
+}
+function dispLeague(n){
+  if (n == null || n === '') return n == null ? '' : n;
+  try { const e = LEAGUEN[normKey(n)]; if (e) return LANG === 'fr' ? e[1] : e[0]; } catch (er) {}
+  return n;
+}
+/* I18N-NAMES-END */
+
+
 
 function toast(msg){
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
@@ -336,13 +641,13 @@ function statusLabel(m, now){
   // upstream minute is missing, the fused clock fills it in (anchored +
   // ticked, else wall map). Ended is checked first: a stale live window
   // must never shadow FT.
-  if (isEnded(m)) return { cls: '', txt: 'انتهت' };
+  if (isEnded(m)) return { cls: '', txt: t('ended') };
   if (isLive(m, now)){
     const a = showMinute(m, now);
     let t;
     if (a && a.min != null) t = fmtMin(a);
-    else if (a && a.brk) t = 'استراحة';
-    else t = 'مباشر';
+    else if (a && a.brk) t = t('halfBreak');
+    else t = t('live');
     return { cls: 'live', txt: t };
   }
   return { cls: '', txt: dec(m.time_text || '').trim() || '—' };
@@ -770,7 +1075,7 @@ async function loadDay(day, silent){
   if (myReq !== reqSeq) return; // a newer day request already won
   $('#loading').hidden = true;
   // Offline/failure: keep the stale list on screen, toast only when explicit.
-  if (!data){ if (!silent) toast('تعذّر تحميل المباريات — تحقق من الاتصال'); return; }
+  if (!data){ if (!silent) toast(t('loadFail')); return; }
   ALL = data.filter(x => x && typeof x === 'object');
   const fAt = Date.now();
   for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }
@@ -791,7 +1096,7 @@ async function loadDay(day, silent){
         if (isFinite(ch) && isFinite(ph) && ch === ph + 1) who.push(m.home);
         else if (isFinite(ca) && isFinite(pa) && ca === pa + 1) who.push(m.away);
       }
-            if (who.length) GOAL_MSG = '\u{026bd} \u0647\u062f\u0641: ' + who.slice(0, 2).join('\u060c ') + (who.length > 2 ? ' (+' + (who.length - 2) + ')' : '');
+            if (who.length) GOAL_MSG = '\u26BD ' + t('goal') + ': ' + who.slice(0, 2).map(dispTeam).join(', ') + (who.length > 2 ? ' (+' + (who.length - 2) + ')' : '');
     }
   } catch {}
   // Rebuild chips on silent too (new leagues appear mid-day); the LEAGUE
@@ -881,14 +1186,14 @@ function buildChips(){
   LEAGUE_LIST = [...new Set(ALL.map(m => (m.league_text || m.league || '').trim()).filter(Boolean).filter(l => !isHiddenLg(l)))]
     .sort((a, b) => leagueRank(a) - leagueRank(b));
   const box = $('#leagueChips');
-  box.innerHTML = `<button class="chip${LEAGUE === 'all' ? ' on' : ''}" data-i="-1">الكل</button>` +
-    LEAGUE_LIST.map((l, i) => `<button class="chip${LEAGUE === l ? ' on' : ''}" data-i="${i}">${tx(l)}</button>`).join('');
+  box.innerHTML = `<button class="chip${LEAGUE === 'all' ? ' on' : ''}" data-i="-1">${t('all')}</button>` +
+    LEAGUE_LIST.map((l, i) => `<button class="chip${LEAGUE === l ? ' on' : ''}" data-i="${i}">${tx(dispLeague(l))}</button>`).join('');
   try {
     const favs = favGet();
     if (favs.length){
       const b = document.createElement('button');
       b.className = 'chip' + (FAVONLY ? ' on' : '');
-      b.textContent = '\u{02605} \u0627\u0644\u0645\u0641\u0636\u0644\u0629 (' + favs.length + ')';
+      b.textContent = '\u2605 ' + t('favorites') + ' (' + favs.length + ')';
       b.onclick = () => { FAVONLY = !FAVONLY; b.classList.toggle('on', FAVONLY); render(); };
       box.prepend(b);
     }
@@ -907,7 +1212,7 @@ function filtered(){
   const F = FAVONLY ? favGet() : null;
   return ALL.filter(m => {
     if (LEAGUE !== 'all' && (m.league_text || m.league || '').trim() !== LEAGUE) return false;
-    if (q && !(((m.home || '') + ' ' + (m.away || '') + ' ' + (m.league_text || m.league || '')).toLowerCase().includes(q))) return false;
+    if (q && !(((m.home || '') + ' ' + (m.away || '') + ' ' + (m.league_text || m.league || '') + ' ' + dispTeam(m.home) + ' ' + dispTeam(m.away) + ' ' + dispLeague(m.league_text || m.league || '')).toLowerCase().includes(q))) return false;
     if (F && !F.includes(m.home) && !F.includes(m.away)) return false;
     return true;
   });
@@ -918,16 +1223,16 @@ function rowCard(m){
   const sh = (m.score_home !== '' && m.score_home != null) ? tx(m.score_home) : '';
   const sa = (m.score_away !== '' && m.score_away != null) ? tx(m.score_away) : '';
   const live = isLive(m);
-  // Status column shows the minute for live matches (never stale "لم تبدأ").
-  const top = live ? (st.txt === 'مباشر' ? '•' : st.txt) : (tx((m.time_text || '').trim()) || '–');
+  // Status column shows the minute for live matches (never a stale not-started label).
+  const top = live ? (st.txt === t('live') ? '•' : st.txt) : (tx((m.time_text || '').trim()) || '–');
   return `<a class="m${live ? ' is-live' : ''}${GOAL_IDS.includes(m.id) ? ' flash' : ''}" href="${playerLink(m)}">
     <div class="st"><div class="t">${top}</div>
       <div class="s ${st.cls}">${tx(st.txt)}</div></div>
     <div class="teams">
-      <div class="t">${logoImg(m.home_logo, m.home)}<span>${tx(m.home || '')}</span><b>${sh}</b></div>
-      <div class="t">${logoImg(m.away_logo, m.away)}<span>${tx(m.away || '')}</span><b>${sa}</b></div>
+      <div class="t">${logoImg(m.home_logo, dispTeam(m.home))}<span>${tx(dispTeam(m.home || ''))}</span><b>${sh}</b></div>
+      <div class="t">${logoImg(m.away_logo, dispTeam(m.away))}<span>${tx(dispTeam(m.away || ''))}</span><b>${sa}</b></div>
     </div>
-    <div class="go">‹</div>
+    <div class="go">›</div>
   </a>`;
 }
 
@@ -944,8 +1249,8 @@ function render(silent){
   // Live list with slim league dividers (Prem/LaLiga/UCL float to the top).
   let liveHtml = '', lastLg = null;
   for (const m of live){
-    const lg = (m.league_text || m.league || '').trim() || 'بطولات أخرى';
-    if (lg !== lastLg){ liveHtml += `<div class="live-lg">${tx(lg)}</div>`; lastLg = lg; }
+    const lg = (m.league_text || m.league || '').trim() || t('otherLeagues');
+    if (lg !== lastLg){ liveHtml += `<div class="live-lg">${tx(dispLeague(lg))}</div>`; lastLg = lg; }
     liveHtml += rowCard(m);
   }
   rail.innerHTML = liveHtml;
@@ -953,18 +1258,18 @@ function render(silent){
   const groups = new Map();
   for (const m of rest){
     if (!vis(m)) continue;
-    const k = (m.league_text || m.league || '').trim() || 'بطولات أخرى';
+    const k = (m.league_text || m.league || '').trim() || t('otherLeagues');
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k).push(m);
   }
   let groupsHtml = [...groups].map(([lg, ms]) => ({ lg, ms, r: leagueRank(lg) }))
     .sort((a, b) => a.r - b.r)
     .map(({ lg, ms }) =>
-      `<section class="league"><h2>${tx(lg)}</h2>${ms.map(rowCard).join('')}</section>`).join('');
+      `<section class="league"><h2>${tx(dispLeague(lg))}</h2>${ms.map(rowCard).join('')}</section>`).join('');
   const hid = list.filter(m => !vis(m));
   if (hid.length){
     const hn = hid.filter(isLive).length;
-    groupsHtml += `<details class="arab-more"><summary>${hn ? '<span class="dot"></span>' : ''}دوريات عربية أخرى — مخفية <span class="n">${hid.length}</span></summary><div class="body">${hid.map(rowCard).join('')}</div></details>`;
+    groupsHtml += `<details class="arab-more"><summary>${hn ? '<span class="dot"></span>' : ''}${t('hiddenLeagues')} <span class="n">${hid.length}</span></summary><div class="body">${hid.map(rowCard).join('')}</div></details>`;
   }
   $('#leagues').innerHTML = groupsHtml;
   // #empty is for "filter matched nothing" — offline keeps the stale list
@@ -984,8 +1289,8 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
   };
   const graph = list.slice(0, 50).map(m => ({
     '@type': 'SportsEvent',
-    name: `${m.home || ''} ضد ${m.away || ''}`,
-    sport: 'كرة القدم',
+    name: `${dispTeam(m.home || '')} ${t('vs')} ${dispTeam(m.away || '')}`,
+    sport: t('sport'),
     startDate: isoStart(m),
     eventStatus: isLive(m)
       ? 'https://schema.org/EventLive'
@@ -996,21 +1301,21 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
   }));
   for (const m of list.slice(0, 50)){
     if (!isLive(m)) continue;
-    graph.push({ '@type': 'BroadcastEvent', name: `${m.home || ''} ضد ${m.away || ''}`,
+    graph.push({ '@type': 'BroadcastEvent', name: `${dispTeam(m.home || '')} ${t('vs')} ${dispTeam(m.away || '')}`,
       isLiveBroadcast: true, startDate: isoStart(m),
       homeTeam: { '@type': 'SportsTeam', name: m.home || '' },
       awayTeam: { '@type': 'SportsTeam', name: m.away || '' } });
   }
-  graph.push({ '@type': 'Organization', name: 'كورة لايف', url: location.origin + '/', logo: location.origin + '/icon-512.png' });
-  graph.push({ '@type': 'WebSite', name: 'كورة لايف', url: location.origin + '/', inLanguage: 'ar',
+  graph.push({ '@type': 'Organization', name: 'Koora Live', url: location.origin + '/', logo: location.origin + '/icon-512.png' });
+  graph.push({ '@type': 'WebSite', name: 'Koora Live', url: location.origin + '/', inLanguage: LANG,
     potentialAction: { '@type': 'SearchAction', target: location.origin + '/?q={search_term_string}', 'query-input': 'required name=search_term_string' } });
   graph.push({ '@type': 'FAQPage', mainEntity: [
-    { '@type': 'Question', name: 'كيف أشاهد', acceptedAnswer: { '@type': 'Answer', text: 'اختر المباراة' } },
-    { '@type': 'Question', name: 'هل البث مجاني', acceptedAnswer: { '@type': 'Answer', text: 'نعم' } },
-    { '@type': 'Question', name: 'ما البطولات', acceptedAnswer: { '@type': 'Answer', text: 'الدوري الإنج' } },
-    { '@type': 'Question', name: 'لماذا الدقيقة', acceptedAnswer: { '@type': 'Answer', text: 'الدقيقة محسوبة' } }
+    { '@type': 'Question', name: t('fq1'), acceptedAnswer: { '@type': 'Answer', text: t('fa1') } },
+    { '@type': 'Question', name: t('fq2'), acceptedAnswer: { '@type': 'Answer', text: t('fa2') } },
+    { '@type': 'Question', name: t('fq3'), acceptedAnswer: { '@type': 'Answer', text: t('fa3') } },
+    { '@type': 'Question', name: t('fq4'), acceptedAnswer: { '@type': 'Answer', text: t('fa4') } }
   ]});
-  if (list.length) graph.push({ '@type': 'ItemList', name: 'مباريات اليوم', numberOfItems: list.length, itemListElement: list.slice(0, 20).map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(playerLink(m), location.href).toString(), name: `${m.home || ''} ضد ${m.away || ''}` })) });
+  if (list.length) graph.push({ '@type': 'ItemList', name: t('todayMatches'), numberOfItems: list.length, itemListElement: list.slice(0, 20).map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(playerLink(m), location.href).toString(), name: `${dispTeam(m.home || '')} ${t('vs')} ${dispTeam(m.away || '')}` })) });
   const s = document.createElement('script');
   s.type = 'application/ld+json'; s.id = 'jsonld';
   s.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
@@ -1022,11 +1327,12 @@ $('#searchInput').addEventListener('input', () => { // debounced: no DOM churn p
   clearTimeout(searchT);
   searchT = setTimeout(render, 160);
 });
-document.addEventListener('click', e => { const a = e.target.closest('[data-lg-link]'); if (!a) return; e.preventDefault(); try { const lg = a.textContent.replace(/:.*/, '').trim(); if (lg){ LEAGUE = lg; buildChips(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } } catch {} });
+document.addEventListener('click', e => { const a = e.target.closest('[data-lg-link]'); if (!a) return; e.preventDefault(); try { const lg = (a.getAttribute('data-lg') || a.textContent.replace(/:.*/, '')).trim(); if (lg){ LEAGUE = lg; buildChips(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } } catch {} });
 $$('#dayTabs button').forEach(b => b.onclick = () => { LEAGUE = 'all'; loadDay(b.dataset.day); });
 document.querySelector('#dayTabs')?.setAttribute('role', 'tablist');
 $$('#dayTabs button').forEach(b => { b.setAttribute('role', 'tab'); if (!b.hasAttribute('aria-selected')) b.setAttribute('aria-selected', b.classList.contains('on') ? 'true' : 'false'); });
 try { const ql = new URLSearchParams(location.search).get('league'); if (ql) LEAGUE = ql; } catch {}
+try { document.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => setLang(b.getAttribute('data-lang')); }); } catch {}
 loadDay('today');
 
 // #4: register service worker (ad-blocker + offline shell); no-op if unsupported

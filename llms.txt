@@ -1,7 +1,7 @@
-# كورة لايف (Koora Live)
+# Koora Live
 
 > Live football scores, fixtures and live-minute tracker with same-team
-> streams. Arabic-first (RTL), no account needed, updates every minute.
+> streams. English + French interface (LTR), no account needed, updates every minute.
 
 ## Leagues covered
 - الدوري الإنجليزي (English Premier League)
@@ -35,7 +35,11 @@
 - /api/sitemap : XML sitemap (core pages + today matches)
 
 ## Notes
-- Language: Arabic (ar, RTL). Tagline: بث نظيف بدون إعلانات.
+- Language: English + French (en/fr, LTR) with a header EN/FR toggle (saved in
+  localStorage, `?lang=` override, French browser locale auto-detected).
+  Tagline: Clean streams, no popups. Upstream team/league names are
+  translated at render time (EN display names, EN/FR league names) from a
+  built-in dictionary; unknown names fall back to the feed text.
 - Bots (search + AI assistants) are welcome on all public pages.
 - No official broadcast affiliation is claimed; team names, scores and
   kickoff times are factual match data.

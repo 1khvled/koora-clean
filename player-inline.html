@@ -1,34 +1,36 @@
 <!doctype html>
-<html dir="rtl" lang="ar">
+<html dir="ltr" lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071f19">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<title>مشاهدة المباراة بث مباشر — كورة لايف</title>
-<meta name="description" content="مشاهدة المباراة بث مباشر بجودة عالية وبدون إعلانات مزعجة على كورة لايف.">
+<title>Watch match live — Koora Live</title>
+<meta name="description" content="Watch the match live in clean HD quality with no annoying popups on Koora Live.">
 <link rel="canonical" href="https://kooraadz.vercel.app/player.html">
-<link rel="alternate" hreflang="ar" href="https://kooraadz.vercel.app/player.html">
+<link rel="alternate" hreflang="en" href="https://kooraadz.vercel.app/player.html">
+<link rel="alternate" hreflang="fr" href="https://kooraadz.vercel.app/player.html?lang=fr">
 <link rel="alternate" hreflang="x-default" href="https://kooraadz.vercel.app/player.html">
 <meta property="og:type" content="website">
-<meta property="og:locale" content="ar_AR">
-<meta property="og:site_name" content="كورة لايف">
-<meta property="og:title" content="مشاهدة المباراة بث مباشر — كورة لايف">
-<meta property="og:description" content="بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:site_name" content="Koora Live">
+<meta property="og:title" content="Watch match live — Koora Live">
+<meta property="og:description" content="Clean live HD stream with no annoying popups.">
 <meta property="og:url" content="https://kooraadz.vercel.app/player.html">
 <meta property="og:image" content="https://kooraadz.vercel.app/og-cover.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="كورة لايف">
+<meta property="og:image:alt" content="Koora Live">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="مشاهدة المباراة بث مباشر — كورة لايف">
-<meta name="twitter:description" content="بث مباشر بجودة عالية وبدون إعلانات مزعجة.">
+<meta name="twitter:title" content="Watch match live — Koora Live">
+<meta name="twitter:description" content="Clean live HD stream with no annoying popups.">
 <meta name="twitter:image" content="https://kooraadz.vercel.app/og-cover.png">
 <!-- Google Search Console: create a property for https://kooraadz.vercel.app/, choose the HTML-tag method,
      and paste the code below (replace REPLACE_WITH_SEARCH_CONSOLE_CODE). -->
 <meta name="google-site-verification" content="REPLACE_WITH_SEARCH_CONSOLE_CODE">
-<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"كورة لايف","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebPage","@id":"https://kooraadz.vercel.app/player.html#page","url":"https://kooraadz.vercel.app/player.html","name":"مشاهدة المباراة بث مباشر — كورة لايف","inLanguage":"ar","isPartOf":{"@id":"https://kooraadz.vercel.app/#site"}}]}</script>
+<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"Koora Live","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebPage","@id":"https://kooraadz.vercel.app/player.html#page","url":"https://kooraadz.vercel.app/player.html","name":"Watch match live — Koora Live","inLanguage":"en","isPartOf":{"@id":"https://kooraadz.vercel.app/#site"}}]}</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -286,16 +288,19 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card)}
 .ad img{display:block;width:100%;height:auto}
 .ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 8px}
+.lang{display:flex;gap:6px;flex:none}
+.lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
+.lang button.on{background:var(--grass);color:#04120c;border-color:var(--grass)}
 @media (prefers-reduced-motion:reduce){.click-shield{transition:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <nav class="crumb" aria-label="breadcrumb"><a href="/">الرئيسية</a> <span aria-hidden="true">›</span> <span id="crumbCur">مشاهدة المباراة</span></nav>
+  <nav class="crumb" aria-label="breadcrumb"><a href="/" data-i18n="crumbHome">Home</a> <span aria-hidden="true">›</span> <span id="crumbCur" data-i18n="crumbCur">Watch match</span></nav>
   <div class="head">
-    <a class="back" href="/">‹ عودة</a>
-    <div class="title"><h1 id="matchTitle">جاري التحميل…</h1><small>بث نظيف بدون إعلانات</small></div>
-    <span style="width:76px;flex:none"></span>
+    <a class="back" href="/" data-i18n="back">‹ Back</a>
+    <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
+    <div class="lang" role="group" aria-label="Language / Langue"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button></div>
   </div>
   <div class="stage">
     <iframe id="player" title="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
@@ -303,38 +308,38 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
     <div class="shield" id="shield"></div>
     <div class="click-shield" id="clickShield">
       <div style="text-align:center">
-        <button id="playBtn">▶ اضغط للمشاهدة</button>
-        <small>أول ضغطة تفتح البث فقط — بدون إعلانات</small>
+        <button id="playBtn" data-i18n="playBtn">▶ Tap to watch</button>
+        <small data-i18n="playHint">First tap only opens the stream — no popups</small>
       </div>
     </div>
   </div>
   <div class="mcard" id="matchCard" hidden>
-    <div class="team"><img id="homeLogo" alt="شعار الفريق المضيف"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="fav">&#9734;</button></div>
+    <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="fav">&#9734;</button></div>
     <div class="mid"><div class="vs" id="matchState">…</div><div class="tm" id="matchTime">—</div><div class="lg" id="matchLeague">—</div></div>
-    <div class="team"><img id="awayLogo" alt="شعار الفريق الضيف"><b id="awayName">—</b><button class="tstar" id="starA" aria-label="fav">&#9734;</button></div>
+    <div class="team"><img id="awayLogo" alt="Away team logo" data-i18n-alt="awayAlt"><b id="awayName">—</b><button class="tstar" id="starA" aria-label="fav">&#9734;</button></div>
   </div>
   <div class="likebar"><button class="like" id="btnLike" aria-label="like">&#9825;<span id="likeCount"></span></button></div>
   <div class="src-head">
-    <h2>📡 مصادر البث <span class="n" id="srvCount" hidden>0</span></h2>
-    <small id="srvNow">جاري البحث عن السيرفرات…</small>
+    <h2><span data-i18n="srcTitle">📡 Stream sources</span> <span class="n" id="srvCount" hidden>0</span></h2>
+    <small id="srvNow" data-i18n="searching">Searching for servers…</small>
   </div>
   <div class="servers" id="servers"></div>
   <p class="src-note" id="srcNote" hidden></p>
   <div class="controls">
-    <button class="btn" id="btnFull">⛶ ملء الشاشة</button>
-    <button class="btn ghost" id="btnReload">⟳ إعادة تحميل</button>
+    <button class="btn" id="btnFull" data-i18n="fullscreen">⛶ Fullscreen</button>
+    <button class="btn ghost" id="btnReload" data-i18n="reload">⟳ Reload</button>
     <button class="btn ghost" id="btnShare" aria-label="share">&#128279;</button>
     <button class="btn ghost" id="btnBell" aria-label="notifications">&#128276;</button>
   </div>
-  <div class="status" id="status">محظور: 0</div>
+  <div class="status" id="status">Blocked: 0</div>
   <section class="minfo" id="minfo" hidden>
     <div class="src-head" style="margin-top:0">
-      <h2>📊 بيانات المباراة</h2>
+      <h2 data-i18n="minfoTitle">📊 Match data</h2>
       <small id="minfoSrc">FotMob</small>
     </div>
-    <div id="minfoBody"><div class="loading">جاري تحميل التشكيلة والتقييمات…</div></div>
+    <div id="minfoBody"><div class="loading" data-i18n="minfoLoading">Loading lineups and ratings…</div></div>
   </section>
-  <div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag">إعلان</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
+  <div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -379,7 +384,7 @@ function favToggle(n){
   if (i >= 0) f.splice(i, 1); else f.push(n);
   try { localStorage.setItem('koora_favs', JSON.stringify([...new Set(f)].slice(0, 30))); } catch {}
   paintStars();
-  toast(i >= 0 ? '\u0623\u0632\u064a\u0644\u062a \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0644\u0629' : '\u0623\u0636\u064a\u0641\u062a \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0644\u0629');
+  toast(i >= 0 ? t('favRemove') : t('favAdd'));
 }
 function paintStars(){
   try {
@@ -390,6 +395,362 @@ function paintStars(){
 }
 let bellOn = false, bellTimer = 0;
 function bellPaint(){ try { document.getElementById('btnBell').textContent = bellOn ? '\u{1f514}' : '\u{1f515}'; } catch {} }
+/* I18N — English + French interface. Match/team/league DATA stays exactly as
+   the upstream feed sends it (often Arabic); only the UI chrome translates.
+   Detection regexes (halfOf/isLive/isEnded) intentionally still match Arabic. */
+const I18N = {
+en: {
+back: '‹ Back', crumbHome: 'Home', crumbCur: 'Watch match',
+loadingTitle: 'Loading…', tagline: 'Clean streams, no popups',
+playBtn: '▶ Tap to watch', playHint: 'First tap only opens the stream — no popups',
+homeAlt: 'Home team logo', awayAlt: 'Away team logo',
+srcTitle: '📡 Stream sources', searching: 'Searching for servers…',
+fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked',
+minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
+live: 'Live', ended: 'FT', upcoming: 'Upcoming', break: 'HT', vs: 'vs',
+favAdd: 'Added to favorites', favRemove: 'Removed from favorites',
+bellStart: 'Kickoff', bellGoal: '⚽ Goal', bellScore: 'Score update',
+bellUnsupported: 'Notifications not supported', bellDenied: 'Enable notifications in your browser',
+bellFail: 'Could not enable', bellOn: 'Notifications on', bellOff: 'Notifications off',
+kindDirect: 'Live', kindFull: 'Full page', kindTv: '24/7 channel', kindServer: 'Server', server: 'Server',
+skel: 'Searching…', noLinks: 'No stream links', noLinksSub: 'No stream available right now — tap to retry',
+noStream: 'No stream available',
+note: (n) => n + ' live server' + (n > 1 ? 's' : '') + ' — if a stream stutters, try the next one. Auto-switch kicks in when popups are blocked.',
+watching: (name, i, total) => 'Watching: ' + name + ' (' + (i + 1) + '/' + total + ')',
+noValid: 'No working server', tryingNext: 'Trying another server…',
+updating: 'Updating stream…', proxyBad: 'Saved proxy link invalid', demoServer: 'Demo server',
+fromCache: 'Saved stream — retrying…', cacheShown: 'Update failed — showing saved stream',
+loadFailT: 'Load failed', retryCta: 'Tap to retry', checkConn: 'Check your connection and retry',
+streamFail: 'Stream failed to load — check your connection',
+autoRetry: (s) => 'Auto-retry in ' + s + 's…',
+loadingStream: 'Loading stream…', retryN: (n) => 'Retrying ' + n + '…',
+mainPlayer: 'Main player', altServers: 'Backup servers', cacheUpdating: 'Saved stream — updating',
+copied: 'Match link copied', copyFail: 'Copy failed',
+fsFail: 'Fullscreen failed', fsUnsupported: 'Browser has no fullscreen',
+half1: '1st half', ht: 'Half-time', half2: '2nd half', statusLiveNow: 'Live now',
+coach: 'Coach:', subs: 'Substitutes', unavailable: 'Unavailable', subOut: 'Out', subIn: 'In',
+lineups: '📋 Lineups', topRated: '⭐ Top rated', stats: '📈 Stats',
+perAll: 'All', per1H: '1st half', per2H: '2nd half', period: 'Period',
+events: '🕐 Events', evAll: 'All', evGoals: 'Goals', evCards: 'Cards', evSubs: 'Subs',
+evFilter: 'Filter events', evEmpty: 'No events here',
+noLineup: 'No lineup available', noEvents: 'No events available',
+tabs: 'Match data sections', tabOv: 'Overview', tabLu: 'Lineups', tabEv: 'Events',
+close: 'Close', noPlayerEvents: 'No events for this player',
+defaultTitle: 'Watch match', leagueFallback: 'Clean streams, no popups',
+watchTitle: (h, a) => 'Watch ' + h + ' vs ' + a + ' live — Koora Live',
+meta: {
+title: 'Watch match live — Koora Live',
+desc: 'Watch the match live in clean HD quality with no annoying popups on Koora Live.',
+ogTitle: 'Watch match live — Koora Live',
+ogDesc: 'Clean live HD stream with no annoying popups.'
+}
+},
+fr: {
+back: '‹ Retour', crumbHome: 'Accueil', crumbCur: 'Voir le match',
+loadingTitle: 'Chargement…', tagline: 'Streams propres, sans popups',
+playBtn: '▶ Toucher pour regarder', playHint: 'Le premier toucher ouvre seulement le stream — sans popups',
+homeAlt: 'Logo de l’équipe domicile', awayAlt: 'Logo de l’équipe extérieur',
+srcTitle: '📡 Sources du stream', searching: 'Recherche de serveurs…',
+fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués',
+minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
+live: 'Direct', ended: 'Terminé', upcoming: 'À venir', break: 'MT', vs: 'vs',
+favAdd: 'Ajouté aux favoris', favRemove: 'Retiré des favoris',
+bellStart: 'Coup d’envoi', bellGoal: '⚽ But', bellScore: 'Score actualisé',
+bellUnsupported: 'Notifications non prises en charge', bellDenied: 'Activez les notifications dans le navigateur',
+bellFail: 'Activation impossible', bellOn: 'Notifications activées', bellOff: 'Notifications coupées',
+kindDirect: 'Direct', kindFull: 'Page complète', kindTv: 'Chaîne 24/7', kindServer: 'Serveur', server: 'Serveur',
+skel: 'Recherche…', noLinks: 'Aucun lien de stream', noLinksSub: 'Aucun stream pour le moment — touchez pour réessayer',
+noStream: 'Aucun stream disponible',
+note: (n) => n + ' serveur' + (n > 1 ? 's' : '') + ' en direct — si ça coupe, essayez le suivant. Le switch auto agit quand les popups sont bloquées.',
+watching: (name, i, total) => 'Vous regardez : ' + name + ' (' + (i + 1) + '/' + total + ')',
+noValid: 'Aucun serveur valide', tryingNext: 'Essai d’un autre serveur…',
+updating: 'Actualisation du stream…', proxyBad: 'Lien proxy enregistré invalide', demoServer: 'Serveur démo',
+fromCache: 'Stream sauvegardé — nouvel essai…', cacheShown: 'Échec de mise à jour — stream sauvegardé affiché',
+loadFailT: 'Échec du chargement', retryCta: 'Touchez pour réessayer', checkConn: 'Vérifiez la connexion puis réessayez',
+streamFail: 'Stream non chargé — vérifiez la connexion',
+autoRetry: (s) => 'Nouvel essai auto dans ' + s + 's…',
+loadingStream: 'Chargement du stream…', retryN: (n) => 'Nouvel essai ' + n + '…',
+mainPlayer: 'Lecteur principal', altServers: 'Serveurs de secours', cacheUpdating: 'Stream sauvegardé — actualisation',
+copied: 'Lien du match copié', copyFail: 'Copie impossible',
+fsFail: 'Plein écran impossible', fsUnsupported: 'Navigateur sans plein écran',
+half1: '1re mi-temps', ht: 'Mi-temps', half2: '2e mi-temps', statusLiveNow: 'En direct',
+coach: 'Coach :', subs: 'Remplaçants', unavailable: 'Absents', subOut: 'Sortie', subIn: 'Entrée',
+lineups: '📋 Compos', topRated: '⭐ Les mieux notés', stats: '📈 Stats',
+perAll: 'Tout', per1H: '1re MT', per2H: '2e MT', period: 'Période',
+events: '🕐 Événements', evAll: 'Tout', evGoals: 'Buts', evCards: 'Cartons', evSubs: 'Rempl.',
+evFilter: 'Filtrer les événements', evEmpty: 'Aucun événement ici',
+noLineup: 'Compo non disponible', noEvents: 'Aucun événement disponible',
+tabs: 'Sections des données du match', tabOv: 'Aperçu', tabLu: 'Compos', tabEv: 'Événements',
+close: 'Fermer', noPlayerEvents: 'Aucun événement pour ce joueur',
+defaultTitle: 'Voir le match', leagueFallback: 'Streams propres, sans popups',
+watchTitle: (h, a) => 'Voir ' + h + ' vs ' + a + ' en direct — Koora Live',
+meta: {
+title: 'Voir le match en direct — Koora Live',
+desc: 'Regardez le match en direct en HD propre, sans popups agaçants sur Koora Live.',
+ogTitle: 'Voir le match en direct — Koora Live',
+ogDesc: 'Stream HD propre en direct, sans popups agaçants.'
+}
+}
+};
+let LANG = 'en';
+function t(k){ const d = I18N[LANG] || I18N.en; const v = d[k]; return v !== undefined ? v : (I18N.en[k] !== undefined ? I18N.en[k] : k); }
+function applyStatic(){
+document.querySelectorAll('[data-i18n]').forEach(el => { const v = t(el.getAttribute('data-i18n')); if (typeof v === 'string') el.textContent = v; });
+document.querySelectorAll('[data-i18n-ph]').forEach(el => el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))));
+document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))));
+document.querySelectorAll('[data-i18n-alt]').forEach(el => el.setAttribute('alt', t(el.getAttribute('data-i18n-alt'))));
+}
+function updateMeta(){
+const m = (I18N[LANG] || I18N.en).meta;
+if (!m) return;
+const md = document.querySelector('meta[name="description"]'); if (md) md.setAttribute('content', m.desc);
+const ogT = document.querySelector('meta[property="og:title"]'); if (ogT) ogT.setAttribute('content', m.ogTitle);
+const ogD = document.querySelector('meta[property="og:description"]'); if (ogD) ogD.setAttribute('content', m.ogDesc);
+const twT = document.querySelector('meta[name="twitter:title"]'); if (twT) twT.setAttribute('content', m.ogTitle);
+const twD = document.querySelector('meta[name="twitter:description"]'); if (twD) twD.setAttribute('content', m.ogDesc);
+try { if (!home && !away) document.title = m.title; } catch (e) { try { document.title = m.title; } catch (e2) {} }
+const st = document.getElementById('static-jsonld');
+if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [
+{ '@type': 'Organization', '@id': 'https://kooraadz.vercel.app/#org', name: 'Koora Live', url: 'https://kooraadz.vercel.app/', logo: 'https://kooraadz.vercel.app/icon-512.png' },
+{ '@type': 'WebPage', '@id': 'https://kooraadz.vercel.app/player.html#page', url: 'https://kooraadz.vercel.app/player.html', name: m.title, inLanguage: LANG, isPartOf: { '@id': 'https://kooraadz.vercel.app/#site' } }
+]});
+}
+function setLang(l, save){
+if (!I18N[l]) return;
+LANG = l;
+try { document.documentElement.lang = l; document.documentElement.dir = 'ltr'; } catch (e) {}
+if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
+try { applyStatic(); updateMeta(); } catch (e) {}
+try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
+if (save !== false){
+try {
+paintTitle();
+if (home || away) paintMatch(home, away, homeLogo, awayLogo, leagueP);
+paintStars();
+statusEl.textContent = t('blocked') + ': ' + blocked;
+if (serverList && serverList.length){
+serversEl.innerHTML = serverList.map((s, i) => btnHtml(s, i, i === srvIdx)).join('');
+Array.prototype.forEach.call(serversEl.children, b => { if (b.getAttribute('data-i') !== null) b.onclick = () => goServer(+b.getAttribute('data-i'), false); });
+paintNow();
+if (srcNote && !srcNote.hidden) srcNote.textContent = t('note')(serverList.length);
+} else if (serversEl.querySelector('.skel')) showSkeleton();
+else if (serversEl.querySelector('#retryBtn')) showServersFromList([]);
+if (miData) renderMi();
+} catch (e) {}
+}
+}
+try {
+let init = 'en';
+try {
+const q0 = new URLSearchParams(location.search).get('lang');
+let s0 = null; try { s0 = localStorage.getItem('koora_lang'); } catch (e) {}
+if (q0 && I18N[q0]) init = q0;
+else if (s0 && I18N[s0]) init = s0;
+else if ((navigator.language || '').toLowerCase().indexOf('fr') === 0) init = 'fr';
+} catch (e) {}
+setLang(init, false);
+} catch (e) {}
+/* I18N-NAMES — runtime display translation for upstream Arabic names.
+   DATA OBJECTS ARE NEVER MUTATED: detection regexes, fuzzy matchers, caches,
+   favorites and filters keep reading the raw Arabic. Only rendered text goes
+   through dispTeam()/dispLeague(). Unknown names fall back to the raw text. */
+const TEAMMAP = {
+'ارسنال': 'Arsenal', 'آرسنال': 'Arsenal',
+'مانشستر سيتي': 'Man City', 'مانشستر يونايتد': 'Man United',
+'ليفربول': 'Liverpool', 'تشيلسي': 'Chelsea',
+'توتنهام': 'Tottenham', 'توتنهام هوتسبير': 'Tottenham',
+'نيوكاسل': 'Newcastle', 'نيوكاسل يونايتد': 'Newcastle',
+'استون فيلا': 'Aston Villa', 'برايتون': 'Brighton',
+'وست هام': 'West Ham', 'وست هام يونايتد': 'West Ham',
+'ايفرتون': 'Everton', 'فولهام': 'Fulham', 'برينتفورد': 'Brentford',
+'كريستال بالاس': 'Crystal Palace',
+'ولفرهامبتون': 'Wolves', 'وولفرهامبتون': 'Wolves',
+'بورنموث': 'Bournemouth',
+'نوتنغهام فورست': 'Nottingham Forest', 'نوتينغهام فورست': 'Nottingham Forest',
+'ليستر سيتي': 'Leicester', 'ليستر': 'Leicester',
+'ايبسويتش': 'Ipswich', 'ايبسويتش تاون': 'Ipswich',
+'ساوثهامبتون': 'Southampton', 'ليدز': 'Leeds', 'ليدز يونايتد': 'Leeds',
+'بيرنلي': 'Burnley', 'سندرلاند': 'Sunderland',
+'شيفيلد يونايتد': 'Sheffield Utd', 'نورويتش': 'Norwich',
+'وست بروميتش': 'West Brom', 'كوفنتري': 'Coventry',
+'ريال مدريد': 'Real Madrid', 'برشلونة': 'Barcelona',
+'اتلتيكو مدريد': 'Atlético Madrid', 'اتلتيك بلباو': 'Athletic Club',
+'فياريال': 'Villarreal', 'ريال بيتيس': 'Real Betis',
+'ريال سوسيداد': 'Real Sociedad', 'اشبيلية': 'Sevilla',
+'فالنسيا': 'Valencia', 'خيتافي': 'Getafe',
+'سيلتا فيجو': 'Celta Vigo', 'ليفانتي': 'Levante', 'مالقا': 'Málaga',
+'ديبورتيفو لاكورونيا': 'Deportivo La Coruña', 'اساسونا': 'Osasuna',
+'جيرونا': 'Girona', 'رايو فاليكانو': 'Rayo Vallecano', 'مايوركا': 'Mallorca',
+'اسبانيول': 'Espanyol', 'بلد الوليد': 'Valladolid', 'ريال بلد الوليد': 'Valladolid',
+'ليغانيس': 'Leganés', 'الافيس': 'Alavés',
+'انتر': 'Inter', 'انتر ميلان': 'Inter', 'ميلان': 'Milan', 'اي سي ميلان': 'Milan',
+'نابولي': 'Napoli', 'يوفنتوس': 'Juventus', 'روما': 'Roma', 'لاتسيو': 'Lazio',
+'اتالانتا': 'Atalanta', 'فيورنتينا': 'Fiorentina', 'بولونيا': 'Bologna',
+'تورينو': 'Torino', 'اودينيزي': 'Udinese', 'امبولي': 'Empoli',
+'ليتشي': 'Lecce', 'كالياري': 'Cagliari', 'جنوى': 'Genoa', 'بارما': 'Parma',
+'كومو': 'Como', 'هيلاس فيرونا': 'Verona', 'فيرونا': 'Verona',
+'مونزا': 'Monza', 'فينيزيا': 'Venezia', 'ساسولو': 'Sassuolo', 'سامبدوريا': 'Sampdoria',
+'بايرن ميونخ': 'Bayern', 'بايرن ميونيخ': 'Bayern',
+'بوروسيا دورتموند': 'Dortmund', 'دورتموند': 'Dortmund',
+'باير ليفركوزن': 'Leverkusen', 'لايبزيغ': 'RB Leipzig',
+'شتوتغارت': 'Stuttgart', 'اينتراخت فرانكفورت': 'Frankfurt',
+'مونشنغلادباخ': 'Gladbach', 'بوروسيا مونشنغلادباخ': 'Gladbach',
+'فولفسبورغ': 'Wolfsburg', 'فرايبورغ': 'Freiburg', 'هوفنهايم': 'Hoffenheim',
+'ماينز': 'Mainz', 'اوغسبورغ': 'Augsburg', 'فيردر بريمن': 'Werder Bremen',
+'يونيون برلين': 'Union Berlin', 'سانت باولي': 'St. Pauli',
+'بوخوم': 'Bochum', 'هايدنهايم': 'Heidenheim', 'هولشتاين كيل': 'Holstein Kiel',
+'هامبورغ': 'Hamburg', 'شالكه': 'Schalke', 'كولن': 'Köln', 'هيرتا برلين': 'Hertha',
+'باريس سان جيرمان': 'PSG', 'مارسيليا': 'Marseille', 'اولمبيك مارسيليا': 'Marseille',
+'موناكو': 'Monaco', 'ليل': 'Lille', 'ليون': 'Lyon', 'اولمبيك ليون': 'Lyon',
+'نيس': 'Nice', 'لانس': 'Lens', 'ستراسبورغ': 'Strasbourg',
+'رين': 'Rennes', 'ستاد رين': 'Rennes', 'نانت': 'Nantes', 'تولوز': 'Toulouse',
+'مونبلييه': 'Montpellier', 'اوكسير': 'Auxerre', 'سانت اتيان': 'St-Étienne',
+'لوهافر': 'Le Havre', 'انجيه': 'Angers', 'ريمس': 'Reims', 'ستاد ريمس': 'Reims',
+'بريست': 'Brest', 'ستاد بريست': 'Brest', 'باريس اف سي': 'Paris FC',
+'الهلال': 'Al Hilal', 'النصر': 'Al Nassr', 'الاتحاد': 'Al Ittihad',
+'الاهلي': 'Al Ahly', 'الشباب': 'Al Shabab', 'الاتفاق': 'Al Ettifaq',
+'الفتح': 'Al Fateh', 'التعاون': 'Al Taawoun', 'الفيحاء': 'Al Fayha',
+'ضمك': 'Damac', 'الخليج': 'Al Khaleej', 'الرائد': 'Al Raed',
+'الوحدة': 'Al Wehda', 'الاخدود': 'Al Okhdood', 'العروبة': 'Al Orubah',
+'الخلود': 'Al Kholood', 'الرياض': 'Al Riyadh', 'القادسية': 'Al Qadsiah',
+'نيوم': 'Neom', 'ابها': 'Abha', 'الطائي': 'Al Tai', 'الحزم': 'Al Hazem',
+'الفيصلي': 'Al Faisaly', 'الباطن': 'Al Batin', 'العدالة': 'Al Adalah',
+'الزمالك': 'Zamalek', 'بيراميدز': 'Pyramids', 'المصري': 'Al Masry',
+'انبي': 'ENPPI', 'بتروجت': 'Petrojet', 'البنك الاهلي': 'National Bank',
+'بترول اسيوط': 'Petrol Asyut', 'المقاولون العرب': 'Arab Contractors',
+'سموحة': 'Smouha', 'الاسماعيلي': 'Ismaily', 'غزل المحلة': 'Ghazl El Mahalla',
+'الاتحاد السكندري': 'Ittihad Alexandria', 'فاركو': 'Pharco',
+'سيراميكا': 'Ceramica', 'زد': 'ZED', 'الجونة': 'El Gouna',
+'طلائع الجيش': 'El Gaish', 'مودرن سبورت': 'Modern Sport',
+'منتخب السويس': 'Suez',
+'الوداد': 'Wydad', 'الوداد الرياضي': 'Wydad',
+'الرجاء': 'Raja', 'الرجاء الرياضي': 'Raja',
+'الجيش الملكي': 'FAR Rabat', 'نهضة بركان': 'RS Berkane', 'الفتح الرباطي': 'FUS Rabat',
+'الترجي': 'Espérance', 'الترجي الرياضي': 'Espérance',
+'النجم الساحلي': 'Étoile du Sahel', 'الصفاقسي': 'Sfaxien', 'النادي الصفاقسي': 'Sfaxien',
+'الافريقي': 'Club Africain', 'النادي الافريقي': 'Club Africain',
+'اتحاد العاصمة': 'USM Alger', 'مولودية الجزائر': 'MC Alger',
+'شباب بلوزداد': 'CR Belouizdad', 'وفاق سطيف': 'ES Sétif',
+'شبيبة القبائل': 'JS Kabylie', 'شبيبة الأبيار': 'JS El Biar',
+'السويحلي': 'Al Swehly', 'اهلي طرابلس': 'Al Ahli Tripoli',
+'المريخ': 'Al Merrikh', 'صن داونز': 'Sundowns', 'ماميلودي صن داونز': 'Sundowns',
+'كايزر تشيفز': 'Kaizer Chiefs', 'اورلاندو بايرتس': 'Orlando Pirates',
+'مازيمبي': 'TP Mazembe', 'السد': 'Al Sadd', 'الدحيل': 'Al Duhail',
+'الريان': 'Al Rayyan', 'الشارقة': 'Sharjah', 'العين': 'Al Ain',
+'الوحدات': 'Al Wehdat', 'الرمثا': 'Al Ramtha',
+'القوة الجوية': 'Al Quwa Al Jawiya', 'الزوراء': 'Al Zawraa',
+'العهد': 'Al Ahed', 'الكرامة': 'Al Karamah', 'تشرين': 'Tishreen',
+'السيب': 'Al Seeb', 'ظفار': 'Dhofar', 'المحرق': 'Al Muharraq',
+'الرفاع': 'Al Riffa', 'الكويت': 'Kuwait SC', 'القادسية الكويتي': 'Qadsia',
+'بورتو': 'Porto', 'بنفيكا': 'Benfica',
+'سبورتينغ لشبونة': 'Sporting CP', 'سبورتينغ': 'Sporting CP',
+'اياكس': 'Ajax', 'ايندهوفن': 'PSV', 'فينورد': 'Feyenoord',
+'سيلتيك': 'Celtic', 'رينجرز': 'Rangers',
+'غلطة سراي': 'Galatasaray', 'فنربخشة': 'Fenerbahçe',
+'بشكتاش': 'Beşiktaş', 'طرابزون سبور': 'Trabzonspor',
+'شاختار': 'Shakhtar', 'شاختار دونيتسك': 'Shakhtar',
+'دينامو زغرب': 'Dinamo Zagreb', 'النجم الاحمر': 'Red Star',
+'سالزبورغ': 'Salzburg', 'ريد بول سالزبورغ': 'Salzburg', 'شتورم غراتس': 'Sturm Graz',
+'كلوب بروج': 'Club Brugge', 'اندرلخت': 'Anderlecht',
+'سبارتا براغ': 'Sparta Prague', 'سلافيا براغ': 'Slavia Prague',
+'اولمبياكوس': 'Olympiacos', 'باناثينايكوس': 'Panathinaikos',
+'كانساس سيتي ويزردز': 'Sporting KC', 'لوس أنجلوس': 'Los Angeles',
+'لوس أنجلوس غالاكسي': 'LA Galaxy', 'سانت لويس سيتي': 'St. Louis City',
+'مينيسوتا يونايتد': 'Minnesota Utd', 'دالاس': 'FC Dallas',
+'بورتلاند تيمبرز': 'Portland Timbers', 'ريال سالت لايك': 'Real Salt Lake',
+'نيويورك سيتي': 'New York City FC', 'كولورادو رابيدز': 'Colorado Rapids',
+'مونتريال امباكت': 'CF Montréal', 'سياتل ساونديرز': 'Seattle Sounders',
+'سان خوسيه إرثكويكس': 'San Jose', 'هيوستن دينامو': 'Houston Dynamo',
+'شيكاغو فاير': 'Chicago Fire', 'نيو إنغلاند ريفوليوشن': 'New England',
+'فانكوفر وايت كابس': 'Vancouver Whitecaps', 'أوستن': 'Austin FC',
+'دي سي يونايتد': 'DC United', 'فيلادلفيا': 'Philadelphia Union',
+'كولومبوس': 'Columbus Crew', 'شارلوت': 'Charlotte FC',
+'نيويورك ريد بولز': 'NY Red Bulls', 'تورونتو': 'Toronto FC',
+'انتر ميامي': 'Inter Miami', 'اورلاندو': 'Orlando City',
+'اتلانتا يونايتد': 'Atlanta Utd', 'سينسيناتي': 'Cincinnati',
+'ناشفيل': 'Nashville', 'لوس أنجلوس اف سي': 'LAFC',
+'كي في زد': 'KVZ'
+};
+const LEAGUEMAP = {
+'الدوري الانجليزي': ['Premier League', 'Premier League'],
+'الدوري الانجليزي الممتاز': ['Premier League', 'Premier League'],
+'البريميرليغ': ['Premier League', 'Premier League'],
+'الدوري الاسباني': ['La Liga', 'La Liga'],
+'الليغا': ['La Liga', 'La Liga'],
+'الدوري الايطالي': ['Serie A', 'Serie A'],
+'الكالتشيو': ['Serie A', 'Serie A'],
+'الدوري الالماني': ['Bundesliga', 'Bundesliga'],
+'البوندسليغا': ['Bundesliga', 'Bundesliga'],
+'الدوري الفرنسي': ['Ligue 1', 'Ligue 1'],
+'الدوري السعودي': ['Saudi Pro League', 'Saudi Pro League'],
+'دوري روشن': ['Saudi Pro League', 'Saudi Pro League'],
+'روشن': ['Saudi Pro League', 'Saudi Pro League'],
+'الدوري الامريكي': ['Major League Soccer', 'Major League Soccer'],
+'الدوري الامريكي الممتاز': ['Major League Soccer', 'Major League Soccer'],
+'دوري ابطال اوروبا': ['UEFA Champions League', 'Ligue des champions'],
+'دوري الابطال': ['UEFA Champions League', 'Ligue des champions'],
+'الدوري الاوروبي': ['UEFA Europa League', 'Ligue Europa'],
+'اليوروباليغ': ['UEFA Europa League', 'Ligue Europa'],
+'دوري المؤتمر الاوروبي': ['UEFA Conference League', 'Ligue Conférence'],
+'دوري ابطال افريقيا': ['CAF Champions League', 'Ligue des champions CAF'],
+'دوري ابطال افريقيا - تصفيات': ['CAF Champions League qualifying', 'Qualifications Ligue des champions CAF'],
+'كاس الكونفدرالية': ['CAF Confederation Cup', 'Coupe de la Confédération CAF'],
+'الدوري التركي': ['Süper Lig', 'Süper Lig'],
+'السوبر ليغ': ['Süper Lig', 'Süper Lig'],
+'الدوري الهولندي': ['Eredivisie', 'Eredivisie'],
+'الدوري البرتغالي': ['Primeira Liga', 'Primeira Liga'],
+'الدوري المصري': ['Egyptian Premier League', "Championnat d'Égypte"],
+'الدوري المغربي': ['Botola', 'Botola'],
+'البطولة المغربية': ['Botola', 'Botola'],
+'الدوري الجزائري': ['Algerian Ligue 1', 'Ligue 1 algérienne'],
+'الدوري التونسي': ['Tunisian Ligue 1', 'Ligue 1 tunisienne'],
+'الدوري الاماراتي': ['UAE Pro League', 'Championnat des Émirats'],
+'الدوري القطري': ['Qatar Stars League', 'Championnat du Qatar'],
+'الدوري الكويتي': ['Kuwait Premier League', 'Championnat du Koweït'],
+'الدوري البحريني': ['Bahraini Premier League', 'Championnat de Bahreïn'],
+'الدوري العماني': ['Oman Professional League', "Championnat d'Oman"],
+'الدوري الاردني': ['Jordanian Pro League', 'Championnat de Jordanie'],
+'الدوري العراقي': ['Iraq Stars League', "Championnat d'Irak"],
+'الدوري اللبناني': ['Lebanese Premier League', 'Championnat du Liban'],
+'الدوري السوري': ['Syrian Premier League', 'Championnat de Syrie'],
+'الدوري اليمني': ['Yemeni League', 'Championnat du Yémen'],
+'الدوري الليبي': ['Libyan Premier League', 'Championnat de Libye'],
+'الدوري السوداني': ['Sudan Premier League', 'Championnat du Soudan'],
+'الدوري الموريتاني': ['Mauritanian Premier League', 'Championnat de Mauritanie'],
+'كاس اسبانيا': ['Copa del Rey', 'Copa del Rey'],
+'كاس ايطاليا': ['Coppa Italia', 'Coppa Italia'],
+'كاس فرنسا': ['Coupe de France', 'Coupe de France'],
+'كاس المانيا': ['DFB-Pokal', 'DFB-Pokal'],
+'كاس الاتحاد الانجليزي': ['FA Cup', 'FA Cup'],
+'كاس الرابطة': ['EFL Cup', 'EFL Cup'],
+'السوبر الاسباني': ['Supercopa', 'Supercopa'],
+'دوري الامم الاوروبية': ['UEFA Nations League', 'Ligue des nations'],
+'تصفيات كاس العالم': ['World Cup Qualifiers', 'Éliminatoires Coupe du monde'],
+'كاس العالم للاندية': ['FIFA Club World Cup', 'Coupe du monde des clubs']
+};
+function normKey(s){
+  return String(s == null ? '' : s)
+    .replace(/[\u0623\u0625\u0622]/g, '\u0627').replace(/\u0629/g, '\u0647').replace(/\u0649/g, '\u064a')
+    .replace(/[\u064B-\u0652\u0670\u0640]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim();
+}
+const TEAMN = {};
+try { for (const k in TEAMMAP) TEAMN[normKey(k)] = TEAMMAP[k]; } catch (e) {}
+const LEAGUEN = {};
+try { for (const k in LEAGUEMAP) LEAGUEN[normKey(k)] = LEAGUEMAP[k]; } catch (e) {}
+function dispTeam(n){
+  if (n == null || n === '') return n == null ? '' : n;
+  try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
+  return n;
+}
+function dispLeague(n){
+  if (n == null || n === '') return n == null ? '' : n;
+  try { const e = LEAGUEN[normKey(n)]; if (e) return LANG === 'fr' ? e[1] : e[0]; } catch (er) {}
+  return n;
+}
+/* I18N-NAMES-END */
+
+
 function notifyMe(title, body){
   try { if (navigator.vibrate) navigator.vibrate(200); } catch {}
   try {
@@ -406,7 +767,7 @@ function bellArm(){
   if (!isLiveP() && !isEndedP() && startP){
     const ms = Date.parse(startP) - Date.now();
     if (ms > 0 && ms < 12 * 3600 * 1000)
-      bellTimer = setTimeout(() => { bellTimer = 0; notifyMe(home + ' × ' + away, '\u0628\u062f\u0623\u062a \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629'); bellArm(); }, ms);
+      bellTimer = setTimeout(() => { bellTimer = 0; notifyMe(dispTeam(home) + ' × ' + dispTeam(away), t('bellStart')); bellArm(); }, ms);
   }
 }
 function bellScores(){
@@ -427,15 +788,15 @@ function bellGoalCheck(){
   const pp = String(bellGoalCheck._l).split('-'), ch = Number(sc[0]), ca = Number(sc[1]);
   const ph = Number(pp[0]), pa = Number(pp[1]);
   bellGoalCheck._l = key;
-  if (ch === ph + 1 && ca === pa) notifyMe('\u{026bd} \u0647\u062f\u0641', sc[2]);
-  else if (ca === pa + 1 && ch === ph) notifyMe('\u{026bd} \u0647\u062f\u0641', sc[3]);
-  else notifyMe('\u062a\u063a\u064a\u0631\u062a \u0627\u0644\u0646\u062a\u064a\u062c\u0629', ch + ' - ' + ca);
+  if (ch === ph + 1 && ca === pa) notifyMe(t('bellGoal'), dispTeam(sc[2]));
+  else if (ca === pa + 1 && ch === ph) notifyMe(t('bellGoal'), dispTeam(sc[3]));
+  else notifyMe(t('bellScore'), ch + ' - ' + ca);
 }
 async function bellToggle(){
-  if (!('Notification' in window)){ toast('\u0627\u0644\u062a\u0646\u0628\u064a\u0647\u0627\u062a \u063a\u064a\u0631 \u0645\u062f\u0639\u0648\u0645\u0629'); return; }
-  if (Notification.permission === 'denied'){ toast('\u0641\u0639\u0644 \u0627\u0644\u062a\u0646\u0628\u064a\u0647\u0627\u062a \u0645\u0646 \u0627\u0644\u0645\u062a\u0635\u0641\u062d'); return; }
+  if (!('Notification' in window)){ toast(t('bellUnsupported')); return; }
+  if (Notification.permission === 'denied'){ toast(t('bellDenied')); return; }
   if (Notification.permission !== 'granted'){
-    try { if (await Notification.requestPermission() !== 'granted'){ toast('\u062a\u0639\u0630\u0631 \u0627\u0644\u062a\u0641\u0639\u064a\u0644'); return; } }
+    try { if (await Notification.requestPermission() !== 'granted'){ toast(t('bellFail')); return; } }
     catch { return; }
   }
   bellOn = !bellOn;
@@ -444,7 +805,7 @@ async function bellToggle(){
   } catch {}
   if (!bellOn && bellTimer){ clearTimeout(bellTimer); bellTimer = 0; }
   bellPaint();
-  toast(bellOn ? '\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u062a\u0646\u0628\u064a\u0647' : '\u062a\u0645 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u062a\u0646\u0628\u064a\u0647');
+  toast(bellOn ? t('bellOn') : t('bellOff'));
   if (bellOn){ bellGoalCheck(); bellArm(); }
 }
 function bellRestore(){
@@ -497,17 +858,17 @@ async function likeToggle(){
 }
 function paintTitle(){
   document.getElementById('matchTitle').textContent =
-    (home || away) ? `${home} × ${away}` : 'مشاهدة المباراة';
-  if (home || away) document.title = `مشاهدة ${home} × ${away} بث مباشر — كورة لايف`;
-  try { const c = document.getElementById('crumbCur'); if (c) c.textContent = (home && away) ? `${home} ضد ${away}` : c.textContent; } catch {}
+    (home || away) ? `${dispTeam(home)} × ${dispTeam(away)}` : t('defaultTitle');
+  if (home || away) document.title = t('watchTitle')(dispTeam(home), dispTeam(away));
+  try { const c = document.getElementById('crumbCur'); if (c) c.textContent = (home && away) ? `${dispTeam(home)} ${t('vs')} ${dispTeam(away)}` : t('crumbCur'); } catch {}
   try {
     document.querySelector('link[rel="canonical"]')?.setAttribute('href', location.href);
     document.getElementById('bc-jsonld')?.remove();
     const bc = document.createElement('script'); bc.type = 'application/ld+json'; bc.id = 'bc-jsonld';
     bc.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'كورة لايف', item: location.origin + '/' },
-        { '@type': 'ListItem', position: 2, name: (home && away) ? `${home} ضد ${away}` : 'مشاهدة المباراة', item: location.href }
+        { '@type': 'ListItem', position: 1, name: 'Koora Live', item: location.origin + '/' },
+        { '@type': 'ListItem', position: 2, name: (home && away) ? `${dispTeam(home)} ${t('vs')} ${dispTeam(away)}` : t('defaultTitle'), item: location.href }
       ]});
     document.head.appendChild(bc);
   } catch {}
@@ -590,7 +951,7 @@ const BLOCK_RE = /(popads|popcash|adcash|propeller|exoclick|adsterra|doubleclick
 let blocked = 0, lastCleanSrc = '';
 function bumpBlocked(){
   blocked++;
-  statusEl.textContent = 'محظور: ' + blocked;
+  statusEl.textContent = t('blocked') + ': ' + blocked;
   shield.classList.add('hit');
   setTimeout(() => shield.classList.remove('hit'), 500);
   /* #8 watchdog: 3+ blocks in 15s → auto-advance to next server */
@@ -893,7 +1254,7 @@ function sbRefHost(){
 /* match header card — filled instantly from URL params, enriched by API.
    Computes its OWN live/ended state (same rules as index) instead of trusting
    the possibly-stale tm param — a match that kicked off after the index
-   rendered must not say "لم تبدأ" next to a live player. */
+   rendered must not say "not started" next to a live player. */
 /* header vars live in the boot block above (short-link aware). */
 /* GOATED CLOCK v1 — fused live-minute estimator.
    Upstream can never know REAL minutes (stoppage, VAR, late kickoffs, long
@@ -1060,27 +1421,27 @@ function paintMatch(h, a, hl, al, lg){
   const card = document.getElementById('matchCard');
   if (!h && !a) return;
   card.hidden = false;
-  document.getElementById('homeName').textContent = h || '—';
-  document.getElementById('awayName').textContent = a || '—';
+  document.getElementById('homeName').textContent = dispTeam(h) || '—';
+  document.getElementById('awayName').textContent = dispTeam(a) || '—';
   const hi = document.getElementById('homeLogo'), ai = document.getElementById('awayLogo');
-  if (hl){ if (hi.getAttribute('src') !== hl) hi.src = hl; hi.alt = h || 'شعار الفريق'; hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
-  if (al){ if (ai.getAttribute('src') !== al) ai.src = al; ai.alt = a || 'شعار الفريق'; ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
-  document.getElementById('matchLeague').textContent = lg || 'بث نظيف بدون إعلانات';
+  if (hl){ if (hi.getAttribute('src') !== hl) hi.src = hl; hi.alt = dispTeam(h) || t('homeAlt'); hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
+  if (al){ if (ai.getAttribute('src') !== al) ai.src = al; ai.alt = dispTeam(a) || t('awayAlt'); ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
+  document.getElementById('matchLeague').textContent = dispLeague(lg) || t('leagueFallback');
   const stEl = document.getElementById('matchState');
   const tmEl = document.getElementById('matchTime');
   if (isEndedP()){
-    stEl.textContent = 'انتهت';
+    stEl.textContent = t('ended');
     stEl.classList.remove('live');
     tmEl.textContent = (shP !== '' && saP !== '') ? `${shP} - ${saP}` : (timeP || '').trim();
   } else if (isLiveP()){
-    stEl.textContent = 'مباشر';
+    stEl.textContent = t('live');
     stEl.classList.add('live');
     // Stale timeP must not shadow a fused minute (anchored upstream →
     // FotMob exact → wall map).
     const hm = headerMinute();
-    tmEl.textContent = (hm && hm.min != null) ? fmtMin(hm) : (hm && hm.brk) ? 'استراحة' : (timeP || '').trim() || '•';
+    tmEl.textContent = (hm && hm.min != null) ? fmtMin(hm) : (hm && hm.brk) ? t('break') : (timeP || '').trim() || '•';
   } else {
-    stEl.textContent = 'لم تبدأ';
+    stEl.textContent = t('upcoming');
     stEl.classList.remove('live');
     tmEl.textContent = (timeP || '').trim();
   }
@@ -1097,10 +1458,10 @@ const srvNow = document.getElementById('srvNow');
 const srcNote = document.getElementById('srcNote');
 function kindTag(s){
   if (!s) return '';
-  if (s.kind === 'direct') return 'مباشر';
-  if (s.kind === 'live') return 'واجهة كاملة';
-  if (s.kind === 'tv') return 'قناة ٢٤/٧';
-  return 'سيرفر';
+  if (s.kind === 'direct') return t('kindDirect');
+  if (s.kind === 'live') return t('kindFull');
+  if (s.kind === 'tv') return t('kindTv');
+  return t('kindServer');
 }
 function subTag(s){
   // NOTE: keep brand names OUT of button text (only kind + time) — some
@@ -1111,7 +1472,7 @@ function dispName(s, i){
   // Source-hiding: buttons never carry upstream brand names — numbered
   // plain. Only 24/7 TV channels keep real names (that IS the content).
   if (s && s.kind === 'tv' && s.label) return s.label;
-  return 'سيرفر ' + (i + 1);
+  return t('server') + ' ' + (i + 1);
 }
 function btnHtml(s, i, on){
   // SEC: labels/subs come from upstream scrapes — decode then escape.
@@ -1119,10 +1480,10 @@ function btnHtml(s, i, on){
 }
 function showSkeleton(){
   serversEl.innerHTML = [1, 2, 3].map(i =>
-    `<button class="srv skel" disabled><span class="num">${i}</span><span class="meta"><b>…</b><span>جاري البحث…</span></span></button>`
+    `<button class="srv skel" disabled><span class="num">${i}</span><span class="meta"><b>…</b><span>${t('skel')}</span></span></button>`
   ).join('');
   srvCount.hidden = true;
-  srvNow.textContent = 'جاري البحث عن السيرفرات…';
+  srvNow.textContent = t('searching');
   srcNote.hidden = true;
 }
 function showServersFromList(list){
@@ -1132,10 +1493,10 @@ function showServersFromList(list){
   serverList = [...ar];
   srvIdx = 0;
   if (!ar.length){
-    serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>لا توجد روابط بث</b><span>لا يوجد بث متاح حالياً — اضغط لإعادة المحاولة</span></span></button>`;
+    serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>${t('noLinks')}</b><span>${t('noLinksSub')}</span></span></button>`;
     document.getElementById('retryBtn').onclick = () => loadRealPlayer();
     srvCount.hidden = true;
-    srvNow.textContent = 'لا يوجد بث متاح حالياً';
+    srvNow.textContent = t('noStream');
   } else {
     srvCount.hidden = false;
     srvCount.textContent = ar.length;
@@ -1145,12 +1506,12 @@ function showServersFromList(list){
   paintNow();
   if (ar.length){
     srcNote.hidden = false;
-    srcNote.textContent = `${ar.length} سيرفر بث مباشر — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.`;
+    srcNote.textContent = t('note')(ar.length);
   }
 }
 function paintNow(){
   const s = serverList[srvIdx];
-  srvNow.textContent = s ? `تشاهد الآن: ${dispName(s, srvIdx)} (${srvIdx + 1}/${serverList.length})` : '';
+  srvNow.textContent = s ? t('watching')(dispName(s, srvIdx), srvIdx, serverList.length) : '';
   [...serversEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
 }
 /* SEC: stream URLs come from third-party scrapes — only http(s) absolute or
@@ -1201,7 +1562,7 @@ function goServer(i, auto, _tried){
   // "server" — skip to the next instead of leaving a stale highlight.
   if (src && BLOCK_RE.test(src)) src = '';
   if (!src){
-    if ((_tried || 0) >= serverList.length - 1){ toast('لا يوجد سيرفر صالح'); return; }
+    if ((_tried || 0) >= serverList.length - 1){ toast(t('noValid')); return; }
     goServer(srvIdx + 1, auto, (_tried || 0) + 1);
     return;
   }
@@ -1209,7 +1570,7 @@ function goServer(i, auto, _tried){
   lastCleanSrc = src;
   paintNow();
   rearmShield();
-  if (auto) toast('نحاول سيرفراً آخر…');
+  if (auto) toast(t('tryingNext'));
 }
 function rearmShield(){
   clickShield.classList.remove('hidden');
@@ -1219,17 +1580,17 @@ async function loadRealPlayer(){
   const cached = srvCacheGet();
   if (cached && cached.length) {
     showServersFromList(cached);
-    srvNow.textContent = 'جاري تحديث البث…';
+    srvNow.textContent = t('updating');
   } else showSkeleton();
   if (qs.get('demo') === '1' && !href){
     const wb = workerBase();
     const demoSrc = safeSrc(wb
       ? wb.replace(/\/$/, '') + '/?url=' + encodeURIComponent('https://www.romabar.info/albaplayer/bein-9/?serv=0')
       : 'https://www.romabar.info/albaplayer/bein-9/?serv=0');
-    if (!demoSrc){ toast('رابط البروكسي المحفوظ غير صالح'); return; }
+    if (!demoSrc){ toast(t('proxyBad')); return; }
     iframe.src = demoSrc;
     lastCleanSrc = demoSrc;
-    showServersFromList([{ label: 'سيرفر تجريبي', url: demoSrc, kind: 'direct' }]);
+    showServersFromList([{ label: t('demoServer'), url: demoSrc, kind: 'direct' }]);
     return;
   }
   // Robust load: 12s timeout + one automatic retry. Previously a hung API
@@ -1246,27 +1607,27 @@ async function loadRealPlayer(){
     if (cached && cached.length) {
       showServersFromList(cached);
       const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false);
-      srvNow.textContent = 'البث من الذاكرة — إعادة المحاولة…';
-      toast('تعذّر التحديث — عرض البث المحفوظ');
+      srvNow.textContent = t('fromCache');
+      toast(t('cacheShown'));
     } else {
-      serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>تعذّر التحميل</b><span>اضغط لإعادة المحاولة</span></span></button>`;
+      serversEl.innerHTML = `<button class="srv" id="retryBtn"><span class="num">!</span><span class="meta"><b>${t('loadFailT')}</b><span>${t('retryCta')}</span></span></button>`;
       document.getElementById('retryBtn').onclick = () => loadRealPlayer();
       srvCount.hidden = true;
       srcNote.hidden = true;
-      srvNow.textContent = 'تحقق من الاتصال ثم أعد المحاولة';
-      toast('تعذّر تحميل البث — تحقق من الاتصال');
+      srvNow.textContent = t('checkConn');
+      toast(t('streamFail'));
     }
     if (_autoRetries < 4) {
       _autoRetries++;
       const wait = _autoRetries * 2000;
-      srvNow.textContent = 'إعادة المحاولة تلقائياً خلال ' + (wait/1000) + ' ث…';
+      srvNow.textContent = t('autoRetry')(wait/1000);
       setTimeout(() => { if (!serverList.length || serverList.every(s=>s.kind==='tv')) loadRealPlayer(); }, wait);
     }
   };
   const fetchApi = async () => {
     const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP });
     for (let attempt = 1; attempt <= 3; attempt++){
-      srvNow.textContent = attempt > 1 ? 'إعادة المحاولة ' + attempt + '…' : 'جاري تحميل البث…';
+      srvNow.textContent = attempt > 1 ? t('retryN')(attempt) : t('loadingStream');
       const ms = attempt === 1 ? 4000 : attempt === 2 ? 3000 : 2500;
       const ctrl = new AbortController();
       const to = setTimeout(() => ctrl.abort(), ms);
@@ -1293,8 +1654,8 @@ async function loadRealPlayer(){
     let list = [];
     if (data && Array.isArray(data.servers) && data.servers.length) list = data.servers;
     else if (data) {
-      if (data.embedUrl) list.push({ label: 'المشغّل الرئيسي', url: data.embedUrl, kind: 'leaf' });
-      if (data.livePage) list.push({ label: 'سيرفرات بديلة', url: data.livePage, kind: 'live' });
+      if (data.embedUrl) list.push({ label: t('mainPlayer'), url: data.embedUrl, kind: 'leaf' });
+      if (data.livePage) list.push({ label: t('altServers'), url: data.livePage, kind: 'live' });
     }
     // Merge 24/7 channels after the match servers. showServersFromList
     // dedups by url + drops unplayable srcs, and goServer skips BLOCK_RE
@@ -1308,7 +1669,7 @@ async function loadRealPlayer(){
     if (serverList.length){ _autoRetries = 0; const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); try { srvCacheSet(serverList); } catch {} }
     else {
       const fb = srvCacheGet();
-      if (fb && fb.length) { showServersFromList(fb); const ri2 = srvRecall(serverList); goServer(ri2 >= 0 ? ri2 : 0, false); toast('البث من الذاكرة — جاري التحديث'); }
+      if (fb && fb.length) { showServersFromList(fb); const ri2 = srvRecall(serverList); goServer(ri2 >= 0 ? ri2 : 0, false); toast(t('cacheUpdating')); }
       else { failBox(); return; }
     }
     loadRealPlayer._busy = false;
@@ -1333,8 +1694,8 @@ document.getElementById('btnShare').onclick = async () => {
       document.body.appendChild(ta); ta.select();
       document.execCommand('copy'); ta.remove();
     }
-    toast('\u062a\u0645 \u0646\u0633\u062e \u0631\u0627\u0628\u0637 \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629');
-  } catch { toast('\u062a\u0639\u0630\u0631 \u0627\u0644\u0646\u0633\u062e'); }
+    toast(t('copied'));
+  } catch { toast(t('copyFail')); }
 };
 
 /* fullscreen (Safari returns undefined, not a Promise — guard it) */
@@ -1346,10 +1707,10 @@ document.getElementById('btnFull').onclick = () => {
       if (p && p.catch) p.catch(() => {});
     } else if (st.requestFullscreen){
       const p = st.requestFullscreen();
-      if (p && p.catch) p.catch(() => toast('تعذّر ملء الشاشة'));
+      if (p && p.catch) p.catch(() => toast(t('fsFail')));
     } else if (st.webkitRequestFullscreen) st.webkitRequestFullscreen();
-    else toast('المتصفح لا يدعم ملء الشاشة');
-  } catch { toast('تعذّر ملء الشاشة'); }
+    else toast(t('fsUnsupported'));
+  } catch { toast(t('fsFail')); }
 };
 /* reload (cache-bust, hash-safe via URL API) */
 document.getElementById('btnReload').onclick = () => {
@@ -1464,7 +1825,7 @@ async function miFetch(){
 }
 /* FotMob exact status overrides the header card — authoritative live minute,
    half and final score. Beats URL params and wall-clock inference whenever
-   minfo data is present (e.g. upstream still says "لم تبدأ" 15' in). */
+   minfo data is present (e.g. upstream still says "not started" 15' in). */
 function paintExactStatus(d){
   try {
     const stEl = document.getElementById('matchState');
@@ -1472,7 +1833,7 @@ function paintExactStatus(d){
     if (!stEl || !tmEl || !d) return;
     if (d.finished){
       FOT = null;
-      stEl.textContent = 'انتهت';
+      stEl.textContent = t('ended');
       stEl.classList.remove('live');
       if (d.home.score != null && d.away.score != null)
         tmEl.textContent = `${d.home.score} - ${d.away.score}`;
@@ -1484,12 +1845,12 @@ function paintExactStatus(d){
         const b = parseMin(lv.min);
         FOT = b != null ? { base: b, half: ({ '1H': 1, 'HT': 'HT', '2H': 2 })[lv.half] || null, at: Date.now() } : null;
       } catch { FOT = null; }
-      stEl.textContent = 'مباشر';
+      stEl.textContent = t('live');
       stEl.classList.add('live');
       const hm = headerMinute();
       tmEl.textContent = (hm && hm.min != null) ? fmtMin(hm)
-        : (hm && hm.brk) ? 'استراحة'
-        : (lv.min || ({ '1H': 'الشوط الأول', 'HT': 'استراحة', '2H': 'الشوط الثاني' }[lv.half] || '•'));
+        : (hm && hm.brk) ? t('break')
+        : (lv.min || ({ '1H': t('half1'), 'HT': t('ht'), '2H': t('half2') }[lv.half] || '•'));
     }
   } catch {}
 }
@@ -1546,7 +1907,7 @@ function renderMi(){
   miEvByPid = byPid;
   const motmPids = {};
   (d.topPlayers || []).forEach(p => { if (p.motm && p.pid) motmPids[p.pid] = 1; });
-  const statusTxt = d.finished ? 'انتهت' : (d.started ? 'جارية الآن' : 'لم تبدأ');
+  const statusTxt = d.finished ? t('ended') : (d.started ? t('statusLiveNow') : t('upcoming'));
   const scorers = (isHome) => {
     const gs = evts.filter(e => e.kind === 'goal' && !!e.home === !!isHome);
     const byName = new Map();
@@ -1583,7 +1944,7 @@ function renderMi(){
     const sub = pe.find(e => e.kind === 'sub');
     const card = pe.find(e => e.kind === 'card');
     const goal = pe.find(e => e.kind === 'goal');
-    if (sub) evb += `<span class="pev" title="تبديل">${esc(decFull(String(sub.min || '').replace('’', '')))}</span>`;
+    if (sub) evb += `<span class="pev" title="${t('evSubs')}">${esc(decFull(String(sub.min || '').replace('’', '')))}</span>`;
     else if (card) evb += `<span class="pev card">${card.red ? '🟥' : '🟨'}</span>`;
     else if (goal) evb += `<span class="pev goal">⚽</span>`;
     const photo = photoUrl(p.pid);
@@ -1604,33 +1965,33 @@ function renderMi(){
       + (tA.starters || []).map(p => dot(p, true, false, tA.name, true)).join('')
       + tline(tA, aLogo, 'tA') + `</div>`;
   }
-  // Subs registered too (for دخول/خروج labels in the popover).
+  // Subs registered too (for in/out labels in the popover).
   (tH.subs || []).forEach(p => { if (p.pid && !miByPid[p.pid]) miByPid[p.pid] = { p, home: true, team: tH.name || '', starter: false }; });
   (tA.subs || []).forEach(p => { if (p.pid && !miByPid[p.pid]) miByPid[p.pid] = { p, home: false, team: tA.name || '', starter: false }; });
   // --- Lists: XI + subs + coach + unavailable ---
   const luSide = (t, logo) => {
-    const coach = t.coach ? `<div class="sub">المدرب: ${esc(decFull(t.coach))}</div>` : '';
+    const coach = t.coach ? `<div class="sub">${t('coach')} ${esc(decFull(t.coach))}</div>` : '';
     const st = (t.starters || []).map(p =>
       `<div class="pl"><span class="num">${esc(decFull(p.num))}</span><span class="nm">${esc(decFull(p.name))}</span>${rPill(p.rating)}</div>`).join('');
     const sb = (t.subs || []).length
-      ? `<div class="sub" style="margin-top:6px">البدلاء</div>` + (t.subs || []).map(p =>
+      ? `<div class="sub" style="margin-top:6px">${t('subs')}</div>` + (t.subs || []).map(p =>
         `<div class="pl sub"><span class="num">${esc(decFull(p.num))}</span><span class="nm">${esc(decFull(p.name))}</span>${rPill(p.rating)}</div>`).join('')
       : '';
     const un = (t.unavailable || []).length
-      ? `<div class="sub" style="margin-top:6px">الغائبون</div>` + (t.unavailable || []).map(p =>
+      ? `<div class="sub" style="margin-top:6px">${t('unavailable')}</div>` + (t.unavailable || []).map(p =>
         `<div class="unav"><span>🚑</span><span class="nm">${esc(decFull(p.name))}${p.reason ? ' <small class="sub">(' + esc(decFull(p.reason)) + ')</small>' : ''}</span></div>`).join('')
       : '';
     return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(t.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(t.name))}</b><span class="fm">${esc(decFull(t.formation))}${t.rating != null && isFinite(t.rating) ? ' • ' + Number(t.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
   };
   let listsHtml = '';
   if (d.lineups && (d.lineups.home || d.lineups.away)){
-    listsHtml = '<h3>📋 التشكيلة</h3><div class="lu-grid">'
+    listsHtml = '<h3>' + t('lineups') + '</h3><div class="lu-grid">'
       + luSide(d.lineups.home || {}, hLogo)
       + luSide(d.lineups.away || {}, aLogo) + '</div>';
   }
   let topHtml = '';
   if (d.topPlayers && d.topPlayers.length){
-    topHtml = '<h3>⭐ الأعلى تقييماً</h3><div class="toprow" tabindex="0">' + d.topPlayers.map(p =>
+    topHtml = '<h3>' + t('topRated') + '</h3><div class="toprow" tabindex="0">' + d.topPlayers.map(p =>
       `<span class="topchip">${rPill(p.rating)}<span>${esc(decFull(p.name))}${p.motm ? ' ⭐' : ''}</span></span>`).join('') + '</div>';
   }
   // --- stats + period switcher (client-side swap, fallback = All only) ---
@@ -1638,14 +1999,14 @@ function renderMi(){
   const perKeys = per ? ['All', '1H', '2H'].filter(k => per[k] && per[k].length) : [];
   if (perKeys.length && perKeys.indexOf(miPeriod) < 0) miPeriod = perKeys[0];
   const curStats = (per && per[miPeriod] && per[miPeriod].length) ? per[miPeriod] : (d.stats || []);
-  const perName = { All: 'الكل', '1H': 'الشوط الأول', '2H': 'الشوط الثاني' };
+  const perName = { All: t('perAll'), '1H': t('per1H'), '2H': t('per2H') };
   let statsHtml = '';
   if (curStats && curStats.length){
     const perHtml = perKeys.length > 1
-      ? `<div class="fchips" role="group" aria-label="الفترة">` + perKeys.map(k =>
+      ? `<div class="fchips" role="group" aria-label="${t('period')}">` + perKeys.map(k =>
         `<button type="button" class="fchip" data-per="${k}" aria-pressed="${k === miPeriod}">${perName[k] || k}</button>`).join('') + `</div>`
       : '';
-    statsHtml = '<h3>📈 إحصائيات</h3>' + perHtml + curStats.map(s => {
+    statsHtml = '<h3>' + t('stats') + '</h3>' + perHtml + curStats.map(s => {
       const hn = statNum(s.home), an = statNum(s.away);
       let hw = 50, aw = 50;
       if (hn != null && an != null && (hn + an) > 0){ hw = Math.round(hn / (hn + an) * 100); aw = 100 - hw; }
@@ -1653,26 +2014,26 @@ function renderMi(){
     }).join('');
   }
   // --- events + filter chips (client-side only, no refetch) ---
-  const fDefs = [['all', 'الكل'], ['goal', 'أهداف'], ['card', 'بطاقات'], ['sub', 'تبديلات']];
+  const fDefs = [['all', t('evAll')], ['goal', t('evGoals')], ['card', t('evCards')], ['sub', t('evSubs')]];
   let evHtml = '';
   if (evts.length){
     const rows = evts.filter(e => miEvFilter === 'all' || e.kind === miEvFilter);
-    evHtml = '<h3>🕐 الأحداث</h3>'
-      + `<div class="fchips" role="group" aria-label="تصفية الأحداث">` + fDefs.map(f =>
+    evHtml = '<h3>' + t('events') + '</h3>'
+      + `<div class="fchips" role="group" aria-label="${t('evFilter')}">` + fDefs.map(f =>
         `<button type="button" class="fchip" data-f="${f[0]}" aria-pressed="${miEvFilter === f[0]}">${f[1]}</button>`).join('') + `</div>`
       + (rows.length ? rows.map(e =>
         `<div class="ev" data-kind="${e.kind}"><span class="mn">${esc(decFull(e.min))}</span><span class="ic">${miEvIcon(e)}</span><span class="nm">${esc(decFull(e.player))}${e.detail ? ' <small class="sub">(' + esc(decFull(e.detail)) + ')</small>' : ''}</span><span class="sc">${esc(e.score)}</span></div>`
-      ).join('') : '<div class="sub">لا توجد أحداث هنا</div>');
+      ).join('') : t('evEmpty'));
   }
   if (!scoreHtml && !topHtml && !statsHtml && !pitchHtml && !listsHtml && !evHtml) return false;
-  // --- sticky tabs: نظرة (score+top+stats) / التشكيلة (pitch+lists) / الأحداث ---
+  // --- sticky tabs: overview (score+top+stats) / lineups (pitch+lists) / events ---
   const tabBtn = (id, label) =>
     `<button type="button" role="tab" data-tab="${id}" aria-selected="${miTab === id}">${label}</button>`;
-  let h = `<div class="minfo-tabs" role="tablist" aria-label="أقسام بيانات المباراة">`
-    + tabBtn('ov', 'نظرة عامة') + tabBtn('lu', 'التشكيلة') + tabBtn('ev', 'الأحداث') + `</div>`;
+  let h = `<div class="minfo-tabs" role="tablist" aria-label="${t('tabs')}">`
+    + tabBtn('ov', t('tabOv')) + tabBtn('lu', t('tabLu')) + tabBtn('ev', t('tabEv')) + `</div>`;
   h += `<div class="minfo-pane" role="tabpanel" data-pane="ov"${miTab === 'ov' ? '' : ' hidden'}>${scoreHtml}${topHtml}${statsHtml}</div>`;
-  h += `<div class="minfo-pane" role="tabpanel" data-pane="lu"${miTab === 'lu' ? '' : ' hidden'}>${pitchHtml}${listsHtml}${(!pitchHtml && !listsHtml) ? '<div class="sub">لا توجد تشكيلة متاحة</div>' : ''}</div>`;
-  h += `<div class="minfo-pane" role="tabpanel" data-pane="ev"${miTab === 'ev' ? '' : ' hidden'}>${evHtml || '<div class="sub">لا توجد أحداث متاحة</div>'}</div>`;
+  h += `<div class="minfo-pane" role="tabpanel" data-pane="lu"${miTab === 'lu' ? '' : ' hidden'}>${pitchHtml}${listsHtml}${(!pitchHtml && !listsHtml) ? t('noLineup') : ''}</div>`;
+  h += `<div class="minfo-pane" role="tabpanel" data-pane="ev"${miTab === 'ev' ? '' : ' hidden'}>${evHtml || t('noEvents')}</div>`;
   body.innerHTML = h;
   body.querySelectorAll('.minfo-tabs [data-tab]').forEach(b => {
     b.onclick = () => { miTab = b.getAttribute('data-tab'); closeMiPop(); renderMi(); };
@@ -1718,7 +2079,7 @@ function openMiPop(btn){
   const list = miEvByPid[pid] || [];
   const photo = photoUrl(pid);
   const rows = list.map(e => {
-    if (e.kind === 'sub') return `<div>🔄 ${esc(decFull(e.min))} (${info.starter ? 'خروج' : 'دخول'})</div>`;
+    if (e.kind === 'sub') return `<div>🔄 ${esc(decFull(e.min))} (${info.starter ? t('subOut') : t('subIn')})</div>`;
     return `<div>${miEvIcon(e)} ${esc(decFull(e.min))}${e.detail ? ' • ' + esc(decFull(e.detail)) : ''}${e.score ? ' (' + esc(e.score) + ')' : ''}</div>`;
   }).join('');
   const el = document.createElement('div');
@@ -1728,9 +2089,9 @@ function openMiPop(btn){
   el.setAttribute('data-pid', pid);
   el.innerHTML = `<div class="mh">${photo ? `<img src="${photo}" alt="${esc(decFull(p.short || p.name))}" loading="lazy" onerror="this.remove()">` : ''}`
     + `<span class="tt"><b>${esc(decFull(p.short || p.name))}</b><small>${esc(decFull(p.num))} • ${esc(decFull(info.team))}</small></span>`
-    + `<button type="button" class="mx" aria-label="إغلاق">✕</button></div>`
+    + `<button type="button" class="mx" aria-label="${t('close')}">✕</button></div>`
     + `<div style="margin-top:6px">${rPill(p.rating)}</div>`
-    + `<div class="me">${rows || '<div>لا أحداث لهذا اللاعب</div>'}</div>`;
+    + `<div class="me">${rows || t('noPlayerEvents')}</div>`;
   document.body.appendChild(el);
   const mx = el.querySelector('.mx');
   if (mx) mx.onclick = (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); closeMiPop(); };
@@ -1770,10 +2131,11 @@ async function refreshEspnOne(){
 /* Startup: short links resolve their snapshot first (storage → API),
    then paint + streams + FotMob + the 20s header tick (fused minutes keep
    advancing between the 60s FotMob refreshes). */
+try { document.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => setLang(b.getAttribute('data-lang')); }); } catch {}
 (async function boot(){
   // Optimistic paint — show header instantly from URL/snapshot cache,
   // then enrich in background. Previous boot awaited fetchSnap + ESPN
-  // before first paint, so "لم تبدأ" lingered seconds on short links.
+  // before first paint, so a not-started label lingered seconds on short links.
   const snap0 = id ? readSnap(id) : null;
   if (snap0) { try { applySnap(snap0); } catch {} }
   paintTitle();
