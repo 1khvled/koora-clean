@@ -4,13 +4,40 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-24 (mobile/speed, FotMob+, admin removed, theater mode — see CONTEXT 62).
+> Last updated: 2026-09-24 (real-live minutes, theater removed — see CONTEXT 63).
+
+## 63. Real-live minutes (dup killed, TDZ crash, FotMob crash, Latin lookups, stale clamp) + theater removed (2026-09-24, user: fill tab horrible + minute dogshit + screenshot)
+
+- **Duplication killed (the screenshot bug).** Index rows painted the minute
+  twice (big + small red). Status column now paints ONE value on top
+  (minute / HT / kickoff time) + ONE label below (LIVE red / FT / none):
+  `statusLabel` returns `{min, brk}`, `rowCard` renders each exactly once
+  (unit-tested: minute occurs 1×).
+- **Two crash bugs found + fixed.** (1) `statusLabel` had `let t` shadowing
+  `t()` with `t = t('live')` — TDZ ReferenceError whenever a live match had
+  no minute data (killed the whole index render). (2) `luSide(t, logo)` /
+  `tline(t, ...)` called `${t('coach')}` on the team object — TypeError hid
+  the ENTIRE FotMob section on every match with lineups (renamed to `tm`).
+- **Real-live minutes inside + outside.** ESPN + FotMob lookups now send
+  translated Latin team names (server matchers compare Latin↔Latin instead
+  of lossy transliteration — big hit-rate win, e.g. Tunisia/Uganda);
+  `/api/player` still gets raw Arabic (Yacine/Kora need it). Stale-feed
+  clamp: upstream minute ticking ≥10' from the kickoff-anchored wall clock
+  is discarded for the wall value (frozen feeds lose; real stoppage never
+  diverges that far). GOATED core stays byte-identical across pages.
+- **Theater removed completely** (button, exit, CSS, wire, `theater` ×3
+  dict keys — parity holds). Controls back to 4 buttons.
+- Verified: `node --check` ×2; NEW clock unit test (dup/TDZ/ended/upcoming);
+  parity fr+ar (46/46, 104/104); smoke; functional; static-0; coverage
+  100%. Zero `theater`/`btnTheater` residue. Mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 62. Mobile/speed polish, FotMob+, admin removed, theater fill-tab (2026-09-24, user batch)
 
 - **Mobile.** `touch-action:manipulation` on all buttons (kills tap delay),
-  controls row wraps on ≤420px screens (5 buttons now), theater CSS is
-  viewport-safe (`fixed inset-0`, safe-area exit button).
+  controls row wraps on ≤420px screens), theater CSS is
+  viewport-safe (`fixed inset-0`, safe-area exit button). [Theater later
+  removed in §63 for quality; wrap rule kept as harmless hardening.]
 - **Speed.** Preconnect hints (ESPN API both pages, FotMob images on player),
   `decoding="async"` on index logos, `content-visibility:auto` on index
   league groups + arab filler (intrinsic sizes set, no scrollbar jump).
@@ -1471,10 +1498,10 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§62 (3-language i18n, auto-translation, theater, GEO/ads/
-   donate/SEO, admin removed, 2026-09-24) pushed to `origin main` per owner
-   order.** Watch the Vercel deploy; spot-check the EN/FR/AR toggle incl.
-   RTL layout, translated names, disclaimer, theater mode, support card,
+5. **Batches §56–§63 (3-language i18n, real-live minutes, GEO/ads/donate/
+   SEO, admin removed, 2026-09-24) pushed to `origin main` per owner order.**
+   Watch the Vercel deploy; spot-check live-minute rows (no duplication),
+   the FotMob section visible with lineups, EN/FR/AR toggle incl. RTL,
    and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)

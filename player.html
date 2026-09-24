@@ -302,13 +302,6 @@ button{touch-action:manipulation}
 .kstat b{display:block;font-size:10px;color:var(--muted);font-weight:700;margin-top:2px}
 .ev-half{font-size:11px;font-weight:900;color:var(--muted);margin:10px 0 2px;display:flex;align-items:center;gap:8px}
 .ev-half::after{content:"";flex:1;height:1px;background:var(--line)}
-body.theater{overflow:hidden}
-body.theater .wrap{max-width:none}
-body.theater .wrap>:not(.stage):not(.theater-exit){display:none!important}
-body.theater .stage{position:fixed;inset:0;z-index:60;border:0;border-radius:0;aspect-ratio:auto}
-.theater-exit{display:none;position:fixed;top:calc(10px + env(safe-area-inset-top));inset-inline-end:10px;z-index:61;font-family:var(--font);width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:18px;font-weight:900;cursor:pointer}
-body.theater .theater-exit{display:inline-flex;align-items:center;justify-content:center}
-.btn.on{background:var(--grass);color:#04120c}
 @media (max-width:420px){.controls{flex-wrap:wrap}.controls .btn{flex:1 1 30%}}
 
 .lang button.on{background:var(--grass);color:#04120c;border-color:var(--grass)}
@@ -347,7 +340,6 @@ body.ads-off .ad-wrap{display:none}
       </div>
     </div>
   </div>
-  <button class="theater-exit" id="theaterExit" type="button" aria-label="Exit">✕</button>
   <div class="disclaimer" data-i18n="commentaryNote">🔊 Commentary in Arabic</div>
   <div class="mcard" id="matchCard" hidden>
     <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="fav">&#9734;</button></div>
@@ -363,7 +355,6 @@ body.ads-off .ad-wrap{display:none}
   <p class="src-note" id="srcNote" hidden></p>
   <div class="controls">
     <button class="btn" id="btnFull" data-i18n="fullscreen">⛶ Fullscreen</button>
-    <button class="btn" id="btnTheater" data-i18n="theater">❐ Fill tab</button>
     <button class="btn ghost" id="btnReload" data-i18n="reload">⟳ Reload</button>
     <button class="btn ghost" id="btnShare" aria-label="share">&#128279;</button>
     <button class="btn ghost" id="btnBell" aria-label="notifications">&#128276;</button>
@@ -455,7 +446,6 @@ homeAlt: 'Home team logo', awayAlt: 'Away team logo',
 srcTitle: '📡 Stream sources', searching: 'Searching for servers…',
 fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked',
 commentaryNote: '🔊 Commentary in Arabic',
-theater: '❐ Fill tab',
 updatedAgo: (s) => 'updated ' + s + 's ago',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
     supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
@@ -506,7 +496,6 @@ homeAlt: 'Logo de l’équipe domicile', awayAlt: 'Logo de l’équipe extérieu
 srcTitle: '📡 Sources du stream', searching: 'Recherche de serveurs…',
 fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués',
 commentaryNote: '🔊 Commentaires en arabe',
-theater: '❐ Remplir l’onglet',
 updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
     supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
@@ -557,7 +546,6 @@ homeAlt: 'شعار الفريق المضيف', awayAlt: 'شعار الفريق �
 srcTitle: '📡 مصادر البث', searching: 'جاري البحث عن السيرفرات…',
 fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', blocked: 'محظور',
 commentaryNote: '🔊 التعليق باللغة العربية',
-theater: '❐ ملء التبويب',
 updatedAgo: (s) => 'تم التحديث قبل ' + s + ' ث',
 minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', ad: 'إعلان',
 live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
@@ -1758,6 +1746,13 @@ function showMinute(o, now){
   if (b != null){
     const ticked = b + Math.floor((now - (o._at || now)) / 60000);
     if (ticked < 1 || ticked > 130) return wallMap(o, now);
+    // Stale-feed clamp: an upstream minute ticking >= 10' away from the
+    // kickoff-anchored wall clock means frozen data — trust the wall.
+    // (Real stoppage/VAR rarely diverges this far.)
+    try {
+      const w = wallMap(o, now);
+      if (w && w.min != null && Math.abs(ticked - (w.min + (w.plus || 0))) >= 10) return w;
+    } catch (e) {}
     const h = halfOf(o);
     if ((h === 1 || h === 'HT') && ticked > 57) return h === 'HT' ? { brk: true } : { min: 45, plus: 12 };
     if (ticked > 90) return { min: 90, plus: Math.min(ticked - 90, 20) };
@@ -2105,13 +2100,6 @@ document.getElementById('btnLike').onclick = () => likeToggle();
 document.getElementById('starH').onclick = () => favToggle(home);
 document.getElementById('starA').onclick = () => favToggle(away);
 document.getElementById('btnBell').onclick = () => bellToggle();
-
-document.getElementById('btnTheater').onclick = () => {
-  const on = document.body.classList.toggle('theater');
-  try { document.getElementById('btnTheater').classList.toggle('on', on); } catch (e) {}
-};
-document.getElementById('theaterExit').onclick = () => document.body.classList.remove('theater');
-document.addEventListener('keydown', e => { if (e && e.key === 'Escape' && document.body.classList.contains('theater')) document.body.classList.remove('theater'); });
 document.getElementById('btnShare').onclick = async () => {
 
   const url = location.href;
@@ -2259,7 +2247,7 @@ function paintMinfoMeta(){
 setInterval(() => { try { if (!document.hidden && miData && !miData.finished) paintMinfoMeta(); } catch (e) {} }, 15000);
 async function miFetch(){
 
-  const q = new URLSearchParams({ home, away, start: startP, lg: leagueP });
+  const q = new URLSearchParams({ home: dispTeam(home), away: dispTeam(away), start: startP, lg: leagueP });
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), 12000);
   try {
@@ -2426,8 +2414,8 @@ function renderMi(){
   const hasPitch = (tH.starters || []).some(p => p.x != null) || (tA.starters || []).some(p => p.x != null);
   let pitchHtml = '';
   if (hasPitch){
-    const tline = (t, logo, cls) =>
-      `<div class="teamline ${cls}">${t.rating != null && isFinite(t.rating) ? `<span class="trate">${Number(t.rating).toFixed(1)}</span>` : ''}${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(t.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<span>${esc(decFull(t.name))}</span><span class="fm2">${esc(decFull(t.formation))}</span></div>`;
+    const tline = (tm, logo, cls) =>
+      `<div class="teamline ${cls}">${tm.rating != null && isFinite(tm.rating) ? `<span class="trate">${Number(tm.rating).toFixed(1)}</span>` : ''}${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(tm.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<span>${esc(decFull(tm.name))}</span><span class="fm2">${esc(decFull(tm.formation))}</span></div>`;
     pitchHtml = `<div class="pitch"><div class="ln half"></div><div class="ln circ"></div><div class="ln boxT"></div><div class="ln boxB"></div>`
       + tline(tH, hLogo, 'tH')
       + (tH.starters || []).map(p => dot(p, false, true, tH.name, true)).join('')
@@ -2438,19 +2426,19 @@ function renderMi(){
   (tH.subs || []).forEach(p => { if (p.pid && !miByPid[p.pid]) miByPid[p.pid] = { p, home: true, team: tH.name || '', starter: false }; });
   (tA.subs || []).forEach(p => { if (p.pid && !miByPid[p.pid]) miByPid[p.pid] = { p, home: false, team: tA.name || '', starter: false }; });
   // --- Lists: XI + subs + coach + unavailable ---
-  const luSide = (t, logo) => {
-    const coach = t.coach ? `<div class="sub">${t('coach')} ${esc(decFull(t.coach))}</div>` : '';
-    const st = (t.starters || []).map(p =>
+  const luSide = (tm, logo) => {
+    const coach = tm.coach ? `<div class="sub">${t('coach')} ${esc(decFull(tm.coach))}</div>` : '';
+    const st = (tm.starters || []).map(p =>
       `<div class="pl"><span class="num">${esc(decFull(p.num))}</span><span class="nm">${esc(decFull(p.name))}</span>${rPill(p.rating)}</div>`).join('');
-    const sb = (t.subs || []).length
-      ? `<div class="sub" style="margin-top:6px">${t('subs')}</div>` + (t.subs || []).map(p =>
+    const sb = (tm.subs || []).length
+      ? `<div class="sub" style="margin-top:6px">${t('subs')}</div>` + (tm.subs || []).map(p =>
         `<div class="pl sub"><span class="num">${esc(decFull(p.num))}</span><span class="nm">${esc(decFull(p.name))}</span>${rPill(p.rating)}</div>`).join('')
       : '';
-    const un = (t.unavailable || []).length
-      ? `<div class="sub" style="margin-top:6px">${t('unavailable')}</div>` + (t.unavailable || []).map(p =>
+    const un = (tm.unavailable || []).length
+      ? `<div class="sub" style="margin-top:6px">${t('unavailable')}</div>` + (tm.unavailable || []).map(p =>
         `<div class="unav"><span>🚑</span><span class="nm">${esc(decFull(p.name))}${p.reason ? ' <small class="sub">(' + esc(decFull(p.reason)) + ')</small>' : ''}</span></div>`).join('')
       : '';
-    return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(t.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(t.name))}</b><span class="fm">${esc(decFull(t.formation))}${t.rating != null && isFinite(t.rating) ? ' • ' + Number(t.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
+    return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(tm.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(tm.name))}</b><span class="fm">${esc(decFull(tm.formation))}${tm.rating != null && isFinite(tm.rating) ? ' • ' + Number(tm.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
   };
   let listsHtml = '';
   if (d.lineups && (d.lineups.home || d.lineups.away)){
@@ -2587,7 +2575,7 @@ function openMiPop(btn){
 async function refreshEspnOne(){
   try {
     if (!home && !away) return false;
-    const ev = await espnResolve(home, away, startP, leagueP);
+    const ev = await espnResolve(dispTeam(home), dispTeam(away), startP, leagueP);
     if (ev && ev.min != null && (ev.status === 'live' || ev.status === 'ht') &&
         (ev.half === 1 || ev.half === 2 || ev.half === 'HT')){
       PE = { base: ev.min, half: ev.half, at: Date.now() };
