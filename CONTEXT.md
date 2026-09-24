@@ -4,7 +4,59 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-15 (full security audit, see CONTEXT 55).
+> Last updated: 2026-09-24 (full display translation, see CONTEXT 57).
+
+## 57. Full display translation: upstream team/league names → EN/FR (2026-09-24, user: "translate everything idc" + "and push")
+
+- **Runtime name translation (new `I18N-NAMES` block, byte-identical both
+  pages).** `TEAMMAP` (~280 normalized keys → Latin display names, shared
+  EN/FR) + `LEAGUEMAP` (~55 keys → [en, fr]) with `normKey()` (alef/hamza/
+  taa-marbouta/yaa + diacritics + case/space normalization).
+  `dispTeam()`/`dispLeague()` wrap ONLY rendered text (rows, chips, header
+  card, titles, crumbs, goal/bell toasts, JSON-LD, logo alts); data objects,
+  detection regexes, fuzzy matchers, caches, favorites and filters still read
+  raw Arabic. Unknown names fall back to the raw text (never blank/invented).
+- **Search matches translations too** (`filtered()` tests display names, so
+  "Real Madrid" finds the fixture). Static SSR fallback is now fully Latin.
+  Remaining Arabic anywhere: dictionary keys, data-matching code, invisible
+  `data-lg` filter values — zero Arabic in rendered static HTML.
+- Verified: `node --check` clean ×2; parity 36/36 + 98/98; stub-DOM smoke;
+  functional test (known teams, unknown fallback, FR league forms,
+  normalization collisions); static audit 0 violations. Mirrors zero-diff.
+- **Pushed** to `origin main` per owner order (push = Vercel deploy).
+
+## 56. EN+FR i18n: full UI translation, Arabic data untouched (2026-09-24, user: "MAKE this in english + french translate all pages!")
+
+- **What changed.** `index.html` + `player.html` are now English-first with a
+  French toggle (EN/FR buttons in the header, `localStorage koora_lang`,
+  `?lang=` override, French browser locale auto-detects). `<html>` ships
+  `lang="en" dir="ltr"`. `index-inline.html`/`player-inline.html` re-synced
+  (SHA256-identical). `manifest.webmanifest` (en/LTR, "Koora Live") +
+  `llms.txt` updated to EN/FR.
+- **How it works.** Embedded `I18N` dict per page (`t(k)` + `setLang(l)` +
+  `applyStatic`/`updateMeta`): all `[data-i18n]` static text, placeholders,
+  aria-labels, alt texts, `<title>`/meta/OG/Twitter, static JSON-LD
+  (`inLanguage` follows LANG), plus every dynamic string (status Live/HT/FT,
+  chips, goal toasts, server grid, FotMob tabs/stats/events, bell/fav/share/
+  fullscreen toasts, dynamic JSON-LD SportsEvent/FAQ/ItemList). Toggle
+  re-renders without reload; the video iframe is never touched except
+  relabeling server buttons (current server index preserved).
+- **Deliberately NOT translated (data, not chrome).** Team/league/match names
+  and statuses from upstream feeds stay byte-identical: all detection regexes
+  (`halfOf/isLive/isEnded/leagueRank/HIDE_AR/SAUDI_RE`), the ESPN/FotMob fuzzy
+  matchers + alias tables, and SEO `data-lg` filter values are untouched.
+  Chips/rows still show upstream names; `data-lg` keeps league deep-filter
+  working while SEO text reads EN/FR. SSR fallback keeps upstream team names;
+  connectors/status/leagues there are English.
+- **LTR notes.** Row arrow `‹`→`›` (forward in LTR); back button keeps `‹`.
+  Logical CSS props (`inline-start`, `inset-inline`) adapt automatically.
+- Verified: `node --check` both inline scripts clean; I18N key parity 36/36
+  (index) + 98/98 (player), zero missing/extra/type diffs; stub-DOM smoke
+  (EN default, FR switch, persistence, invalid-lang guard, function keys);
+  Arabic audit: remaining Arabic is data-detection/fuzzy/aliases only (+
+  invisible `data-lg` values + SSR team names). Mirrors zero-diff.
+- **NOT pushed** — merged locally only; owner decides when to push/deploy
+  (push = instant Vercel deploy). See Pending.
 
 ## 55. Full security audit (2026-09-15, user: "complete security audit ... remove all weaknesses, make no mistakes")
 
@@ -1319,6 +1371,9 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
+5. **EN/FR i18n (§56) + full display translation (§57, 2026-09-24) pushed to
+   `origin main` per owner order.** Watch the Vercel deploy; spot-check the
+   FR toggle and a few translated team/league names live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
