@@ -451,7 +451,7 @@ try {
 /* I18N-NAMES — runtime display translation for upstream Arabic names.
    DATA OBJECTS ARE NEVER MUTATED: detection regexes, fuzzy matchers, caches,
    favorites and filters keep reading the raw Arabic. Only rendered text goes
-   through dispTeam()/dispLeague(). Unknown names fall back to the raw text. */
+   through dispTeam()/dispLeague(). Unknown names auto-transliterate to Latin (EN/FR) or stay raw (AR). */
 const TEAMMAP = {
 'ارسنال': 'Arsenal', 'آرسنال': 'Arsenal',
 'مانشستر سيتي': 'Man City', 'مانشستر يونايتد': 'Man United',
@@ -849,6 +849,21 @@ const LEAGUEMAP = {
 'دوري الامم الاوروبية - دوري د - بيت 3': ['UEFA Nations League D, Group 3', 'Ligue des nations UEFA D, groupe 3'],
 'دوري الامم الاوروبية - دوري د - بيت 4': ['UEFA Nations League D, Group 4', 'Ligue des nations UEFA D, groupe 4'],
 };
+
+/* Auto-transliteration fallback (EN/FR): upstream names missing from the
+   dictionaries render as readable Latin instead of Arabic script. Runs on
+   the raw feed text at display time — no build step, works for any future
+   name. Dictionary hits always win; Latin input passes through untouched. */
+const TR_AR = {'\u0627':'a','\u0623':'a','\u0625':'i','\u0622':'a','\u0621':'','\u0624':'ou','\u0626':'i','\u0628':'b','\u0629':'a','\u062a':'t','\u062b':'th','\u062c':'j','\u062d':'h','\u062e':'kh','\u062f':'d','\u0630':'dh','\u0631':'r','\u0632':'z','\u0633':'s','\u0634':'sh','\u0635':'s','\u0636':'d','\u0637':'t','\u0638':'z','\u0639':'a','\u063a':'gh','\u0641':'f','\u0642':'q','\u0643':'k','\u0644':'l','\u0645':'m','\u0646':'n','\u0647':'h','\u0648':'ou','\u064a':'i','\u0649':'a','\u0640':''};
+function trAr(s){
+  try {
+    let o = String(s == null ? '' : s).replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/\s+/g, ' ').trim();
+    if (!o || !/[\u0600-\u06FF]/.test(o)) return o;
+    let out = '';
+    for (const ch of o) out += (ch === ' ' ? ' ' : (TR_AR[ch] !== undefined ? TR_AR[ch] : ch));
+    return out.replace(/\s+/g, ' ').trim().replace(/(^|\s)([a-z])/g, (m, p, c) => p + c.toUpperCase());
+  } catch (e) { return String(s == null ? '' : s); }
+}
 function normKey(s){
   return String(s == null ? '' : s)
     .replace(/[\u0623\u0625\u0622]/g, '\u0627').replace(/\u0629/g, '\u0647').replace(/\u0649/g, '\u064a')
@@ -863,13 +878,13 @@ function dispTeam(n){
   if (n == null || n === '') return n == null ? '' : n;
   if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
-  return n;
+  return trAr(n);
 }
 function dispLeague(n){
   if (n == null || n === '') return n == null ? '' : n;
   if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const e = LEAGUEN[normKey(n)]; if (e) return LANG === 'fr' ? e[1] : e[0]; } catch (er) {}
-  return n;
+  return trAr(n);
 }
 /* I18N-NAMES-END */
 

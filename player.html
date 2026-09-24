@@ -292,6 +292,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 8px}
 .lang{display:flex;gap:6px;flex:none}
 .lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
+.disclaimer{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
 .lang button.on{background:var(--grass);color:#04120c;border-color:var(--grass)}
 
 /* support card: donations + ad toggle (extensible: any .ad-wrap[data-ad-slot] obeys body.ads-off) */
@@ -328,6 +329,7 @@ body.ads-off .ad-wrap{display:none}
       </div>
     </div>
   </div>
+  <div class="disclaimer" data-i18n="commentaryNote">🔊 Commentary in Arabic</div>
   <div class="mcard" id="matchCard" hidden>
     <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="fav">&#9734;</button></div>
     <div class="mid"><div class="vs" id="matchState">…</div><div class="tm" id="matchTime">—</div><div class="lg" id="matchLeague">—</div></div>
@@ -432,6 +434,7 @@ playBtn: '▶ Tap to watch', playHint: 'First tap only opens the stream — no p
 homeAlt: 'Home team logo', awayAlt: 'Away team logo',
 srcTitle: '📡 Stream sources', searching: 'Searching for servers…',
 fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked',
+commentaryNote: '🔊 Commentary in Arabic',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
     supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF', copyBtn: 'Copy',
@@ -480,6 +483,7 @@ playBtn: '▶ Toucher pour regarder', playHint: 'Le premier toucher ouvre seulem
 homeAlt: 'Logo de l’équipe domicile', awayAlt: 'Logo de l’équipe extérieur',
 srcTitle: '📡 Sources du stream', searching: 'Recherche de serveurs…',
 fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués',
+commentaryNote: '🔊 Commentaires en arabe',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
     supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF', copyBtn: 'Copier',
@@ -528,6 +532,7 @@ playBtn: '▶ اضغط للمشاهدة', playHint: 'أول ضغطة تفتح ا
 homeAlt: 'شعار الفريق المضيف', awayAlt: 'شعار الفريق الضيف',
 srcTitle: '📡 مصادر البث', searching: 'جاري البحث عن السيرفرات…',
 fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', blocked: 'محظور',
+commentaryNote: '🔊 التعليق باللغة العربية',
 minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', ad: 'إعلان',
 live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
 favAdd: 'أضيفت إلى المفضلة', favRemove: 'أزيلت إلى المفضلة',
@@ -703,7 +708,7 @@ try {
 /* I18N-NAMES — runtime display translation for upstream Arabic names.
    DATA OBJECTS ARE NEVER MUTATED: detection regexes, fuzzy matchers, caches,
    favorites and filters keep reading the raw Arabic. Only rendered text goes
-   through dispTeam()/dispLeague(). Unknown names fall back to the raw text. */
+   through dispTeam()/dispLeague(). Unknown names auto-transliterate to Latin (EN/FR) or stay raw (AR). */
 const TEAMMAP = {
 'ارسنال': 'Arsenal', 'آرسنال': 'Arsenal',
 'مانشستر سيتي': 'Man City', 'مانشستر يونايتد': 'Man United',
@@ -1101,6 +1106,21 @@ const LEAGUEMAP = {
 'دوري الامم الاوروبية - دوري د - بيت 3': ['UEFA Nations League D, Group 3', 'Ligue des nations UEFA D, groupe 3'],
 'دوري الامم الاوروبية - دوري د - بيت 4': ['UEFA Nations League D, Group 4', 'Ligue des nations UEFA D, groupe 4'],
 };
+
+/* Auto-transliteration fallback (EN/FR): upstream names missing from the
+   dictionaries render as readable Latin instead of Arabic script. Runs on
+   the raw feed text at display time — no build step, works for any future
+   name. Dictionary hits always win; Latin input passes through untouched. */
+const TR_AR = {'\u0627':'a','\u0623':'a','\u0625':'i','\u0622':'a','\u0621':'','\u0624':'ou','\u0626':'i','\u0628':'b','\u0629':'a','\u062a':'t','\u062b':'th','\u062c':'j','\u062d':'h','\u062e':'kh','\u062f':'d','\u0630':'dh','\u0631':'r','\u0632':'z','\u0633':'s','\u0634':'sh','\u0635':'s','\u0636':'d','\u0637':'t','\u0638':'z','\u0639':'a','\u063a':'gh','\u0641':'f','\u0642':'q','\u0643':'k','\u0644':'l','\u0645':'m','\u0646':'n','\u0647':'h','\u0648':'ou','\u064a':'i','\u0649':'a','\u0640':''};
+function trAr(s){
+  try {
+    let o = String(s == null ? '' : s).replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/\s+/g, ' ').trim();
+    if (!o || !/[\u0600-\u06FF]/.test(o)) return o;
+    let out = '';
+    for (const ch of o) out += (ch === ' ' ? ' ' : (TR_AR[ch] !== undefined ? TR_AR[ch] : ch));
+    return out.replace(/\s+/g, ' ').trim().replace(/(^|\s)([a-z])/g, (m, p, c) => p + c.toUpperCase());
+  } catch (e) { return String(s == null ? '' : s); }
+}
 function normKey(s){
   return String(s == null ? '' : s)
     .replace(/[\u0623\u0625\u0622]/g, '\u0627').replace(/\u0629/g, '\u0647').replace(/\u0649/g, '\u064a')
@@ -1115,13 +1135,13 @@ function dispTeam(n){
   if (n == null || n === '') return n == null ? '' : n;
   if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
-  return n;
+  return trAr(n);
 }
 function dispLeague(n){
   if (n == null || n === '') return n == null ? '' : n;
   if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const e = LEAGUEN[normKey(n)]; if (e) return LANG === 'fr' ? e[1] : e[0]; } catch (er) {}
-  return n;
+  return trAr(n);
 }
 /* I18N-NAMES-END */
 
