@@ -1,6 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /dzt3ch456.html
 Disallow: /index-inline.html
 Disallow: /player-inline.html
 Sitemap: https://kooraadz.vercel.app/sitemap.xml
