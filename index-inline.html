@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071f19">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<title>Koora Live — Today's matches, live streams</title>
+<title>Koora Live — Live Football Matches & Streams</title>
 <meta name="description" content="Today's football matches live: kickoff times, live scores and clean streams. Schedules, results and channels.">
 <link rel="canonical" href="https://kooraadz.vercel.app/">
 <link rel="alternate" hreflang="en" href="https://kooraadz.vercel.app/">
@@ -166,6 +166,19 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .lang{display:flex;gap:6px;position:relative;z-index:1;margin-top:10px}
 .lang button{font-family:var(--font);border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
 .lang button.on{background:#fff;color:var(--pitch);border-color:#fff}
+
+/* support card: donations + ad toggle (extensible: any .ad-wrap[data-ad-slot] obeys body.ads-off) */
+.support{max-width:728px;margin:12px auto 0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
+.sup-msg{font-size:13px;font-weight:700;margin:0 0 8px}
+.sup-row{display:flex;gap:8px;flex-wrap:wrap}
+.sup-btn{font-family:var(--font);border:0;border-radius:10px;min-height:44px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;background:var(--pitch);color:#fff;text-decoration:none;display:inline-flex;align-items:center}
+.sup-btn.kofi{background:#ff5e5b}
+.sup-btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.sup-wallet{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.sup-wallet[hidden]{display:none}
+.sup-wallet code{flex:1;min-width:0;font-size:12px;word-break:break-all;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px}
+body.ads-off .ad-wrap{display:none}
+
 /* tablets/desktops: wider content */
 @media (min-width:768px){
   main{max-width:880px}
@@ -180,7 +193,7 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 <header class="topbar">
   <div class="brand">
     <span class="ball">⚽</span>
-    <div><h1 data-i18n="brand">Koora Live</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
+    <div><h1 data-i18n="brand">Koora Live — Live Football Streams</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
     <div class="lang" role="group" aria-label="Language / Langue"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button></div>
   </div>
 </header>
@@ -193,6 +206,16 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   <input id="searchInput" type="search" placeholder="Search team or league…" data-i18n-ph="searchPh" autocomplete="off">
   <div class="chips" id="leagueChips"></div>
 </div>
+<div class="support" id="support">
+  <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us by keeping ads on or donating.</div>
+  <div class="sup-row">
+    <a class="sup-btn kofi" href="https://ko-fi.com/messistat" target="_blank" rel="noopener sponsored">☕ Ko-fi</a>
+    <button class="sup-btn" id="walletBtn" type="button">⧉ BEP20 wallet</button>
+    <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
+  </div>
+  <div class="sup-wallet" id="walletBox" hidden><code>0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
+</div>
+
 <main id="content">
   <div class="loading" id="loading" data-i18n="loading">Loading matches…</div>
   <section id="liveSec" hidden>
@@ -202,9 +225,9 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   <div id="leagues"><div id="ssr-fallback"><p class="ssr-note">Today's matches — auto-updating</p><ul class="ssr-list"><li><a href="/player.html?m=4621360&amp;d=today">Sporting Kansas City vs Los Angeles — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621361&amp;d=today">St. Louis City vs Minnesota United — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621362&amp;d=today">FC Dallas vs Portland Timbers — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621358&amp;d=today">Real Salt Lake vs New York City FC — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621359&amp;d=today">Colorado Rapids vs CF Montréal — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621356&amp;d=today">LA Galaxy vs Seattle Sounders — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621357&amp;d=today">San Jose vs Houston Dynamo — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621354&amp;d=today">Chicago Fire vs New England — Upcoming</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621355&amp;d=today">Vancouver Whitecaps vs Austin FC — Upcoming</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4750868&amp;d=today">Celta Vigo vs Málaga — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750867&amp;d=today">Levante vs Barcelona — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750869&amp;d=today">Getafe vs Deportivo La Coruña — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750862&amp;d=today">Real Sociedad vs Atlético Madrid — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4805164&amp;d=today">KVZ vs Al Swehly — Upcoming</a> <small>CAF Champions League qualifying</small></li></ul><p class="ssr-more"><a href="/api/sitemap">All matches</a></p></div></div>
   <div id="empty" hidden data-i18n="empty">No matches match your search</div>
 </main>
-<section class="seo"><h2 data-i18n="seoH">Today’s matches live</h2><p data-i18n="seoP">An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.</p><ul><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A" data-lg="الدوري الإنجليزي" data-lg-link><strong>Premier League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D8%B3%D8%A8%D8%A7%D9%86%D9%8A" data-lg="الدوري الإسباني" data-lg-link><strong>La Liga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A" data-lg="الدوري الإيطالي" data-lg-link><strong>Serie A:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A" data-lg="الدوري الألماني" data-lg-link><strong>Bundesliga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D9%81%D8%B1%D9%86%D8%B3%D9%8A" data-lg="الدوري الفرنسي" data-lg-link><strong>Ligue 1:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A" data-lg="الدوري السعودي" data-lg-link><strong>Saudi Pro League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A3%D8%A8%D8%B7%D8%A7%D9%84%20%D8%A3%D9%88%D8%B1%D9%88%D8%A8%D8%A7" data-lg="دوري أبطال أوروبا" data-lg-link><strong>UEFA Champions League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li></ul><p data-i18n="seoCta">Pick a match from the list to open its stream page.</p></section>
-<section class="seo faq"><h2 data-i18n="faqH">FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details></section>
-<div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
+<section class="seo"><h2 data-i18n="seoH">Today’s Live Football Matches — Scores, Schedule & Streams</h2><p data-i18n="seoP">An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.</p><ul><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A" data-lg="الدوري الإنجليزي" data-lg-link><strong>Premier League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D8%B3%D8%A8%D8%A7%D9%86%D9%8A" data-lg="الدوري الإسباني" data-lg-link><strong>La Liga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A" data-lg="الدوري الإيطالي" data-lg-link><strong>Serie A:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A" data-lg="الدوري الألماني" data-lg-link><strong>Bundesliga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D9%81%D8%B1%D9%86%D8%B3%D9%8A" data-lg="الدوري الفرنسي" data-lg-link><strong>Ligue 1:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A" data-lg="الدوري السعودي" data-lg-link><strong>Saudi Pro League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A3%D8%A8%D8%B7%D8%A7%D9%84%20%D8%A3%D9%88%D8%B1%D9%88%D8%A8%D8%A7" data-lg="دوري أبطال أوروبا" data-lg-link><strong>UEFA Champions League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li></ul><p data-i18n="seoCta">Pick a match from the list to open its stream page.</p></section>
+<section class="seo faq"><h2 data-i18n="faqH">Live Football Streams — FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details><details><summary data-i18n="fq5">Can I watch on mobile?</summary><p data-i18n="fa5">Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.</p></details><details><summary data-i18n="fq6">What stream quality can I expect?</summary><p data-i18n="fa6">HD live football streams with live scores and minute-by-minute updates, free with no account needed.</p></details></section>
+<div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -220,7 +243,7 @@ const GOAL_IDS = []; let GOAL_MSG = '';
    ESPN fuzzy matcher intentionally still match the Arabic data strings. */
 const I18N = {
 en: {
-brand: 'Koora Live', tagline: 'Clean streams, no popups',
+brand: 'Koora Live — Live Football Streams', tagline: 'Clean streams, no popups',
 chooseDay: 'Choose day', yesterday: 'Yesterday', today: 'Today', tomorrow: 'Tomorrow',
 searchPh: 'Search team or league…', loading: 'Loading matches…', liveNow: 'Live now',
 empty: 'No matches match your search', all: 'All', favorites: 'Favorites',
@@ -228,24 +251,29 @@ live: 'Live', halfBreak: 'HT', ended: 'FT', vs: 'vs', sport: 'Football',
 otherLeagues: 'Other competitions', hiddenLeagues: 'Other Arab leagues — hidden',
 loadFail: "Couldn't load matches — check your connection", goal: 'Goal',
 todayMatches: "Today's matches", ad: 'Ad',
-seoH: "Today's matches live",
+    supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
+    adsOn: 'Ads: ON', adsOff: 'Ads: OFF',
+    copyOk: 'Address copied', copyFail: 'Copy failed', copyBtn: 'Copy',
+    fq5: 'Can I watch on mobile?', fa5: 'Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.',
+    fq6: 'What stream quality can I expect?', fa6: 'HD live football streams with live scores and minute-by-minute updates, free with no account needed.',
+seoH: "Today's Live Football Matches — Scores, Schedule & Streams",
 seoP: 'An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.',
 seoSuffix: 'live today with moment-by-moment scores.',
 seoCta: 'Pick a match from the list to open its stream page.',
-faqH: 'FAQ',
+faqH: 'Live Football Streams — FAQ',
 fq1: 'How do I watch?', fa1: 'Pick a match from the list to open its stream.',
 fq2: 'Is the stream free?', fa2: 'Yes — every listed stream is free.',
 fq3: 'Which competitions are covered?', fa3: 'Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.',
 fq4: 'Why does the minute keep updating?', fa4: 'The minute fuses the live feed with kickoff times and refreshes automatically.',
 meta: {
-title: "Koora Live — Today's matches, live streams",
+title: "Koora Live — Live Football Matches & Streams",
 desc: "Today's football matches live: kickoff times, live scores and clean streams. Schedules, results and channels.",
 ogTitle: "Koora Live — Today's matches live",
 ogDesc: "Today's football live: clean HD streams with no annoying popups."
 }
 },
 fr: {
-brand: 'Koora Live', tagline: 'Streams propres, sans popups',
+brand: 'Koora Live — Foot en direct', tagline: 'Streams propres, sans popups',
 chooseDay: 'Choisir le jour', yesterday: 'Hier', today: "Aujourd'hui", tomorrow: 'Demain',
 searchPh: 'Rechercher une équipe ou une compétition…', loading: 'Chargement des matchs…', liveNow: 'En direct',
 empty: 'Aucun match pour votre recherche', all: 'Tout', favorites: 'Favoris',
@@ -253,11 +281,16 @@ live: 'Direct', halfBreak: 'MT', ended: 'Terminé', vs: 'vs', sport: 'Football',
 otherLeagues: 'Autres compétitions', hiddenLeagues: 'Autres ligues arabes — masquées',
 loadFail: 'Chargement impossible — vérifiez votre connexion', goal: 'But',
 todayMatches: 'Matchs du jour', ad: 'Pub',
-seoH: 'Matchs du jour en direct',
+    supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
+    adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF',
+    copyOk: 'Adresse copiée', copyFail: 'Copie impossible', copyBtn: 'Copier',
+    fq5: 'Puis-je regarder sur mobile ?', fa5: 'Oui — le site est 100 % optimisé mobile et marche sur téléphone, tablette ou PC.',
+    fq6: 'Quelle qualité de stream ?', fa6: 'Des streams de foot en direct en HD, scores en direct et minute par minute, gratuits et sans compte.',
+seoH: 'Matchs de foot en direct — scores et calendrier',
 seoP: 'Un calendrier toujours à jour : horaires et résultats minute par minute des grandes compétitions.',
 seoSuffix: "en direct aujourd'hui avec les scores minute par minute.",
 seoCta: 'Choisissez un match pour ouvrir sa page de diffusion.',
-faqH: 'FAQ',
+faqH: 'FAQ — Streams de foot en direct',
 fq1: 'Comment regarder ?', fa1: 'Choisissez un match pour ouvrir son stream.',
 fq2: 'Le stream est-il gratuit ?', fa2: 'Oui — tous les streams listés sont gratuits.',
 fq3: 'Quelles compétitions sont couvertes ?', fa3: 'Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League et la Ligue des champions.',
@@ -289,7 +322,7 @@ const twD = document.querySelector('meta[name="twitter:description"]'); if (twD)
 const st = document.getElementById('static-jsonld');
 if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [
 { '@type': 'Organization', '@id': 'https://kooraadz.vercel.app/#org', name: 'Koora Live', url: 'https://kooraadz.vercel.app/', logo: 'https://kooraadz.vercel.app/icon-512.png' },
-{ '@type': 'WebSite', '@id': 'https://kooraadz.vercel.app/#site', url: 'https://kooraadz.vercel.app/', name: 'Koora Live', inLanguage: LANG, publisher: { '@id': 'https://kooraadz.vercel.app/#org' }, potentialAction: { '@type': 'SearchAction', target: 'https://kooraadz.vercel.app/?q={search_term_string}', 'query-input': 'required name=search_term_string' } }
+{ '@type': 'WebSite', '@id': 'https://kooraadz.vercel.app/#site', url: 'https://kooraadz.vercel.app/', name: 'Koora Live', inLanguage: [LANG, LANG === 'fr' ? 'en' : 'fr'], publisher: { '@id': 'https://kooraadz.vercel.app/#org' }, potentialAction: { '@type': 'SearchAction', target: 'https://kooraadz.vercel.app/?q={search_term_string}', 'query-input': 'required name=search_term_string' } }
 ]});
 }
 function setLang(l, save){
@@ -299,7 +332,7 @@ try { document.documentElement.lang = l; document.documentElement.dir = 'ltr'; }
 if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
 try { applyStatic(); updateMeta(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
-if (save !== false){ try { buildChips(); render(true); } catch (e) {} }
+if (save !== false){ try { buildChips(); render(true); paintAds(); } catch (e) {} }
 }
 try {
 let init = 'en';
@@ -312,6 +345,75 @@ else if ((navigator.language || '').toLowerCase().indexOf('fr') === 0) init = 'f
 } catch (e) {}
 setLang(init, false);
 } catch (e) {}
+/* I18N-GEO — country-based default language: French-speaking countries start
+   in French on first visit. Explicit ?lang= or a saved choice always wins.
+   IP-based (no permission prompt); cached 7 days; fail-silent. */
+const GEO_FR = new Set('FR BE CH LU MC DZ MA TN SN CI CM ML BF NE TD CG CD GA BJ TG GN MR DJ KM MG RW BI CF GQ VU NC PF HT RE GP MQ GF YT PM WF TF MU SC'.split(' '));
+let GEO_LOCK = false;
+try { GEO_LOCK = !!localStorage.getItem('koora_lang'); } catch (e) {}
+try { if (new URLSearchParams(location.search).get('lang')) GEO_LOCK = true; } catch (e) {}
+function geoSave(cc){
+  try { localStorage.setItem('koora_geo', JSON.stringify({ c: cc, at: Date.now() })); } catch (e) {}
+}
+function geoCached(){
+  try {
+    const o = JSON.parse(localStorage.getItem('koora_geo') || 'null');
+    if (o && o.c && (Date.now() - o.at) < 7 * 86400000) return String(o.c).toUpperCase();
+  } catch (e) {}
+  return null;
+}
+function geoApply(cc){
+  if (GEO_LOCK || !cc) return;
+  const c = String(cc).toUpperCase().trim();
+  if (!/^[A-Z]{2}$/.test(c)) return;
+  geoSave(c);
+  if (GEO_FR.has(c) && LANG !== 'fr'){ GEO_LOCK = true; try { setLang('fr'); } catch (e) {} }
+}
+(function geoLang(){
+  if (GEO_LOCK) return;
+  const hit = geoCached();
+  if (hit){ geoApply(hit); return; }
+  const fetchTx = (url, ms) => {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => { try { ctrl.abort(); } catch (e) {} }, ms);
+    return fetch(url, { signal: ctrl.signal, cache: 'no-store' }).then(r => {
+      if (!r.ok) throw 0; return r.text();
+    }).finally(() => clearTimeout(to));
+  };
+  fetchTx('https://www.cloudflare.com/cdn-cgi/trace', 2500).then(
+    tx => { const m = /loc=([A-Z]{2})/.exec(tx || ''); geoApply(m && m[1]); },
+    () => fetchTx('https://ipapi.co/country/', 2500).then(
+      tx => geoApply((tx || '').trim()),
+      () => {})
+  );
+})();
+
+/* SUPPORT — donations + ad toggle. New ad slots: add class="ad-wrap"
+   data-ad-slot="name" anywhere; the toggle + CSS pick them up automatically. */
+function adsOn(){ try { return localStorage.getItem('koora_ads') !== '0'; } catch (e) { return true; } }
+function paintAds(){
+  const on = adsOn();
+  try { document.body.classList.toggle('ads-off', !on); } catch (e) {}
+  try { const b = document.getElementById('adsBtn'); if (b){ b.textContent = on ? t('adsOn') : t('adsOff'); b.setAttribute('aria-pressed', on ? 'true' : 'false'); } } catch (e) {}
+}
+function copyText(txt, okK, failK){
+  const done = () => { try { toast(t(okK)); } catch (e) {} };
+  const fail = () => { try { toast(t(failK)); } catch (e) {} };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fail);
+    else { const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
+  } catch (e) { fail(); }
+}
+try {
+  paintAds();
+  const ab = document.getElementById('adsBtn');
+  if (ab) ab.onclick = () => { try { localStorage.setItem('koora_ads', adsOn() ? '0' : '1'); } catch (e) {} paintAds(); };
+  const wb = document.getElementById('walletBtn');
+  if (wb) wb.onclick = () => { const box = document.getElementById('walletBox'); if (box) box.hidden = !box.hidden; };
+  const cb = document.getElementById('walletCopy');
+  if (cb) cb.onclick = () => copyText('0xe78ee7a6ce01978562c90df0fa3f775215457390', 'copyOk', 'copyFail');
+} catch (e) {}
+
 /* I18N-NAMES — runtime display translation for upstream Arabic names.
    DATA OBJECTS ARE NEVER MUTATED: detection regexes, fuzzy matchers, caches,
    favorites and filters keep reading the raw Arabic. Only rendered text goes
@@ -1313,7 +1415,9 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
     { '@type': 'Question', name: t('fq1'), acceptedAnswer: { '@type': 'Answer', text: t('fa1') } },
     { '@type': 'Question', name: t('fq2'), acceptedAnswer: { '@type': 'Answer', text: t('fa2') } },
     { '@type': 'Question', name: t('fq3'), acceptedAnswer: { '@type': 'Answer', text: t('fa3') } },
-    { '@type': 'Question', name: t('fq4'), acceptedAnswer: { '@type': 'Answer', text: t('fa4') } }
+    { '@type': 'Question', name: t('fq4'), acceptedAnswer: { '@type': 'Answer', text: t('fa4') } },
+    { '@type': 'Question', name: t('fq5'), acceptedAnswer: { '@type': 'Answer', text: t('fa5') } },
+    { '@type': 'Question', name: t('fq6'), acceptedAnswer: { '@type': 'Answer', text: t('fa6') } }
   ]});
   if (list.length) graph.push({ '@type': 'ItemList', name: t('todayMatches'), numberOfItems: list.length, itemListElement: list.slice(0, 20).map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(playerLink(m), location.href).toString(), name: `${dispTeam(m.home || '')} ${t('vs')} ${dispTeam(m.away || '')}` })) });
   const s = document.createElement('script');

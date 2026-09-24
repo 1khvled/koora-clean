@@ -291,6 +291,19 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .lang{display:flex;gap:6px;flex:none}
 .lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
 .lang button.on{background:var(--grass);color:#04120c;border-color:var(--grass)}
+
+/* support card: donations + ad toggle (extensible: any .ad-wrap[data-ad-slot] obeys body.ads-off) */
+.support{max-width:728px;margin:12px auto 0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
+.sup-msg{font-size:13px;font-weight:700;margin:0 0 8px}
+.sup-row{display:flex;gap:8px;flex-wrap:wrap}
+.sup-btn{font-family:var(--font);border:0;border-radius:10px;min-height:44px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;background:var(--pitch);color:#fff;text-decoration:none;display:inline-flex;align-items:center}
+.sup-btn.kofi{background:#ff5e5b}
+.sup-btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.sup-wallet{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.sup-wallet[hidden]{display:none}
+.sup-wallet code{flex:1;min-width:0;font-size:12px;word-break:break-all;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px}
+body.ads-off .ad-wrap{display:none}
+
 @media (prefers-reduced-motion:reduce){.click-shield{transition:none}}
 </style>
 </head>
@@ -299,7 +312,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
   <nav class="crumb" aria-label="breadcrumb"><a href="/" data-i18n="crumbHome">Home</a> <span aria-hidden="true">›</span> <span id="crumbCur" data-i18n="crumbCur">Watch match</span></nav>
   <div class="head">
     <a class="back" href="/" data-i18n="back">‹ Back</a>
-    <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
+    <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
     <div class="lang" role="group" aria-label="Language / Langue"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button></div>
   </div>
   <div class="stage">
@@ -331,6 +344,17 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
     <button class="btn ghost" id="btnShare" aria-label="share">&#128279;</button>
     <button class="btn ghost" id="btnBell" aria-label="notifications">&#128276;</button>
   </div>
+
+<div class="support" id="support">
+  <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us by keeping ads on or donating.</div>
+  <div class="sup-row">
+    <a class="sup-btn kofi" href="https://ko-fi.com/messistat" target="_blank" rel="noopener sponsored">☕ Ko-fi</a>
+    <button class="sup-btn" id="walletBtn" type="button">⧉ BEP20 wallet</button>
+    <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
+  </div>
+  <div class="sup-wallet" id="walletBox" hidden><code>0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
+</div>
+
   <div class="status" id="status">Blocked: 0</div>
   <section class="minfo" id="minfo" hidden>
     <div class="src-head" style="margin-top:0">
@@ -339,7 +363,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
     </div>
     <div id="minfoBody"><div class="loading" data-i18n="minfoLoading">Loading lineups and ratings…</div></div>
   </section>
-  <div class="ad-wrap"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
+  <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -401,12 +425,14 @@ function bellPaint(){ try { document.getElementById('btnBell').textContent = bel
 const I18N = {
 en: {
 back: '‹ Back', crumbHome: 'Home', crumbCur: 'Watch match',
-loadingTitle: 'Loading…', tagline: 'Clean streams, no popups',
+loadingTitle: 'Loading match…', tagline: 'Clean streams, no popups',
 playBtn: '▶ Tap to watch', playHint: 'First tap only opens the stream — no popups',
 homeAlt: 'Home team logo', awayAlt: 'Away team logo',
 srcTitle: '📡 Stream sources', searching: 'Searching for servers…',
 fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
+    supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
+    adsOn: 'Ads: ON', adsOff: 'Ads: OFF', copyBtn: 'Copy',
 live: 'Live', ended: 'FT', upcoming: 'Upcoming', break: 'HT', vs: 'vs',
 favAdd: 'Added to favorites', favRemove: 'Removed from favorites',
 bellStart: 'Kickoff', bellGoal: '⚽ Goal', bellScore: 'Score update',
@@ -447,12 +473,14 @@ ogDesc: 'Clean live HD stream with no annoying popups.'
 },
 fr: {
 back: '‹ Retour', crumbHome: 'Accueil', crumbCur: 'Voir le match',
-loadingTitle: 'Chargement…', tagline: 'Streams propres, sans popups',
+loadingTitle: 'Chargement du match…', tagline: 'Streams propres, sans popups',
 playBtn: '▶ Toucher pour regarder', playHint: 'Le premier toucher ouvre seulement le stream — sans popups',
 homeAlt: 'Logo de l’équipe domicile', awayAlt: 'Logo de l’équipe extérieur',
 srcTitle: '📡 Sources du stream', searching: 'Recherche de serveurs…',
 fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
+    supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
+    adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF', copyBtn: 'Copier',
 live: 'Direct', ended: 'Terminé', upcoming: 'À venir', break: 'MT', vs: 'vs',
 favAdd: 'Ajouté aux favoris', favRemove: 'Retiré des favoris',
 bellStart: 'Coup d’envoi', bellGoal: '⚽ But', bellScore: 'Score actualisé',
@@ -512,7 +540,7 @@ try { if (!home && !away) document.title = m.title; } catch (e) { try { document
 const st = document.getElementById('static-jsonld');
 if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [
 { '@type': 'Organization', '@id': 'https://kooraadz.vercel.app/#org', name: 'Koora Live', url: 'https://kooraadz.vercel.app/', logo: 'https://kooraadz.vercel.app/icon-512.png' },
-{ '@type': 'WebPage', '@id': 'https://kooraadz.vercel.app/player.html#page', url: 'https://kooraadz.vercel.app/player.html', name: m.title, inLanguage: LANG, isPartOf: { '@id': 'https://kooraadz.vercel.app/#site' } }
+{ '@type': 'WebPage', '@id': 'https://kooraadz.vercel.app/player.html#page', url: 'https://kooraadz.vercel.app/player.html', name: m.title, inLanguage: [LANG, LANG === 'fr' ? 'en' : 'fr'], isPartOf: { '@id': 'https://kooraadz.vercel.app/#site' } }
 ]});
 }
 function setLang(l, save){
@@ -527,6 +555,7 @@ try {
 paintTitle();
 if (home || away) paintMatch(home, away, homeLogo, awayLogo, leagueP);
 paintStars();
+paintAds();
 statusEl.textContent = t('blocked') + ': ' + blocked;
 if (serverList && serverList.length){
 serversEl.innerHTML = serverList.map((s, i) => btnHtml(s, i, i === srvIdx)).join('');
@@ -550,6 +579,75 @@ else if ((navigator.language || '').toLowerCase().indexOf('fr') === 0) init = 'f
 } catch (e) {}
 setLang(init, false);
 } catch (e) {}
+/* I18N-GEO — country-based default language: French-speaking countries start
+   in French on first visit. Explicit ?lang= or a saved choice always wins.
+   IP-based (no permission prompt); cached 7 days; fail-silent. */
+const GEO_FR = new Set('FR BE CH LU MC DZ MA TN SN CI CM ML BF NE TD CG CD GA BJ TG GN MR DJ KM MG RW BI CF GQ VU NC PF HT RE GP MQ GF YT PM WF TF MU SC'.split(' '));
+let GEO_LOCK = false;
+try { GEO_LOCK = !!localStorage.getItem('koora_lang'); } catch (e) {}
+try { if (new URLSearchParams(location.search).get('lang')) GEO_LOCK = true; } catch (e) {}
+function geoSave(cc){
+  try { localStorage.setItem('koora_geo', JSON.stringify({ c: cc, at: Date.now() })); } catch (e) {}
+}
+function geoCached(){
+  try {
+    const o = JSON.parse(localStorage.getItem('koora_geo') || 'null');
+    if (o && o.c && (Date.now() - o.at) < 7 * 86400000) return String(o.c).toUpperCase();
+  } catch (e) {}
+  return null;
+}
+function geoApply(cc){
+  if (GEO_LOCK || !cc) return;
+  const c = String(cc).toUpperCase().trim();
+  if (!/^[A-Z]{2}$/.test(c)) return;
+  geoSave(c);
+  if (GEO_FR.has(c) && LANG !== 'fr'){ GEO_LOCK = true; try { setLang('fr'); } catch (e) {} }
+}
+(function geoLang(){
+  if (GEO_LOCK) return;
+  const hit = geoCached();
+  if (hit){ geoApply(hit); return; }
+  const fetchTx = (url, ms) => {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => { try { ctrl.abort(); } catch (e) {} }, ms);
+    return fetch(url, { signal: ctrl.signal, cache: 'no-store' }).then(r => {
+      if (!r.ok) throw 0; return r.text();
+    }).finally(() => clearTimeout(to));
+  };
+  fetchTx('https://www.cloudflare.com/cdn-cgi/trace', 2500).then(
+    tx => { const m = /loc=([A-Z]{2})/.exec(tx || ''); geoApply(m && m[1]); },
+    () => fetchTx('https://ipapi.co/country/', 2500).then(
+      tx => geoApply((tx || '').trim()),
+      () => {})
+  );
+})();
+
+/* SUPPORT — donations + ad toggle. New ad slots: add class="ad-wrap"
+   data-ad-slot="name" anywhere; the toggle + CSS pick them up automatically. */
+function adsOn(){ try { return localStorage.getItem('koora_ads') !== '0'; } catch (e) { return true; } }
+function paintAds(){
+  const on = adsOn();
+  try { document.body.classList.toggle('ads-off', !on); } catch (e) {}
+  try { const b = document.getElementById('adsBtn'); if (b){ b.textContent = on ? t('adsOn') : t('adsOff'); b.setAttribute('aria-pressed', on ? 'true' : 'false'); } } catch (e) {}
+}
+function copyText(txt, okK, failK){
+  const done = () => { try { toast(t(okK)); } catch (e) {} };
+  const fail = () => { try { toast(t(failK)); } catch (e) {} };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fail);
+    else { const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
+  } catch (e) { fail(); }
+}
+try {
+  paintAds();
+  const ab = document.getElementById('adsBtn');
+  if (ab) ab.onclick = () => { try { localStorage.setItem('koora_ads', adsOn() ? '0' : '1'); } catch (e) {} paintAds(); };
+  const wb = document.getElementById('walletBtn');
+  if (wb) wb.onclick = () => { const box = document.getElementById('walletBox'); if (box) box.hidden = !box.hidden; };
+  const cb = document.getElementById('walletCopy');
+  if (cb) cb.onclick = () => copyText('0xe78ee7a6ce01978562c90df0fa3f775215457390', 'copied', 'copyFail');
+} catch (e) {}
+
 /* I18N-NAMES — runtime display translation for upstream Arabic names.
    DATA OBJECTS ARE NEVER MUTATED: detection regexes, fuzzy matchers, caches,
    favorites and filters keep reading the raw Arabic. Only rendered text goes

@@ -79,11 +79,18 @@ export default async function handler(req, res) {
     });
   } catch {}
   const body = ['<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">']
-    .concat(urls.map(u => '  <url><loc>' + esc(u.loc) + '</loc>' + (u.imgs ? u.imgs.map(src => '<image:image><image:loc>' + esc(src) + '</image:loc></image:image>').join('') : '') +
-      (u.lastmod ? '<lastmod>' + u.lastmod + '</lastmod>' : '') +
-      '<changefreq>' + u.changefreq + '</changefreq>' +
-      '<priority>' + u.priority + '</priority></url>'))
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml">']
+    .concat(urls.map(u => {
+      const fr = u.loc + (u.loc.includes('?') ? '&' : '?') + 'lang=fr';
+      return '  <url><loc>' + esc(u.loc) + '</loc>' +
+        '<xhtml:link rel="alternate" hreflang="en" href="' + esc(u.loc) + '"/>' +
+        '<xhtml:link rel="alternate" hreflang="fr" href="' + esc(fr) + '"/>' +
+        '<xhtml:link rel="alternate" hreflang="x-default" href="' + esc(u.loc) + '"/>' +
+        (u.imgs ? u.imgs.map(src => '<image:image><image:loc>' + esc(src) + '</image:loc></image:image>').join('') : '') +
+        (u.lastmod ? '<lastmod>' + u.lastmod + '</lastmod>' : '') +
+        '<changefreq>' + u.changefreq + '</changefreq>' +
+        '<priority>' + u.priority + '</priority></url>';
+    }))
     .concat(['</urlset>']).join('\n');
   return res.status(200).send(body);
 }
