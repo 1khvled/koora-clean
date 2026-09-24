@@ -4,7 +4,24 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-24 (3 languages EN/FR/AR + RTL — see CONTEXT 59).
+> Last updated: 2026-09-24 (100% name coverage from live data — see CONTEXT 60).
+
+## 60. Full match-name translation: national teams + leagues from live API (2026-09-24, user: "even matches names try and translate them like full translation")
+
+- **Evidence-based expansion.** Pulled the real `/api/matches` feed (today 34
+  + yesterday 4 + tomorrow 24 fixtures: int. friendlies, AFCON qualifiers,
+  Gulf Cup, Nations League, Tunisian league) and diffed every team/league
+  against the dict. Added ~200 national teams (FIFA-wide, future-proof),
+  12 Tunisian clubs, 8 competition names + all 16 Nations-League A–D/group
+  combos. Dict now 477 teams / 79 leagues, byte-identical both pages.
+- **Fixes on the way.** Seattle spelling variant (`سياتيل` upstream vs
+  `سياتل`); `الكويت` neutralized to "Kuwait" (country and club share the
+  name); two ASCII-apostrophe JS breaks (`Coupe d'Afrique`, `Coupe d'Asie`).
+- **Measured coverage: 100.0%** — 124 unique live teams + 7 leagues, zero
+  uncovered (script `coverage.py`, re-runnable any matchday). Unknown future
+  names still fall back to raw text by design.
+- Verified: `node --check` ×2; parity; smoke; static-0; functional.
+  Mirrors zero-diff. **Pushed** to `origin main` (Vercel deploys).
 
 ## 59. Third language AR restored: full EN/FR/AR + RTL (2026-09-24, user: "bro fully translate into the 3 languages")
 
@@ -1417,10 +1434,10 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§59 (3-language i18n, display translation, GEO/ads/donate/
+5. **Batches §56–§60 (3-language i18n, 100% name coverage, GEO/ads/donate/
    SEO, 2026-09-24) pushed to `origin main` per owner order.** Watch the
-   Vercel deploy; spot-check the EN/FR/AR toggle incl. RTL layout, geo
-   default, translated names, support card, and `/api/sitemap` XML live.
+   Vercel deploy; spot-check the EN/FR/AR toggle incl. RTL layout, translated
+   national-team names, support card, and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
