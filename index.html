@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071f19">
+<script>try{var __t=localStorage.getItem('koora_theme');if(__t!=='light'&&__t!=='dark'){__t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}if(__t==='dark')document.documentElement.classList.add('dark');}catch(e){}</script>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <title>Koora Live — Live Football Matches & Streams</title>
 <meta name="description" content="Today's football matches live: kickoff times, live scores and clean streams. Schedules, results and channels.">
@@ -162,6 +163,12 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
 button{touch-action:manipulation}
+html{color-scheme:light}
+html.dark{color-scheme:dark;--paper:#0c1a15;--card:#10251e;--ink:#f2f7f4;--muted:#9db5a8;--line:#1e3a30;--shadow:0 1px 3px rgba(0,0,0,.45)}
+html.dark .live-lg,html.dark .league>h2{color:#8fe3ae}
+html.dark .seo a:hover{color:#8fe3ae}
+html.dark .lang button{border-color:rgba(255,255,255,.25)}
+
 /* sponsor banner (messistat.com) — one slim footer leaderboard, labeled, lazy */
 .ad-wrap{max-width:728px;margin:14px auto;padding:0 16px}
 .ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow)}
@@ -198,7 +205,7 @@ body.ads-off .ad-wrap{display:none}
   <div class="brand">
     <span class="ball">⚽</span>
     <div><h1 data-i18n="brand">Koora Live — Live Football Streams</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
-    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
+    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><button type="button" id="themeBtn" data-i18n-aria="themeToggle" aria-label="Toggle dark mode">🌙</button></div>
   </div>
 </header>
 <nav class="days" id="dayTabs" aria-label="Day" data-i18n-aria="chooseDay">
@@ -258,6 +265,7 @@ todayMatches: "Today's matches", ad: 'Ad',
     supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF',
     copyOk: 'Address copied', copyFail: 'Copy failed', copyBtn: 'Copy',
+themeToggle: 'Toggle dark mode',
     fq5: 'Can I watch on mobile?', fa5: 'Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.',
     fq6: 'What stream quality can I expect?', fa6: 'HD live football streams with live scores and minute-by-minute updates, free with no account needed.',
 seoH: "Today's Live Football Matches — Scores, Schedule & Streams",
@@ -288,6 +296,7 @@ todayMatches: 'Matchs du jour', ad: 'Pub',
     supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF',
     copyOk: 'Adresse copiée', copyFail: 'Copie impossible', copyBtn: 'Copier',
+themeToggle: 'Activer le mode sombre',
     fq5: 'Puis-je regarder sur mobile ?', fa5: 'Oui — le site est 100 % optimisé mobile et marche sur téléphone, tablette ou PC.',
     fq6: 'Quelle qualité de stream ?', fa6: 'Des streams de foot en direct en HD, scores en direct et minute par minute, gratuits et sans compte.',
 seoH: 'Matchs de foot en direct — scores et calendrier',
@@ -329,6 +338,7 @@ fq6: 'ما جودة البث المتوقعة؟', fa6: 'بث مباشر بجود
 supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانات أو بالتبرع.',
 adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة',
 copyOk: 'تم نسخ العنوان', copyFail: 'تعذّر النسخ', copyBtn: 'نسخ',
+themeToggle: 'تبديل الوضع الليلي',
 meta: {
 title: 'كورة لايف — مباريات اليوم بث مباشر بدون إعلانات',
 desc: 'مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة. جدول المباريات، النتائج المباشرة، والقنوات الناقلة.',
@@ -1724,6 +1734,45 @@ document.querySelector('#dayTabs')?.setAttribute('role', 'tablist');
 $$('#dayTabs button').forEach(b => { b.setAttribute('role', 'tab'); if (!b.hasAttribute('aria-selected')) b.setAttribute('aria-selected', b.classList.contains('on') ? 'true' : 'false'); });
 try { const ql = new URLSearchParams(location.search).get('league'); if (ql) LEAGUE = ql; } catch {}
 try { document.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => setLang(b.getAttribute('data-lang')); }); } catch {}
+
+/* Theme — dark mode. No saved choice follows the OS; the toggle persists. */
+function getTheme(){
+  try { const s = localStorage.getItem('koora_theme'); if (s === 'light' || s === 'dark') return s; } catch (e) {}
+  try { if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) return 'dark'; } catch (e) {}
+  return 'light';
+}
+function paintTheme(){
+  const dark = document.documentElement.classList.contains('dark');
+  try {
+    const b = document.getElementById('themeBtn');
+    if (b) b.textContent = dark ? '\u2600\ufe0f' : '\u{1F319}';
+    const mc = document.querySelector('meta[name="theme-color"]');
+    if (mc) mc.setAttribute('content', dark ? '#0c1a15' : '#071f19');
+  } catch (e) {}
+}
+function applyTheme(m){
+  try { document.documentElement.classList.toggle('dark', m === 'dark'); } catch (e) {}
+  paintTheme();
+}
+function setTheme(m){
+  const mode = m === 'dark' ? 'dark' : 'light';
+  applyTheme(mode);
+  try { localStorage.setItem('koora_theme', mode); } catch (e) {}
+}
+try {
+  applyTheme(getTheme());
+  const tb = document.getElementById('themeBtn');
+  if (tb) tb.onclick = () => setTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
+  try {
+    const mq = matchMedia('(prefers-color-scheme: dark)');
+    if (mq && mq.addEventListener) mq.addEventListener('change', e => {
+      let saved = null;
+      try { saved = localStorage.getItem('koora_theme'); } catch (er) {}
+      if (saved !== 'light' && saved !== 'dark') applyTheme(e.matches ? 'dark' : 'light');
+    });
+  } catch (e) {}
+} catch (e) {}
+
 loadDay('today');
 
 // #4: register service worker (ad-blocker + offline shell); no-op if unsupported

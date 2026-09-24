@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-24 (real-live minutes, theater removed — see CONTEXT 63).
+> Last updated: 2026-09-25 (dark mode on index — see CONTEXT 64).
+
+## 64. Dark mode for index (2026-09-25, user: "Dark mode !")
+
+- **Theme toggle (index only — player was already dark).** 🌙/☀️ button in
+  the header next to EN/FR/AR; choice persists in `koora_theme`, otherwise
+  follows the OS (`prefers-color-scheme`, incl. live switch). Pre-paint
+  head snippet = zero flash. `html.dark` variable swap (+ green headings
+  fix, `color-scheme`, theme-color meta sync). Translated aria-label ×3.
+- Verified: `node --check` on ALL inline blocks (incl. head snippet);
+  parity fr+ar 47/47; NEW theme functional test (default/persist/meta);
+  smoke/names/fotmob/clock/coverage all still green. Mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 63. Real-live minutes (dup killed, TDZ crash, FotMob crash, Latin lookups, stale clamp) + theater removed (2026-09-24, user: fill tab horrible + minute dogshit + screenshot)
 
@@ -1498,10 +1510,10 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§63 (3-language i18n, real-live minutes, GEO/ads/donate/
-   SEO, admin removed, 2026-09-24) pushed to `origin main` per owner order.**
-   Watch the Vercel deploy; spot-check live-minute rows (no duplication),
-   the FotMob section visible with lineups, EN/FR/AR toggle incl. RTL,
+5. **Batches §56–§64 (3-language i18n, dark mode, real-live minutes,
+   GEO/ads/donate/SEO, admin removed, 2026-09-24/25) pushed to `origin main`
+   per owner order.** Watch the Vercel deploy; spot-check dark toggle,
+   live-minute rows, FotMob section, EN/FR/AR toggle incl. RTL,
    and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
