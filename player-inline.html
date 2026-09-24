@@ -38,6 +38,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://site.api.espn.com">
+<link rel="preconnect" href="https://images.fotmob.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* KOORA-OWN-v1 player: same pitch-night identity as index. */
@@ -285,6 +287,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
   text-align:center;border:1px solid var(--line)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
+button{touch-action:manipulation}
 /* sponsor banner (messistat.com) — one slim footer leaderboard, labeled, lazy */
 .ad-wrap{max-width:728px;margin:12px auto 0}
 .ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card)}
@@ -293,6 +296,21 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .lang{display:flex;gap:6px;flex:none}
 .lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
 .disclaimer{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
+.kstats{display:flex;gap:8px;margin-bottom:10px}
+.kstat{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;background:var(--pitch)}
+.kstat span{display:block;font-size:15px;font-weight:900}
+.kstat b{display:block;font-size:10px;color:var(--muted);font-weight:700;margin-top:2px}
+.ev-half{font-size:11px;font-weight:900;color:var(--muted);margin:10px 0 2px;display:flex;align-items:center;gap:8px}
+.ev-half::after{content:"";flex:1;height:1px;background:var(--line)}
+body.theater{overflow:hidden}
+body.theater .wrap{max-width:none}
+body.theater .wrap>:not(.stage):not(.theater-exit){display:none!important}
+body.theater .stage{position:fixed;inset:0;z-index:60;border:0;border-radius:0;aspect-ratio:auto}
+.theater-exit{display:none;position:fixed;top:calc(10px + env(safe-area-inset-top));inset-inline-end:10px;z-index:61;font-family:var(--font);width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:18px;font-weight:900;cursor:pointer}
+body.theater .theater-exit{display:inline-flex;align-items:center;justify-content:center}
+.btn.on{background:var(--grass);color:#04120c}
+@media (max-width:420px){.controls{flex-wrap:wrap}.controls .btn{flex:1 1 30%}}
+
 .lang button.on{background:var(--grass);color:#04120c;border-color:var(--grass)}
 
 /* support card: donations + ad toggle (extensible: any .ad-wrap[data-ad-slot] obeys body.ads-off) */
@@ -329,6 +347,7 @@ body.ads-off .ad-wrap{display:none}
       </div>
     </div>
   </div>
+  <button class="theater-exit" id="theaterExit" type="button" aria-label="Exit">✕</button>
   <div class="disclaimer" data-i18n="commentaryNote">🔊 Commentary in Arabic</div>
   <div class="mcard" id="matchCard" hidden>
     <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="fav">&#9734;</button></div>
@@ -344,6 +363,7 @@ body.ads-off .ad-wrap{display:none}
   <p class="src-note" id="srcNote" hidden></p>
   <div class="controls">
     <button class="btn" id="btnFull" data-i18n="fullscreen">⛶ Fullscreen</button>
+    <button class="btn" id="btnTheater" data-i18n="theater">❐ Fill tab</button>
     <button class="btn ghost" id="btnReload" data-i18n="reload">⟳ Reload</button>
     <button class="btn ghost" id="btnShare" aria-label="share">&#128279;</button>
     <button class="btn ghost" id="btnBell" aria-label="notifications">&#128276;</button>
@@ -435,6 +455,8 @@ homeAlt: 'Home team logo', awayAlt: 'Away team logo',
 srcTitle: '📡 Stream sources', searching: 'Searching for servers…',
 fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked',
 commentaryNote: '🔊 Commentary in Arabic',
+theater: '❐ Fill tab',
+updatedAgo: (s) => 'updated ' + s + 's ago',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
     supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF', copyBtn: 'Copy',
@@ -484,6 +506,8 @@ homeAlt: 'Logo de l’équipe domicile', awayAlt: 'Logo de l’équipe extérieu
 srcTitle: '📡 Sources du stream', searching: 'Recherche de serveurs…',
 fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués',
 commentaryNote: '🔊 Commentaires en arabe',
+theater: '❐ Remplir l’onglet',
+updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
     supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF', copyBtn: 'Copier',
@@ -533,6 +557,8 @@ homeAlt: 'شعار الفريق المضيف', awayAlt: 'شعار الفريق �
 srcTitle: '📡 مصادر البث', searching: 'جاري البحث عن السيرفرات…',
 fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', blocked: 'محظور',
 commentaryNote: '🔊 التعليق باللغة العربية',
+theater: '❐ ملء التبويب',
+updatedAgo: (s) => 'تم التحديث قبل ' + s + ' ث',
 minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', ad: 'إعلان',
 live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
 favAdd: 'أضيفت إلى المفضلة', favRemove: 'أزيلت إلى المفضلة',
@@ -2079,7 +2105,15 @@ document.getElementById('btnLike').onclick = () => likeToggle();
 document.getElementById('starH').onclick = () => favToggle(home);
 document.getElementById('starA').onclick = () => favToggle(away);
 document.getElementById('btnBell').onclick = () => bellToggle();
+
+document.getElementById('btnTheater').onclick = () => {
+  const on = document.body.classList.toggle('theater');
+  try { document.getElementById('btnTheater').classList.toggle('on', on); } catch (e) {}
+};
+document.getElementById('theaterExit').onclick = () => document.body.classList.remove('theater');
+document.addEventListener('keydown', e => { if (e && e.key === 'Escape' && document.body.classList.contains('theater')) document.body.classList.remove('theater'); });
 document.getElementById('btnShare').onclick = async () => {
+
   const url = location.href;
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(url);
@@ -2209,7 +2243,22 @@ function miArmTimer(){
     }, 60000);
   }
 }
+
+let miUpdatedAt = 0;
+function paintMinfoMeta(){
+  try {
+    const el = document.getElementById('minfoSrc');
+    if (!el || !miData) return;
+    const d = miData;
+    const secs = Math.max(0, Math.round((Date.now() - (miUpdatedAt || Date.now())) / 1000));
+    el.textContent = (d.league ? d.league + ' \u2022 ' : '') + 'FotMob' +
+      ((d.started && !d.finished) ? ' \u2022 ' + t('statusLiveNow') : '') +
+      ' \u2022 ' + t('updatedAgo')(secs);
+  } catch (e) {}
+}
+setInterval(() => { try { if (!document.hidden && miData && !miData.finished) paintMinfoMeta(); } catch (e) {} }, 15000);
 async function miFetch(){
+
   const q = new URLSearchParams({ home, away, start: startP, lg: leagueP });
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), 12000);
@@ -2257,7 +2306,7 @@ async function loadMatchInfo(){
     const d = await miFetch();
     if (!d || !d.found) throw 0;
     miData = d;
-    document.getElementById('minfoSrc').textContent = (d.league ? d.league + ' • ' : '') + 'FotMob';
+    paintMinfoMeta();
     if (!renderMi()) throw 0;
     paintExactStatus(d);
     miArmTimer();
@@ -2269,7 +2318,7 @@ async function miRefresh(){
     const d = await miFetch();
     if (!d || !d.found) return;
     miData = d;
-    document.getElementById('minfoSrc').textContent = (d.league ? d.league + ' • ' : '') + 'FotMob';
+    paintMinfoMeta();
     closeMiPop();
     renderMi();
     paintExactStatus(d);
@@ -2283,7 +2332,32 @@ function miEvIcon(e){
   if (e.kind === 'sub') return '🔄';
   return '•';
 }
+
+/* FotMob extras: key-stat hero (possession/xG/shots), half-grouped events. */
+function keyHero(curStats){
+  try {
+    const find = (re) => (curStats || []).find(s => re.test(s.title || ''));
+    const card = (s) => s ? `<div class="kstat"><span>${esc(decFull(s.home))}</span><b>${esc(decFull(s.title))}</b><span>${esc(decFull(s.away))}</span></div>` : '';
+    const parts = [find(/possession/i), find(/expected goals|^xg$/i), find(/total shots/i) || find(/shots(?!.*target)/i)].map(card).join('');
+    return parts ? `<div class="kstats">${parts}</div>` : '';
+  } catch (e) { return ''; }
+}
+function evMinNum(e){
+  try { const m = String((e && e.min) || '').match(/(\d{1,3})/); return m ? +m[1] : 45; } catch (er) { return 45; }
+}
+function evRow(e){
+  return `<div class="ev" data-kind="${e.kind}"><span class="mn">${esc(decFull(e.min))}</span><span class="ic">${miEvIcon(e)}</span><span class="nm">${esc(decFull(e.player))}${e.detail ? ' <small class="sub">(' + esc(decFull(e.detail)) + ')</small>' : ''}</span><span class="sc">${esc(e.score)}</span></div>`;
+}
+function miEvGroups(rows){
+  try {
+    const g1 = rows.filter(e => evMinNum(e) <= 45), g2 = rows.filter(e => evMinNum(e) > 45);
+    if (g1.length && g2.length)
+      return `<div class="ev-half">${t('per1H')}</div>` + g1.map(evRow).join('') + `<div class="ev-half">${t('per2H')}</div>` + g2.map(evRow).join('');
+    return rows.map(evRow).join('');
+  } catch (e) { try { return rows.map(evRow).join(''); } catch (e2) { return ''; } }
+}
 function renderMi(){
+
   const box = document.getElementById('minfo'), body = document.getElementById('minfoBody');
   const d = miData;
   if (!d || !body) return false;
@@ -2401,7 +2475,7 @@ function renderMi(){
       ? `<div class="fchips" role="group" aria-label="${t('period')}">` + perKeys.map(k =>
         `<button type="button" class="fchip" data-per="${k}" aria-pressed="${k === miPeriod}">${perName[k] || k}</button>`).join('') + `</div>`
       : '';
-    statsHtml = '<h3>' + t('stats') + '</h3>' + perHtml + curStats.map(s => {
+    statsHtml = '<h3>' + t('stats') + '</h3>' + keyHero(curStats) + perHtml + curStats.map(s => {
       const hn = statNum(s.home), an = statNum(s.away);
       let hw = 50, aw = 50;
       if (hn != null && an != null && (hn + an) > 0){ hw = Math.round(hn / (hn + an) * 100); aw = 100 - hw; }
@@ -2416,9 +2490,7 @@ function renderMi(){
     evHtml = '<h3>' + t('events') + '</h3>'
       + `<div class="fchips" role="group" aria-label="${t('evFilter')}">` + fDefs.map(f =>
         `<button type="button" class="fchip" data-f="${f[0]}" aria-pressed="${miEvFilter === f[0]}">${f[1]}</button>`).join('') + `</div>`
-      + (rows.length ? rows.map(e =>
-        `<div class="ev" data-kind="${e.kind}"><span class="mn">${esc(decFull(e.min))}</span><span class="ic">${miEvIcon(e)}</span><span class="nm">${esc(decFull(e.player))}${e.detail ? ' <small class="sub">(' + esc(decFull(e.detail)) + ')</small>' : ''}</span><span class="sc">${esc(e.score)}</span></div>`
-      ).join('') : t('evEmpty'));
+      + (rows.length ? miEvGroups(rows) : t('evEmpty'));
   }
   if (!scoreHtml && !topHtml && !statsHtml && !pitchHtml && !listsHtml && !evHtml) return false;
   // --- sticky tabs: overview (score+top+stats) / lineups (pitch+lists) / events ---
@@ -2442,6 +2514,7 @@ function renderMi(){
   body.querySelectorAll('.pdot').forEach(b => {
     b.onclick = (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); openMiPop(b); };
   });
+  miUpdatedAt = Date.now(); paintMinfoMeta();
   return true;
 }
 function closeMiPop(){

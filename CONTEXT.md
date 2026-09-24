@@ -4,7 +4,29 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-24 (auto-transliteration + commentary disclaimer — see CONTEXT 61).
+> Last updated: 2026-09-24 (mobile/speed, FotMob+, admin removed, theater mode — see CONTEXT 62).
+
+## 62. Mobile/speed polish, FotMob+, admin removed, theater fill-tab (2026-09-24, user batch)
+
+- **Mobile.** `touch-action:manipulation` on all buttons (kills tap delay),
+  controls row wraps on ≤420px screens (5 buttons now), theater CSS is
+  viewport-safe (`fixed inset-0`, safe-area exit button).
+- **Speed.** Preconnect hints (ESPN API both pages, FotMob images on player),
+  `decoding="async"` on index logos, `content-visibility:auto` on index
+  league groups + arab filler (intrinsic sizes set, no scrollbar jump).
+- **FotMob+ (data already on hand, no API change).** Key-stat hero strip
+  (possession/xG/total-shots auto-detected from stat titles) atop stats;
+  header meta line (`league • FotMob • Live • updated Ns ago`, 15s ticker,
+  stops at FT); events grouped under 1st/2nd-half dividers (flat when one
+  half or filtered-empty). New keys `theater`/`updatedAgo` ×3.
+- **Admin page DELETED** (`git rm dzt3ch456.html`, robots disallow dropped).
+  Supabase analytics stays — likes/views tracking on both pages uses it.
+- **Theater mode (the fill-tab button).** New `❐ Fill tab` control + floating
+  ✕ + Esc: video fills the browser tab, page chrome hides, stream keeps
+  playing (no Fullscreen API, no reload). Exit to switch servers.
+- Verified: `node --check` ×2; parity fr+ar (46/46, 105/105); smoke;
+  functional incl. new hero/groups/meta asserts; static-0; coverage 100%.
+  Mirrors zero-diff. **Pushed** to `origin main` (Vercel deploys).
 
 ## 61. Auto-transliteration fallback + Arabic-commentary disclaimer (2026-09-24, user: "autop translkate the feed script..." + "add disclaimer that the commentary is arabic")
 
@@ -1449,10 +1471,11 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§61 (3-language i18n, auto-translation, commentary note,
-   GEO/ads/donate/SEO, 2026-09-24) pushed to `origin main` per owner order.**
-   Watch the Vercel deploy; spot-check the EN/FR/AR toggle incl. RTL layout,
-   translated names, disclaimer, support card, and `/api/sitemap` XML live.
+5. **Batches §56–§62 (3-language i18n, auto-translation, theater, GEO/ads/
+   donate/SEO, admin removed, 2026-09-24) pushed to `origin main` per owner
+   order.** Watch the Vercel deploy; spot-check the EN/FR/AR toggle incl.
+   RTL layout, translated names, disclaimer, theater mode, support card,
+   and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
