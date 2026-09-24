@@ -4,7 +4,18 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-25 (dark mode on index — see CONTEXT 64).
+> Last updated: 2026-09-25 (upstream time leaks killed — see CONTEXT 65).
+
+## 65. Raw Arabic time leaks killed (2026-09-25, user screenshot: ended row showed raw "انتهت" over translated "FT")
+
+- **Root cause.** Ended rows painted raw upstream `time_text` (often the
+  Arabic word) above the translated FT. Ended rows now show score + FT, or
+  translated FT alone — never raw feed text. Same guard on upcoming rows
+  (translated "Upcoming" fallback) and all three player-card time slots via
+  new `dispTime()` (Arabic-script detector). New `upcoming` key ×3.
+- Verified: clock unit test extended (score+FT, bare-FT, Arabic-junk time,
+  zero Arabic in rendered rows); full suite green. Mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 64. Dark mode for index (2026-09-25, user: "Dark mode !")
 
@@ -1510,11 +1521,11 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§64 (3-language i18n, dark mode, real-live minutes,
-   GEO/ads/donate/SEO, admin removed, 2026-09-24/25) pushed to `origin main`
-   per owner order.** Watch the Vercel deploy; spot-check dark toggle,
-   live-minute rows, FotMob section, EN/FR/AR toggle incl. RTL,
-   and `/api/sitemap` XML live.
+5. **Batches §56–§65 (3-language i18n, dark mode, real-live minutes,
+   zero-leak rows, GEO/ads/donate/SEO, admin removed, 2026-09-24/25) pushed
+   to `origin main` per owner order.** Watch the Vercel deploy; spot-check
+   ended rows (score + FT, no Arabic), dark toggle, live minutes, FotMob,
+   EN/FR/AR toggle incl. RTL, and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 

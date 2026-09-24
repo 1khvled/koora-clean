@@ -1151,7 +1151,12 @@ function dispTeam(n){
   try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
   return trAr(n);
 }
+function dispTime(s){
+  const x = String(s == null ? '' : s).trim();
+  return /[\u0600-\u06FF]/.test(x) ? '' : x;
+}
 function dispLeague(n){
+
   if (n == null || n === '') return n == null ? '' : n;
   if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const e = LEAGUEN[normKey(n)]; if (e) return LANG === 'fr' ? e[1] : e[0]; } catch (er) {}
@@ -1848,18 +1853,18 @@ function paintMatch(h, a, hl, al, lg){
   if (isEndedP()){
     stEl.textContent = t('ended');
     stEl.classList.remove('live');
-    tmEl.textContent = (shP !== '' && saP !== '') ? `${shP} - ${saP}` : (timeP || '').trim();
+    tmEl.textContent = (shP !== '' && saP !== '') ? `${shP} - ${saP}` : dispTime(timeP);
   } else if (isLiveP()){
     stEl.textContent = t('live');
     stEl.classList.add('live');
     // Stale timeP must not shadow a fused minute (anchored upstream →
     // FotMob exact → wall map).
     const hm = headerMinute();
-    tmEl.textContent = (hm && hm.min != null) ? fmtMin(hm) : (hm && hm.brk) ? t('break') : (timeP || '').trim() || '•';
+    tmEl.textContent = (hm && hm.min != null) ? fmtMin(hm) : (hm && hm.brk) ? t('break') : dispTime(timeP) || '•';
   } else {
     stEl.textContent = t('upcoming');
     stEl.classList.remove('live');
-    tmEl.textContent = (timeP || '').trim();
+    tmEl.textContent = dispTime(timeP);
   }
 }
 /* boot() below paints after the short-link snapshot resolves. */
