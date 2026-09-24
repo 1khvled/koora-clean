@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-24 (100% name coverage from live data — see CONTEXT 60).
+> Last updated: 2026-09-24 (auto-transliteration + commentary disclaimer — see CONTEXT 61).
+
+## 61. Auto-transliteration fallback + Arabic-commentary disclaimer (2026-09-24, user: "autop translkate the feed script..." + "add disclaimer that the commentary is arabic")
+
+- **Auto-translate fallback (`trAr`, both pages).** Dictionary hits always
+  win; any upstream name missing from the 477-team/79-league dict now
+  auto-transliterates to readable Latin at display time (EN/FR) instead of
+  showing Arabic script — no build step, works for any future name. Latin
+  input passes through untouched (no `KVZ`→`Kvz` corruption); AR mode stays
+  raw. Search/JSON-LD inherit it automatically.
+- **Disclaimer (player page).** Slim note under the video stage, translated
+  ×3: "🔊 Commentary in Arabic" / "Commentaires en arabe" / "التعليق
+  باللغة العربية" (`commentaryNote` key, `applyStatic` handles switching).
+- Verified: `node --check` ×2; parity fr+ar (46/46, 103/103); smoke;
+  functional incl. `trAr` asserts + AR passthrough; static-0; live coverage
+  still 100.0%. Mirrors zero-diff. **Pushed** to `origin main`.
 
 ## 60. Full match-name translation: national teams + leagues from live API (2026-09-24, user: "even matches names try and translate them like full translation")
 
@@ -1434,10 +1449,10 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§60 (3-language i18n, 100% name coverage, GEO/ads/donate/
-   SEO, 2026-09-24) pushed to `origin main` per owner order.** Watch the
-   Vercel deploy; spot-check the EN/FR/AR toggle incl. RTL layout, translated
-   national-team names, support card, and `/api/sitemap` XML live.
+5. **Batches §56–§61 (3-language i18n, auto-translation, commentary note,
+   GEO/ads/donate/SEO, 2026-09-24) pushed to `origin main` per owner order.**
+   Watch the Vercel deploy; spot-check the EN/FR/AR toggle incl. RTL layout,
+   translated names, disclaimer, support card, and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
