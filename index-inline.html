@@ -258,6 +258,7 @@ brand: 'Koora Live — Live Football Streams', tagline: 'Clean streams, no popup
 chooseDay: 'Choose day', yesterday: 'Yesterday', today: 'Today', tomorrow: 'Tomorrow',
 searchPh: 'Search team or league…', loading: 'Loading matches…', liveNow: 'Live now',
 empty: 'No matches match your search', all: 'All', favorites: 'Favorites',
+upcoming: 'Upcoming',
 live: 'Live', halfBreak: 'HT', ended: 'FT', vs: 'vs', sport: 'Football',
 otherLeagues: 'Other competitions', hiddenLeagues: 'Other Arab leagues — hidden',
 loadFail: "Couldn't load matches — check your connection", goal: 'Goal',
@@ -289,6 +290,7 @@ brand: 'Koora Live — Foot en direct', tagline: 'Streams propres, sans popups',
 chooseDay: 'Choisir le jour', yesterday: 'Hier', today: "Aujourd'hui", tomorrow: 'Demain',
 searchPh: 'Rechercher une équipe ou une compétition…', loading: 'Chargement des matchs…', liveNow: 'En direct',
 empty: 'Aucun match pour votre recherche', all: 'Tout', favorites: 'Favoris',
+upcoming: 'À venir',
 live: 'Direct', halfBreak: 'MT', ended: 'Terminé', vs: 'vs', sport: 'Football',
 otherLeagues: 'Autres compétitions', hiddenLeagues: 'Autres ligues arabes — masquées',
 loadFail: 'Chargement impossible — vérifiez votre connexion', goal: 'But',
@@ -320,6 +322,7 @@ brand: 'كورة لايف — مباريات اليوم بث مباشر', taglin
 chooseDay: 'اختر اليوم', yesterday: 'أمس', today: 'اليوم', tomorrow: 'الغد',
 searchPh: 'ابحث عن فريق أو بطولة…', loading: 'جاري تحميل المباريات…', liveNow: 'جارية الآن',
 empty: 'لا توجد مباريات مطابقة لبحثك', all: 'الكل', favorites: 'المفضلة',
+upcoming: 'لم تبدأ',
 live: 'مباشر', halfBreak: 'استراحة', ended: 'انتهت', vs: 'ضد', sport: 'كرة القدم',
 otherLeagues: 'بطولات أخرى', hiddenLeagues: 'دوريات عربية أخرى — مخفية',
 loadFail: 'تعذّر تحميل المباريات — تحقق من الاتصال', goal: 'هدف',
@@ -892,7 +895,12 @@ function dispTeam(n){
   try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
   return trAr(n);
 }
+function dispTime(s){
+  const x = String(s == null ? '' : s).trim();
+  return /[\u0600-\u06FF]/.test(x) ? '' : x;
+}
 function dispLeague(n){
+
   if (n == null || n === '') return n == null ? '' : n;
   if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const e = LEAGUEN[normKey(n)]; if (e) return LANG === 'fr' ? e[1] : e[0]; } catch (er) {}
@@ -1622,8 +1630,13 @@ function rowCard(m){
     if (st.min != null){ top = st.min; sub = t('live'); subCls = 'live'; }
     else if (st.brk){ top = t('halfBreak'); }
     else { top = '•'; sub = t('live'); subCls = 'live'; }
-  } else if (isEnded(m)){ top = tx((m.time_text || '').trim()) || '–'; sub = t('ended'); }
-  else { top = tx((m.time_text || '').trim()) || '–'; }
+  } else if (isEnded(m)){
+    const tt = dispTime(m.time_text);
+    if (sh !== '' && sa !== ''){ top = sh + ' - ' + sa; sub = t('ended'); }
+    else if (tt){ top = tt; sub = t('ended'); }
+    else { top = t('ended'); }
+  }
+  else { top = dispTime(m.time_text) || t('upcoming'); }
   const subHtml = sub ? `<div class="s ${subCls}">${tx(sub)}</div>` : '';
   return `<a class="m${live ? ' is-live' : ''}${GOAL_IDS.includes(m.id) ? ' flash' : ''}" href="${playerLink(m)}">
     <div class="st"><div class="t">${top}</div>${subHtml}</div>
