@@ -10,10 +10,12 @@
 <link rel="canonical" href="https://kooraadz.vercel.app/">
 <link rel="alternate" hreflang="en" href="https://kooraadz.vercel.app/">
 <link rel="alternate" hreflang="fr" href="https://kooraadz.vercel.app/?lang=fr">
+<link rel="alternate" hreflang="ar" href="https://kooraadz.vercel.app/?lang=ar">
 <link rel="alternate" hreflang="x-default" href="https://kooraadz.vercel.app/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="ar_AR">
 <meta property="og:site_name" content="Koora Live">
 <meta property="og:title" content="Koora Live — Today's matches live">
 <meta property="og:description" content="Today's football live: clean HD streams with no annoying popups.">
@@ -194,7 +196,7 @@ body.ads-off .ad-wrap{display:none}
   <div class="brand">
     <span class="ball">⚽</span>
     <div><h1 data-i18n="brand">Koora Live — Live Football Streams</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
-    <div class="lang" role="group" aria-label="Language / Langue"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button></div>
+    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
   </div>
 </header>
 <nav class="days" id="dayTabs" aria-label="Day" data-i18n-aria="chooseDay">
@@ -301,7 +303,37 @@ desc: 'Matchs de foot du jour en direct : horaires, scores en direct et streams 
 ogTitle: 'Koora Live — Matchs du jour en direct',
 ogDesc: 'Le foot en direct : des streams HD propres, sans popups agaçants.'
 }
+},
+ar: {
+brand: 'كورة لايف — مباريات اليوم بث مباشر', tagline: 'بث نظيف بدون إعلانات',
+chooseDay: 'اختر اليوم', yesterday: 'أمس', today: 'اليوم', tomorrow: 'الغد',
+searchPh: 'ابحث عن فريق أو بطولة…', loading: 'جاري تحميل المباريات…', liveNow: 'جارية الآن',
+empty: 'لا توجد مباريات مطابقة لبحثك', all: 'الكل', favorites: 'المفضلة',
+live: 'مباشر', halfBreak: 'استراحة', ended: 'انتهت', vs: 'ضد', sport: 'كرة القدم',
+otherLeagues: 'بطولات أخرى', hiddenLeagues: 'دوريات عربية أخرى — مخفية',
+loadFail: 'تعذّر تحميل المباريات — تحقق من الاتصال', goal: 'هدف',
+todayMatches: 'مباريات اليوم', ad: 'إعلان',
+seoH: 'مباريات اليوم بث مباشر',
+seoP: 'جدول مباريات اليوم محدث باستمرار: مواعيد مباريات والنتائج لحظة بلحظة لأهم الدورييات.',
+seoSuffix: 'مباشر اليوم والنتائج لحظة بلحظة.',
+seoCta: 'اختر المباراة من القائمة لفتح صفحة البث.',
+faqH: 'أسئلة شائعة',
+fq1: 'كيف أشاهد؟', fa1: 'اختر المباراة من القائمة لفتح البث.',
+fq2: 'هل البث مجاني؟', fa2: 'نعم — كل البثوث المعروضة مجانية.',
+fq3: 'ما البطولات المغطاة؟', fa3: 'الدوري الإنجليزي، الإسباني، الإيطالي، السعودي ودوري أبطال أوروبا.',
+fq4: 'لماذا تتغير الدقيقة باستمرار؟', fa4: 'الدقيقة تجمع البث المباشر مع مواعيد انطلاق المباريات وتتحدث تلقائياً.',
+fq5: 'هل يمكنني المشاهدة على الهاتف؟', fa5: 'نعم — الموقع متوافق تماماً مع الهواتف ويعمل على أي هاتف أو لوحي أو كمبيوتر.',
+fq6: 'ما جودة البث المتوقعة؟', fa6: 'بث مباشر بجودة عالية مع نتائج لحظة بلحظة وتحديث الدقائق، مجاني وبدون حساب.',
+supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانات أو بالتبرع.',
+adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة',
+copyOk: 'تم نسخ العنوان', copyFail: 'تعذّر النسخ', copyBtn: 'نسخ',
+meta: {
+title: 'كورة لايف — مباريات اليوم بث مباشر بدون إعلانات',
+desc: 'مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة. جدول المباريات، النتائج المباشرة، والقنوات الناقلة.',
+ogTitle: 'كورة لايف — مباريات اليوم بث مباشر',
+ogDesc: 'مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة.'
 }
+},
 };
 let LANG = 'en';
 function t(k){ const d = I18N[LANG] || I18N.en; const v = d[k]; return v !== undefined ? v : (I18N.en[k] !== undefined ? I18N.en[k] : k); }
@@ -322,13 +354,13 @@ const twD = document.querySelector('meta[name="twitter:description"]'); if (twD)
 const st = document.getElementById('static-jsonld');
 if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [
 { '@type': 'Organization', '@id': 'https://kooraadz.vercel.app/#org', name: 'Koora Live', url: 'https://kooraadz.vercel.app/', logo: 'https://kooraadz.vercel.app/icon-512.png' },
-{ '@type': 'WebSite', '@id': 'https://kooraadz.vercel.app/#site', url: 'https://kooraadz.vercel.app/', name: 'Koora Live', inLanguage: [LANG, LANG === 'fr' ? 'en' : 'fr'], publisher: { '@id': 'https://kooraadz.vercel.app/#org' }, potentialAction: { '@type': 'SearchAction', target: 'https://kooraadz.vercel.app/?q={search_term_string}', 'query-input': 'required name=search_term_string' } }
+{ '@type': 'WebSite', '@id': 'https://kooraadz.vercel.app/#site', url: 'https://kooraadz.vercel.app/', name: 'Koora Live', inLanguage: ['en', 'fr', 'ar'], publisher: { '@id': 'https://kooraadz.vercel.app/#org' }, potentialAction: { '@type': 'SearchAction', target: 'https://kooraadz.vercel.app/?q={search_term_string}', 'query-input': 'required name=search_term_string' } }
 ]});
 }
 function setLang(l, save){
 if (!I18N[l]) return;
 LANG = l;
-try { document.documentElement.lang = l; document.documentElement.dir = 'ltr'; } catch (e) {}
+try { document.documentElement.lang = l; document.documentElement.dir = (l === 'ar' ? 'rtl' : 'ltr'); } catch (e) {}
 if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
 try { applyStatic(); updateMeta(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
@@ -341,14 +373,15 @@ const q0 = new URLSearchParams(location.search).get('lang');
 let s0 = null; try { s0 = localStorage.getItem('koora_lang'); } catch (e) {}
 if (q0 && I18N[q0]) init = q0;
 else if (s0 && I18N[s0]) init = s0;
-else if ((navigator.language || '').toLowerCase().indexOf('fr') === 0) init = 'fr';
+else { const nl = (navigator.language || '').toLowerCase(); if (nl.indexOf('fr') === 0) init = 'fr'; else if (nl.indexOf('ar') === 0) init = 'ar'; }
 } catch (e) {}
 setLang(init, false);
 } catch (e) {}
 /* I18N-GEO — country-based default language: French-speaking countries start
    in French on first visit. Explicit ?lang= or a saved choice always wins.
    IP-based (no permission prompt); cached 7 days; fail-silent. */
-const GEO_FR = new Set('FR BE CH LU MC DZ MA TN SN CI CM ML BF NE TD CG CD GA BJ TG GN MR DJ KM MG RW BI CF GQ VU NC PF HT RE GP MQ GF YT PM WF TF MU SC'.split(' '));
+const GEO_FR = new Set('FR BE CH LU MC SN CI CM ML BF NE TD CG CD GA BJ TG GN MG RW BI CF GQ VU NC PF HT RE GP MQ GF YT PM WF TF MU SC'.split(' '));
+const GEO_AR = new Set('DZ MA TN MR LY EG SD SO DJ KM YE SY IQ JO LB PS KW SA QA BH OM AE'.split(' '));
 let GEO_LOCK = false;
 try { GEO_LOCK = !!localStorage.getItem('koora_lang'); } catch (e) {}
 try { if (new URLSearchParams(location.search).get('lang')) GEO_LOCK = true; } catch (e) {}
@@ -368,6 +401,7 @@ function geoApply(cc){
   if (!/^[A-Z]{2}$/.test(c)) return;
   geoSave(c);
   if (GEO_FR.has(c) && LANG !== 'fr'){ GEO_LOCK = true; try { setLang('fr'); } catch (e) {} }
+  else if (GEO_AR.has(c) && LANG !== 'ar'){ GEO_LOCK = true; try { setLang('ar'); } catch (e) {} }
 }
 (function geoLang(){
   if (GEO_LOCK) return;
@@ -604,11 +638,13 @@ const LEAGUEN = {};
 try { for (const k in LEAGUEMAP) LEAGUEN[normKey(k)] = LEAGUEMAP[k]; } catch (e) {}
 function dispTeam(n){
   if (n == null || n === '') return n == null ? '' : n;
+  if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
   return n;
 }
 function dispLeague(n){
   if (n == null || n === '') return n == null ? '' : n;
+  if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const e = LEAGUEN[normKey(n)]; if (e) return LANG === 'fr' ? e[1] : e[0]; } catch (er) {}
   return n;
 }
@@ -1334,7 +1370,7 @@ function rowCard(m){
       <div class="t">${logoImg(m.home_logo, dispTeam(m.home))}<span>${tx(dispTeam(m.home || ''))}</span><b>${sh}</b></div>
       <div class="t">${logoImg(m.away_logo, dispTeam(m.away))}<span>${tx(dispTeam(m.away || ''))}</span><b>${sa}</b></div>
     </div>
-    <div class="go">›</div>
+    <div class="go">${LANG === 'ar' ? '‹' : '›'}</div>
   </a>`;
 }
 

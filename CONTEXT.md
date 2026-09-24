@@ -4,7 +4,26 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-24 (batch: GEO language, keywords, ads toggle, donate, SEO — see CONTEXT 58).
+> Last updated: 2026-09-24 (3 languages EN/FR/AR + RTL — see CONTEXT 59).
+
+## 59. Third language AR restored: full EN/FR/AR + RTL (2026-09-24, user: "bro fully translate into the 3 languages")
+
+- **AR dictionary restored from the original pre-i18n site** (`ar:` block both
+  pages, 46 keys index / 102 player, exact original strings incl. `ضد`,
+  `انتهت`, `مباشر`, `سيرفر N`, toasts). Header toggle is now EN/FR/AR;
+  `setLang('ar')` flips `dir` to `rtl` (+ row arrow `›`→`‹`, logical CSS
+  adapts). `dispTeam`/`dispLeague` pass raw Arabic through in AR mode, so
+  names/statuses read exactly like the old site.
+- **GEO split:** Arab-League states (DZ MA TN MR LY EG SD SO DJ KM YE SY
+  IQ JO LB PS KW SA QA BH OM AE) → Arabic; FR/BE/CH/LU/MC + francophone
+  sub-Saharan + HT + French territories → French. Navigator `ar*` also
+  auto-selects Arabic. Saved/`?lang=` still wins.
+- **SEO trilingual:** `hreflang ar` alternates in both page heads, `og:locale`
+  `ar_AR` alternate, schema `inLanguage: ['en','fr','ar']`, sitemap
+  `xhtml:link hreflang=ar` per URL (live-run verified, valid XML).
+- Verified: `node --check` ×2; parity fr+ar 46/46 + 102/102; smoke incl.
+  AR/dir-rtl asserts; static audit 0; names-functional incl. AR
+  passthrough. Mirrors zero-diff. **Pushed** to `origin main`.
 
 ## 58. GEO language + keyword H1/H2 + ads toggle + donate + SEO extras (2026-09-24, user batch + "and push")
 
@@ -1398,10 +1417,10 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§58 (EN/FR i18n, display translation, GEO/ads/donate/SEO,
-   2026-09-24) pushed to `origin main` per owner order.** Watch the Vercel
-   deploy; spot-check FR toggle, geo default, translated names, support
-   card, and `/api/sitemap` XML live.
+5. **Batches §56–§59 (3-language i18n, display translation, GEO/ads/donate/
+   SEO, 2026-09-24) pushed to `origin main` per owner order.** Watch the
+   Vercel deploy; spot-check the EN/FR/AR toggle incl. RTL layout, geo
+   default, translated names, support card, and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 

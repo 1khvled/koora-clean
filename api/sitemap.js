@@ -82,9 +82,11 @@ export default async function handler(req, res) {
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml">']
     .concat(urls.map(u => {
       const fr = u.loc + (u.loc.includes('?') ? '&' : '?') + 'lang=fr';
+      const ar = u.loc + (u.loc.includes('?') ? '&' : '?') + 'lang=ar';
       return '  <url><loc>' + esc(u.loc) + '</loc>' +
         '<xhtml:link rel="alternate" hreflang="en" href="' + esc(u.loc) + '"/>' +
         '<xhtml:link rel="alternate" hreflang="fr" href="' + esc(fr) + '"/>' +
+        '<xhtml:link rel="alternate" hreflang="ar" href="' + esc(ar) + '"/>' +
         '<xhtml:link rel="alternate" hreflang="x-default" href="' + esc(u.loc) + '"/>' +
         (u.imgs ? u.imgs.map(src => '<image:image><image:loc>' + esc(src) + '</image:loc></image:image>').join('') : '') +
         (u.lastmod ? '<lastmod>' + u.lastmod + '</lastmod>' : '') +
