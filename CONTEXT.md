@@ -4,7 +4,34 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-24 (full display translation, see CONTEXT 57).
+> Last updated: 2026-09-24 (batch: GEO language, keywords, ads toggle, donate, SEO — see CONTEXT 58).
+
+## 58. GEO language + keyword H1/H2 + ads toggle + donate + SEO extras (2026-09-24, user batch + "and push")
+
+- **GEO language (`I18N-GEO`, both pages).** First visit with no saved/`?lang=`
+  choice: instant navigator-based default, then async IP-country lookup
+  (Cloudflare trace `loc=`, fallback ipapi.co, 2.5s caps, 7-day cache) —
+  French-speaking countries auto-switch to French. Saved/`?lang=` always
+  wins; fail-silent everywhere. IP-based = no permission prompt
+  (Permissions-Policy `geolocation=()` untouched — that's GPS, unused).
+- **Keyword H1/H2.** Index H1 → "Koora Live — Live Football Streams" /
+  "Koora Live — Foot en direct"; SEO H2 → "Today's Live Football Matches —
+  Scores, Schedule & Streams" (+FR); FAQ H2 keyword-enriched; player
+  loading H1 → "Loading match…"; title tag → "Live Football Matches &
+  Streams". JSON-LD `inLanguage` now `[LANG, other]`.
+- **Ads on/off + support card (both pages).** One `.support` card: support
+  message ("streams are free — support us by keeping ads on or donating"),
+  Ko-fi button (`ko-fi.com/messistat`), BEP20 wallet (`0xe78e…5390`,
+  tap-to-reveal + copy), Ads ON/OFF toggle persisted in `koora_ads`
+  (default ON) via `body.ads-off`. Extensible: any future slot just needs
+  `class="ad-wrap" data-ad-slot="name"` — toggle + CSS obey automatically.
+  Existing banner tagged `messistat-footer`.
+- **SEO extras.** FAQ 4→6 (visible + JSON-LD `FAQPage`); `api/sitemap.js`
+  emits `xhtml:link hreflang en/fr/x-default` per URL (live-tested, valid
+  XML, 200). CSP needs no change (no `connect-src` gate).
+- Verified: `node --check` ×2 + sitemap ESM live-run; parity 46/46 +
+  102/102; smoke + names-functional + static-0-arabic all green.
+  Mirrors zero-diff. **Pushed** to `origin main` (Vercel deploys).
 
 ## 57. Full display translation: upstream team/league names → EN/FR (2026-09-24, user: "translate everything idc" + "and push")
 
@@ -1371,9 +1398,10 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **EN/FR i18n (§56) + full display translation (§57, 2026-09-24) pushed to
-   `origin main` per owner order.** Watch the Vercel deploy; spot-check the
-   FR toggle and a few translated team/league names live.
+5. **Batches §56–§58 (EN/FR i18n, display translation, GEO/ads/donate/SEO,
+   2026-09-24) pushed to `origin main` per owner order.** Watch the Vercel
+   deploy; spot-check FR toggle, geo default, translated names, support
+   card, and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
