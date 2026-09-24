@@ -987,6 +987,13 @@ function showMinute(o, now){
   if (b != null){
     const ticked = b + Math.floor((now - (o._at || now)) / 60000);
     if (ticked < 1 || ticked > 130) return wallMap(o, now);
+    // Stale-feed clamp: an upstream minute ticking >= 10' away from the
+    // kickoff-anchored wall clock means frozen data — trust the wall.
+    // (Real stoppage/VAR rarely diverges this far.)
+    try {
+      const w = wallMap(o, now);
+      if (w && w.min != null && Math.abs(ticked - (w.min + (w.plus || 0))) >= 10) return w;
+    } catch (e) {}
     const h = halfOf(o);
     if ((h === 1 || h === 'HT') && ticked > 57) return h === 'HT' ? { brk: true } : { min: 45, plus: 12 };
     if (ticked > 90) return { min: 90, plus: Math.min(ticked - 90, 20) };
@@ -1015,20 +1022,17 @@ function isEnded(m){
 }
 /* GOATED-CLOCK-END */
 function statusLabel(m, now){
-  // Decode first so `63&#039;` doesn't gain a second minute mark. When the
-  // upstream minute is missing, the fused clock fills it in (anchored +
-  // ticked, else wall map). Ended is checked first: a stale live window
-  // must never shadow FT.
-  if (isEnded(m)) return { cls: '', txt: t('ended') };
+  // Ended first: a stale live window must never shadow FT. Returns min/brk
+  // so the row paints the minute and the label exactly once each (was: the
+  // same minute stacked twice). No local named `t` (it would shadow t()).
+  if (isEnded(m)) return { cls: '', txt: t('ended'), min: null, brk: false };
   if (isLive(m, now)){
     const a = showMinute(m, now);
-    let t;
-    if (a && a.min != null) t = fmtMin(a);
-    else if (a && a.brk) t = t('halfBreak');
-    else t = t('live');
-    return { cls: 'live', txt: t };
+    if (a && a.min != null) return { cls: 'live', txt: fmtMin(a), min: fmtMin(a), brk: false };
+    if (a && a.brk) return { cls: 'live', txt: t('halfBreak'), min: null, brk: true };
+    return { cls: 'live', txt: t('live'), min: null, brk: false };
   }
-  return { cls: '', txt: dec(m.time_text || '').trim() || '—' };
+  return { cls: '', txt: dec(m.time_text || '').trim() || '—', min: null, brk: false };
 }
 /* Short player links: the old ?id=&href=&home=&… URLs ran 800+ chars
    (Arabic %-encoding x13 params). Now just ?m=<id>&d=<day> — the snapshot
@@ -1515,7 +1519,7 @@ async function refreshEspn(){
     if (!targets.length) return;
     await Promise.all(targets.map(async (m) => {
       try {
-        const ev = await espnResolve(m.home, m.away, m.start, leagueName(m));
+        const ev = await espnResolve(dispTeam(m.home), dispTeam(m.away), m.start, leagueName(m));
         if (ev && ev.min != null && (ev.status === 'live' || ev.status === 'ht') &&
             (ev.half === 1 || ev.half === 2 || ev.half === 'HT')) anchorEspn(m, ev);
       } catch {}
@@ -1601,11 +1605,18 @@ function rowCard(m){
   const sh = (m.score_home !== '' && m.score_home != null) ? tx(m.score_home) : '';
   const sa = (m.score_away !== '' && m.score_away != null) ? tx(m.score_away) : '';
   const live = isLive(m);
-  // Status column shows the minute for live matches (never a stale not-started label).
-  const top = live ? (st.txt === t('live') ? '•' : st.txt) : (tx((m.time_text || '').trim()) || '–');
+  // Status column paints ONE value on top (minute / HT / kickoff time) and
+  // ONE label below (LIVE red / FT) — never the same text twice.
+  let top = '–', sub = '', subCls = '';
+  if (live){
+    if (st.min != null){ top = st.min; sub = t('live'); subCls = 'live'; }
+    else if (st.brk){ top = t('halfBreak'); }
+    else { top = '•'; sub = t('live'); subCls = 'live'; }
+  } else if (isEnded(m)){ top = tx((m.time_text || '').trim()) || '–'; sub = t('ended'); }
+  else { top = tx((m.time_text || '').trim()) || '–'; }
+  const subHtml = sub ? `<div class="s ${subCls}">${tx(sub)}</div>` : '';
   return `<a class="m${live ? ' is-live' : ''}${GOAL_IDS.includes(m.id) ? ' flash' : ''}" href="${playerLink(m)}">
-    <div class="st"><div class="t">${top}</div>
-      <div class="s ${st.cls}">${tx(st.txt)}</div></div>
+    <div class="st"><div class="t">${top}</div>${subHtml}</div>
     <div class="teams">
       <div class="t">${logoImg(m.home_logo, dispTeam(m.home))}<span>${tx(dispTeam(m.home || ''))}</span><b>${sh}</b></div>
       <div class="t">${logoImg(m.away_logo, dispTeam(m.away))}<span>${tx(dispTeam(m.away || ''))}</span><b>${sa}</b></div>
