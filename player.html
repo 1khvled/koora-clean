@@ -10,10 +10,12 @@
 <link rel="canonical" href="https://kooraadz.vercel.app/player.html">
 <link rel="alternate" hreflang="en" href="https://kooraadz.vercel.app/player.html">
 <link rel="alternate" hreflang="fr" href="https://kooraadz.vercel.app/player.html?lang=fr">
+<link rel="alternate" hreflang="ar" href="https://kooraadz.vercel.app/player.html?lang=ar">
 <link rel="alternate" hreflang="x-default" href="https://kooraadz.vercel.app/player.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="ar_AR">
 <meta property="og:site_name" content="Koora Live">
 <meta property="og:title" content="Watch match live — Koora Live">
 <meta property="og:description" content="Clean live HD stream with no annoying popups.">
@@ -313,7 +315,7 @@ body.ads-off .ad-wrap{display:none}
   <div class="head">
     <a class="back" href="/" data-i18n="back">‹ Back</a>
     <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
-    <div class="lang" role="group" aria-label="Language / Langue"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button></div>
+    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
   </div>
   <div class="stage">
     <iframe id="player" title="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
@@ -518,7 +520,55 @@ desc: 'Regardez le match en direct en HD propre, sans popups agaçants sur Koora
 ogTitle: 'Voir le match en direct — Koora Live',
 ogDesc: 'Stream HD propre en direct, sans popups agaçants.'
 }
+},
+ar: {
+back: '‹ عودة', crumbHome: 'الرئيسية', crumbCur: 'مشاهدة المباراة',
+loadingTitle: 'جاري تحميل المباراة…', tagline: 'بث نظيف بدون إعلانات',
+playBtn: '▶ اضغط للمشاهدة', playHint: 'أول ضغطة تفتح البث فقط — بدون إعلانات',
+homeAlt: 'شعار الفريق المضيف', awayAlt: 'شعار الفريق الضيف',
+srcTitle: '📡 مصادر البث', searching: 'جاري البحث عن السيرفرات…',
+fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', blocked: 'محظور',
+minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', ad: 'إعلان',
+live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
+favAdd: 'أضيفت إلى المفضلة', favRemove: 'أزيلت إلى المفضلة',
+bellStart: 'بدأت المباراة', bellGoal: '⚽ هدف', bellScore: 'تغيرت النتيجة',
+bellUnsupported: 'التنبيهات غير مدعومة', bellDenied: 'فعل التنبيهات من المتصفح',
+bellFail: 'تعذر التفعيل', bellOn: 'تم تفعيل التنبيه', bellOff: 'تم إيقاف التنبيه',
+kindDirect: 'مباشر', kindFull: 'واجهة كاملة', kindTv: 'قناة ٢٤/٧', kindServer: 'سيرفر', server: 'سيرفر',
+skel: 'جاري البحث…', noLinks: 'لا توجد روابط بث', noLinksSub: 'لا يوجد بث متاح حالياً — اضغط لإعادة المحاولة',
+noStream: 'لا يوجد بث متاح حالياً',
+note: (n) => n + ' سيرفر بث مباشر — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.',
+watching: (name, i, total) => 'تشاهد الآن: ' + name + ' (' + (i + 1) + '/' + total + ')',
+noValid: 'لا يوجد سيرفر صالح', tryingNext: 'نحاول سيرفراً آخر…',
+updating: 'جاري تحديث البث…', proxyBad: 'رابط البروكسي المحفوظ غير صالح', demoServer: 'سيرفر تجريبي',
+fromCache: 'البث من الذاكرة — إعادة المحاولة…', cacheShown: 'تعذّر التحديث — عرض البث المحفوظ',
+loadFailT: 'تعذّر التحميل', retryCta: 'اضغط لإعادة المحاولة', checkConn: 'تحقق من الاتصال ثم أعد المحاولة',
+streamFail: 'تعذّر تحميل البث — تحقق من الاتصال',
+autoRetry: (s) => 'إعادة المحاولة تلقائياً خلال ' + s + ' ث…',
+loadingStream: 'جاري تحميل البث…', retryN: (n) => 'إعادة المحاولة ' + n + '…',
+mainPlayer: 'المشغّل الرئيسي', altServers: 'سيرفرات بديلة', cacheUpdating: 'البث من الذاكرة — جاري التحديث',
+copied: 'تم نسخ رابط المباراة', copyFail: 'تعذر النسخ',
+fsFail: 'تعذّر ملء الشاشة', fsUnsupported: 'المتصفح لا يدعم ملء الشاشة',
+half1: 'الشوط الأول', ht: 'استراحة', half2: 'الشوط الثاني', statusLiveNow: 'جارية الآن',
+coach: 'المدرب:', subs: 'البدلاء', unavailable: 'الغائبون', subOut: 'خروج', subIn: 'دخول',
+lineups: '📋 التشكيلة', topRated: '⭐ الأعلى تقييماً', stats: '📈 إحصائيات',
+perAll: 'الكل', per1H: 'الشوط الأول', per2H: 'الشوط الثاني', period: 'الفترة',
+events: '🕐 الأحداث', evAll: 'الكل', evGoals: 'أهداف', evCards: 'بطاقات', evSubs: 'تبديلات',
+evFilter: 'تصفية الأحداث', evEmpty: 'لا توجد أحداث هنا',
+noLineup: 'لا توجد تشكيلة متاحة', noEvents: 'لا توجد أحداث متاحة',
+tabs: 'أقسام بيانات المباراة', tabOv: 'نظرة عامة', tabLu: 'التشكيلة', tabEv: 'الأحداث',
+close: 'إغلاق', noPlayerEvents: 'لا أحداث لهذا اللاعب',
+defaultTitle: 'مشاهدة المباراة', leagueFallback: 'بث نظيف بدون إعلانات',
+watchTitle: (h, a) => 'مشاهدة ' + h + ' × ' + a + ' بث مباشر — كورة لايف',
+supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانات أو بالتبرع.',
+adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة', copyBtn: 'نسخ',
+meta: {
+title: 'مشاهدة المباراة بث مباشر — كورة لايف',
+desc: 'مشاهدة المباراة بث مباشر بجودة عالية وبدون إعلانات مزعجة على كورة لايف.',
+ogTitle: 'مشاهدة المباراة بث مباشر — كورة لايف',
+ogDesc: 'بث مباشر بجودة عالية وبدون إعلانات مزعجة.'
 }
+},
 };
 let LANG = 'en';
 function t(k){ const d = I18N[LANG] || I18N.en; const v = d[k]; return v !== undefined ? v : (I18N.en[k] !== undefined ? I18N.en[k] : k); }
@@ -540,13 +590,13 @@ try { if (!home && !away) document.title = m.title; } catch (e) { try { document
 const st = document.getElementById('static-jsonld');
 if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [
 { '@type': 'Organization', '@id': 'https://kooraadz.vercel.app/#org', name: 'Koora Live', url: 'https://kooraadz.vercel.app/', logo: 'https://kooraadz.vercel.app/icon-512.png' },
-{ '@type': 'WebPage', '@id': 'https://kooraadz.vercel.app/player.html#page', url: 'https://kooraadz.vercel.app/player.html', name: m.title, inLanguage: [LANG, LANG === 'fr' ? 'en' : 'fr'], isPartOf: { '@id': 'https://kooraadz.vercel.app/#site' } }
+{ '@type': 'WebPage', '@id': 'https://kooraadz.vercel.app/player.html#page', url: 'https://kooraadz.vercel.app/player.html', name: m.title, inLanguage: ['en', 'fr', 'ar'], isPartOf: { '@id': 'https://kooraadz.vercel.app/#site' } }
 ]});
 }
 function setLang(l, save){
 if (!I18N[l]) return;
 LANG = l;
-try { document.documentElement.lang = l; document.documentElement.dir = 'ltr'; } catch (e) {}
+try { document.documentElement.lang = l; document.documentElement.dir = (l === 'ar' ? 'rtl' : 'ltr'); } catch (e) {}
 if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
 try { applyStatic(); updateMeta(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
@@ -575,14 +625,15 @@ const q0 = new URLSearchParams(location.search).get('lang');
 let s0 = null; try { s0 = localStorage.getItem('koora_lang'); } catch (e) {}
 if (q0 && I18N[q0]) init = q0;
 else if (s0 && I18N[s0]) init = s0;
-else if ((navigator.language || '').toLowerCase().indexOf('fr') === 0) init = 'fr';
+else { const nl = (navigator.language || '').toLowerCase(); if (nl.indexOf('fr') === 0) init = 'fr'; else if (nl.indexOf('ar') === 0) init = 'ar'; }
 } catch (e) {}
 setLang(init, false);
 } catch (e) {}
 /* I18N-GEO — country-based default language: French-speaking countries start
    in French on first visit. Explicit ?lang= or a saved choice always wins.
    IP-based (no permission prompt); cached 7 days; fail-silent. */
-const GEO_FR = new Set('FR BE CH LU MC DZ MA TN SN CI CM ML BF NE TD CG CD GA BJ TG GN MR DJ KM MG RW BI CF GQ VU NC PF HT RE GP MQ GF YT PM WF TF MU SC'.split(' '));
+const GEO_FR = new Set('FR BE CH LU MC SN CI CM ML BF NE TD CG CD GA BJ TG GN MG RW BI CF GQ VU NC PF HT RE GP MQ GF YT PM WF TF MU SC'.split(' '));
+const GEO_AR = new Set('DZ MA TN MR LY EG SD SO DJ KM YE SY IQ JO LB PS KW SA QA BH OM AE'.split(' '));
 let GEO_LOCK = false;
 try { GEO_LOCK = !!localStorage.getItem('koora_lang'); } catch (e) {}
 try { if (new URLSearchParams(location.search).get('lang')) GEO_LOCK = true; } catch (e) {}
@@ -602,6 +653,7 @@ function geoApply(cc){
   if (!/^[A-Z]{2}$/.test(c)) return;
   geoSave(c);
   if (GEO_FR.has(c) && LANG !== 'fr'){ GEO_LOCK = true; try { setLang('fr'); } catch (e) {} }
+  else if (GEO_AR.has(c) && LANG !== 'ar'){ GEO_LOCK = true; try { setLang('ar'); } catch (e) {} }
 }
 (function geoLang(){
   if (GEO_LOCK) return;
@@ -838,11 +890,13 @@ const LEAGUEN = {};
 try { for (const k in LEAGUEMAP) LEAGUEN[normKey(k)] = LEAGUEMAP[k]; } catch (e) {}
 function dispTeam(n){
   if (n == null || n === '') return n == null ? '' : n;
+  if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
   return n;
 }
 function dispLeague(n){
   if (n == null || n === '') return n == null ? '' : n;
+  if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const e = LEAGUEN[normKey(n)]; if (e) return LANG === 'fr' ? e[1] : e[0]; } catch (er) {}
   return n;
 }
