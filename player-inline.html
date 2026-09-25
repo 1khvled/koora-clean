@@ -294,6 +294,17 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
 .srv:active,.btn:active{opacity:.75}
 button{touch-action:manipulation}
+/* UI polish: richer match card, stage depth, hover states */
+.mcard{background:linear-gradient(160deg,var(--card),var(--pitch))}
+.mcard .mid .tm{font-size:15px}
+.stage{box-shadow:0 8px 30px rgba(0,0,0,.45)}
+@media (hover:hover){
+.srv{transition:border-color .15s ease,box-shadow .15s ease}
+.srv:hover{border-color:var(--grass)}
+.btn{transition:filter .15s ease}
+.btn:hover{filter:brightness(1.1)}
+}
+
 /* sponsor banner (messistat.com) — one slim footer leaderboard, labeled, lazy */
 .ad-wrap{max-width:728px;margin:12px auto 0}
 .ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card)}

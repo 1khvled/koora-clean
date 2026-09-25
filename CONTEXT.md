@@ -4,7 +4,17 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-25 (CSP broke all styling, one-line fix — see CONTEXT 67).
+> Last updated: 2026-09-25 (UI polish batch — see CONTEXT 68).
+
+## 68. UI polish: sticky toolbar, hover depth, league counts, richer card (2026-09-25, user: "UI improvement if u can")
+
+- **Index.** Toolbar sticks on scroll (search/chips always at hand), match
+  rows lift on hover (desktop only, reduced-motion off), league headers
+  carry a match-count badge (numeric, no i18n impact), brand ball shadow.
+- **Player.** Match card gradient + bigger minute/score, stage depth
+  shadow, server/control hover states.
+- Verified: node syntax ×3 blocks, parity 52/109 ×3 langs, mirrors
+  zero-diff. **Pushed** to `origin main` (Vercel deploys).
 
 ## 67. CSP style-src killed the whole site styling (2026-09-25, user: site unstyled + screenshot)
 
@@ -1570,11 +1580,11 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§66 (sweep audits + fixes, 3-language i18n, dark mode,
-   real-live minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/25)
-   pushed to `origin main` per owner order.** Watch the Vercel deploy;
-   spot-check ended rows, dark toggle, live minutes, FotMob, EN/FR/AR
-   toggle incl. RTL, error/retry states, and `/api/sitemap` XML live.
+5. **Batches §56–§68 (sweep audits + fixes, 3-language i18n, dark mode,
+   UI polish, real-live minutes, GEO/ads/donate/SEO, admin removed,
+   2026-09-24/25) pushed to `origin main` per owner order.** Watch the
+   Vercel deploy; spot-check ended rows, dark toggle, live minutes, FotMob,
+   EN/FR/AR toggle incl. RTL, error/retry states, and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
