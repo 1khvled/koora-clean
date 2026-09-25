@@ -1,4 +1,4 @@
-import { rl, readCapped } from './_sec.js';
+import { rl } from './_sec.js';
 export default async function handler(req, res) {
   // Dynamic sitemap: core pages + 3-day match pages (short ?m=&d= links).
   // Fail-open: upstream failure still returns the core URLs. Edge-cached 1h.
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
         '<xhtml:link rel="alternate" hreflang="fr" href="' + esc(fr) + '"/>' +
         '<xhtml:link rel="alternate" hreflang="ar" href="' + esc(ar) + '"/>' +
         '<xhtml:link rel="alternate" hreflang="x-default" href="' + esc(u.loc) + '"/>' +
-        (u.imgs ? u.imgs.map(src => '<image:image><image:loc>' + esc(src) + '</image:loc></image:image>').join('') : '') +
+        (u.imgs ? u.imgs.filter(src => /^https:\/\//i.test(src)).map(src => '<image:image><image:loc>' + esc(src) + '</image:loc></image:image>').join('') : '') +
         (u.lastmod ? '<lastmod>' + u.lastmod + '</lastmod>' : '') +
         '<changefreq>' + u.changefreq + '</changefreq>' +
         '<priority>' + u.priority + '</priority></url>';

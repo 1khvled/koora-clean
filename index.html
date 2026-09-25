@@ -28,18 +28,20 @@
 <meta property="og:image:alt" content="Koora Live">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://kooraadz.vercel.app/og-cover.png">
+<meta name="twitter:image:alt" content="Koora Live">
 <meta name="twitter:title" content="Koora Live — Today's matches live">
 <meta name="twitter:description" content="Today's football live: clean HD streams with no annoying popups.">
 <!-- Google Search Console: create a property for https://kooraadz.vercel.app/, choose the HTML-tag method,
      and paste the code below (replace REPLACE_WITH_SEARCH_CONSOLE_CODE). -->
 <meta name="google-site-verification" content="REPLACE_WITH_SEARCH_CONSOLE_CODE">
-<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"Koora Live","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebSite","@id":"https://kooraadz.vercel.app/#site","url":"https://kooraadz.vercel.app/","name":"Koora Live","inLanguage":"en","publisher":{"@id":"https://kooraadz.vercel.app/#org"},"potentialAction":{"@type":"SearchAction","target":"https://kooraadz.vercel.app/?q={search_term_string}","query-input":"required name=search_term_string"}}]}</script>
+<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"Koora Live","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebSite","@id":"https://kooraadz.vercel.app/#site","url":"https://kooraadz.vercel.app/","name":"Koora Live","inLanguage":["en","fr","ar"],"publisher":{"@id":"https://kooraadz.vercel.app/#org"}}]}</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://site.api.espn.com">
+<link rel="preconnect" href="https://fvuxrevpoildgfpzowpd.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* KOORA-OWN-v1: our own pitch-night design. No theme classes, no maroon. */
@@ -56,7 +58,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   font-variant-numeric:tabular-nums;-webkit-tap-highlight-color:transparent}
 /* ── top bar ─────────────────────────────── */
 .topbar{background:linear-gradient(160deg,var(--night),var(--pitch));
-  color:#fff;padding:14px 16px calc(14px + 22px);position:relative;overflow:hidden}
+  color:#fff;padding:calc(14px + env(safe-area-inset-top, 0px)) 16px calc(14px + 22px);position:relative;overflow:hidden}
 .topbar::after{content:"";position:absolute;left:50%;top:-70px;width:220px;height:220px;
   border:2px solid rgba(255,255,255,.10);border-radius:50%;transform:translateX(-50%);
   pointer-events:none} /* center-circle motif */
@@ -65,7 +67,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .brand{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
 .brand .ball{width:42px;height:42px;border-radius:50%;background:var(--grass);
   display:grid;place-items:center;font-size:22px;flex:none}
-.brand h1{display:block;font-size:20px;font-weight:900;line-height:1.2;margin:0}
+.brand h1{display:block;font-size:20px;font-weight:900;line-height:1.2;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .brand small{display:block;color:#bfe3cf;font-size:12px;font-weight:600}
 /* day segmented control — overlaps header bottom edge */
 .days{display:flex;background:var(--card);border-radius:14px;padding:4px;gap:4px;
@@ -121,10 +123,10 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .m{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
   border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;text-decoration:none;
   color:var(--ink);box-shadow:var(--shadow);min-height:64px}
-.m .st{flex:none;width:58px;text-align:center;min-width:0}
+.m .st{flex:none;min-width:58px;text-align:center}
 .m .st .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .m .st .t{font-weight:800;font-size:14px}
-.m .st .s{font-size:11px;font-weight:700;color:var(--muted)}
+.m .st .s{font-size:12px;font-weight:700;color:var(--muted)}
 .m .st .s.live{color:var(--live)}
 .m .teams{flex:1;display:grid;gap:6px;min-width:0}
 .m .t{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;min-width:0}
@@ -136,6 +138,7 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 .m.flash{animation:rowflash 2.2s ease-out 2}
 @keyframes rowflash{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 3px var(--gold)}}
 @media (prefers-reduced-motion:reduce){.m.flash{animation:none}}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
 #empty{text-align:center;color:var(--muted);padding:40px 0;font-weight:600}
 .seo{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.9}
 .seo h2{font-size:15px;font-weight:800;color:var(--ink);margin:0 2px 6px}
@@ -162,12 +165,14 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
   text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
+a.m:active,.chip:active{opacity:.75}
 button{touch-action:manipulation}
 html{color-scheme:light}
 html.dark{color-scheme:dark;--paper:#0c1a15;--card:#10251e;--ink:#f2f7f4;--muted:#9db5a8;--line:#1e3a30;--shadow:0 1px 3px rgba(0,0,0,.45)}
 html.dark .live-lg,html.dark .league>h2{color:#8fe3ae}
 html.dark .seo a:hover{color:#8fe3ae}
 html.dark .lang button{border-color:rgba(255,255,255,.25)}
+html.dark .m .st .s.live, html.dark .mcard .mid .vs.live, html.dark .like.on{color:#ff6b74}
 
 /* sponsor banner (messistat.com) — one slim footer leaderboard, labeled, lazy */
 .ad-wrap{max-width:728px;margin:14px auto;padding:0 16px}
@@ -175,7 +180,7 @@ html.dark .lang button{border-color:rgba(255,255,255,.25)}
 .ad img{display:block;width:100%;height:auto}
 .ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 8px}
 .lang{display:flex;gap:6px;position:relative;z-index:1;margin-top:10px}
-.lang button{font-family:var(--font);border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
+.lang button{font-family:var(--font);border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
 .lang button.on{background:#fff;color:var(--pitch);border-color:#fff}
 
 /* support card: donations + ad toggle (extensible: any .ad-wrap[data-ad-slot] obeys body.ads-off) */
@@ -183,13 +188,15 @@ html.dark .lang button{border-color:rgba(255,255,255,.25)}
 .sup-msg{font-size:13px;font-weight:700;margin:0 0 8px}
 .sup-row{display:flex;gap:8px;flex-wrap:wrap}
 .sup-btn{font-family:var(--font);border:0;border-radius:10px;min-height:44px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;background:var(--pitch);color:#fff;text-decoration:none;display:inline-flex;align-items:center}
-.sup-btn.kofi{background:#ff5e5b}
+.sup-btn.kofi{background:#c81e1e}
 .sup-btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.sup-btn.ghost{border-color:#7d9187}
 .sup-wallet{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
 .sup-wallet[hidden]{display:none}
 .sup-wallet code{flex:1;min-width:0;font-size:12px;word-break:break-all;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px}
 body.ads-off .ad-wrap{display:none}
 
+@media (max-width:480px){.support{padding:10px}.sup-msg{font-size:12px}}
 /* tablets/desktops: wider content */
 @media (min-width:768px){
   main{max-width:880px}
@@ -214,14 +221,14 @@ body.ads-off .ad-wrap{display:none}
   <button data-day="tomorrow" data-i18n="tomorrow">Tomorrow</button>
 </nav>
 <div class="toolbar">
-  <input id="searchInput" type="search" placeholder="Search team or league…" data-i18n-ph="searchPh" autocomplete="off">
-  <div class="chips" id="leagueChips"></div>
+  <input id="searchInput" type="search" placeholder="Search team or league…" data-i18n-ph="searchPh" data-i18n-aria="searchPh" autocomplete="off">
+  <div class="chips" id="leagueChips" role="group" aria-label="Filter by league" data-i18n-aria="chipsLabel"></div>
 </div>
 <div class="support" id="support">
   <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us by keeping ads on or donating.</div>
   <div class="sup-row">
     <a class="sup-btn kofi" href="https://ko-fi.com/messistat" target="_blank" rel="noopener sponsored">☕ Ko-fi</a>
-    <button class="sup-btn" id="walletBtn" type="button">⧉ BEP20 wallet</button>
+    <button class="sup-btn" id="walletBtn" type="button" data-i18n="walletBtn" aria-controls="walletBox" aria-expanded="false">⧉ BEP20 wallet</button>
     <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
   </div>
   <div class="sup-wallet" id="walletBox" hidden><code>0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
@@ -229,6 +236,7 @@ body.ads-off .ad-wrap{display:none}
 
 <main id="content">
   <div class="loading" id="loading" data-i18n="loading">Loading matches…</div>
+  <div id="errbox" hidden><p data-i18n="loadErr" style="text-align:center;color:var(--muted);font-weight:700">Couldn't load matches — check your connection.</p><div style="text-align:center"><button type="button" class="chip" data-i18n="retryBtn" onclick="loadDay(DAY)">Retry</button></div></div>
   <section id="liveSec" hidden>
     <div class="sec-title"><span class="dot"></span> <span data-i18n="liveNow">Live now</span> <span class="count" id="liveCount"></span></div>
     <div class="live-list" id="liveRail"></div>
@@ -239,7 +247,7 @@ body.ads-off .ad-wrap{display:none}
 <section class="seo"><h2 data-i18n="seoH">Today’s Live Football Matches — Scores, Schedule & Streams</h2><p data-i18n="seoP">An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.</p><ul><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A" data-lg="الدوري الإنجليزي" data-lg-link><strong>Premier League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D8%B3%D8%A8%D8%A7%D9%86%D9%8A" data-lg="الدوري الإسباني" data-lg-link><strong>La Liga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A" data-lg="الدوري الإيطالي" data-lg-link><strong>Serie A:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A" data-lg="الدوري الألماني" data-lg-link><strong>Bundesliga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D9%81%D8%B1%D9%86%D8%B3%D9%8A" data-lg="الدوري الفرنسي" data-lg-link><strong>Ligue 1:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A" data-lg="الدوري السعودي" data-lg-link><strong>Saudi Pro League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A3%D8%A8%D8%B7%D8%A7%D9%84%20%D8%A3%D9%88%D8%B1%D9%88%D8%A8%D8%A7" data-lg="دوري أبطال أوروبا" data-lg-link><strong>UEFA Champions League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li></ul><p data-i18n="seoCta">Pick a match from the list to open its stream page.</p></section>
 <section class="seo faq"><h2 data-i18n="faqH">Live Football Streams — FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details><details><summary data-i18n="fq5">Can I watch on mobile?</summary><p data-i18n="fa5">Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.</p></details><details><summary data-i18n="fq6">What stream quality can I expect?</summary><p data-i18n="fa6">HD live football streams with live scores and minute-by-minute updates, free with no account needed.</p></details></section>
 <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status"></div>
 
 <script>
 'use strict';
@@ -261,7 +269,7 @@ empty: 'No matches match your search', all: 'All', favorites: 'Favorites',
 upcoming: 'Upcoming',
 live: 'Live', halfBreak: 'HT', ended: 'FT', vs: 'vs', sport: 'Football',
 otherLeagues: 'Other competitions', hiddenLeagues: 'Other Arab leagues — hidden',
-loadFail: "Couldn't load matches — check your connection", goal: 'Goal',
+loadFail: "Couldn't load matches — check your connection", loadErr: "Couldn't load matches — check your connection.", retryBtn: 'Retry', chipsLabel: 'Filter by league', walletBtn: '⧉ BEP20 wallet', goal: 'Goal',
 todayMatches: "Today's matches", ad: 'Ad',
     supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF',
@@ -293,7 +301,7 @@ empty: 'Aucun match pour votre recherche', all: 'Tout', favorites: 'Favoris',
 upcoming: 'À venir',
 live: 'Direct', halfBreak: 'MT', ended: 'Terminé', vs: 'vs', sport: 'Football',
 otherLeagues: 'Autres compétitions', hiddenLeagues: 'Autres ligues arabes — masquées',
-loadFail: 'Chargement impossible — vérifiez votre connexion', goal: 'But',
+loadFail: 'Chargement impossible — vérifiez votre connexion', loadErr: 'Chargement impossible — vérifiez votre connexion.', retryBtn: 'Réessayer', chipsLabel: 'Filtrer par compétition', walletBtn: '⧉ BEP20 wallet', goal: 'But',
 todayMatches: 'Matchs du jour', ad: 'Pub',
     supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF',
@@ -325,7 +333,7 @@ empty: 'لا توجد مباريات مطابقة لبحثك', all: 'الكل', 
 upcoming: 'لم تبدأ',
 live: 'مباشر', halfBreak: 'استراحة', ended: 'انتهت', vs: 'ضد', sport: 'كرة القدم',
 otherLeagues: 'بطولات أخرى', hiddenLeagues: 'دوريات عربية أخرى — مخفية',
-loadFail: 'تعذّر تحميل المباريات — تحقق من الاتصال', goal: 'هدف',
+loadFail: 'تعذّر تحميل المباريات — تحقق من الاتصال', loadErr: 'تعذّر تحميل المباريات — تحقق من الاتصال.', retryBtn: 'إعادة المحاولة', chipsLabel: 'تصفية حسب البطولة', walletBtn: '⧉ BEP20 wallet', goal: 'هدف',
 todayMatches: 'مباريات اليوم', ad: 'إعلان',
 seoH: 'مباريات اليوم بث مباشر',
 seoP: 'جدول مباريات اليوم محدث باستمرار: مواعيد مباريات والنتائج لحظة بلحظة لأهم الدورييات.',
@@ -366,10 +374,20 @@ const ogT = document.querySelector('meta[property="og:title"]'); if (ogT) ogT.se
 const ogD = document.querySelector('meta[property="og:description"]'); if (ogD) ogD.setAttribute('content', m.ogDesc);
 const twT = document.querySelector('meta[name="twitter:title"]'); if (twT) twT.setAttribute('content', m.ogTitle);
 const twD = document.querySelector('meta[name="twitter:description"]'); if (twD) twD.setAttribute('content', m.ogDesc);
+try {
+const LOC = { en: 'en_US', fr: 'fr_FR', ar: 'ar_AR' };
+const ogL = document.querySelector('meta[property="og:locale"]'); if (ogL) ogL.setAttribute('content', LOC[LANG] || 'en_US');
+const base = location.origin + '/';
+const can = document.querySelector('link[rel="canonical"]'); if (can) can.setAttribute('href', base);
+const ogU = document.querySelector('meta[property="og:url"]'); if (ogU) ogU.setAttribute('content', base);
+const hEn = document.querySelector('link[rel="alternate"][hreflang="en"]'); if (hEn) hEn.setAttribute('href', base);
+const hFr = document.querySelector('link[rel="alternate"][hreflang="fr"]'); if (hFr) hFr.setAttribute('href', base + '?lang=fr');
+const hAr = document.querySelector('link[rel="alternate"][hreflang="ar"]'); if (hAr) hAr.setAttribute('href', base + '?lang=ar');
+} catch {}
 const st = document.getElementById('static-jsonld');
 if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [
 { '@type': 'Organization', '@id': 'https://kooraadz.vercel.app/#org', name: 'Koora Live', url: 'https://kooraadz.vercel.app/', logo: 'https://kooraadz.vercel.app/icon-512.png' },
-{ '@type': 'WebSite', '@id': 'https://kooraadz.vercel.app/#site', url: 'https://kooraadz.vercel.app/', name: 'Koora Live', inLanguage: ['en', 'fr', 'ar'], publisher: { '@id': 'https://kooraadz.vercel.app/#org' }, potentialAction: { '@type': 'SearchAction', target: 'https://kooraadz.vercel.app/?q={search_term_string}', 'query-input': 'required name=search_term_string' } }
+{ '@type': 'WebSite', '@id': 'https://kooraadz.vercel.app/#site', url: 'https://kooraadz.vercel.app/', name: 'Koora Live', inLanguage: ['en', 'fr', 'ar'], publisher: { '@id': 'https://kooraadz.vercel.app/#org' } }
 ]});
 }
 function setLang(l, save){
@@ -458,7 +476,7 @@ try {
   const ab = document.getElementById('adsBtn');
   if (ab) ab.onclick = () => { try { localStorage.setItem('koora_ads', adsOn() ? '0' : '1'); } catch (e) {} paintAds(); };
   const wb = document.getElementById('walletBtn');
-  if (wb) wb.onclick = () => { const box = document.getElementById('walletBox'); if (box) box.hidden = !box.hidden; };
+  if (wb) wb.onclick = () => { const box = document.getElementById('walletBox'); if (box) { box.hidden = !box.hidden; try { wb.setAttribute('aria-expanded', box.hidden ? 'false' : 'true'); } catch {} } };
   const cb = document.getElementById('walletCopy');
   if (cb) cb.onclick = () => copyText('0xe78ee7a6ce01978562c90df0fa3f775215457390', 'copyOk', 'copyFail');
 } catch (e) {}
@@ -910,12 +928,24 @@ function dispLeague(n){
 
 
 
+let __tq=[],__tp=false;
 function toast(msg){
-  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2600);
+  try { __tq.push(String(msg == null ? '' : msg)); } catch { return; }
+  if (__tp) return;
+  __tp = true;
+  const pump = () => {
+    const nx = __tq.shift();
+    if (nx == null){ __tp = false; return; }
+    try {
+      const el = document.getElementById('toast');
+      el.textContent = nx; el.classList.add('show');
+      setTimeout(() => { try { el.classList.remove('show'); } catch {} setTimeout(pump, 120); }, 2200);
+    } catch { setTimeout(pump, 0); }
+  };
+  pump();
 }
 function workerBase(){
-  try { return (localStorage.getItem('koora_worker') || '').trim(); } catch { return ''; }
+  try { const v = (localStorage.getItem('koora_worker') || '').trim(); return /^https:\/\//i.test(v) ? v : ''; } catch { return ''; }
 }
 /* match state helpers — same api/matches.js contract.
    Word-boundaried Latin codes (HT/LIVE/FT) so "Tonight"/"After" never match;
@@ -1449,6 +1479,7 @@ function loadStale(day){
 }
 async function loadDay(day, silent){
   if (silent && document.hidden) return;
+  try { document.getElementById('errbox').hidden = true; } catch {}
   const myReq = ++reqSeq;
   DAY = day;
   const hadStale = !silent && loadStale(day);
@@ -1456,7 +1487,6 @@ async function loadDay(day, silent){
     $$('#dayTabs button').forEach(b => {
       const on = b.dataset.day === day;
       b.classList.toggle('on', on);
-      b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
     const hasSSR = !hadStale && document.getElementById('ssr-fallback');
     if (!hadStale && !hasSSR) { $('#loading').hidden = false; $('#leagues').innerHTML = ''; }
@@ -1475,10 +1505,11 @@ async function loadDay(day, silent){
   if (myReq !== reqSeq) return; // a newer day request already won
   $('#loading').hidden = true;
   // Offline/failure: keep the stale list on screen, toast only when explicit.
-  if (!data){ if (!silent) toast(t('loadFail')); return; }
+  if (!data){ if (!silent){ try { document.getElementById('errbox').hidden = false; } catch {} toast(t('loadFail')); } return; }
   ALL = data.filter(x => x && typeof x === 'object');
   const fAt = Date.now();
   for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }
+  try { document.getElementById('errbox').hidden = true; } catch {}
   try { localStorage.setItem('koora:all:' + day, JSON.stringify({ at: Date.now(), data: ALL })); } catch {}
   try {
     const cur = {};
@@ -1602,7 +1633,7 @@ function buildChips(){
     const i = +c.dataset.i;
     LEAGUE = i < 0 ? 'all' : LEAGUE_LIST[i];
     $$('.chip', box).forEach(x => x.classList.toggle('on', x === c));
-    try { c.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch {}
+    try { const __rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; c.scrollIntoView({ inline: 'center', block: 'nearest', behavior: __rm ? 'auto' : 'smooth' }); } catch {}
     render();
   });
 }
@@ -1639,7 +1670,7 @@ function rowCard(m){
   else { top = dispTime(m.time_text) || t('upcoming'); }
   const subHtml = sub ? `<div class="s ${subCls}">${tx(sub)}</div>` : '';
   return `<a class="m${live ? ' is-live' : ''}${GOAL_IDS.includes(m.id) ? ' flash' : ''}" href="${playerLink(m)}">
-    <div class="st"><div class="t">${top}</div>${subHtml}</div>
+    <div class="st"><div class="t">${tx(top)}</div>${subHtml}</div>
     <div class="teams">
       <div class="t">${logoImg(m.home_logo, dispTeam(m.home))}<span>${tx(dispTeam(m.home || ''))}</span><b>${sh}</b></div>
       <div class="t">${logoImg(m.away_logo, dispTeam(m.away))}<span>${tx(dispTeam(m.away || ''))}</span><b>${sa}</b></div>
@@ -1699,7 +1730,7 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
     const s = String(m.start || '');
     return /^(19|20)\d\d-\d\d-\d\dT\d\d:\d\d/.test(s) ? s : undefined;
   };
-  const graph = list.slice(0, 50).map(m => ({
+  const graph = list.slice(0, 50).filter(m => isoStart(m) !== undefined).map(m => ({
     '@type': 'SportsEvent',
     name: `${dispTeam(m.home || '')} ${t('vs')} ${dispTeam(m.away || '')}`,
     sport: t('sport'),
@@ -1707,20 +1738,12 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
     eventStatus: isLive(m)
       ? 'https://schema.org/EventLive'
       : (isEnded(m) ? 'https://schema.org/EventCompleted' : 'https://schema.org/EventScheduled'),
-    homeTeam: { '@type': 'SportsTeam', name: m.home || '' },
-    awayTeam: { '@type': 'SportsTeam', name: m.away || '' },
+    homeTeam: { '@type': 'SportsTeam', name: dispTeam(m.home || ''), alternateName: m.home || '' },
+    awayTeam: { '@type': 'SportsTeam', name: dispTeam(m.away || ''), alternateName: m.away || '' },
     url: new URL(playerLink(m), location.href).toString()
   }));
-  for (const m of list.slice(0, 50)){
-    if (!isLive(m)) continue;
-    graph.push({ '@type': 'BroadcastEvent', name: `${dispTeam(m.home || '')} ${t('vs')} ${dispTeam(m.away || '')}`,
-      isLiveBroadcast: true, startDate: isoStart(m),
-      homeTeam: { '@type': 'SportsTeam', name: m.home || '' },
-      awayTeam: { '@type': 'SportsTeam', name: m.away || '' } });
-  }
   graph.push({ '@type': 'Organization', name: 'Koora Live', url: location.origin + '/', logo: location.origin + '/icon-512.png' });
-  graph.push({ '@type': 'WebSite', name: 'Koora Live', url: location.origin + '/', inLanguage: LANG,
-    potentialAction: { '@type': 'SearchAction', target: location.origin + '/?q={search_term_string}', 'query-input': 'required name=search_term_string' } });
+  graph.push({ '@type': 'WebSite', name: 'Koora Live', url: location.origin + '/', inLanguage: LANG });
   graph.push({ '@type': 'FAQPage', mainEntity: [
     { '@type': 'Question', name: t('fq1'), acceptedAnswer: { '@type': 'Answer', text: t('fa1') } },
     { '@type': 'Question', name: t('fq2'), acceptedAnswer: { '@type': 'Answer', text: t('fa2') } },
@@ -1729,7 +1752,7 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
     { '@type': 'Question', name: t('fq5'), acceptedAnswer: { '@type': 'Answer', text: t('fa5') } },
     { '@type': 'Question', name: t('fq6'), acceptedAnswer: { '@type': 'Answer', text: t('fa6') } }
   ]});
-  if (list.length) graph.push({ '@type': 'ItemList', name: t('todayMatches'), numberOfItems: list.length, itemListElement: list.slice(0, 20).map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(playerLink(m), location.href).toString(), name: `${dispTeam(m.home || '')} ${t('vs')} ${dispTeam(m.away || '')}` })) });
+  if (list.length) graph.push({ '@type': 'ItemList', name: t('todayMatches'), numberOfItems: list.length, itemListElement: list.slice(0, 50).map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(playerLink(m), location.href).toString(), name: `${dispTeam(m.home || '')} ${t('vs')} ${dispTeam(m.away || '')}` })) });
   const s = document.createElement('script');
   s.type = 'application/ld+json'; s.id = 'jsonld';
   s.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
@@ -1741,10 +1764,8 @@ $('#searchInput').addEventListener('input', () => { // debounced: no DOM churn p
   clearTimeout(searchT);
   searchT = setTimeout(render, 160);
 });
-document.addEventListener('click', e => { const a = e.target.closest('[data-lg-link]'); if (!a) return; e.preventDefault(); try { const lg = (a.getAttribute('data-lg') || a.textContent.replace(/:.*/, '')).trim(); if (lg){ LEAGUE = lg; buildChips(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } } catch {} });
+document.addEventListener('click', e => { const a = e.target.closest('[data-lg-link]'); if (!a) return; e.preventDefault(); try { const lg = (a.getAttribute('data-lg') || a.textContent.replace(/:.*/, '')).trim(); if (lg){ LEAGUE = lg; buildChips(); render(); try { const __rm2 = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; window.scrollTo({ top: 0, behavior: __rm2 ? 'auto' : 'smooth' }); } catch {} } } catch {} });
 $$('#dayTabs button').forEach(b => b.onclick = () => { LEAGUE = 'all'; loadDay(b.dataset.day); });
-document.querySelector('#dayTabs')?.setAttribute('role', 'tablist');
-$$('#dayTabs button').forEach(b => { b.setAttribute('role', 'tab'); if (!b.hasAttribute('aria-selected')) b.setAttribute('aria-selected', b.classList.contains('on') ? 'true' : 'false'); });
 try { const ql = new URLSearchParams(location.search).get('league'); if (ql) LEAGUE = ql; } catch {}
 try { document.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => setLang(b.getAttribute('data-lang')); }); } catch {}
 

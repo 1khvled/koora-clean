@@ -1,4 +1,4 @@
-import { rl, cap, fetchableUrl } from './_sec.js';
+import { rl, fetchableUrl } from './_sec.js';
 export default async function handler(req, res) {
   // 24/7 generic fallback channels extracted from the Alwan Sport app.js bundle
   // (added 2026-09-10): the bundle is a static public JS file (~30KB, no auth)
@@ -89,6 +89,7 @@ export default async function handler(req, res) {
         };
         const get = (u) => fetch(u, { signal: ctrl2.signal, redirect: 'manual', headers });
         try {
+          if (!fetchableUrl(c.url)) return null;
           let r = await get(c.url);
           // Follow one same-scheme redirect, then sniff the final page
           // (redirect shells have no body to sniff).
@@ -109,7 +110,7 @@ export default async function handler(req, res) {
         } finally { clearTimeout(to2); }
       } catch { return null; }
     };
-    const alive = (await Promise.all(out.sort(beinFirst).map(sniffAlive))).filter(Boolean).slice(0, 6);
+    const alive = (await Promise.all(out.sort(beinFirst).slice(0, 12).map(sniffAlive))).filter(Boolean).slice(0, 6);
 
     res.setHeader('Cache-Control', 'public, s-maxage=120, max-age=60');
     return res.status(200).json({ count: alive.length, channels: alive });

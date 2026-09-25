@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#071f19">
+<meta name="theme-color" content="#0c1a15">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <title>Watch match live — Koora Live</title>
 <meta name="description" content="Watch the match live in clean HD quality with no annoying popups on Koora Live.">
@@ -29,10 +29,11 @@
 <meta name="twitter:title" content="Watch match live — Koora Live">
 <meta name="twitter:description" content="Clean live HD stream with no annoying popups.">
 <meta name="twitter:image" content="https://kooraadz.vercel.app/og-cover.png">
+<meta name="twitter:image:alt" content="Koora Live">
 <!-- Google Search Console: create a property for https://kooraadz.vercel.app/, choose the HTML-tag method,
      and paste the code below (replace REPLACE_WITH_SEARCH_CONSOLE_CODE). -->
 <meta name="google-site-verification" content="REPLACE_WITH_SEARCH_CONSOLE_CODE">
-<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"Koora Live","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebPage","@id":"https://kooraadz.vercel.app/player.html#page","url":"https://kooraadz.vercel.app/player.html","name":"Watch match live — Koora Live","inLanguage":"en","isPartOf":{"@id":"https://kooraadz.vercel.app/#site"}}]}</script>
+<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"Koora Live","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebPage","@id":"https://kooraadz.vercel.app/player.html#page","url":"https://kooraadz.vercel.app/player.html","name":"Watch match live — Koora Live","inLanguage":["en","fr","ar"],"isPartOf":{"@id":"https://kooraadz.vercel.app/#site"}}]}</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -40,20 +41,22 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://site.api.espn.com">
 <link rel="preconnect" href="https://images.fotmob.com">
+<link rel="preconnect" href="https://fvuxrevpoildgfpzowpd.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* KOORA-OWN-v1 player: same pitch-night identity as index. */
 :root{
+  color-scheme:dark;
   --night:#071f19; --pitch:#0b3d2e; --grass:#16a34a;
   --paper:#0c1a15; --card:#10251e; --ink:#f2f7f4; --muted:#9db5a8;
   --line:#1e3a30; --live:#e0202e; --gold:#ffb800;
-  --radius:14px;
+  --radius:14px; --shadow:0 1px 3px rgba(0,0,0,.45);
   --font:"Cairo",system-ui,"Segoe UI",Tahoma,Arial,sans-serif;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
   font-variant-numeric:tabular-nums;min-height:100vh;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:900px;margin:0 auto;padding:12px 12px calc(20px + env(safe-area-inset-bottom))}
+.wrap{max-width:900px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top, 0px)) 12px calc(20px + env(safe-area-inset-bottom))}
 /* header */
 .head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .back{flex:none;text-decoration:none;color:var(--ink);font-weight:800;font-size:14px;
@@ -96,9 +99,12 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .tstar.on{opacity:1}
 .crumb{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;gap:6px;align-items:center}
 .crumb a{color:inherit;text-decoration:none;border-bottom:1px dashed var(--line)}
+.flip{display:inline-block} [dir="rtl"] .flip{transform:scaleX(-1)}
 .likebar{display:flex;justify-content:center;margin-top:10px}
 .like{font-family:var(--font);background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:999px;min-height:44px;padding:8px 18px;font-size:15px;font-weight:800;cursor:pointer}
 .like.on{color:var(--live);border-color:var(--live)}
+/* dark-mode live red — player is always dark */
+.mcard .mid .vs.live, .like.on{color:#ff6b74}
 /* sources */
 .src-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 2px 8px}
 .src-head h2{font-size:14px;font-weight:900;margin:0;display:flex;align-items:center;gap:8px}
@@ -171,14 +177,14 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .ev .sc{flex:none;color:var(--muted);font-weight:800;font-size:12px}
 .minfo .loading{text-align:center;color:var(--muted);padding:18px 0;font-weight:600;font-size:13px}
 /* minfo interactive: sticky tabs, filter chips, player popover */
-.minfo-tabs{position:sticky;top:0;z-index:5;display:flex;gap:6px;background:var(--card);padding:8px 0;margin-bottom:10px}
+.minfo-tabs{position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;display:flex;gap:6px;background:var(--card);padding:8px 0;margin-bottom:10px}
 .minfo-tabs button{flex:1;font-family:var(--font);min-height:44px;border:1px solid var(--line);background:var(--pitch);color:#fff;border-radius:10px;font-size:13px;font-weight:900;cursor:pointer;padding:8px 6px}
-.minfo-tabs button[aria-selected="true"]{background:var(--grass);color:#04120c;border-color:var(--grass)}
+.minfo-tabs button[aria-pressed="true"]{background:var(--grass);color:#04120c;border-color:var(--grass)}
 .minfo-pane[hidden]{display:none}
 .fchips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
 .fchip{font-family:var(--font);min-height:44px;border:1px solid var(--line);background:var(--pitch);color:#fff;border-radius:999px;font-size:12px;font-weight:800;cursor:pointer;padding:8px 14px}
 .fchip[aria-pressed="true"]{background:var(--grass);color:#04120c;border-color:var(--grass)}
-button.pdot{background:none;border:0;padding:0;font-family:var(--font);cursor:pointer}
+button.pdot{background:none;border:0;padding:6px;margin:-6px;font-family:var(--font);cursor:pointer}
 button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .mpop{position:fixed;z-index:60;width:250px;max-width:86vw;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;box-shadow:0 12px 32px rgba(0,0,0,.5);color:var(--ink);text-align:start}
 .mpop .mh{display:flex;gap:8px;align-items:center}
@@ -196,7 +202,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .fm-score .row{display:flex;align-items:center;gap:8px}
 .fm-score .tm{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .fm-score .tm img{width:40px;height:40px;object-fit:contain}
-.fm-score .tm b{font-size:13px;font-weight:900}
+.fm-score .tm b{font-size:13px;font-weight:900;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fm-score .mid{flex:none;min-width:86px}
 .fm-score .gl{font-size:26px;font-weight:900;letter-spacing:2px;font-variant-numeric:tabular-nums}
 .fm-score .st{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
@@ -262,7 +268,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 }
 /* tablets/desktops: roomier cards, wider grids */
 @media (min-width:768px){
-  .wrap{max-width:1000px;padding:16px 20px calc(24px + env(safe-area-inset-bottom))}
+  .wrap{max-width:1000px;padding:calc(16px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom))}
   .minfo{padding:20px}
   .lu-grid{grid-template-columns:1fr 1fr;gap:16px}
   .fm-score .tm b{font-size:15px}
@@ -272,7 +278,6 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .srv.skel{pointer-events:none;border-style:dashed}
 .srv.skel .meta b,.srv.skel .meta span{background:#1e3a30;border-radius:6px;color:transparent}
 .src-note{font-size:12px;color:var(--muted);font-weight:600;margin:8px 2px 0;line-height:1.7}
-@media (max-width:420px){.servers{grid-template-columns:1fr 1fr}}
 @media (min-width:640px){.servers{grid-template-columns:repeat(3,1fr)}}
 /* controls */
 .controls{display:flex;gap:8px;margin-top:8px}
@@ -287,6 +292,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
   text-align:center;border:1px solid var(--line)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
+.srv:active,.btn:active{opacity:.75}
 button{touch-action:manipulation}
 /* sponsor banner (messistat.com) — one slim footer leaderboard, labeled, lazy */
 .ad-wrap{max-width:728px;margin:12px auto 0}
@@ -294,7 +300,7 @@ button{touch-action:manipulation}
 .ad img{display:block;width:100%;height:auto}
 .ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 8px}
 .lang{display:flex;gap:6px;flex:none}
-.lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
+.lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
 .disclaimer{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
 .kstats{display:flex;gap:8px;margin-bottom:10px}
 .kstat{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;background:var(--pitch)}
@@ -303,6 +309,7 @@ button{touch-action:manipulation}
 .ev-half{font-size:11px;font-weight:900;color:var(--muted);margin:10px 0 2px;display:flex;align-items:center;gap:8px}
 .ev-half::after{content:"";flex:1;height:1px;background:var(--line)}
 @media (max-width:420px){.controls{flex-wrap:wrap}.controls .btn{flex:1 1 30%}}
+@media (max-width:480px){.head{flex-wrap:wrap}.head .title{order:3;flex-basis:100%}}
 
 .lang button.on{background:var(--grass);color:#04120c;border-color:var(--grass)}
 
@@ -311,26 +318,29 @@ button{touch-action:manipulation}
 .sup-msg{font-size:13px;font-weight:700;margin:0 0 8px}
 .sup-row{display:flex;gap:8px;flex-wrap:wrap}
 .sup-btn{font-family:var(--font);border:0;border-radius:10px;min-height:44px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;background:var(--pitch);color:#fff;text-decoration:none;display:inline-flex;align-items:center}
-.sup-btn.kofi{background:#ff5e5b}
+.sup-btn.kofi{background:#c81e1e}
 .sup-btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.ghost,.sup-btn.ghost{border-color:#3f5a4e}
 .sup-wallet{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
 .sup-wallet[hidden]{display:none}
 .sup-wallet code{flex:1;min-width:0;font-size:12px;word-break:break-all;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px}
 body.ads-off .ad-wrap{display:none}
+@media (max-width:480px){.support{padding:10px}.sup-msg{font-size:12px}}
 
 @media (prefers-reduced-motion:reduce){.click-shield{transition:none}}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}.shield{transition:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <nav class="crumb" aria-label="breadcrumb"><a href="/" data-i18n="crumbHome">Home</a> <span aria-hidden="true">›</span> <span id="crumbCur" data-i18n="crumbCur">Watch match</span></nav>
+  <nav class="crumb" aria-label="breadcrumb"><a href="/" data-i18n="crumbHome">Home</a> <span aria-hidden="true" class="flip">›</span> <span id="crumbCur" data-i18n="crumbCur">Watch match</span></nav>
   <div class="head">
     <a class="back" href="/" data-i18n="back">‹ Back</a>
     <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
     <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
   </div>
   <div class="stage">
-    <iframe id="player" title="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+    <iframe id="player" title="player" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       loading="eager" sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"></iframe>
     <div class="shield" id="shield"></div>
     <div class="click-shield" id="clickShield">
@@ -342,29 +352,29 @@ body.ads-off .ad-wrap{display:none}
   </div>
   <div class="disclaimer" data-i18n="commentaryNote">🔊 Commentary in Arabic</div>
   <div class="mcard" id="matchCard" hidden>
-    <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="fav">&#9734;</button></div>
+    <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="Favorite" data-i18n-aria="ariaFav">&#9734;</button></div>
     <div class="mid"><div class="vs" id="matchState">…</div><div class="tm" id="matchTime">—</div><div class="lg" id="matchLeague">—</div></div>
-    <div class="team"><img id="awayLogo" alt="Away team logo" data-i18n-alt="awayAlt"><b id="awayName">—</b><button class="tstar" id="starA" aria-label="fav">&#9734;</button></div>
+    <div class="team"><img id="awayLogo" alt="Away team logo" data-i18n-alt="awayAlt"><b id="awayName">—</b><button class="tstar" id="starA" aria-label="Favorite" data-i18n-aria="ariaFav">&#9734;</button></div>
   </div>
-  <div class="likebar"><button class="like" id="btnLike" aria-label="like">&#9825;<span id="likeCount"></span></button></div>
+  <div class="likebar"><button class="like" id="btnLike" aria-label="Like" data-i18n-aria="ariaLike">&#9825;<span id="likeCount"></span></button></div>
   <div class="src-head">
     <h2><span data-i18n="srcTitle">📡 Stream sources</span> <span class="n" id="srvCount" hidden>0</span></h2>
-    <small id="srvNow" data-i18n="searching">Searching for servers…</small>
+    <small id="srvNow" data-i18n="searching" aria-live="polite">Searching for servers…</small>
   </div>
   <div class="servers" id="servers"></div>
   <p class="src-note" id="srcNote" hidden></p>
   <div class="controls">
     <button class="btn" id="btnFull" data-i18n="fullscreen">⛶ Fullscreen</button>
     <button class="btn ghost" id="btnReload" data-i18n="reload">⟳ Reload</button>
-    <button class="btn ghost" id="btnShare" aria-label="share">&#128279;</button>
-    <button class="btn ghost" id="btnBell" aria-label="notifications">&#128276;</button>
+    <button class="btn ghost" id="btnShare" aria-label="Share" data-i18n-aria="ariaShare">&#128279;</button>
+    <button class="btn ghost" id="btnBell" aria-label="Notifications" data-i18n-aria="ariaBell">&#128276;</button>
   </div>
 
 <div class="support" id="support">
   <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us by keeping ads on or donating.</div>
   <div class="sup-row">
     <a class="sup-btn kofi" href="https://ko-fi.com/messistat" target="_blank" rel="noopener sponsored">☕ Ko-fi</a>
-    <button class="sup-btn" id="walletBtn" type="button">⧉ BEP20 wallet</button>
+    <button class="sup-btn" id="walletBtn" type="button" data-i18n="walletBtn" aria-controls="walletBox" aria-expanded="false">⧉ BEP20 wallet</button>
     <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
   </div>
   <div class="sup-wallet" id="walletBox" hidden><code>0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
@@ -380,7 +390,7 @@ body.ads-off .ad-wrap{display:none}
   </section>
   <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status"></div>
 
 <script>
 'use strict';
@@ -445,6 +455,7 @@ playBtn: '▶ Tap to watch', playHint: 'First tap only opens the stream — no p
 homeAlt: 'Home team logo', awayAlt: 'Away team logo',
 srcTitle: '📡 Stream sources', searching: 'Searching for servers…',
 fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked',
+ariaFav: 'Toggle favorite', ariaLike: 'Like this match', ariaShare: 'Share match link', ariaBell: 'Match notifications', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentary in Arabic',
 updatedAgo: (s) => 'updated ' + s + 's ago',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
@@ -495,6 +506,7 @@ playBtn: '▶ Toucher pour regarder', playHint: 'Le premier toucher ouvre seulem
 homeAlt: 'Logo de l’équipe domicile', awayAlt: 'Logo de l’équipe extérieur',
 srcTitle: '📡 Sources du stream', searching: 'Recherche de serveurs…',
 fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués',
+ariaFav: 'Ajouter aux favoris', ariaLike: 'Aimer ce match', ariaShare: 'Copier le lien du match', ariaBell: 'Notifications du match', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentaires en arabe',
 updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
@@ -539,12 +551,13 @@ ogDesc: 'Stream HD propre en direct, sans popups agaçants.'
 }
 },
 ar: {
-back: '‹ عودة', crumbHome: 'الرئيسية', crumbCur: 'مشاهدة المباراة',
+back: 'عودة ›', crumbHome: 'الرئيسية', crumbCur: 'مشاهدة المباراة',
 loadingTitle: 'جاري تحميل المباراة…', tagline: 'بث نظيف بدون إعلانات',
 playBtn: '▶ اضغط للمشاهدة', playHint: 'أول ضغطة تفتح البث فقط — بدون إعلانات',
 homeAlt: 'شعار الفريق المضيف', awayAlt: 'شعار الفريق الضيف',
 srcTitle: '📡 مصادر البث', searching: 'جاري البحث عن السيرفرات…',
 fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', blocked: 'محظور',
+ariaFav: 'إضافة إلى المفضلة', ariaLike: 'أعجبني', ariaShare: 'نسخ رابط المباراة', ariaBell: 'تنبيهات المباراة', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 التعليق باللغة العربية',
 updatedAgo: (s) => 'تم التحديث قبل ' + s + ' ث',
 minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', ad: 'إعلان',
@@ -605,6 +618,19 @@ const ogT = document.querySelector('meta[property="og:title"]'); if (ogT) ogT.se
 const ogD = document.querySelector('meta[property="og:description"]'); if (ogD) ogD.setAttribute('content', m.ogDesc);
 const twT = document.querySelector('meta[name="twitter:title"]'); if (twT) twT.setAttribute('content', m.ogTitle);
 const twD = document.querySelector('meta[name="twitter:description"]'); if (twD) twD.setAttribute('content', m.ogDesc);
+try {
+const LOC = { en: 'en_US', fr: 'fr_FR', ar: 'ar_AR' };
+const ogL = document.querySelector('meta[property="og:locale"]'); if (ogL) ogL.setAttribute('content', LOC[LANG] || 'en_US');
+const __u = new URL(location.origin + location.pathname);
+try { const __q = new URLSearchParams(location.search); const __mv = __q.get('m') || __q.get('id'); if (__mv) __u.searchParams.set('m', __mv); const __dv = __q.get('d'); if (__dv) __u.searchParams.set('d', __dv); } catch {}
+const __base = __u.toString();
+const __sep = __base.includes('?') ? '&' : '?';
+const can = document.querySelector('link[rel="canonical"]'); if (can) can.setAttribute('href', __base);
+const ogU = document.querySelector('meta[property="og:url"]'); if (ogU) ogU.setAttribute('content', __base);
+const hEn = document.querySelector('link[rel="alternate"][hreflang="en"]'); if (hEn) hEn.setAttribute('href', __base);
+const hFr = document.querySelector('link[rel="alternate"][hreflang="fr"]'); if (hFr) hFr.setAttribute('href', __base + __sep + 'lang=fr');
+const hAr = document.querySelector('link[rel="alternate"][hreflang="ar"]'); if (hAr) hAr.setAttribute('href', __base + __sep + 'lang=ar');
+} catch {}
 try { if (!home && !away) document.title = m.title; } catch (e) { try { document.title = m.title; } catch (e2) {} }
 const st = document.getElementById('static-jsonld');
 if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [
@@ -714,7 +740,7 @@ try {
   const ab = document.getElementById('adsBtn');
   if (ab) ab.onclick = () => { try { localStorage.setItem('koora_ads', adsOn() ? '0' : '1'); } catch (e) {} paintAds(); };
   const wb = document.getElementById('walletBtn');
-  if (wb) wb.onclick = () => { const box = document.getElementById('walletBox'); if (box) box.hidden = !box.hidden; };
+  if (wb) wb.onclick = () => { const box = document.getElementById('walletBox'); if (box) { box.hidden = !box.hidden; try { wb.setAttribute('aria-expanded', box.hidden ? 'false' : 'true'); } catch {} } };
   const cb = document.getElementById('walletCopy');
   if (cb) cb.onclick = () => copyText('0xe78ee7a6ce01978562c90df0fa3f775215457390', 'copied', 'copyFail');
 } catch (e) {}
@@ -1256,7 +1282,7 @@ async function paintLike(){
     const r = await sbGet('koora_like_counts?select=likes&match_id=eq.' + encodeURIComponent(id));
     if (r && r[0] && r[0].likes != null) n = r[0].likes;
     b.classList.toggle('on', on);
-    b.innerHTML = (on ? '&#9829;' : '&#9825;') + (n > 0 ? ' <span>' + n + '</span>' : '');
+    b.innerHTML = (on ? '&#9829;' : '&#9825;') + (n > 0 ? ' <span>' + esc(String(n)) + '</span>' : '');
   } catch {}
 }
 async function likeToggle(){
@@ -1271,12 +1297,20 @@ async function likeToggle(){
   } catch {}
 }
 function paintTitle(){
-  document.getElementById('matchTitle').textContent =
-    (home || away) ? `${dispTeam(home)} × ${dispTeam(away)}` : t('defaultTitle');
-  if (home || away) document.title = t('watchTitle')(dispTeam(home), dispTeam(away));
+  const __H = dispTeam(home), __A = dispTeam(away), __L = dispLeague(leagueP);
+  const __mt = (home || away) ? `${__H} × ${__A}` : t('defaultTitle');
+  document.getElementById('matchTitle').textContent = __mt;
+  try { const __fr = document.getElementById('player'); if (__fr) __fr.title = __mt; } catch {}
+  if (home || away){
+    let __bt = t('watchTitle')(__H, __A);
+    if (__L) __bt = __bt.replace(' — Koora Live', ` — ${__L} — Koora Live`);
+    document.title = __bt;
+  }
   try { const c = document.getElementById('crumbCur'); if (c) c.textContent = (home && away) ? `${dispTeam(home)} ${t('vs')} ${dispTeam(away)}` : t('crumbCur'); } catch {}
   try {
-    document.querySelector('link[rel="canonical"]')?.setAttribute('href', location.href);
+    const __u2 = new URL(location.origin + location.pathname);
+    try { const __q2 = new URLSearchParams(location.search); const __m2 = __q2.get('m') || __q2.get('id'); if (__m2) __u2.searchParams.set('m', __m2); const __d2 = __q2.get('d'); if (__d2) __u2.searchParams.set('d', __d2); } catch {}
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', __u2.toString());
     document.getElementById('bc-jsonld')?.remove();
     const bc = document.createElement('script'); bc.type = 'application/ld+json'; bc.id = 'bc-jsonld';
     bc.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'BreadcrumbList',
@@ -1286,7 +1320,7 @@ function paintTitle(){
       ]});
     document.head.appendChild(bc);
   } catch {}
-  try { const md = document.querySelector('meta[name="description"]'); if (md && (home || away)) md.setAttribute('content', document.title); } catch {}
+  try { const md = document.querySelector('meta[name="description"]'); if (md && (home || away)){ const __tm = dispTime(timeP); let __ds = `Watch ${__H} vs ${__A}${__L ? ` (${__L})` : ''} live stream in HD — Koora Live`; if (__tm) __ds += ` — ${__tm}`; md.setAttribute('content', __ds); } } catch {}
 }
 /* Short-link snapshot: sessionStorage (same-tab instant) → localStorage
    (12h TTL) → matchday API lookup (d, today, yesterday, tomorrow). */
@@ -1351,17 +1385,28 @@ const shield = document.getElementById('shield');
 const clickShield = document.getElementById('clickShield');
 const statusEl = document.getElementById('status');
 
+let __tq=[],__tp=false;
 function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2600);
+  try { __tq.push(String(msg == null ? '' : msg)); } catch { return; }
+  if (__tp) return;
+  __tp = true;
+  const pump = () => {
+    const nx = __tq.shift();
+    if (nx == null){ __tp = false; return; }
+    try {
+      const el = document.getElementById('toast');
+      el.textContent = nx; el.classList.add('show');
+      setTimeout(() => { try { el.classList.remove('show'); } catch {} setTimeout(pump, 120); }, 2200);
+    } catch { setTimeout(pump, 0); }
+  };
+  pump();
 }
 function workerBase(){
-  try { return (localStorage.getItem('koora_worker') || '').trim(); } catch { return ''; }
+  try { const v = (localStorage.getItem('koora_worker') || '').trim(); return /^https:\/\//i.test(v) ? v : ''; } catch { return ''; }
 }
 
 /* ad / telegram popup guard — same policy as before */
-const BLOCK_RE = /(popads|popcash|adcash|propeller|exoclick|adsterra|doubleclick|adsco\.re|t\.me|telegram\.me|telegram\.org|tg:\/\/|joinchat|youtube\.com\/((watch|shorts|embed|redirect)|((results|hashtag)\?))|youtu\.be\/)/i;
+const BLOCK_RE = /(popads|popcash|adcash|propeller|onclkds|highperformancegate|highcpm|exoclick|juicyads|hilltopads|adsterra|doubleclick|googlesyndication|adsystem|adnxs|criteo|outbrain|taboola|zeroredirect|realsrv|popunder|adsco\.re|t\.me|telegram\.me|telegram\.org|tg:\/\/|joinchat|youtube\.com\/((watch|shorts|embed|redirect)|((results|hashtag)\?))|youtu\.be\/)/i;
 let blocked = 0, lastCleanSrc = '';
 function bumpBlocked(){
   blocked++;
@@ -1845,8 +1890,10 @@ function paintMatch(h, a, hl, al, lg){
   document.getElementById('homeName').textContent = dispTeam(h) || '—';
   document.getElementById('awayName').textContent = dispTeam(a) || '—';
   const hi = document.getElementById('homeLogo'), ai = document.getElementById('awayLogo');
-  if (hl){ if (hi.getAttribute('src') !== hl) hi.src = hl; hi.alt = dispTeam(h) || t('homeAlt'); hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
-  if (al){ if (ai.getAttribute('src') !== al) ai.src = al; ai.alt = dispTeam(a) || t('awayAlt'); ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
+  const hlOk = (typeof logoOk === 'function' ? logoOk(hl || '') : (hl || ''));
+  if (hlOk){ if (hi.getAttribute('src') !== hlOk) hi.src = hlOk; hi.alt = dispTeam(h) || t('homeAlt'); hi.style.display = ''; hi.onerror = () => hi.style.display = 'none'; } else hi.style.display = 'none';
+  const alOk = (typeof logoOk === 'function' ? logoOk(al || '') : (al || ''));
+  if (alOk){ if (ai.getAttribute('src') !== alOk) ai.src = alOk; ai.alt = dispTeam(a) || t('awayAlt'); ai.style.display = ''; ai.onerror = () => ai.style.display = 'none'; } else ai.style.display = 'none';
   document.getElementById('matchLeague').textContent = dispLeague(lg) || t('leagueFallback');
   const stEl = document.getElementById('matchState');
   const tmEl = document.getElementById('matchTime');
@@ -2304,7 +2351,7 @@ async function loadMatchInfo(){
     paintExactStatus(d);
     miArmTimer();
     box.hidden = false;
-  } catch { box.hidden = true; miClearTimer(); }
+  } catch { miClearTimer(); box.hidden = false; try { const __mb = document.getElementById('minfoBody'); if (__mb) __mb.innerHTML = `<div class="loading">${esc(t('loadFailT'))} — ${esc(t('retryCta'))}<br><br><button type="button" class="fchip" onclick="loadMatchInfo()">${esc(t('retryCta'))}</button></div>`; } catch {} }
 }
 async function miRefresh(){
   try {
@@ -2385,7 +2432,7 @@ function renderMi(){
   const hLogo = logoOk(d.home && d.home.logo), aLogo = logoOk(d.away && d.away.logo);
   const scoreHtml = `<div class="fm-score"><div class="lg">${esc(decFull(d.league || ''))}</div><div class="row">`
     + `<div class="tm">${hLogo ? `<img src="${esc(hLogo)}" alt="${esc(decFull(d.home.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.home.name))}</b></div>`
-    + `<div class="mid"><div class="gl">${d.home.score != null ? d.home.score : '–'} - ${d.away.score != null ? d.away.score : '–'}</div><div class="st">${statusTxt}</div></div>`
+    + `<div class="mid"><div class="gl">${esc(String(d.home.score != null ? d.home.score : '–'))} - ${esc(String(d.away.score != null ? d.away.score : '–'))}</div><div class="st">${statusTxt}</div></div>`
     + `<div class="tm">${aLogo ? `<img src="${esc(aLogo)}" alt="${esc(decFull(d.away.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.away.name))}</b></div>`
     + `</div><div class="scorers"><div>${scorers(true)}</div><div>${scorers(false)}</div></div></div>`;
   // --- clickable pitch dots (button dots; coach has no dot and never pops) ---
@@ -2488,12 +2535,12 @@ function renderMi(){
   if (!scoreHtml && !topHtml && !statsHtml && !pitchHtml && !listsHtml && !evHtml) return false;
   // --- sticky tabs: overview (score+top+stats) / lineups (pitch+lists) / events ---
   const tabBtn = (id, label) =>
-    `<button type="button" role="tab" data-tab="${id}" aria-selected="${miTab === id}">${label}</button>`;
-  let h = `<div class="minfo-tabs" role="tablist" aria-label="${t('tabs')}">`
+    `<button type="button" data-tab="${id}" aria-pressed="${miTab === id}">${label}</button>`;
+  let h = `<div class="minfo-tabs" role="group" aria-label="${t('tabs')}">`
     + tabBtn('ov', t('tabOv')) + tabBtn('lu', t('tabLu')) + tabBtn('ev', t('tabEv')) + `</div>`;
-  h += `<div class="minfo-pane" role="tabpanel" data-pane="ov"${miTab === 'ov' ? '' : ' hidden'}>${scoreHtml}${topHtml}${statsHtml}</div>`;
-  h += `<div class="minfo-pane" role="tabpanel" data-pane="lu"${miTab === 'lu' ? '' : ' hidden'}>${pitchHtml}${listsHtml}${(!pitchHtml && !listsHtml) ? t('noLineup') : ''}</div>`;
-  h += `<div class="minfo-pane" role="tabpanel" data-pane="ev"${miTab === 'ev' ? '' : ' hidden'}>${evHtml || t('noEvents')}</div>`;
+  h += `<div class="minfo-pane" data-pane="ov"${miTab === 'ov' ? '' : ' hidden'}>${scoreHtml}${topHtml}${statsHtml}</div>`;
+  h += `<div class="minfo-pane" data-pane="lu"${miTab === 'lu' ? '' : ' hidden'}>${pitchHtml}${listsHtml}${(!pitchHtml && !listsHtml) ? t('noLineup') : ''}</div>`;
+  h += `<div class="minfo-pane" data-pane="ev"${miTab === 'ev' ? '' : ' hidden'}>${evHtml || t('noEvents')}</div>`;
   body.innerHTML = h;
   body.querySelectorAll('.minfo-tabs [data-tab]').forEach(b => {
     b.onclick = () => { miTab = b.getAttribute('data-tab'); closeMiPop(); renderMi(); };
@@ -2511,6 +2558,7 @@ function renderMi(){
   return true;
 }
 function closeMiPop(){
+  try { if (miOpener) miOpener.setAttribute('aria-expanded', 'false'); } catch {}
   miOpener = null;
   const old = document.getElementById('miPop');
   if (old && old.parentNode) old.parentNode.removeChild(old);
@@ -2547,6 +2595,7 @@ function openMiPop(btn){
   el.className = 'mpop';
   el.id = 'miPop';
   el.setAttribute('role', 'dialog');
+  try { el.setAttribute('aria-label', String(p.short || p.name || '')); } catch {}
   el.setAttribute('data-pid', pid);
   el.innerHTML = `<div class="mh">${photo ? `<img src="${photo}" alt="${esc(decFull(p.short || p.name))}" loading="lazy" onerror="this.remove()">` : ''}`
     + `<span class="tt"><b>${esc(decFull(p.short || p.name))}</b><small>${esc(decFull(p.num))} • ${esc(decFull(info.team))}</small></span>`
@@ -2557,6 +2606,8 @@ function openMiPop(btn){
   const mx = el.querySelector('.mx');
   if (mx) mx.onclick = (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); closeMiPop(); };
   miOpener = btn;
+  try { btn.setAttribute('aria-expanded', 'true'); } catch {}
+  try { if (!window.__miPopGuard){ window.__miPopGuard = true; window.addEventListener('scroll', () => { try { closeMiPop(); } catch {} }, true); window.addEventListener('resize', () => { try { closeMiPop(); } catch {} }); } } catch {}
   // Near the dot, clamped inside the viewport (flips above when no room below).
   const r = btn.getBoundingClientRect();
   const W = 250, M = 8;

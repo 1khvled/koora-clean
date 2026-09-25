@@ -1,4 +1,4 @@
-import { rl, cap, fetchableUrl } from './_sec.js';
+import { rl, cap, readCapped } from './_sec.js';
 export default async function handler(req, res) {
   // ESPN real minutes (free public JSON API, no key, no scraping).
   // GET ?home=&away=&start=&lg= -> best matching event with the REAL live
@@ -167,12 +167,14 @@ const normFrag = (s) => normAr(s).replace(/[.\-_/]/g, ' ').replace(/\s+/g, ' ').
     const enH = enToksOf(ev.h.name, ''), enA = enToksOf(ev.a.name, '');
     return Math.min(orderScore(arH, arA, enH, enA), orderScore(arH, arA, enA, enH));
   };
-  if (!normAr(qHome) && !normAr(qAway))
+  if (!normAr(qHome) && !normAr(qAway)) {
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(400).json({ error: 'missing home/away' });
+  }
 
   try {
     const slug = slugFor(qLeague);
-    const slugs = slug ? [slug] : ALL_SLUGS;
+    const slugs = slug ? [slug] : ALL_SLUGS.slice(0, 8);
     // Candidate UTC dates: kickoff day, plus previous day for late-night games.
     const dates = [];
     const d0 = ymdOf(qStart, false);
@@ -186,7 +188,7 @@ const normFrag = (s) => normAr(s).replace(/[.\-_/]/g, ' ').replace(/\s+/g, ' ').
     const jobs = [];
     for (const sl of slugs) for (const dt of dates) jobs.push([sl, dt]);
     const t0 = Date.now();
-    const pages = await Promise.all(jobs.map(async ([sl, dt]) => {
+    const settled = await Promise.allSettled(jobs.map(async ([sl, dt]) => {
       try {
         const ctrl = new AbortController();
         const to = setTimeout(() => ctrl.abort(), 6000);
@@ -196,11 +198,15 @@ const normFrag = (s) => normAr(s).replace(/[.\-_/]/g, ' ').replace(/\s+/g, ' ').
             headers: { 'User-Agent': UA, 'Accept': 'application/json', 'Referer': 'https://www.espn.com/' },
           });
           if (!r.ok) return { sl, blocked: r.status === 403, events: [] };
-          const j = await r.json();
+          const clen = +(r.headers.get('content-length') || 0);
+          if (clen > 1500000) return { sl, events: [] };
+          let j = null;
+          try { j = JSON.parse(await readCapped(r, 1500000)); } catch { return { sl, events: [] }; }
           return { sl, events: ((j && j.events) || []).map(e => trimEv(e, sl)).filter(Boolean) };
         } finally { clearTimeout(to); }
       } catch { return { sl, events: [] }; }
     }));
+    const pages = settled.map(s => (s.status === 'fulfilled' ? s.value : { sl: '', events: [] }));
     const blocked = pages.length > 0 && pages.every(p => p.blocked);
     let pool = [];
     for (const p of pages) pool = pool.concat(p.events);
@@ -218,12 +224,12 @@ const normFrag = (s) => normAr(s).replace(/[.\-_/]/g, ' ').replace(/\s+/g, ' ').
     scored.sort((a, b) => a[0] - b[0]);
     const fail = { found: false, ms: Date.now() - t0 };
     if (blocked) fail.blocked = true;
-    if (!scored.length) return res.status(200).json(fail);
+    if (!scored.length) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json(fail); }
     const [best, bev] = scored[0];
     const second = scored.length > 1 ? scored[1][0] : 99;
     const okDirect = best <= 0.55;
     const okMargin = best <= 0.85 && (second - best) >= 0.08;
-    if (!okDirect && !okMargin) return res.status(200).json(fail);
+    if (!okDirect && !okMargin) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json(fail); }
     return res.status(200).json({
       found: true, slug: bev.slug, eid: bev.eid, clock: bev.clock, min: bev.min,
       half: bev.half, status: bev.status, detail: bev.detail, date: bev.date,
