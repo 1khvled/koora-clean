@@ -4,7 +4,24 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-25 (navigation polish — see CONTEXT 69).
+> Last updated: 2026-09-25 (browser-verified polish + RTL score fix — see CONTEXT 70).
+
+## 70. Browser-verified polish: countdowns, chips fade, stage LIVE badge, RTL bidi fix (2026-09-25, user: "use ur UI MCP and improve even further")
+
+- **No UI MCP connected — did it by hand + real Chromium screenshots**
+  (local serve, 390px, console + overflow diag; shots in temp, repo kept
+  clean). Screenshots caught one real bug (below); layout clean otherwise.
+- **Countdowns (index).** Upcoming rows gain a "in Xh Ym" sub-label under
+  kickoff time (<24h only, fresh on every render). New `startsIn` key ×3.
+- **Chips fade mask + stage LIVE badge (player).** Pulsing red badge over
+  the video while live (motion-safe, pointer-transparent, refreshed by the
+  20s header tick).
+- **RTL bidi fix (screenshot-proven).** Scores/minutes like "2 - 0" were
+  mirror-flipping to "0 - 2" in Arabic mode (Unicode bidi algorithm).
+  Numeric cells now `direction:ltr;unicode-bidi:isolate` on both pages;
+  re-screenshotted to confirm correct order.
+- Verified: syntax ×3 blocks, parity 57/109 ×3, mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 69. Navigation polish: live pill, footer, back history, skeletons (2026-09-25, user: "polish even further make it easier to navigate")
 
@@ -1595,11 +1612,12 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§69 (navigation polish, sweep audits + fixes, 3-language
-   i18n, dark mode, UI polish, real-live minutes, GEO/ads/donate/SEO,
-   admin removed, 2026-09-24/25) pushed to `origin main` per owner order.**
-   Watch the Vercel deploy; spot-check ended rows, dark toggle, live pill,
-   FotMob, EN/FR/AR toggle incl. RTL, and `/api/sitemap` XML live.
+5. **Batches §56–§70 (browser-verified polish, navigation, sweep audits +
+   fixes, 3-language i18n, dark mode, UI polish, real-live minutes,
+   GEO/ads/donate/SEO, admin removed, 2026-09-24/25) pushed to `origin main`
+   per owner order.** Watch the Vercel deploy; spot-check countdowns,
+   live badge, RTL score order, dark toggle, FotMob, EN/FR/AR toggle,
+   and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 

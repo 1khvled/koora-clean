@@ -313,6 +313,8 @@ button{touch-action:manipulation}
 .lang{display:flex;gap:6px;flex:none}
 .lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
 .disclaimer{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
+/* bidi: scores/minutes keep logical order in RTL */
+.mcard .mid .tm,.fm-score .gl,.fm-score .sc,.ev .mn,.ev .sc,.stat .lab span{direction:ltr;unicode-bidi:isolate}
 .kstats{display:flex;gap:8px;margin-bottom:10px}
 .kstat{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;background:var(--pitch)}
 .kstat span{display:block;font-size:15px;font-weight:900}
@@ -338,6 +340,13 @@ button{touch-action:manipulation}
 body.ads-off .ad-wrap{display:none}
 @media (max-width:480px){.support{padding:10px}.sup-msg{font-size:12px}}
 
+
+.stage-live{position:absolute;top:10px;inset-inline-start:10px;z-index:7;display:flex;align-items:center;gap:6px;background:var(--live);color:#fff;font-size:11px;font-weight:900;border-radius:999px;padding:5px 12px;pointer-events:none}
+.stage-live::before{content:"";width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
+.stage-live[hidden]{display:none}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.stage-live::before{animation:none}}
+
 @media (prefers-reduced-motion:reduce){.click-shield{transition:none}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}.shield{transition:none}}
 </style>
@@ -353,6 +362,7 @@ body.ads-off .ad-wrap{display:none}
   <div class="stage">
     <iframe id="player" title="player" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       loading="eager" sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"></iframe>
+    <div class="stage-live" id="stageLive" hidden></div>
     <div class="shield" id="shield"></div>
     <div class="click-shield" id="clickShield">
       <div style="text-align:center">
@@ -1924,6 +1934,7 @@ function paintMatch(h, a, hl, al, lg){
     stEl.classList.remove('live');
     tmEl.textContent = dispTime(timeP);
   }
+  try { const sl = document.getElementById('stageLive'); if (sl){ const lv = isLiveP() && !isEndedP(); sl.hidden = !lv; if (lv) sl.textContent = t('live'); } } catch (e) {}
 }
 /* boot() below paints after the short-link snapshot resolves. */
 
