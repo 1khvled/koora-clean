@@ -4,7 +4,18 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-25 (full sweep audit + fixes — see CONTEXT 66).
+> Last updated: 2026-09-25 (CSP broke all styling, one-line fix — see CONTEXT 67).
+
+## 67. CSP style-src killed the whole site styling (2026-09-25, user: site unstyled + screenshot)
+
+- **Cause.** Sweep CSP set `style-src 'self'` without `'unsafe-inline'`,
+  which silently blocks ALL inline `<style>` (the entire design) — site
+  rendered as raw unstyled HTML. JS/data were fine (translated names
+  proved it). Lesson: inline-arch CSPs must carry style unsafe-inline;
+  CSP changes need a live visual check, not just syntax checks.
+- **Fix.** One line: `style-src 'self' 'unsafe-inline'
+  https://fonts.googleapis.com`. Validated JSON, pushed at once.
+  **Pushed** to `origin main` (Vercel redeploys).
 
 ## 66. SEO+GEO/SECURITY/UX-BACKEND sweep: 4 audits, 2 fix crews (2026-09-25, user: audit + "WHEN DONE USE SUBAGENTS TO FIX")
 
