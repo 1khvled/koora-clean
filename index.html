@@ -167,6 +167,21 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
 a.m:active,.chip:active{opacity:.75}
 button{touch-action:manipulation}
+/* UI polish: sticky toolbar, hover depth, league count badges */
+.toolbar{position:sticky;top:0;z-index:20;background:var(--paper);padding-bottom:8px;border-bottom:1px solid var(--line)}
+.brand .ball{box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.league>h2 .lg-n{background:var(--line);color:var(--muted);font-size:11px;font-weight:800;border-radius:999px;padding:1px 8px}
+@media (hover:hover){
+.m{transition:transform .15s ease,box-shadow .15s ease}
+.m:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(7,31,25,.16)}
+.chip{transition:filter .15s ease}
+.chip:hover{filter:brightness(.95)}
+.days button{transition:filter .15s ease}
+}
+@media (prefers-reduced-motion:reduce){
+.m{transition:none}
+}
+
 html{color-scheme:light}
 html.dark{color-scheme:dark;--paper:#0c1a15;--card:#10251e;--ink:#f2f7f4;--muted:#9db5a8;--line:#1e3a30;--shadow:0 1px 3px rgba(0,0,0,.45)}
 html.dark .live-lg,html.dark .league>h2{color:#8fe3ae}
@@ -1708,7 +1723,7 @@ function render(silent){
   let groupsHtml = [...groups].map(([lg, ms]) => ({ lg, ms, r: leagueRank(lg) }))
     .sort((a, b) => a.r - b.r)
     .map(({ lg, ms }) =>
-      `<section class="league"><h2>${tx(dispLeague(lg))}</h2>${ms.map(rowCard).join('')}</section>`).join('');
+      `<section class="league"><h2>${tx(dispLeague(lg))} <span class="lg-n">${ms.length}</span></h2>${ms.map(rowCard).join('')}</section>`).join('');
   const hid = list.filter(m => !vis(m));
   if (hid.length){
     const hn = hid.filter(isLive).length;
