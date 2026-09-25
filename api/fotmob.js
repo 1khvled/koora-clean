@@ -1,4 +1,4 @@
-import { rl, cap, fetchableUrl } from './_sec.js';
+import { rl, cap, readCapped } from './_sec.js';
 export default async function handler(req, res) {
   // FotMob match-data bridge (added 2026-09-09): lineups, player ratings,
   // team stats, top players and match events for the player page.
@@ -159,8 +159,10 @@ export default async function handler(req, res) {
     return /^[\d.,%()'’\s-]+$/.test(s) && /\d/.test(s) ? s.slice(0, 14) : '';
   };
 
-  if (!normAr(qHome) && !normAr(qAway))
+  if (!normAr(qHome) && !normAr(qAway)) {
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(400).json({ error: 'missing home/away' });
+  }
 
   try {
     // 1) candidate dates: match-day first, then the UTC-adjacent day
@@ -185,7 +187,9 @@ export default async function handler(req, res) {
       try {
         const r = await fetchT(`${FM}/api/data/matches?date=${date}&ccode3=USA_en`, 7000);
         if (!r.ok) return null;
-        return await r.json();
+        const clen = +(r.headers.get('content-length') || 0);
+        if (clen > 1500000) return null;
+        try { return JSON.parse(await readCapped(r, 1500000)); } catch { return null; }
       } catch { return null; }
     }))).filter(Boolean);
     const items = [];
@@ -240,14 +244,17 @@ export default async function handler(req, res) {
       else if (b0.fz <= 1.4 && margin >= 0.10 && lh && dd !== null && dd <= 120) best = b0;
       else if (b0.fz <= 2.0 && margin >= 0.20 && lh && dd !== null && dd <= 120) best = b0;
     }
-    if (!best) return res.status(200).json({ found: false });
+    if (!best) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ found: false }); }
 
     // 2) full details (matchId comes from FotMob's own JSON — still validated
     // digits-only so a compromised upstream can't turn it into URL injection).
-    if (!/^\d{1,12}$/.test(String(best.id))) return res.status(200).json({ found: false });
+    if (!/^\d{1,12}$/.test(String(best.id))) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ found: false }); }
     const dr = await fetchT(`${FM}/api/data/matchDetails?matchId=${best.id}&ccode3=USA_en`, 8000);
-    if (!dr.ok) return res.status(200).json({ found: false });
-    const d = await dr.json();
+    if (!dr.ok) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ found: false }); }
+    const dcl = +(dr.headers.get('content-length') || 0);
+    if (dcl > 1500000) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ found: false }); }
+    let d = null;
+    try { d = JSON.parse(await readCapped(dr, 1500000)); } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ found: false }); }
     const header = d.header || {};
     const teams = header.teams || [];
     const general = d.general || {};
@@ -390,6 +397,7 @@ export default async function handler(req, res) {
       stats, periods, events, topPlayers,
     });
   } catch (e) {
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({ found: false });
   }
 }

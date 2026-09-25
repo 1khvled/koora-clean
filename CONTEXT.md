@@ -4,7 +4,45 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-25 (upstream time leaks killed — see CONTEXT 65).
+> Last updated: 2026-09-25 (full sweep audit + fixes — see CONTEXT 66).
+
+## 66. SEO+GEO/SECURITY/UX-BACKEND sweep: 4 audits, 2 fix crews (2026-09-25, user: audit + "WHEN DONE USE SUBAGENTS TO FIX")
+
+- **Process.** 4 parallel read-only audits (SEO/GEO, security, UX/UI,
+  backend), triaged, then 2 parallel fix crews split by files (pages vs
+  backend — zero conflicts), verified by me, one commit.
+- **Security (pages):** rowCard top + FotMob scores + like count escaped,
+  paintMatch logos gated by logoOk, workerBase https-only, BLOCK_RE +14
+  tokens synced from sw.js. **Backend:** alwan fetchableUrl gate, player
+  manual-redirect (3 hops, re-checked) + cached 1.5MB/LRU-50 + OPTIONS +
+  cache-header split + 404-unknown + https-only kooralive + dropped dead
+  fields; _sec IPv6 numeric gate + byte-count readCapped; espn/fotmob caps,
+  no-store 400s/negatives, JSON size caps; alwan slice-12; athikoora
+  liveness gate; matches getAttr-i + +03:00 buckets + gameends rollover;
+  sitemap https-only images; imports pruned; worker Yacine parity + espn
+  cap + unknown-api 404; sw gads/onclick anchored; vercel maxDuration 10 +
+  full CSP (no upgrade-insecure-requests); matches.json regenerated live.
+  worker-serve.js legacy bundle DELETED (unreferenced, XSS-critical).
+- **SEO/GEO:** per-locale og:locale/og:url/normalized canonical/hreflang in
+  updateMeta; SearchAction dropped; consistent translated schema names +
+  alternateName; BroadcastEvent dropped; static inLanguage array; dateless
+  events skipped; twitter:image:alt; ItemList 50; SB preconnect; league
+  title/desc templates; index error box; llms trilingual; sitemap
+  lastmod bump. Deliberately NOT changed (needs product call): server-side
+  lang rendering, Egyptian-league exclusion, league landing pages,
+  localized ad creatives, inline-mirror deployment.
+- **UX/UI:** offline error+retry, search/chips aria labels, contrast fixes
+  (live red, kofi, badges, ghost borders), aria-live toasts, AR back arrow
+  + crumb flip, header wrap, 44px targets, localized control labels,
+  wallet i18n + aria-expanded, minfo error+retry, popover a11y, honest
+  buttons (no fake tabs), reduced-motion gaps, compact support, player
+  color-scheme/theme-color/--shadow, sticky safe-area, iframe title +
+  allowfullscreen, 12px floor, status-col min-width, fm ellipsis, press
+  feedback, safe-area tops, toast queue. New dict keys (parity holds).
+- Verified: full suite green (syntax ×3 blocks, parity 52/109 ×3 langs,
+  smoke, names, fotmob, clock, theme, 100% live coverage) + sitemap
+  live-render 200 + node ESM imports + _sec asserts. Mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 65. Raw Arabic time leaks killed (2026-09-25, user screenshot: ended row showed raw "انتهت" over translated "FT")
 
@@ -1521,11 +1559,11 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§65 (3-language i18n, dark mode, real-live minutes,
-   zero-leak rows, GEO/ads/donate/SEO, admin removed, 2026-09-24/25) pushed
-   to `origin main` per owner order.** Watch the Vercel deploy; spot-check
-   ended rows (score + FT, no Arabic), dark toggle, live minutes, FotMob,
-   EN/FR/AR toggle incl. RTL, and `/api/sitemap` XML live.
+5. **Batches §56–§66 (sweep audits + fixes, 3-language i18n, dark mode,
+   real-live minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/25)
+   pushed to `origin main` per owner order.** Watch the Vercel deploy;
+   spot-check ended rows, dark toggle, live minutes, FotMob, EN/FR/AR
+   toggle incl. RTL, error/retry states, and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 

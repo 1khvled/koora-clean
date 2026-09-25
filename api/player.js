@@ -10,22 +10,46 @@ export default async function handler(req, res) {
 
   // Fetch with a hard timeout (serverless-friendly). Default 4s: typical
   // upstreams answer in 1-3s; hung ones must die fast inside the 10s budget.
-  const fetchT = (url, opts = {}, ms = 4000) => {
+  // Manual redirects (max 3 hops): fetch() would silently follow a hop
+  // onto an off-allowlist/private host — each Location is re-checked with
+  // fetchableUrl (mirror alwan pattern). Fail-open: a rejected hop returns
+  // the last response so callers degrade via their !ok paths.
+  const fetchT = async (url, opts = {}, ms = 4000) => {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ms);
-    return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
+    try {
+      let cur = url;
+      let r = await fetch(cur, { ...opts, redirect: 'manual', signal: ctrl.signal });
+      for (let hop = 0; hop < 3 && r.status >= 300 && r.status < 400 && r.headers.get('location'); hop++) {
+        let nx = null;
+        try { nx = new URL(r.headers.get('location'), cur).toString(); } catch { break; }
+        if (!fetchableUrl(nx)) break;
+        cur = nx;
+        r = await fetch(cur, { ...opts, redirect: 'manual', signal: ctrl.signal });
+      }
+      return r;
+    } finally { clearTimeout(t); }
   };
   // In-memory HTML cache for yacine/hd7 day pages (60s) — avoids 3× fetch per match
   const _htmlCache = globalThis.__kooraHtmlCache || (globalThis.__kooraHtmlCache = new Map());
   const fetchCached = async (url, opts, ms) => {
     const key = url;
     const hit = _htmlCache.get(key);
-    if (hit && Date.now() - hit.at < 60000) return { ok: true, text: async () => hit.html, headers: { get: () => null } , status: 200 };
+    if (hit && Date.now() - hit.at < 60000) {
+      _htmlCache.delete(key); _htmlCache.set(key, hit); // LRU refresh
+      return { ok: true, text: async () => hit.html, headers: { get: () => null } , status: 200 };
+    }
     try {
       const r = await fetchT(url, opts, ms);
       if (r.ok) {
+        const clen = +((r.headers && r.headers.get('content-length')) || 0);
+        if (clen > 1500000) return r; // oversize: fail-open without caching
         const html = await r.text();
+        if (!html || new TextEncoder().encode(html).length > 1500000) {
+          return { ok: true, text: async () => html, headers: r.headers, status: r.status };
+        }
         _htmlCache.set(key, { at: Date.now(), html });
+        while (_htmlCache.size > 50) { const oldest = _htmlCache.keys().next().value; _htmlCache.delete(oldest); }
         return { ok: true, text: async () => html, headers: r.headers, status: r.status };
       }
       return r;
@@ -249,6 +273,7 @@ const resolveYacine = async (home, away, startIso) => {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=30');
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (!rl(req, res, 'player')) return;
   
   if (!id && !href) {
@@ -288,7 +313,8 @@ const resolveYacine = async (home, away, startIso) => {
   let playerHtml = null;
   let playerSrc = null;
   if (target) {
-    if (!/^https?:\/\//i.test(target)) target = 'https://kooralive-plus.info' + target;
+    if (/^http:\/\//i.test(target)) { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'href host not allowed' }); }
+    if (!/^https:\/\//i.test(target)) target = 'https://kooralive-plus.info' + target;
     try { targetHost = new URL(target).hostname.toLowerCase(); } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'bad href' }); }
     if (!(targetHost === 'kooralive-plus.info' || targetHost.endsWith('.kooralive-plus.info'))){
       res.setHeader('Cache-Control', 'no-store');
@@ -367,8 +393,6 @@ const resolveYacine = async (home, away, startIso) => {
       resolveYacine(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
       new Promise(r => setTimeout(() => r(null), 5500))
     ]);
-    const hd7 = null;
-    const enServers = []; // English section removed 2026-09-12 (owner request)
 
     const servers = [];
     const pushUnique = (entry) => {
@@ -394,6 +418,7 @@ const resolveYacine = async (home, away, startIso) => {
     const hasPlayable = servers.length > 0;
     if (hasPlayable) {
       const first = servers[0].url;
+      res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
       return res.status(200).json({
         id,
         href: target,
@@ -402,17 +427,20 @@ const resolveYacine = async (home, away, startIso) => {
         playerSrc: first,
         playerHtml,
         found: true,
-        via: hasPlayable ? 'live' : 'none',
-        livePage: (hd7 && hd7.livePage) || null,
+        via: 'live',
         embedUrl: first,
         count: servers.length,
         servers,
-        enCount: (enServers || []).length,
-        enServers: enServers || [],
       });
     } else {
-      // No playable embed anywhere — return the empty list so the UI shows
-      // the no-links state.
+      // Unknown fixture (no self-lookup hit and nothing identifiable from
+      // the resolvers) -> 404; known-but-streamless -> 200 + found:false
+      // so the UI shows the no-links state.
+      if (!target && !matchHome && !matchAway) {
+        res.setHeader('Cache-Control', 'no-store');
+        return res.status(404).json({ found: false, message: 'Unknown fixture' });
+      }
+      res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({
         id,
         href: target,
@@ -423,8 +451,6 @@ const resolveYacine = async (home, away, startIso) => {
         found: false,
         count: servers.length,
         servers,
-        enCount: (enServers || []).length,
-        enServers: enServers || [],
         message: 'No playable stream found'
       });
     }

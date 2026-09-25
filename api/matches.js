@@ -1,4 +1,4 @@
-import { rl, cap, fetchableUrl } from './_sec.js';
+import { rl } from './_sec.js';
 export default async function handler(req, res) {
   const day = (req.query.day || 'today').toString();
   let yacineTarget = 'https://yacinelive.online/matches-today/';
@@ -65,11 +65,13 @@ export default async function handler(req, res) {
     if (!html || !html.includes('AY_Match')) return [];
     const out = [];
     const blocks = html.split('AY_Match').slice(1);
-    // Determine base date for start ISO
-    const baseDate = new Date();
-    if (day === 'yesterday') baseDate.setDate(baseDate.getDate() - 1);
-    else if (day === 'tomorrow') baseDate.setDate(baseDate.getDate() + 1);
-    const y = baseDate.getFullYear(), mo = String(baseDate.getMonth()+1).padStart(2,'0'), d = String(baseDate.getDate()).padStart(2,'0');
+    // Base date computed explicitly in +03:00 (never server-local TZ).
+    const now3 = new Date(Date.now() + 3 * 3600000);
+    let _by = now3.getUTCFullYear(), _bm = now3.getUTCMonth() + 1, _bd = now3.getUTCDate();
+    const _dimB = (yy, mm2) => new Date(Date.UTC(yy, mm2, 0)).getUTCDate();
+    if (day === 'yesterday') { _bd -= 1; if (_bd < 1) { _bm -= 1; if (_bm < 1) { _bm = 12; _by -= 1; } _bd = _dimB(_by, _bm); } }
+    else if (day === 'tomorrow') { _bd += 1; if (_bd > _dimB(_by, _bm)) { _bd = 1; _bm += 1; if (_bm > 12) { _bm = 1; _by += 1; } } }
+    const y = _by, mo = String(_bm).padStart(2,'0'), d = String(_bd).padStart(2,'0');
     for (const b of blocks) {
       try {
         const hrefM = b.match(/<a[^>]+href="(https:\/\/[^"]+)"/i) || b.match(/<a[^>]+href='([^']+)'/i) || b.match(/<a[^>]+href="([^"]+)"/i);
@@ -110,15 +112,15 @@ export default async function handler(req, res) {
               else { if (hh === 12) hh = 0; }
               const dt = new Date(`${y}-${mo}-${d}T${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00+03:00`);
               if (!isNaN(dt)) {
-                startIso = dt.toISOString().replace('.000Z', '+03:00').replace('Z', '+03:00');
-                // crude but keep same as kora: +03:00
-                // Actually toISOString gives Z, we want +03:00; construct manually
                 startIso = `${y}-${mo}-${d}T${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00+03:00`;
-                const end = new Date(dt.getTime() + 105*60000);
-                const eh = String(end.getHours()).padStart(2,'0'), em = String(end.getMinutes()).padStart(2,'0');
-                // Use same date logic for end (may roll over)
-                const ey = end.getFullYear(), emo = String(end.getMonth()+1).padStart(2,'0'), ed = String(end.getDate()).padStart(2,'0');
-                gameendsIso = `${ey}-${emo}-${ed}T${eh}:${em}:00+03:00`;
+                // End wall-clock: +105min on the parsed hh:mm with manual day
+                // rollover (no getHours/getDate — those are server-local TZ).
+                const tot = hh * 60 + mm + 105;
+                const eh = String(Math.floor(tot / 60) % 24).padStart(2,'0'), em = String(tot % 60).padStart(2,'0');
+                let _ey = +y, _emo = +mo, _ed = +d + Math.floor(tot / 1440);
+                const _dimE = (yy, mm2) => new Date(Date.UTC(yy, mm2, 0)).getUTCDate();
+                while (_ed > _dimE(_ey, _emo)) { _ed -= _dimE(_ey, _emo); _emo += 1; if (_emo > 12) { _emo = 1; _ey += 1; } }
+                gameendsIso = `${_ey}-${String(_emo).padStart(2,'0')}-${String(_ed).padStart(2,'0')}T${eh}:${em}:00+03:00`;
               }
             }
           } catch {}
@@ -187,7 +189,7 @@ export default async function handler(req, res) {
       const tag = m[0];
       if (!tag.includes('data-home')) continue;
       const getAttr = (name) => {
-        const mm = tag.match(new RegExp(name + '\\s*=\\s*(["\'])(.*?)\\1'));
+        const mm = tag.match(new RegExp(name + '\\s*=\\s*(["\'])(.*?)\\1', 'i'));
         return mm ? mm[2] : '';
       };
       const href = m[2];

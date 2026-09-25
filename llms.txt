@@ -35,11 +35,12 @@
 - /api/sitemap : XML sitemap (core pages + today matches)
 
 ## Notes
-- Language: English + French (en/fr, LTR) with a header EN/FR toggle (saved in
-  localStorage, `?lang=` override, French browser locale auto-detected).
-  Tagline: Clean streams, no popups. Upstream team/league names are
-  translated at render time (EN display names, EN/FR league names) from a
-  built-in dictionary; unknown names fall back to the feed text.
+- Language: English, French + Arabic (en/fr/ar) with a header EN/FR/AR toggle
+  (saved in localStorage, `?lang=` override, country + browser auto-detect;
+  Arabic flips the layout to RTL). Tagline: Clean streams, no popups.
+  Upstream team/league names are translated at render time (EN display
+  names, EN/FR league names) from a built-in dictionary; unknown names
+  auto-transliterate to Latin (EN/FR) or stay raw (AR).
 - Bots (search + AI assistants) are welcome on all public pages.
 - No official broadcast affiliation is claimed; team names, scores and
   kickoff times are factual match data.
