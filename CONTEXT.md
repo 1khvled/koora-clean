@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-25 (UI polish batch — see CONTEXT 68).
+> Last updated: 2026-09-25 (navigation polish — see CONTEXT 69).
+
+## 69. Navigation polish: live pill, footer, back history, skeletons (2026-09-25, user: "polish even further make it easier to navigate")
+
+- **Jump-to-live pill (index).** Floating `● Live (n)` button appears only
+  when live matches exist AND you've scrolled past them; tap glides back
+  (reduced-motion aware, observer-driven, translated count).
+- **Footer nav (index).** Slim Top / Live / FAQ / Support links with
+  scroll-margin offsets (sticky toolbar never covers targets); Live hides
+  when nothing is live. 4 new keys ×3 langs.
+- **Smarter back (player).** Returns via history when you came from the
+  match list, falls back to home on direct visits.
+- **Skeleton loading (index).** Shimmer rows replace the bare loading text
+  (motion-safe); search/chips/toolbar untouched.
+- Verified: syntax ×3 blocks, parity 56/109 ×3, mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 68. UI polish: sticky toolbar, hover depth, league counts, richer card (2026-09-25, user: "UI improvement if u can")
 
@@ -1580,11 +1595,11 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§68 (sweep audits + fixes, 3-language i18n, dark mode,
-   UI polish, real-live minutes, GEO/ads/donate/SEO, admin removed,
-   2026-09-24/25) pushed to `origin main` per owner order.** Watch the
-   Vercel deploy; spot-check ended rows, dark toggle, live minutes, FotMob,
-   EN/FR/AR toggle incl. RTL, error/retry states, and `/api/sitemap` XML live.
+5. **Batches §56–§69 (navigation polish, sweep audits + fixes, 3-language
+   i18n, dark mode, UI polish, real-live minutes, GEO/ads/donate/SEO,
+   admin removed, 2026-09-24/25) pushed to `origin main` per owner order.**
+   Watch the Vercel deploy; spot-check ended rows, dark toggle, live pill,
+   FotMob, EN/FR/AR toggle incl. RTL, and `/api/sitemap` XML live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 

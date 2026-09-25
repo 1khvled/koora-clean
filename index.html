@@ -167,6 +167,17 @@ main{padding:12px 16px calc(24px + env(safe-area-inset-bottom));max-width:760px;
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px}
 a.m:active,.chip:active{opacity:.75}
 button{touch-action:manipulation}
+.foot{display:flex;gap:4px;justify-content:center;align-items:center;flex-wrap:wrap;padding:18px 16px calc(28px + env(safe-area-inset-bottom));color:var(--muted);font-size:13px;font-weight:700}
+.foot a{color:inherit;text-decoration:none;padding:10px 12px;min-height:44px;display:inline-flex;align-items:center}
+#liveSec,#support,#faq{scroll-margin-top:130px}
+#liveJump{position:fixed;inset-inline-end:12px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:40;font-family:var(--font);background:var(--live);color:#fff;border:0;border-radius:999px;min-height:44px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+#liveJump[hidden]{display:none}
+.foot [hidden]{display:none}
+.skel-list{max-width:760px;margin:12px auto 0;padding:0 16px;display:grid;gap:8px}
+.skel-row{height:64px;border-radius:16px;background:linear-gradient(90deg,var(--line) 25%,var(--card) 50%,var(--line) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skel-row{animation:none}}
+
 /* UI polish: sticky toolbar, hover depth, league count badges */
 .toolbar{position:sticky;top:0;z-index:20;background:var(--paper);padding-bottom:8px;border-bottom:1px solid var(--line)}
 .brand .ball{box-shadow:0 2px 8px rgba(0,0,0,.3)}
@@ -223,7 +234,7 @@ body.ads-off .ad-wrap{display:none}
 </style>
 </head>
 <body>
-<header class="topbar">
+<header class="topbar" id="top">
   <div class="brand">
     <span class="ball">⚽</span>
     <div><h1 data-i18n="brand">Koora Live — Live Football Streams</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
@@ -250,7 +261,7 @@ body.ads-off .ad-wrap{display:none}
 </div>
 
 <main id="content">
-  <div class="loading" id="loading" data-i18n="loading">Loading matches…</div>
+  <div id="loading"><div class="loading" data-i18n="loading">Loading matches…</div><div class="skel-list" aria-hidden="true"><div class="skel-row"></div><div class="skel-row"></div><div class="skel-row"></div></div></div>
   <div id="errbox" hidden><p data-i18n="loadErr" style="text-align:center;color:var(--muted);font-weight:700">Couldn't load matches — check your connection.</p><div style="text-align:center"><button type="button" class="chip" data-i18n="retryBtn" onclick="loadDay(DAY)">Retry</button></div></div>
   <section id="liveSec" hidden>
     <div class="sec-title"><span class="dot"></span> <span data-i18n="liveNow">Live now</span> <span class="count" id="liveCount"></span></div>
@@ -260,8 +271,10 @@ body.ads-off .ad-wrap{display:none}
   <div id="empty" hidden data-i18n="empty">No matches match your search</div>
 </main>
 <section class="seo"><h2 data-i18n="seoH">Today’s Live Football Matches — Scores, Schedule & Streams</h2><p data-i18n="seoP">An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.</p><ul><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A" data-lg="الدوري الإنجليزي" data-lg-link><strong>Premier League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D8%B3%D8%A8%D8%A7%D9%86%D9%8A" data-lg="الدوري الإسباني" data-lg-link><strong>La Liga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A" data-lg="الدوري الإيطالي" data-lg-link><strong>Serie A:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A" data-lg="الدوري الألماني" data-lg-link><strong>Bundesliga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D9%81%D8%B1%D9%86%D8%B3%D9%8A" data-lg="الدوري الفرنسي" data-lg-link><strong>Ligue 1:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A" data-lg="الدوري السعودي" data-lg-link><strong>Saudi Pro League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A3%D8%A8%D8%B7%D8%A7%D9%84%20%D8%A3%D9%88%D8%B1%D9%88%D8%A8%D8%A7" data-lg="دوري أبطال أوروبا" data-lg-link><strong>UEFA Champions League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li></ul><p data-i18n="seoCta">Pick a match from the list to open its stream page.</p></section>
-<section class="seo faq"><h2 data-i18n="faqH">Live Football Streams — FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details><details><summary data-i18n="fq5">Can I watch on mobile?</summary><p data-i18n="fa5">Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.</p></details><details><summary data-i18n="fq6">What stream quality can I expect?</summary><p data-i18n="fa6">HD live football streams with live scores and minute-by-minute updates, free with no account needed.</p></details></section>
+<section class="seo faq" id="faq"><h2 data-i18n="faqH">Live Football Streams — FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details><details><summary data-i18n="fq5">Can I watch on mobile?</summary><p data-i18n="fa5">Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.</p></details><details><summary data-i18n="fq6">What stream quality can I expect?</summary><p data-i18n="fa6">HD live football streams with live scores and minute-by-minute updates, free with no account needed.</p></details></section>
 <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
+<button id="liveJump" type="button" hidden></button>
+<footer class="foot"><a href="#top" data-i18n="ftTop">Top</a><a href="#liveSec" id="footLive" data-i18n="ftLive" hidden>Live</a><a href="#faq" data-i18n="ftFaq">FAQ</a><a href="#support" data-i18n="ftSupport">Support</a></footer>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -271,6 +284,35 @@ const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
 let ALL = [], DAY = 'today', LEAGUE = 'all';
 let FAVONLY = false;
 const GOAL_IDS = []; let GOAL_MSG = '';
+let liveN = 0, liveOff = false;
+function paintLiveJump(){
+  try {
+    const el = document.getElementById('liveJump');
+    if (!el) return;
+    const show = liveN > 0 && liveOff;
+    el.hidden = !show;
+    if (show) el.textContent = '\u25cf ' + t('liveNow') + ' (' + liveN + ')';
+  } catch (e) {}
+}
+try {
+  const __ls = document.getElementById('liveSec');
+  if (__ls && window.IntersectionObserver){
+    new IntersectionObserver(es => {
+      try {
+        es.forEach(e => { liveOff = !e.isIntersecting && e.boundingClientRect.top < 0; });
+        paintLiveJump();
+      } catch (er) {}
+    }, { threshold: 0 }).observe(__ls);
+  }
+  const __lj = document.getElementById('liveJump');
+  if (__lj) __lj.onclick = () => {
+    try {
+      const red = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.getElementById('liveSec').scrollIntoView({ behavior: red ? 'auto' : 'smooth', block: 'start' });
+    } catch (e) {}
+  };
+} catch (e) {}
+
 /* I18N — English + French interface. Match/team/league DATA stays exactly as
    the upstream feed sends it (often Arabic); only the UI chrome translates.
    Detection regexes (halfOf/isLive/isEnded/leagueRank/HIDE_AR/SAUDI_RE) and the
@@ -290,6 +332,7 @@ todayMatches: "Today's matches", ad: 'Ad',
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF',
     copyOk: 'Address copied', copyFail: 'Copy failed', copyBtn: 'Copy',
 themeToggle: 'Toggle dark mode',
+ftTop: 'Top', ftLive: 'Live', ftFaq: 'FAQ', ftSupport: 'Support',
     fq5: 'Can I watch on mobile?', fa5: 'Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.',
     fq6: 'What stream quality can I expect?', fa6: 'HD live football streams with live scores and minute-by-minute updates, free with no account needed.',
 seoH: "Today's Live Football Matches — Scores, Schedule & Streams",
@@ -322,6 +365,7 @@ todayMatches: 'Matchs du jour', ad: 'Pub',
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF',
     copyOk: 'Adresse copiée', copyFail: 'Copie impossible', copyBtn: 'Copier',
 themeToggle: 'Activer le mode sombre',
+ftTop: 'Haut', ftLive: 'En direct', ftFaq: 'FAQ', ftSupport: 'Soutien',
     fq5: 'Puis-je regarder sur mobile ?', fa5: 'Oui — le site est 100 % optimisé mobile et marche sur téléphone, tablette ou PC.',
     fq6: 'Quelle qualité de stream ?', fa6: 'Des streams de foot en direct en HD, scores en direct et minute par minute, gratuits et sans compte.',
 seoH: 'Matchs de foot en direct — scores et calendrier',
@@ -365,6 +409,7 @@ supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانا�
 adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة',
 copyOk: 'تم نسخ العنوان', copyFail: 'تعذّر النسخ', copyBtn: 'نسخ',
 themeToggle: 'تبديل الوضع الليلي',
+ftTop: 'الأعلى', ftLive: 'المباشر', ftFaq: 'الأسئلة الشائعة', ftSupport: 'الدعم',
 meta: {
 title: 'كورة لايف — مباريات اليوم بث مباشر بدون إعلانات',
 desc: 'مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة. جدول المباريات، النتائج المباشرة، والقنوات الناقلة.',
@@ -1713,6 +1758,7 @@ function render(silent){
   }
   rail.innerHTML = liveHtml;
   $('#liveCount').textContent = live.length || '';
+  try { liveN = live.length; const fl = document.getElementById('footLive'); if (fl) fl.hidden = !(liveN > 0); paintLiveJump(); } catch (e) {}
   const groups = new Map();
   for (const m of rest){
     if (!vis(m)) continue;
