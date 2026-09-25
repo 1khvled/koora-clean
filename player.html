@@ -346,7 +346,7 @@ body.ads-off .ad-wrap{display:none}
 <div class="wrap">
   <nav class="crumb" aria-label="breadcrumb"><a href="/" data-i18n="crumbHome">Home</a> <span aria-hidden="true" class="flip">›</span> <span id="crumbCur" data-i18n="crumbCur">Watch match</span></nav>
   <div class="head">
-    <a class="back" href="/" data-i18n="back">‹ Back</a>
+    <a class="back" href="/" id="backBtn" data-i18n="back">‹ Back</a>
     <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
     <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
   </div>
@@ -2655,6 +2655,15 @@ async function refreshEspnOne(){
    then paint + streams + FotMob + the 20s header tick (fused minutes keep
    advancing between the 60s FotMob refreshes). */
 try { document.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => setLang(b.getAttribute('data-lang')); }); } catch {}
+try {
+  const bb = document.getElementById('backBtn');
+  if (bb) bb.addEventListener('click', e => {
+    try {
+      if (document.referrer && new URL(document.referrer).origin === location.origin){ e.preventDefault(); history.back(); }
+    } catch (er) {}
+  });
+} catch (e) {}
+
 (async function boot(){
   // Optimistic paint — show header instantly from URL/snapshot cache,
   // then enrich in background. Previous boot awaited fetchSnap + ESPN
