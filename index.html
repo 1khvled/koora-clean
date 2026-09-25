@@ -173,6 +173,9 @@ button{touch-action:manipulation}
 #liveJump{position:fixed;inset-inline-end:12px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:40;font-family:var(--font);background:var(--live);color:#fff;border:0;border-radius:999px;min-height:44px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 #liveJump[hidden]{display:none}
 .foot [hidden]{display:none}
+/* bidi: scores/minutes keep logical order in RTL (2 - 0 never flips) */
+.m .t b,.m .st .t{direction:ltr;unicode-bidi:isolate}
+.chips{mask-image:linear-gradient(to left,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
 .skel-list{max-width:760px;margin:12px auto 0;padding:0 16px;display:grid;gap:8px}
 .skel-row{height:64px;border-radius:16px;background:linear-gradient(90deg,var(--line) 25%,var(--card) 50%,var(--line) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
 @keyframes shimmer{to{background-position:-200% 0}}
@@ -333,6 +336,7 @@ todayMatches: "Today's matches", ad: 'Ad',
     copyOk: 'Address copied', copyFail: 'Copy failed', copyBtn: 'Copy',
 themeToggle: 'Toggle dark mode',
 ftTop: 'Top', ftLive: 'Live', ftFaq: 'FAQ', ftSupport: 'Support',
+startsIn: (h, m) => h > 0 ? `in ${h}h ${m}m` : `in ${m}m`,
     fq5: 'Can I watch on mobile?', fa5: 'Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.',
     fq6: 'What stream quality can I expect?', fa6: 'HD live football streams with live scores and minute-by-minute updates, free with no account needed.',
 seoH: "Today's Live Football Matches — Scores, Schedule & Streams",
@@ -366,6 +370,7 @@ todayMatches: 'Matchs du jour', ad: 'Pub',
     copyOk: 'Adresse copiée', copyFail: 'Copie impossible', copyBtn: 'Copier',
 themeToggle: 'Activer le mode sombre',
 ftTop: 'Haut', ftLive: 'En direct', ftFaq: 'FAQ', ftSupport: 'Soutien',
+startsIn: (h, m) => h > 0 ? `dans ${h}h ${m}m` : `dans ${m}m`,
     fq5: 'Puis-je regarder sur mobile ?', fa5: 'Oui — le site est 100 % optimisé mobile et marche sur téléphone, tablette ou PC.',
     fq6: 'Quelle qualité de stream ?', fa6: 'Des streams de foot en direct en HD, scores en direct et minute par minute, gratuits et sans compte.',
 seoH: 'Matchs de foot en direct — scores et calendrier',
@@ -410,6 +415,7 @@ adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّ
 copyOk: 'تم نسخ العنوان', copyFail: 'تعذّر النسخ', copyBtn: 'نسخ',
 themeToggle: 'تبديل الوضع الليلي',
 ftTop: 'الأعلى', ftLive: 'المباشر', ftFaq: 'الأسئلة الشائعة', ftSupport: 'الدعم',
+startsIn: (h, m) => h > 0 ? `بعد ${h} س ${m} د` : `بعد ${m} د`,
 meta: {
 title: 'كورة لايف — مباريات اليوم بث مباشر بدون إعلانات',
 desc: 'مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة. جدول المباريات، النتائج المباشرة، والقنوات الناقلة.',
@@ -1709,7 +1715,17 @@ function filtered(){
   });
 }
 
+
+function countdown(m, now){
+  try {
+    if (!m || !m.start || isLive(m, now) || isEnded(m)) return '';
+    const ms = Date.parse(m.start) - (now || Date.now());
+    if (!isFinite(ms) || ms <= 0 || ms > 24 * 3600000) return '';
+    return t('startsIn')(Math.floor(ms / 3600000), Math.floor(ms % 3600000 / 60000));
+  } catch (e) { return ''; }
+}
 function rowCard(m){
+
   const st = statusLabel(m);
   const sh = (m.score_home !== '' && m.score_home != null) ? tx(m.score_home) : '';
   const sa = (m.score_away !== '' && m.score_away != null) ? tx(m.score_away) : '';
@@ -1727,7 +1743,7 @@ function rowCard(m){
     else if (tt){ top = tt; sub = t('ended'); }
     else { top = t('ended'); }
   }
-  else { top = dispTime(m.time_text) || t('upcoming'); }
+  else { top = dispTime(m.time_text) || t('upcoming'); sub = countdown(m); }
   const subHtml = sub ? `<div class="s ${subCls}">${tx(sub)}</div>` : '';
   return `<a class="m${live ? ' is-live' : ''}${GOAL_IDS.includes(m.id) ? ' flash' : ''}" href="${playerLink(m)}">
     <div class="st"><div class="t">${tx(top)}</div>${subHtml}</div>
