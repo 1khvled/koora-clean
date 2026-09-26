@@ -4,7 +4,14 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-26 (Polymarket odds — see CONTEXT 71).
+> Last updated: 2026-09-26 (skeleton pulse batch — see CONTEXT 72).
+
+## 72. Skeleton pulse: minfo + server loading shimmer (2026-09-26, user: site feels static, add loading skeletons)
+
+- **Player loading states pulse now.** Match-info loader gained shimmer
+  blocks (score bar + lines) and skeleton server buttons pulse while
+  fetching — all motion-safe, zero new i18n keys, no logic touched.
+- Verified: syntax, parity 59/112 ×3, mirrors zero-diff. **Pushed**.
 
 ## 71. Polymarket odds: Ballon d'Or board + per-match 1X2 (2026-09-26, user: polymarket link + "add poly market stuff like odds")
 
@@ -1630,12 +1637,12 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§71 (Polymarket odds, browser-verified polish, navigation,
-   sweep audits + fixes, 3-language i18n, dark mode, UI polish, real-live
-   minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to
-   `origin main` per owner order.** Watch the Vercel deploy; spot-check the
-   Ballon d'Or odds card, countdowns, dark toggle, FotMob, EN/FR/AR toggle,
-   and `/api/sitemap` + `/api/poly?type=ballon` XML/JSON live.
+5. **Batches §56–§72 (skeletons, Polymarket odds, browser-verified polish,
+   navigation, sweep audits + fixes, 3-language i18n, dark mode, UI polish,
+   real-live minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/26)
+   pushed to `origin main` per owner order.** Watch the Vercel deploy;
+   spot-check the Ballon d'Or odds card, skeletons, dark toggle, FotMob,
+   EN/FR/AR toggle, and `/api/sitemap` + `/api/poly?type=ballon` live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 

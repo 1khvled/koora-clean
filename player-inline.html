@@ -313,6 +313,14 @@ button{touch-action:manipulation}
 .lang{display:flex;gap:6px;flex:none}
 .lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
 .disclaimer{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
+.mi-skel{display:grid;gap:8px;margin-top:10px}
+.mi-skel-score{height:64px;border-radius:12px;background:#1e3a30;animation:pulse 1.4s infinite}
+.mi-skel-line{height:14px;border-radius:7px;background:#1e3a30;animation:pulse 1.4s infinite}
+.mi-skel-line:nth-child(3){width:85%}
+.mi-skel-line:nth-child(4){width:70%}
+.srv.skel .meta b,.srv.skel .meta span{animation:pulse 1.4s infinite}
+@media (prefers-reduced-motion:reduce){.mi-skel-score,.mi-skel-line,.srv.skel .meta b,.srv.skel .meta span{animation:none}}
+
 .odds{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
 .odds-head{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:900;margin-bottom:8px}
 .odds-head a{font-size:11px;color:var(--muted);font-weight:700}
@@ -421,7 +429,7 @@ body.ads-off .ad-wrap{display:none}
       <h2 data-i18n="minfoTitle">📊 Match data</h2>
       <small id="minfoSrc">FotMob</small>
     </div>
-    <div id="minfoBody"><div class="loading" data-i18n="minfoLoading">Loading lineups and ratings…</div></div>
+    <div id="minfoBody"><div class="loading" data-i18n="minfoLoading">Loading lineups and ratings…</div><div class="mi-skel" aria-hidden="true"><div class="mi-skel-score"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div></div></div>
   </section>
   <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 </div>
