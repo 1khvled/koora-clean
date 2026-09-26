@@ -312,6 +312,9 @@ button{touch-action:manipulation}
 .lang{display:flex;gap:6px;flex:none}
 .lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
 .disclaimer{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
+.hlstage{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9;border:1px solid var(--line);margin-bottom:4px}
+.hlstage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
 .mi-skel{display:grid;gap:8px;margin-top:10px}
 .mi-skel-score{height:64px;border-radius:12px;background:#1e3a30;animation:pulse 1.4s infinite}
 .mi-skel-line{height:14px;border-radius:7px;background:#1e3a30;animation:pulse 1.4s infinite}
@@ -428,6 +431,15 @@ body.ads-off .ad-wrap{display:none}
 </div>
 
   <div class="status" id="status">Blocked: 0</div>
+  
+<section class="minfo" id="hlSec" hidden>
+  <div class="src-head" style="margin-top:0">
+    <h2 data-i18n="hiTitle">🎬 Highlights</h2>
+    <small>Dailymotion</small>
+  </div>
+  <div id="hlBody"></div>
+</section>
+
   <section class="minfo" id="minfo" hidden>
     <div class="src-head" style="margin-top:0">
       <h2 data-i18n="minfoTitle">📊 Match data</h2>
@@ -510,6 +522,7 @@ minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', a
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF', copyBtn: 'Copy',
 oddsTitle: 'Match odds', oddsDraw: 'Draw', polyLink: 'Full odds',
 polyTitle: 'Ballon d’Or 2026 — odds',
+hiTitle: '🎬 Highlights',
 live: 'Live', ended: 'FT', upcoming: 'Upcoming', break: 'HT', vs: 'vs',
 favAdd: 'Added to favorites', favRemove: 'Removed from favorites',
 bellStart: 'Kickoff', bellGoal: '⚽ Goal', bellScore: 'Score update',
@@ -563,6 +576,7 @@ minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et de
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF', copyBtn: 'Copier',
 oddsTitle: 'Cotes du match', oddsDraw: 'Nul', polyLink: 'Toutes les cotes',
 polyTitle: 'Ballon d’Or 2026 — cotes',
+hiTitle: '🎬 Résumé vidéo',
 live: 'Direct', ended: 'Terminé', upcoming: 'À venir', break: 'MT', vs: 'vs',
 favAdd: 'Ajouté aux favoris', favRemove: 'Retiré des favoris',
 bellStart: 'Coup d’envoi', bellGoal: '⚽ But', bellScore: 'Score actualisé',
@@ -647,6 +661,7 @@ supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانا�
 adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة', copyBtn: 'نسخ',
 oddsTitle: 'احتمالات المباراة', oddsDraw: 'تعادل', polyLink: 'كل الاحتمالات',
 polyTitle: 'الكرة الذهبية 2026 — الاحتمالات',
+hiTitle: '🎬 ملخص المباراة',
 meta: {
 title: 'مشاهدة المباراة بث مباشر — كورة لايف',
 desc: 'مشاهدة المباراة بث مباشر بجودة عالية وبدون إعلانات مزعجة على كورة لايف.',
@@ -714,6 +729,7 @@ if (srcNote && !srcNote.hidden) srcNote.textContent = t('note')(serverList.lengt
 else if (serversEl.querySelector('#retryBtn')) showServersFromList([]);
 if (miData) renderMi();
 try { paintOdds(); } catch (e) {}
+try { paintHl(); } catch (e) {}
 } catch (e) {}
 }
 }
@@ -2275,6 +2291,64 @@ async function loadOdds(){
     } finally { clearTimeout(to); }
   } catch {}
 }
+
+/* Highlights (post-match): Dailymotion click-to-load embed, fail-silent. */
+let HL = null, hlDone = false, hlTimer = 0;
+function hlOver(){ return isEndedP() || (miData && miData.finished); }
+function paintHl(){
+  try {
+    const box = document.getElementById('hlSec');
+    if (!box || !HL || !HL.found || !HL.id) return;
+    if (!/^[a-z0-9]{6,12}$/i.test(HL.id)) return;
+    const url = 'https://geo.dailymotion.com/player.html?video=' + HL.id;
+    const body = document.getElementById('hlBody');
+    if (!body) return;
+    if (body.dataset.vid === HL.id){ box.hidden = false; return; }
+    body.dataset.vid = HL.id;
+    const th = (HL.thumb && /^https:\/\//i.test(HL.thumb) && !/[\s<>"]/.test(HL.thumb))
+      ? `<img src="${esc(HL.thumb)}" alt="${esc(HL.title || '')}" loading="lazy" onerror="this.style.display='none'">` : '';
+    body.innerHTML = `<div class="hlstage">${th}<div class="click-shield" id="hlShield"><div style="text-align:center"><button type="button">${esc(t('playBtn'))}</button><small>Dailymotion</small></div></div></div>`
+      + (HL.title ? `<div class="sub" style="margin-top:6px">${esc(HL.title)}</div>` : '');
+    const sh = document.getElementById('hlShield');
+    if (sh) sh.onclick = () => {
+      try {
+        const fr = document.createElement('iframe');
+        fr.src = url;
+        fr.setAttribute('title', HL.title || 'highlights');
+        fr.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+        fr.setAttribute('allowfullscreen', '');
+        fr.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
+        fr.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0';
+        const wrap = body.querySelector('.hlstage');
+        if (wrap){ wrap.innerHTML = ''; wrap.appendChild(fr); }
+      } catch {}
+    };
+    box.hidden = false;
+  } catch {}
+}
+async function loadHl(){
+  if (hlDone || !hlOver()) return;
+  try {
+    let hs = '', as = '';
+    try {
+      if (miData && miData.home && miData.away && miData.home.score != null && miData.away.score != null){ hs = String(miData.home.score); as = String(miData.away.score); }
+      else if (shP !== '' && saP !== ''){ hs = shP; as = saP; }
+    } catch {}
+    const q = new URLSearchParams({ home: latName(home), away: latName(away), hs, as });
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const r = await fetch('/api/highlights?' + q.toString(), { cache: 'no-store', signal: ctrl.signal });
+      if (r.ok){
+        const j = await r.json();
+        if (j && j.found && j.id){ HL = j; hlDone = true; paintHl(); return; }
+      }
+    } finally { clearTimeout(to); }
+    if (!hlTimer){
+      hlTimer = setTimeout(() => { hlTimer = 0; try { loadHl(); } catch {} }, 600000);
+    }
+  } catch {}
+}
 /* first click is absorbed so popups never open */
 function hideShield(){ try{clickShield.classList.add('hidden');}catch{} try{iframe.removeAttribute('tabindex');}catch{} }
 clickShield.addEventListener('click', hideShield);
@@ -2448,6 +2522,7 @@ function paintExactStatus(d){
     if (!stEl || !tmEl || !d) return;
     if (d.finished){
       FOT = null;
+      try { loadHl(); } catch {}
       stEl.textContent = t('ended');
       stEl.classList.remove('live');
       if (d.home.score != null && d.away.score != null)
@@ -2811,6 +2886,7 @@ try {
   sbTrackMatch();
   loadRealPlayer();
   loadOdds();
+  loadHl();
   loadMatchInfo();
   setInterval(tickHeader, 20000);
   setInterval(async () => { try { if (await refreshEspnOne()) tickHeader(); } catch {} }, 60000);
