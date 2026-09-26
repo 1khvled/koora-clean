@@ -4,7 +4,21 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-26 (sweep #2: 3 audits + 2 fix crews — see CONTEXT 76).
+> Last updated: 2026-09-26 (post-match highlights — see CONTEXT 77).
+
+## 77. Post-match highlights on player (2026-09-26, user: highlights after match ends)
+
+- **Source.** FotMob exposes no video, Reddit blocks bots — Dailymotion
+  public API (no key) won: verified fresh "Italy 0-2 Belgium Highlights"
+  as top hit. New `api/highlights.js` (_sec-guarded, fail-open): searches
+  `{home} {away} goals`, filters duration/freshness/both-teams/goal-word,
+  boosts exact-score titles, 30-min edge cache. Live-tested end to end.
+- **Player.** "🎬 Highlights" section (above match data) with click-to-load
+  thumbnail → strict allowlist embed (`geo.dailymotion.com` + id regex +
+  sandbox). Loads for finished matches at boot, on FT flip, + one 10-min
+  re-check (covers the ~2h posting delay). New `hiTitle` ×3.
+- Verified: handler live-runs, syntax, parity 59/115 ×3, mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 76. Sweep #2: scope/shadowing + RTL/CSS + backend audits, 2 fix crews (2026-09-26, user: "WTF FIX ANY BUGS LIKE THIS AND FIND EVEN MORE AUDIT")
 
@@ -1703,13 +1717,13 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§76 (sweep #2 audits + fixes, AR-mode lookup fix,
-   match-data fixes, odds fallback, skeletons, Polymarket odds,
+5. **Batches §56–§77 (highlights, sweep #2 audits + fixes, AR-mode lookup
+   fix, match-data fixes, odds fallback, skeletons, Polymarket odds,
    browser-verified polish, navigation, sweep audits + fixes, 3-language
    i18n, dark mode, UI polish, real-live minutes, GEO/ads/donate/SEO,
    admin removed, 2026-09-24/26) pushed to `origin main` per owner order.**
-   Watch the Vercel deploy; spot-check player odds in AR mode, error/retry
-   states, dark toggle, EN/FR/AR toggle, and `/api/sitemap` live.
+   Watch the Vercel deploy; spot-check highlights on a finished match,
+   player odds, EN/FR/AR toggle, and `/api/highlights` live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
