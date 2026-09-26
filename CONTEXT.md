@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-26 (odds fallback when no match market — see CONTEXT 73).
+> Last updated: 2026-09-26 (match-data misses fixed — see CONTEXT 74).
+
+## 74. Match-data misses fixed: 14 teams from live sweep (2026-09-26, user: "Match data thing did u fix it ?")
+
+- **Yes — diagnosed live, then fixed.** The backend was healthy; small
+  fixtures (e.g. Botola clubs) missed FotMob matching. Proved it: raw
+  params missed while Latin params hit — then swept 3 days of feeds (78
+  teams, 14 missing) and added all with FotMob-style Latin names (DH El
+  Jadida, COD Meknès, Union Touarga, Orlando City, San Diego FC, Faroe
+  variant, Czechia, Belarus...). Re-probed: previously dead fixtures now
+  return full lineups. Dict 491 teams, collision-checked, byte-identical
+  both pages. Remaining misses (if any) still fail open with retry.
+- Verified: syntax, parity 59/113 ×3, mirrors zero-diff. **Pushed**.
 
 ## 73. Player odds always visible: Ballon d'Or fallback (2026-09-26, user: match odds never loads + screenshot)
 
@@ -1652,12 +1664,13 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§73 (odds fallback, skeletons, Polymarket odds,
-   browser-verified polish, navigation, sweep audits + fixes, 3-language
-   i18n, dark mode, UI polish, real-live minutes, GEO/ads/donate/SEO,
-   admin removed, 2026-09-24/26) pushed to `origin main` per owner order.**
-   Watch the Vercel deploy; spot-check the player odds box, Ballon d'Or
-   card, dark toggle, FotMob, EN/FR/AR toggle, and `/api/poly` live.
+5. **Batches §56–§74 (match-data fixes, odds fallback, skeletons,
+   Polymarket odds, browser-verified polish, navigation, sweep audits +
+   fixes, 3-language i18n, dark mode, UI polish, real-live minutes,
+   GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to `origin main`
+   per owner order.** Watch the Vercel deploy; spot-check a small-club
+   player page (Match data loads now), odds box, dark toggle, EN/FR/AR
+   toggle, and `/api/poly` live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
