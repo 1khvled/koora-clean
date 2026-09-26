@@ -1007,7 +1007,13 @@ const TEAMN = {};
 try { for (const k in TEAMMAP) TEAMN[normKey(k)] = TEAMMAP[k]; } catch (e) {}
 const LEAGUEN = {};
 try { for (const k in LEAGUEMAP) LEAGUEN[normKey(k)] = LEAGUEMAP[k]; } catch (e) {}
+function latName(n){
+  if (n == null || n === '') return n == null ? '' : n;
+  try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
+  return trAr(n);
+}
 function dispTeam(n){
+
   if (n == null || n === '') return n == null ? '' : n;
   if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
@@ -1668,7 +1674,7 @@ async function refreshEspn(){
     if (!targets.length) return;
     await Promise.all(targets.map(async (m) => {
       try {
-        const ev = await espnResolve(dispTeam(m.home), dispTeam(m.away), m.start, leagueName(m));
+        const ev = await espnResolve(latName(m.home), latName(m.away), m.start, leagueName(m));
         if (ev && ev.min != null && (ev.status === 'live' || ev.status === 'ht') &&
             (ev.half === 1 || ev.half === 2 || ev.half === 'HT')) anchorEspn(m, ev);
       } catch {}

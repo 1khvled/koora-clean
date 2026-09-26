@@ -1240,7 +1240,13 @@ const TEAMN = {};
 try { for (const k in TEAMMAP) TEAMN[normKey(k)] = TEAMMAP[k]; } catch (e) {}
 const LEAGUEN = {};
 try { for (const k in LEAGUEMAP) LEAGUEN[normKey(k)] = LEAGUEMAP[k]; } catch (e) {}
+function latName(n){
+  if (n == null || n === '') return n == null ? '' : n;
+  try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
+  return trAr(n);
+}
 function dispTeam(n){
+
   if (n == null || n === '') return n == null ? '' : n;
   if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
   try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
@@ -2422,7 +2428,7 @@ function paintMinfoMeta(){
 setInterval(() => { try { if (!document.hidden && miData && !miData.finished) paintMinfoMeta(); } catch (e) {} }, 15000);
 async function miFetch(){
 
-  const q = new URLSearchParams({ home: dispTeam(home), away: dispTeam(away), start: startP, lg: leagueP });
+  const q = new URLSearchParams({ home: latName(home), away: latName(away), start: startP, lg: leagueP });
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), 12000);
   try {
@@ -2754,7 +2760,7 @@ function openMiPop(btn){
 async function refreshEspnOne(){
   try {
     if (!home && !away) return false;
-    const ev = await espnResolve(dispTeam(home), dispTeam(away), startP, leagueP);
+    const ev = await espnResolve(latName(home), latName(away), startP, leagueP);
     if (ev && ev.min != null && (ev.status === 'live' || ev.status === 'ht') &&
         (ev.half === 1 || ev.half === 2 || ev.half === 'HT')){
       PE = { base: ev.min, half: ev.half, at: Date.now() };
