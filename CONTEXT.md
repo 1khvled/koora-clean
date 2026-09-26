@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-25 (browser-verified polish + RTL score fix — see CONTEXT 70).
+> Last updated: 2026-09-26 (Polymarket odds — see CONTEXT 71).
+
+## 71. Polymarket odds: Ballon d'Or board + per-match 1X2 (2026-09-26, user: polymarket link + "add poly market stuff like odds")
+
+- **New `api/poly.js`** (public Gamma API, no key, _sec-guarded, fail-open).
+  `?type=ballon` → top-5 Ballon d'Or 2026 by YES price (name/pct/24h
+  change/img, 10-min edge cache; live-tested: Kane 56%, Yamal 26%).
+  `?home=&away=&start=` → searches events, picks soccer-tagged fixture
+  nearest kickoff, classifies home/draw/away YES prices (2-min cache).
+  Pure helpers exported + unit-tested against the live Italy-Belgium
+  fixture (H:62/D:22/A:18, tennis correctly skipped).
+- **Index:** Ballon d'Or odds card (top-5 + trend arrows + Full-odds link),
+  fail-silent, screenshotted EN+FR with zero errors. **Player:** match-odds
+  strip (home/draw/away %, translated labels, Polymarket link), shows only
+  when a market is open — none are open this weekend (intl break), so it
+  correctly hides; it fires on big-match weeks. New keys polyTitle/
+  polyLink ×3 index, oddsTitle/oddsDraw/polyLink ×3 player.
+- Verified: syntax, parity 59/112 ×3, handler live-runs, mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 70. Browser-verified polish: countdowns, chips fade, stage LIVE badge, RTL bidi fix (2026-09-25, user: "use ur UI MCP and improve even further")
 
@@ -1612,12 +1630,12 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§70 (browser-verified polish, navigation, sweep audits +
-   fixes, 3-language i18n, dark mode, UI polish, real-live minutes,
-   GEO/ads/donate/SEO, admin removed, 2026-09-24/25) pushed to `origin main`
-   per owner order.** Watch the Vercel deploy; spot-check countdowns,
-   live badge, RTL score order, dark toggle, FotMob, EN/FR/AR toggle,
-   and `/api/sitemap` XML live.
+5. **Batches §56–§71 (Polymarket odds, browser-verified polish, navigation,
+   sweep audits + fixes, 3-language i18n, dark mode, UI polish, real-live
+   minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to
+   `origin main` per owner order.** Watch the Vercel deploy; spot-check the
+   Ballon d'Or odds card, countdowns, dark toggle, FotMob, EN/FR/AR toggle,
+   and `/api/sitemap` + `/api/poly?type=ballon` XML/JSON live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 

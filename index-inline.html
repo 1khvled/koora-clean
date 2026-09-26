@@ -173,6 +173,16 @@ button{touch-action:manipulation}
 #liveJump{position:fixed;inset-inline-end:12px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:40;font-family:var(--font);background:var(--live);color:#fff;border:0;border-radius:999px;min-height:44px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 #liveJump[hidden]{display:none}
 .foot [hidden]{display:none}
+.poly-list{display:grid;gap:8px;margin-top:8px}
+.poly-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.poly-row img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none}
+.poly-row .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:13px}
+.poly-row b{font-size:15px;font-weight:900}
+.poly-row small{font-size:11px;font-weight:800}
+.poly-row small.up{color:var(--grass)}
+.poly-row small.dn{color:var(--live)}
+html.dark .poly-row small.up{color:#4ade80}
+
 /* bidi: scores/minutes keep logical order in RTL (2 - 0 never flips) */
 .m .t b,.m .st .t{direction:ltr;unicode-bidi:isolate}
 .chips{mask-image:linear-gradient(to left,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
@@ -273,6 +283,13 @@ body.ads-off .ad-wrap{display:none}
   <div id="leagues"><div id="ssr-fallback"><p class="ssr-note">Today's matches — auto-updating</p><ul class="ssr-list"><li><a href="/player.html?m=4621360&amp;d=today">Sporting Kansas City vs Los Angeles — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621361&amp;d=today">St. Louis City vs Minnesota United — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621362&amp;d=today">FC Dallas vs Portland Timbers — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621358&amp;d=today">Real Salt Lake vs New York City FC — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621359&amp;d=today">Colorado Rapids vs CF Montréal — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621356&amp;d=today">LA Galaxy vs Seattle Sounders — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621357&amp;d=today">San Jose vs Houston Dynamo — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621354&amp;d=today">Chicago Fire vs New England — Upcoming</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621355&amp;d=today">Vancouver Whitecaps vs Austin FC — Upcoming</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4750868&amp;d=today">Celta Vigo vs Málaga — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750867&amp;d=today">Levante vs Barcelona — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750869&amp;d=today">Getafe vs Deportivo La Coruña — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750862&amp;d=today">Real Sociedad vs Atlético Madrid — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4805164&amp;d=today">KVZ vs Al Swehly — Upcoming</a> <small>CAF Champions League qualifying</small></li></ul><p class="ssr-more"><a href="/api/sitemap">All matches</a></p></div></div>
   <div id="empty" hidden data-i18n="empty">No matches match your search</div>
 </main>
+
+<section class="seo poly" id="polySec" hidden>
+  <h2 data-i18n="polyTitle">Ballon d’Or 2026 — odds</h2>
+  <div class="poly-list" id="polyList"></div>
+  <p class="ssr-more"><a id="polyLink" href="https://polymarket.com/event/ballon-dor-winner-2026" target="_blank" rel="noopener"><span data-i18n="polyLink">Full odds</span> ↗</a> <small>via Polymarket</small></p>
+</section>
+
 <section class="seo"><h2 data-i18n="seoH">Today’s Live Football Matches — Scores, Schedule & Streams</h2><p data-i18n="seoP">An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.</p><ul><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A" data-lg="الدوري الإنجليزي" data-lg-link><strong>Premier League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D8%B3%D8%A8%D8%A7%D9%86%D9%8A" data-lg="الدوري الإسباني" data-lg-link><strong>La Liga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A" data-lg="الدوري الإيطالي" data-lg-link><strong>Serie A:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A" data-lg="الدوري الألماني" data-lg-link><strong>Bundesliga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D9%81%D8%B1%D9%86%D8%B3%D9%8A" data-lg="الدوري الفرنسي" data-lg-link><strong>Ligue 1:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A" data-lg="الدوري السعودي" data-lg-link><strong>Saudi Pro League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A3%D8%A8%D8%B7%D8%A7%D9%84%20%D8%A3%D9%88%D8%B1%D9%88%D8%A8%D8%A7" data-lg="دوري أبطال أوروبا" data-lg-link><strong>UEFA Champions League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li></ul><p data-i18n="seoCta">Pick a match from the list to open its stream page.</p></section>
 <section class="seo faq" id="faq"><h2 data-i18n="faqH">Live Football Streams — FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details><details><summary data-i18n="fq5">Can I watch on mobile?</summary><p data-i18n="fa5">Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.</p></details><details><summary data-i18n="fq6">What stream quality can I expect?</summary><p data-i18n="fa6">HD live football streams with live scores and minute-by-minute updates, free with no account needed.</p></details></section>
 <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
@@ -336,6 +353,7 @@ todayMatches: "Today's matches", ad: 'Ad',
     copyOk: 'Address copied', copyFail: 'Copy failed', copyBtn: 'Copy',
 themeToggle: 'Toggle dark mode',
 ftTop: 'Top', ftLive: 'Live', ftFaq: 'FAQ', ftSupport: 'Support',
+polyTitle: 'Ballon d’Or 2026 — odds', polyLink: 'Full odds',
 startsIn: (h, m) => h > 0 ? `in ${h}h ${m}m` : `in ${m}m`,
     fq5: 'Can I watch on mobile?', fa5: 'Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.',
     fq6: 'What stream quality can I expect?', fa6: 'HD live football streams with live scores and minute-by-minute updates, free with no account needed.',
@@ -370,6 +388,7 @@ todayMatches: 'Matchs du jour', ad: 'Pub',
     copyOk: 'Adresse copiée', copyFail: 'Copie impossible', copyBtn: 'Copier',
 themeToggle: 'Activer le mode sombre',
 ftTop: 'Haut', ftLive: 'En direct', ftFaq: 'FAQ', ftSupport: 'Soutien',
+polyTitle: 'Ballon d’Or 2026 — cotes', polyLink: 'Toutes les cotes',
 startsIn: (h, m) => h > 0 ? `dans ${h}h ${m}m` : `dans ${m}m`,
     fq5: 'Puis-je regarder sur mobile ?', fa5: 'Oui — le site est 100 % optimisé mobile et marche sur téléphone, tablette ou PC.',
     fq6: 'Quelle qualité de stream ?', fa6: 'Des streams de foot en direct en HD, scores en direct et minute par minute, gratuits et sans compte.',
@@ -415,6 +434,7 @@ adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّ
 copyOk: 'تم نسخ العنوان', copyFail: 'تعذّر النسخ', copyBtn: 'نسخ',
 themeToggle: 'تبديل الوضع الليلي',
 ftTop: 'الأعلى', ftLive: 'المباشر', ftFaq: 'الأسئلة الشائعة', ftSupport: 'الدعم',
+polyTitle: 'الكرة الذهبية 2026 — الاحتمالات', polyLink: 'كل الاحتمالات',
 startsIn: (h, m) => h > 0 ? `بعد ${h} س ${m} د` : `بعد ${m} د`,
 meta: {
 title: 'كورة لايف — مباريات اليوم بث مباشر بدون إعلانات',
@@ -1884,7 +1904,33 @@ try {
   } catch (e) {}
 } catch (e) {}
 
+
+async function loadPoly(){
+  const box = document.getElementById('polySec');
+  if (!box) return;
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 7000);
+    let j = null;
+    try {
+      const r = await fetch('/api/poly?type=ballon', { cache: 'no-store', signal: ctrl.signal });
+      if (r.ok) j = await r.json();
+    } finally { clearTimeout(to); }
+    if (!j || !j.found || !j.top || !j.top.length) return;
+    document.getElementById('polyList').innerHTML = j.top.map(p => {
+      const chg = (p.chg == null || !isFinite(p.chg)) ? '' : `<small class="${p.chg >= 0 ? 'up' : 'dn'}">${p.chg >= 0 ? '▲' : '▼'}${esc(String(Math.abs(p.chg)))}</small>`;
+      const img = (p.img && /^https:\/\//i.test(p.img) && !/[\s<>"]/.test(p.img))
+        ? `<img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">` : '';
+      return `<div class="poly-row">${img}<span class="pn">${esc(p.name)}</span><b>${esc(String(p.pct))}%</b>${chg}</div>`;
+    }).join('');
+    const lk = document.getElementById('polyLink');
+    if (lk && j.url && /^https:\/\//i.test(j.url)) lk.href = j.url;
+    box.hidden = false;
+  } catch {}
+}
+
 loadDay('today');
+try { loadPoly(); } catch {}
 
 // #4: register service worker (ad-blocker + offline shell); no-op if unsupported
 if ('serviceWorker' in navigator){

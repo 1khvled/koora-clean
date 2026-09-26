@@ -313,6 +313,14 @@ button{touch-action:manipulation}
 .lang{display:flex;gap:6px;flex:none}
 .lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
 .disclaimer{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
+.odds{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.odds-head{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:900;margin-bottom:8px}
+.odds-head a{font-size:11px;color:var(--muted);font-weight:700}
+.odds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.odd{text-align:center;border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+.odd b{display:block;font-size:17px;font-weight:900}
+.odd span{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 /* bidi: scores/minutes keep logical order in RTL */
 .mcard .mid .tm,.fm-score .gl,.fm-score .sc,.ev .mn,.ev .sc,.stat .lab span{direction:ltr;unicode-bidi:isolate}
 .kstats{display:flex;gap:8px;margin-bottom:10px}
@@ -378,6 +386,12 @@ body.ads-off .ad-wrap{display:none}
     <div class="team"><img id="awayLogo" alt="Away team logo" data-i18n-alt="awayAlt"><b id="awayName">—</b><button class="tstar" id="starA" aria-label="Favorite" data-i18n-aria="ariaFav">&#9734;</button></div>
   </div>
   <div class="likebar"><button class="like" id="btnLike" aria-label="Like" data-i18n-aria="ariaLike">&#9825;<span id="likeCount"></span></button></div>
+  
+<div class="odds" id="oddsBox" hidden>
+  <div class="odds-head"><span data-i18n="oddsTitle">Match odds</span><a id="oddsLink" href="https://polymarket.com" target="_blank" rel="noopener">Polymarket ↗</a></div>
+  <div class="odds-grid" id="oddsGrid"></div>
+</div>
+
   <div class="src-head">
     <h2><span data-i18n="srcTitle">📡 Stream sources</span> <span class="n" id="srvCount" hidden>0</span></h2>
     <small id="srvNow" data-i18n="searching" aria-live="polite">Searching for servers…</small>
@@ -482,6 +496,7 @@ updatedAgo: (s) => 'updated ' + s + 's ago',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
     supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF', copyBtn: 'Copy',
+oddsTitle: 'Match odds', oddsDraw: 'Draw', polyLink: 'Full odds',
 live: 'Live', ended: 'FT', upcoming: 'Upcoming', break: 'HT', vs: 'vs',
 favAdd: 'Added to favorites', favRemove: 'Removed from favorites',
 bellStart: 'Kickoff', bellGoal: '⚽ Goal', bellScore: 'Score update',
@@ -533,6 +548,7 @@ updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
     supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF', copyBtn: 'Copier',
+oddsTitle: 'Cotes du match', oddsDraw: 'Nul', polyLink: 'Toutes les cotes',
 live: 'Direct', ended: 'Terminé', upcoming: 'À venir', break: 'MT', vs: 'vs',
 favAdd: 'Ajouté aux favoris', favRemove: 'Retiré des favoris',
 bellStart: 'Coup d’envoi', bellGoal: '⚽ But', bellScore: 'Score actualisé',
@@ -615,6 +631,7 @@ defaultTitle: 'مشاهدة المباراة', leagueFallback: 'بث نظيف ب
 watchTitle: (h, a) => 'مشاهدة ' + h + ' × ' + a + ' بث مباشر — كورة لايف',
 supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانات أو بالتبرع.',
 adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة', copyBtn: 'نسخ',
+oddsTitle: 'احتمالات المباراة', oddsDraw: 'تعادل', polyLink: 'كل الاحتمالات',
 meta: {
 title: 'مشاهدة المباراة بث مباشر — كورة لايف',
 desc: 'مشاهدة المباراة بث مباشر بجودة عالية وبدون إعلانات مزعجة على كورة لايف.',
@@ -681,6 +698,7 @@ if (srcNote && !srcNote.hidden) srcNote.textContent = t('note')(serverList.lengt
 } else if (serversEl.querySelector('.skel')) showSkeleton();
 else if (serversEl.querySelector('#retryBtn')) showServersFromList([]);
 if (miData) renderMi();
+try { paintOdds(); } catch (e) {}
 } catch (e) {}
 }
 }
@@ -2168,6 +2186,32 @@ async function loadRealPlayer(){
   }
 }
 
+
+let OD = null;
+function paintOdds(){
+  try {
+    const box = document.getElementById('oddsBox');
+    if (!box || !OD || !OD.found){ if (box) box.hidden = true; return; }
+    const cell = (pct, label) => `<div class="odd"><b>${esc(String(pct))}%</b><span>${esc(label)}</span></div>`;
+    document.getElementById('oddsGrid').innerHTML =
+      cell(OD.home, dispTeam(home)) + cell(OD.draw, t('oddsDraw')) + cell(OD.away, dispTeam(away));
+    const lk = document.getElementById('oddsLink');
+    if (lk && OD.url && /^https:\/\//i.test(OD.url)) lk.href = OD.url;
+    box.hidden = false;
+  } catch {}
+}
+async function loadOdds(){
+  if (!home && !away) return;
+  try {
+    const q = new URLSearchParams({ home: dispTeam(home), away: dispTeam(away), start: startP });
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 7000);
+    try {
+      const r = await fetch('/api/poly?' + q.toString(), { cache: 'no-store', signal: ctrl.signal });
+      if (r.ok){ const j = await r.json(); if (j && j.found){ OD = j; paintOdds(); } }
+    } finally { clearTimeout(to); }
+  } catch {}
+}
 /* first click is absorbed so popups never open */
 clickShield.addEventListener('click', () => clickShield.classList.add('hidden'));
 document.getElementById('btnLike').onclick = () => likeToggle();
@@ -2699,6 +2743,7 @@ try {
   refreshEspnOne().then(ok => { if (ok) tickHeader(); }).catch(()=>{});
   sbTrackMatch();
   loadRealPlayer();
+  loadOdds();
   loadMatchInfo();
   setInterval(tickHeader, 20000);
   setInterval(async () => { try { if (await refreshEspnOne()) tickHeader(); } catch {} }, 60000);
