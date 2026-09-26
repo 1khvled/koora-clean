@@ -328,6 +328,10 @@ button{touch-action:manipulation}
 .odd{text-align:center;border:1px solid var(--line);border-radius:10px;padding:8px 4px}
 .odd b{display:block;font-size:17px;font-weight:900}
 .odd span{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bodds[hidden]{display:none}
+.borow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px}
+.borow .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:13px}
+.borow b{font-size:15px;font-weight:900}
 
 /* bidi: scores/minutes keep logical order in RTL */
 .mcard .mid .tm,.fm-score .gl,.fm-score .sc,.ev .mn,.ev .sc,.stat .lab span{direction:ltr;unicode-bidi:isolate}
@@ -396,8 +400,9 @@ body.ads-off .ad-wrap{display:none}
   <div class="likebar"><button class="like" id="btnLike" aria-label="Like" data-i18n-aria="ariaLike">&#9825;<span id="likeCount"></span></button></div>
   
 <div class="odds" id="oddsBox" hidden>
-  <div class="odds-head"><span data-i18n="oddsTitle">Match odds</span><a id="oddsLink" href="https://polymarket.com" target="_blank" rel="noopener">Polymarket ↗</a></div>
+  <div class="odds-head"><span id="oddsTitle" data-i18n="oddsTitle">Match odds</span><a id="oddsLink" href="https://polymarket.com" target="_blank" rel="noopener">Polymarket ↗</a></div>
   <div class="odds-grid" id="oddsGrid"></div>
+  <div class="bodds" id="boddsList" hidden></div>
 </div>
 
   <div class="src-head">
@@ -505,6 +510,7 @@ minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', a
     supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF', copyBtn: 'Copy',
 oddsTitle: 'Match odds', oddsDraw: 'Draw', polyLink: 'Full odds',
+polyTitle: 'Ballon d’Or 2026 — odds',
 live: 'Live', ended: 'FT', upcoming: 'Upcoming', break: 'HT', vs: 'vs',
 favAdd: 'Added to favorites', favRemove: 'Removed from favorites',
 bellStart: 'Kickoff', bellGoal: '⚽ Goal', bellScore: 'Score update',
@@ -557,6 +563,7 @@ minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et de
     supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF', copyBtn: 'Copier',
 oddsTitle: 'Cotes du match', oddsDraw: 'Nul', polyLink: 'Toutes les cotes',
+polyTitle: 'Ballon d’Or 2026 — cotes',
 live: 'Direct', ended: 'Terminé', upcoming: 'À venir', break: 'MT', vs: 'vs',
 favAdd: 'Ajouté aux favoris', favRemove: 'Retiré des favoris',
 bellStart: 'Coup d’envoi', bellGoal: '⚽ But', bellScore: 'Score actualisé',
@@ -640,6 +647,7 @@ watchTitle: (h, a) => 'مشاهدة ' + h + ' × ' + a + ' بث مباشر — �
 supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانات أو بالتبرع.',
 adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة', copyBtn: 'نسخ',
 oddsTitle: 'احتمالات المباراة', oddsDraw: 'تعادل', polyLink: 'كل الاحتمالات',
+polyTitle: 'الكرة الذهبية 2026 — الاحتمالات',
 meta: {
 title: 'مشاهدة المباراة بث مباشر — كورة لايف',
 desc: 'مشاهدة المباراة بث مباشر بجودة عالية وبدون إعلانات مزعجة على كورة لايف.',
@@ -2200,11 +2208,27 @@ function paintOdds(){
   try {
     const box = document.getElementById('oddsBox');
     if (!box || !OD || !OD.found){ if (box) box.hidden = true; return; }
-    const cell = (pct, label) => `<div class="odd"><b>${esc(String(pct))}%</b><span>${esc(label)}</span></div>`;
-    document.getElementById('oddsGrid').innerHTML =
-      cell(OD.home, dispTeam(home)) + cell(OD.draw, t('oddsDraw')) + cell(OD.away, dispTeam(away));
+    const titleEl = document.getElementById('oddsTitle');
+    const grid = document.getElementById('oddsGrid');
+    const list = document.getElementById('boddsList');
     const lk = document.getElementById('oddsLink');
     if (lk && OD.url && /^https:\/\//i.test(OD.url)) lk.href = OD.url;
+    if (OD.kind === 'ballon'){
+      if (titleEl) titleEl.textContent = t('polyTitle');
+      if (grid) grid.hidden = true;
+      if (list){
+        list.hidden = false;
+        list.innerHTML = OD.top.map(p => `<div class="borow"><span class="pn">${esc(p.name)}</span><b>${esc(String(p.pct))}%</b></div>`).join('');
+      }
+    } else {
+      if (titleEl) titleEl.textContent = t('oddsTitle');
+      if (list) list.hidden = true;
+      if (grid){
+        grid.hidden = false;
+        const cell = (pct, label) => `<div class="odd"><b>${esc(String(pct))}%</b><span>${esc(label)}</span></div>`;
+        grid.innerHTML = cell(OD.home, dispTeam(home)) + cell(OD.draw, t('oddsDraw')) + cell(OD.away, dispTeam(away));
+      }
+    }
     box.hidden = false;
   } catch {}
 }
@@ -2216,7 +2240,18 @@ async function loadOdds(){
     const to = setTimeout(() => ctrl.abort(), 7000);
     try {
       const r = await fetch('/api/poly?' + q.toString(), { cache: 'no-store', signal: ctrl.signal });
-      if (r.ok){ const j = await r.json(); if (j && j.found){ OD = j; paintOdds(); } }
+      if (r.ok){ const j = await r.json(); if (j && j.found){ OD = { kind: '1x2', found: true, url: j.url, home: j.home, draw: j.draw, away: j.away }; paintOdds(); return; } }
+    } finally { clearTimeout(to); }
+  } catch {}
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 7000);
+    try {
+      const r = await fetch('/api/poly?type=ballon', { cache: 'no-store', signal: ctrl.signal });
+      if (r.ok){
+        const j = await r.json();
+        if (j && j.found && j.top && j.top.length){ OD = { kind: 'ballon', found: true, url: j.url, top: j.top.slice(0, 3) }; paintOdds(); }
+      }
     } finally { clearTimeout(to); }
   } catch {}
 }
