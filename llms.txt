@@ -33,6 +33,8 @@
 - /player.html : match stream page (servers, lineups, stats, events)
 - /api/matches?day=today|yesterday|tomorrow : fixture JSON
 - /api/sitemap : XML sitemap (core pages + today matches)
+- /api/poly?type=ballon : Ballon d'Or 2026 top-5 odds (Gamma public API)
+- /api/poly?home=&away=&start= : per-match 1X2 odds when a market is open
 
 ## Notes
 - Language: English, French + Arabic (en/fr/ar) with a header EN/FR/AR toggle
