@@ -90,15 +90,15 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .mcard .team b{font-size:13px;font-weight:800;line-height:1.3;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mcard .mid{flex:none;text-align:center;min-width:86px}
-.mcard .mid .vs{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px}
+.mcard .mid .vs{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.5px}
 .mcard .mid .vs.live{color:var(--live)}
 .mcard .mid .lg{font-size:11px;color:var(--muted);font-weight:700;margin-top:4px;
   max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mcard .mid .tm{font-size:12px;font-weight:800;margin-top:2px}
-.tstar{font-family:var(--font);background:none;border:0;color:var(--gold);font-size:20px;min-width:44px;min-height:44px;cursor:pointer;opacity:.5;padding:0}
-.tstar.on{opacity:1}
+.tstar{font-family:var(--font);background:none;border:0;color:#a8852c;font-size:20px;min-width:44px;min-height:44px;cursor:pointer;opacity:1;padding:0}
+.tstar.on{opacity:1;color:var(--gold)}
 .crumb{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;gap:6px;align-items:center}
-.crumb a{color:inherit;text-decoration:none;border-bottom:1px dashed var(--line)}
+.crumb a{color:inherit;text-decoration:none;border-bottom:1px dashed var(--line);padding:10px 6px}
 .flip{display:inline-block} [dir="rtl"] .flip{transform:scaleX(-1)}
 .likebar{display:flex;justify-content:center;margin-top:10px}
 .like{font-family:var(--font);background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:999px;min-height:44px;padding:8px 18px;font-size:15px;font-weight:800;cursor:pointer}
@@ -139,12 +139,12 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .toprow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;scroll-padding:8px}
 .toprow::-webkit-scrollbar{display:none}
 .topchip{flex:none;display:flex;align-items:center;gap:8px;border:1px solid var(--line);
-  border-radius:999px;padding:6px 12px 6px 6px;font-size:12px;font-weight:800}
+  border-radius:999px;padding-block:6px;padding-inline:12px 6px;font-size:12px;font-weight:800}
 .rpill{flex:none;min-width:34px;text-align:center;font-size:13px;font-weight:900;
   border-radius:8px;padding:2px 7px;font-variant-numeric:tabular-nums}
 .r-hi{background:var(--grass);color:#04120c}
 .r-md{background:var(--gold);color:#231a00}
-.r-lo{background:var(--live);color:#fff}
+.r-lo{background:#b91c1c;color:#fff}
 .r-na{background:#29423a;color:var(--muted)}
 .stat{margin-bottom:8px}
 .stat .lab{display:flex;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:4px}
@@ -202,7 +202,7 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .fm-score .row{display:flex;align-items:center;gap:8px}
 .fm-score .tm{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .fm-score .tm img{width:40px;height:40px;object-fit:contain}
-.fm-score .tm b{font-size:13px;font-weight:900;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-score .tm b{font-size:13px;font-weight:900;flex:1;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fm-score .mid{flex:none;min-width:86px}
 .fm-score .gl{font-size:26px;font-weight:900;letter-spacing:2px;font-variant-numeric:tabular-nums}
 .fm-score .st{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
@@ -242,8 +242,8 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .pbadge{position:absolute;top:-7px;inset-inline-end:-9px;z-index:3;font-size:11px;
   font-weight:900;border-radius:8px;padding:1px 6px;color:#fff;
   font-variant-numeric:tabular-nums;box-shadow:0 1px 4px rgba(0,0,0,.4)}
-.f-hi{background:#22b45e}
-.f-md{background:#ff9e1a}
+.f-hi{background:#22b45e;color:#04120c}
+.f-md{background:#ff9e1a;color:#231a00}
 .f-lo{background:#e0202e}
 .f-motm{background:#2f7bff}
 .pev{position:absolute;top:-7px;inset-inline-start:-9px;z-index:3;font-size:11px;
@@ -261,7 +261,6 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 /* small phones: shrink pitch dots so 4-4-2 rows never collide */
 @media (max-width:360px){
   .pimg{width:30px;height:30px}
-  .pname{font-size:9px}
   .pbadge{font-size:10px;padding:0 5px}
   .pev{width:18px;height:18px;font-size:10px}
   .fm-score .gl{font-size:22px}
@@ -309,7 +308,7 @@ button{touch-action:manipulation}
 .ad-wrap{max-width:728px;margin:12px auto 0}
 .ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card)}
 .ad img{display:block;width:100%;height:auto}
-.ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 8px}
+.ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.72);border-radius:6px;padding:1px 8px}
 .lang{display:flex;gap:6px;flex:none}
 .lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
 .disclaimer{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
@@ -334,7 +333,7 @@ button{touch-action:manipulation}
 .borow b{font-size:15px;font-weight:900}
 
 /* bidi: scores/minutes keep logical order in RTL */
-.mcard .mid .tm,.fm-score .gl,.fm-score .sc,.ev .mn,.ev .sc,.stat .lab span{direction:ltr;unicode-bidi:isolate}
+.mcard .mid .tm,.fm-score .gl,.fm-score .sc,.ev .mn,.ev .sc,.stat .lab span,.odd b,.borow b,.poly-row b,.poly-row small,.pbadge,.pev,.kstat span,.mpop .me div{direction:ltr;unicode-bidi:isolate}
 .kstats{display:flex;gap:8px;margin-bottom:10px}
 .kstat{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;background:var(--pitch)}
 .kstat span{display:block;font-size:15px;font-weight:900}
@@ -373,18 +372,18 @@ body.ads-off .ad-wrap{display:none}
 </head>
 <body>
 <div class="wrap">
-  <nav class="crumb" aria-label="breadcrumb"><a href="/" data-i18n="crumbHome">Home</a> <span aria-hidden="true" class="flip">›</span> <span id="crumbCur" data-i18n="crumbCur">Watch match</span></nav>
+  <nav class="crumb" aria-label="Breadcrumb" data-i18n-aria="crumbLabel"><a href="/" data-i18n="crumbHome">Home</a> <span aria-hidden="true" class="flip">›</span> <span id="crumbCur" data-i18n="crumbCur">Watch match</span></nav>
   <div class="head">
     <a class="back" href="/" id="backBtn" data-i18n="back">‹ Back</a>
     <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
     <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
   </div>
   <div class="stage">
-    <iframe id="player" title="player" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+    <iframe id="player" title="player" tabindex="-1" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       loading="eager" sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"></iframe>
     <div class="stage-live" id="stageLive" hidden></div>
     <div class="shield" id="shield"></div>
-    <div class="click-shield" id="clickShield">
+    <div class="click-shield" id="clickShield" role="button" tabindex="0" aria-label="Tap to watch">
       <div style="text-align:center">
         <button id="playBtn" data-i18n="playBtn">▶ Tap to watch</button>
         <small data-i18n="playHint">First tap only opens the stream — no popups</small>
@@ -393,9 +392,9 @@ body.ads-off .ad-wrap{display:none}
   </div>
   <div class="disclaimer" data-i18n="commentaryNote">🔊 Commentary in Arabic</div>
   <div class="mcard" id="matchCard" hidden>
-    <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="Favorite" data-i18n-aria="ariaFav">&#9734;</button></div>
+    <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt" width="44" height="44"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="Favorite" data-i18n-aria="ariaFav">&#9734;</button></div>
     <div class="mid"><div class="vs" id="matchState">…</div><div class="tm" id="matchTime">—</div><div class="lg" id="matchLeague">—</div></div>
-    <div class="team"><img id="awayLogo" alt="Away team logo" data-i18n-alt="awayAlt"><b id="awayName">—</b><button class="tstar" id="starA" aria-label="Favorite" data-i18n-aria="ariaFav">&#9734;</button></div>
+    <div class="team"><img id="awayLogo" alt="Away team logo" data-i18n-alt="awayAlt" width="44" height="44"><b id="awayName">—</b><button class="tstar" id="starA" aria-label="Favorite" data-i18n-aria="ariaFav">&#9734;</button></div>
   </div>
   <div class="likebar"><button class="like" id="btnLike" aria-label="Like" data-i18n-aria="ariaLike">&#9825;<span id="likeCount"></span></button></div>
   
@@ -425,7 +424,7 @@ body.ads-off .ad-wrap{display:none}
     <button class="sup-btn" id="walletBtn" type="button" data-i18n="walletBtn" aria-controls="walletBox" aria-expanded="false">⧉ BEP20 wallet</button>
     <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
   </div>
-  <div class="sup-wallet" id="walletBox" hidden><code>0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
+  <div class="sup-wallet" id="walletBox" hidden><code dir="ltr">0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
 </div>
 
   <div class="status" id="status">Blocked: 0</div>
@@ -497,7 +496,7 @@ function bellPaint(){ try { document.getElementById('btnBell').textContent = bel
    Detection regexes (halfOf/isLive/isEnded) intentionally still match Arabic. */
 const I18N = {
 en: {
-back: '‹ Back', crumbHome: 'Home', crumbCur: 'Watch match',
+back: '‹ Back', crumbHome: 'Home', crumbCur: 'Watch match', crumbLabel: 'Breadcrumb',
 loadingTitle: 'Loading match…', tagline: 'Clean streams, no popups',
 playBtn: '▶ Tap to watch', playHint: 'First tap only opens the stream — no popups',
 homeAlt: 'Home team logo', awayAlt: 'Away team logo',
@@ -520,14 +519,14 @@ kindDirect: 'Live', kindFull: 'Full page', kindTv: '24/7 channel', kindServer: '
 skel: 'Searching…', noLinks: 'No stream links', noLinksSub: 'No stream available right now — tap to retry',
 noStream: 'No stream available',
 note: (n) => n + ' live server' + (n > 1 ? 's' : '') + ' — if a stream stutters, try the next one. Auto-switch kicks in when popups are blocked.',
-watching: (name, i, total) => 'Watching: ' + name + ' (' + (i + 1) + '/' + total + ')',
+watching: (name, i, total) => 'Watching: ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
 noValid: 'No working server', tryingNext: 'Trying another server…',
 updating: 'Updating stream…', proxyBad: 'Saved proxy link invalid', demoServer: 'Demo server',
 fromCache: 'Saved stream — retrying…', cacheShown: 'Update failed — showing saved stream',
 loadFailT: 'Load failed', retryCta: 'Tap to retry', checkConn: 'Check your connection and retry',
 streamFail: 'Stream failed to load — check your connection',
-autoRetry: (s) => 'Auto-retry in ' + s + 's…',
-loadingStream: 'Loading stream…', retryN: (n) => 'Retrying ' + n + '…',
+autoRetry: (s) => 'Auto-retry in ⁦' + s + '⁩s…',
+loadingStream: 'Loading stream…', retryN: (n) => 'Retrying ⁦' + n + '⁩…',
 mainPlayer: 'Main player', altServers: 'Backup servers', cacheUpdating: 'Saved stream — updating',
 copied: 'Match link copied', copyFail: 'Copy failed',
 fsFail: 'Fullscreen failed', fsUnsupported: 'Browser has no fullscreen',
@@ -550,7 +549,7 @@ ogDesc: 'Clean live HD stream with no annoying popups.'
 }
 },
 fr: {
-back: '‹ Retour', crumbHome: 'Accueil', crumbCur: 'Voir le match',
+back: '‹ Retour', crumbHome: 'Accueil', crumbCur: 'Voir le match', crumbLabel: 'Fil d’Ariane',
 loadingTitle: 'Chargement du match…', tagline: 'Streams propres, sans popups',
 playBtn: '▶ Toucher pour regarder', playHint: 'Le premier toucher ouvre seulement le stream — sans popups',
 homeAlt: 'Logo de l’équipe domicile', awayAlt: 'Logo de l’équipe extérieur',
@@ -573,14 +572,14 @@ kindDirect: 'Direct', kindFull: 'Page complète', kindTv: 'Chaîne 24/7', kindSe
 skel: 'Recherche…', noLinks: 'Aucun lien de stream', noLinksSub: 'Aucun stream pour le moment — touchez pour réessayer',
 noStream: 'Aucun stream disponible',
 note: (n) => n + ' serveur' + (n > 1 ? 's' : '') + ' en direct — si ça coupe, essayez le suivant. Le switch auto agit quand les popups sont bloquées.',
-watching: (name, i, total) => 'Vous regardez : ' + name + ' (' + (i + 1) + '/' + total + ')',
+watching: (name, i, total) => 'Vous regardez : ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
 noValid: 'Aucun serveur valide', tryingNext: 'Essai d’un autre serveur…',
 updating: 'Actualisation du stream…', proxyBad: 'Lien proxy enregistré invalide', demoServer: 'Serveur démo',
 fromCache: 'Stream sauvegardé — nouvel essai…', cacheShown: 'Échec de mise à jour — stream sauvegardé affiché',
 loadFailT: 'Échec du chargement', retryCta: 'Touchez pour réessayer', checkConn: 'Vérifiez la connexion puis réessayez',
 streamFail: 'Stream non chargé — vérifiez la connexion',
-autoRetry: (s) => 'Nouvel essai auto dans ' + s + 's…',
-loadingStream: 'Chargement du stream…', retryN: (n) => 'Nouvel essai ' + n + '…',
+autoRetry: (s) => 'Nouvel essai auto dans ⁦' + s + '⁩s…',
+loadingStream: 'Chargement du stream…', retryN: (n) => 'Nouvel essai ⁦' + n + '⁩…',
 mainPlayer: 'Lecteur principal', altServers: 'Serveurs de secours', cacheUpdating: 'Stream sauvegardé — actualisation',
 copied: 'Lien du match copié', copyFail: 'Copie impossible',
 fsFail: 'Plein écran impossible', fsUnsupported: 'Navigateur sans plein écran',
@@ -603,7 +602,7 @@ ogDesc: 'Stream HD propre en direct, sans popups agaçants.'
 }
 },
 ar: {
-back: 'عودة ›', crumbHome: 'الرئيسية', crumbCur: 'مشاهدة المباراة',
+back: 'عودة ›', crumbHome: 'الرئيسية', crumbCur: 'مشاهدة المباراة', crumbLabel: 'مسار التنقل',
 loadingTitle: 'جاري تحميل المباراة…', tagline: 'بث نظيف بدون إعلانات',
 playBtn: '▶ اضغط للمشاهدة', playHint: 'أول ضغطة تفتح البث فقط — بدون إعلانات',
 homeAlt: 'شعار الفريق المضيف', awayAlt: 'شعار الفريق الضيف',
@@ -622,14 +621,14 @@ kindDirect: 'مباشر', kindFull: 'واجهة كاملة', kindTv: 'قناة �
 skel: 'جاري البحث…', noLinks: 'لا توجد روابط بث', noLinksSub: 'لا يوجد بث متاح حالياً — اضغط لإعادة المحاولة',
 noStream: 'لا يوجد بث متاح حالياً',
 note: (n) => n + ' سيرفر بث مباشر — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.',
-watching: (name, i, total) => 'تشاهد الآن: ' + name + ' (' + (i + 1) + '/' + total + ')',
+watching: (name, i, total) => 'تشاهد الآن: ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
 noValid: 'لا يوجد سيرفر صالح', tryingNext: 'نحاول سيرفراً آخر…',
 updating: 'جاري تحديث البث…', proxyBad: 'رابط البروكسي المحفوظ غير صالح', demoServer: 'سيرفر تجريبي',
 fromCache: 'البث من الذاكرة — إعادة المحاولة…', cacheShown: 'تعذّر التحديث — عرض البث المحفوظ',
 loadFailT: 'تعذّر التحميل', retryCta: 'اضغط لإعادة المحاولة', checkConn: 'تحقق من الاتصال ثم أعد المحاولة',
 streamFail: 'تعذّر تحميل البث — تحقق من الاتصال',
-autoRetry: (s) => 'إعادة المحاولة تلقائياً خلال ' + s + ' ث…',
-loadingStream: 'جاري تحميل البث…', retryN: (n) => 'إعادة المحاولة ' + n + '…',
+autoRetry: (s) => 'إعادة المحاولة تلقائياً خلال ⁦' + s + '⁩ ث…',
+loadingStream: 'جاري تحميل البث…', retryN: (n) => 'إعادة المحاولة ⁦' + n + '⁩…',
 mainPlayer: 'المشغّل الرئيسي', altServers: 'سيرفرات بديلة', cacheUpdating: 'البث من الذاكرة — جاري التحديث',
 copied: 'تم نسخ رابط المباراة', copyFail: 'تعذر النسخ',
 fsFail: 'تعذّر ملء الشاشة', fsUnsupported: 'المتصفح لا يدعم ملء الشاشة',
@@ -758,7 +757,7 @@ function geoApply(cc){
 (function geoLang(){
   if (GEO_LOCK) return;
   const hit = geoCached();
-  if (hit){ geoApply(hit); return; }
+  if (hit){ setTimeout(() => geoApply(hit), 0); return; }
   const fetchTx = (url, ms) => {
     const ctrl = new AbortController();
     const to = setTimeout(() => { try { ctrl.abort(); } catch (e) {} }, ms);
@@ -1305,7 +1304,7 @@ function bellGoalCheck(){
   bellGoalCheck._l = key;
   if (ch === ph + 1 && ca === pa) notifyMe(t('bellGoal'), dispTeam(sc[2]));
   else if (ca === pa + 1 && ch === ph) notifyMe(t('bellGoal'), dispTeam(sc[3]));
-  else notifyMe(t('bellScore'), ch + ' - ' + ca);
+  else notifyMe(t('bellScore'), '⁦' + ch + ' - ' + ca + '⁩');
 }
 async function bellToggle(){
   if (!('Notification' in window)){ toast(t('bellUnsupported')); return; }
@@ -2015,7 +2014,7 @@ function subTag(s){
 function dispName(s, i){
   // Source-hiding: buttons never carry upstream brand names — numbered
   // plain. Only 24/7 TV channels keep real names (that IS the content).
-  if (s && s.kind === 'tv' && s.label) return s.label;
+  if (s && s.kind === 'tv' && s.label) return dispTeam(s.label);
   return t('server') + ' ' + (i + 1);
 }
 function btnHtml(s, i, on){
@@ -2118,6 +2117,7 @@ function goServer(i, auto, _tried){
 }
 function rearmShield(){
   clickShield.classList.remove('hidden');
+  try{iframe.setAttribute('tabindex','-1');}catch{}
 }
 
 async function loadRealPlayer(){
@@ -2255,7 +2255,7 @@ function paintOdds(){
 async function loadOdds(){
   if (!home && !away) return;
   try {
-    const q = new URLSearchParams({ home: dispTeam(home), away: dispTeam(away), start: startP });
+    const q = new URLSearchParams({ home: latName(home), away: latName(away), start: startP });
     const ctrl = new AbortController();
     const to = setTimeout(() => ctrl.abort(), 7000);
     try {
@@ -2276,7 +2276,9 @@ async function loadOdds(){
   } catch {}
 }
 /* first click is absorbed so popups never open */
-clickShield.addEventListener('click', () => clickShield.classList.add('hidden'));
+function hideShield(){ try{clickShield.classList.add('hidden');}catch{} try{iframe.removeAttribute('tabindex');}catch{} }
+clickShield.addEventListener('click', hideShield);
+clickShield.addEventListener('keydown', (e) => { try{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); hideShield(); } }catch{} });
 document.getElementById('btnLike').onclick = () => likeToggle();
 document.getElementById('starH').onclick = () => favToggle(home);
 document.getElementById('starA').onclick = () => favToggle(away);
@@ -2560,9 +2562,9 @@ function renderMi(){
   };
   const hLogo = logoOk(d.home && d.home.logo), aLogo = logoOk(d.away && d.away.logo);
   const scoreHtml = `<div class="fm-score"><div class="lg">${esc(decFull(d.league || ''))}</div><div class="row">`
-    + `<div class="tm">${hLogo ? `<img src="${esc(hLogo)}" alt="${esc(decFull(d.home.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.home.name))}</b></div>`
+    + `<div class="tm">${hLogo ? `<img src="${esc(hLogo)}" alt="${esc(decFull(d.home.name))}" width="40" height="40" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.home.name))}</b></div>`
     + `<div class="mid"><div class="gl">${esc(String(d.home.score != null ? d.home.score : '–'))} - ${esc(String(d.away.score != null ? d.away.score : '–'))}</div><div class="st">${statusTxt}</div></div>`
-    + `<div class="tm">${aLogo ? `<img src="${esc(aLogo)}" alt="${esc(decFull(d.away.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.away.name))}</b></div>`
+    + `<div class="tm">${aLogo ? `<img src="${esc(aLogo)}" alt="${esc(decFull(d.away.name))}" width="40" height="40" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(d.away.name))}</b></div>`
     + `</div><div class="scorers"><div>${scorers(true)}</div><div>${scorers(false)}</div></div></div>`;
   // --- clickable pitch dots (button dots; coach has no dot and never pops) ---
   const dot = (p, mirror, homeFlag, teamName, starter) => {
@@ -2588,7 +2590,7 @@ function renderMi(){
     const photo = photoUrl(p.pid);
     const lbl = esc(decFull(p.short || p.name));
     return `<button type="button" class="pdot" data-pid="${esc(p.pid || '')}" style="left:${left}%;top:${top}%" aria-haspopup="dialog" aria-label="${lbl}">${evb}`
-      + `<span class="pimg"><i>${esc(initials(p.short || p.name))}</i>${photo ? `<img src="${photo}" alt="${esc(decFull(p.short || p.name))}" loading="lazy" onerror="this.remove()">` : ''}</span>`
+      + `<span class="pimg"><i>${esc(initials(p.short || p.name))}</i>${photo ? `<img src="${photo}" alt="${esc(decFull(p.short || p.name))}" width="34" height="34" loading="lazy" onerror="this.remove()">` : ''}</span>`
       + `${badge}<span class="pname"><b>${esc(decFull(p.num))}</b> ${lbl}</span></button>`;
   };
   const tH = (d.lineups && d.lineups.home) || {}, tA = (d.lineups && d.lineups.away) || {};
@@ -2596,7 +2598,7 @@ function renderMi(){
   let pitchHtml = '';
   if (hasPitch){
     const tline = (tm, logo, cls) =>
-      `<div class="teamline ${cls}">${tm.rating != null && isFinite(tm.rating) ? `<span class="trate">${Number(tm.rating).toFixed(1)}</span>` : ''}${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(tm.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<span>${esc(decFull(tm.name))}</span><span class="fm2">${esc(decFull(tm.formation))}</span></div>`;
+      `<div class="teamline ${cls}">${tm.rating != null && isFinite(tm.rating) ? `<span class="trate">${Number(tm.rating).toFixed(1)}</span>` : ''}${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(tm.name))}" width="20" height="20" loading="lazy" onerror="this.style.display='none'">` : ''}<span>${esc(decFull(tm.name))}</span><span class="fm2">${esc(decFull(tm.formation))}</span></div>`;
     pitchHtml = `<div class="pitch"><div class="ln half"></div><div class="ln circ"></div><div class="ln boxT"></div><div class="ln boxB"></div>`
       + tline(tH, hLogo, 'tH')
       + (tH.starters || []).map(p => dot(p, false, true, tH.name, true)).join('')
@@ -2619,7 +2621,7 @@ function renderMi(){
       ? `<div class="sub" style="margin-top:6px">${t('unavailable')}</div>` + (tm.unavailable || []).map(p =>
         `<div class="unav"><span>🚑</span><span class="nm">${esc(decFull(p.name))}${p.reason ? ' <small class="sub">(' + esc(decFull(p.reason)) + ')</small>' : ''}</span></div>`).join('')
       : '';
-    return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(tm.name))}" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(tm.name))}</b><span class="fm">${esc(decFull(tm.formation))}${tm.rating != null && isFinite(tm.rating) ? ' • ' + Number(tm.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
+    return `<div class="lu"><header>${logo ? `<img src="${esc(logo)}" alt="${esc(decFull(tm.name))}" width="26" height="26" loading="lazy" onerror="this.style.display='none'">` : ''}<b>${esc(decFull(tm.name))}</b><span class="fm">${esc(decFull(tm.formation))}${tm.rating != null && isFinite(tm.rating) ? ' • ' + Number(tm.rating).toFixed(1) : ''}</span></header>${coach}${st}${sb}${un}</div>`;
   };
   let listsHtml = '';
   if (d.lineups && (d.lineups.home || d.lineups.away)){
@@ -2794,6 +2796,8 @@ try {
   paintStars();
   bellRestore();
   tickHeader();
+  try{statusEl.textContent=t('blocked')+': '+blocked;}catch{}
+  try{clickShield.setAttribute('aria-label',t('playBtn'));}catch{}
   // Background enrich: snapshot fetch (if still missing) + ESPN
   if (id && !href && !home && !away && !snap0) {
     fetchSnap(id, bootDay).then(s => {

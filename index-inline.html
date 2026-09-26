@@ -65,6 +65,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .topbar::before{content:"";position:absolute;left:0;right:0;top:50px;height:2px;
   background:rgba(255,255,255,.07);pointer-events:none} /* halfway line */
 .brand{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+.brand>div{min-width:0;flex:1}
 .brand .ball{width:42px;height:42px;border-radius:50%;background:var(--grass);
   display:grid;place-items:center;font-size:22px;flex:none}
 .brand h1{display:block;font-size:20px;font-weight:900;line-height:1.2;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -179,22 +180,25 @@ button{touch-action:manipulation}
 .poly-row .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:13px}
 .poly-row b{font-size:15px;font-weight:900}
 .poly-row small{font-size:11px;font-weight:800}
-.poly-row small.up{color:var(--grass)}
-.poly-row small.dn{color:var(--live)}
+.poly-row small.up{color:#15803d}
+.poly-row small.dn{color:#c81e1e}
 html.dark .poly-row small.up{color:#4ade80}
+html.dark .poly-row small.dn{color:#ff6b74}
 
 /* bidi: scores/minutes keep logical order in RTL (2 - 0 never flips) */
 .m .t b,.m .st .t{direction:ltr;unicode-bidi:isolate}
+.poly-row b,.poly-row small{direction:ltr;unicode-bidi:isolate}
 .chips{mask-image:linear-gradient(to left,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
+[dir="rtl"] .chips{mask-image:linear-gradient(to right,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
 .skel-list{max-width:760px;margin:12px auto 0;padding:0 16px;display:grid;gap:8px}
 .skel-row{height:64px;border-radius:16px;background:linear-gradient(90deg,var(--line) 25%,var(--card) 50%,var(--line) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
 @keyframes shimmer{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.skel-row{animation:none}}
 
 /* UI polish: sticky toolbar, hover depth, league count badges */
-.toolbar{position:sticky;top:0;z-index:20;background:var(--paper);padding-bottom:8px;border-bottom:1px solid var(--line)}
+.toolbar{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;background:var(--paper);padding-bottom:8px;border-bottom:1px solid var(--line)}
 .brand .ball{box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.league>h2 .lg-n{background:var(--line);color:var(--muted);font-size:11px;font-weight:800;border-radius:999px;padding:1px 8px}
+.league>h2 .lg-n{background:var(--line);color:var(--ink);font-size:11px;font-weight:800;border-radius:999px;padding:1px 8px}
 @media (hover:hover){
 .m{transition:transform .15s ease,box-shadow .15s ease}
 .m:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(7,31,25,.16)}
@@ -270,7 +274,7 @@ body.ads-off .ad-wrap{display:none}
     <button class="sup-btn" id="walletBtn" type="button" data-i18n="walletBtn" aria-controls="walletBox" aria-expanded="false">⧉ BEP20 wallet</button>
     <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
   </div>
-  <div class="sup-wallet" id="walletBox" hidden><code>0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
+  <div class="sup-wallet" id="walletBox" hidden><code dir="ltr">0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
 </div>
 
 <main id="content">
@@ -311,7 +315,7 @@ function paintLiveJump(){
     if (!el) return;
     const show = liveN > 0 && liveOff;
     el.hidden = !show;
-    if (show) el.textContent = '\u25cf ' + t('liveNow') + ' (' + liveN + ')';
+    if (show) el.textContent = '\u25cf ' + t('liveNow') + ' ⁦(' + liveN + ')⁩';
   } catch (e) {}
 }
 try {
@@ -525,7 +529,7 @@ function geoApply(cc){
 (function geoLang(){
   if (GEO_LOCK) return;
   const hit = geoCached();
-  if (hit){ geoApply(hit); return; }
+  if (hit){ setTimeout(() => geoApply(hit), 0); return; }
   const fetchTx = (url, ms) => {
     const ctrl = new AbortController();
     const to = setTimeout(() => { try { ctrl.abort(); } catch (e) {} }, ms);
@@ -1522,9 +1526,18 @@ function logoImg(src, alt){
   const u = dec(src);
   if (u.startsWith('//') || u.startsWith('\\')) return '';
   if (!u || !/^(https?:\/\/|\.\/|\/)/i.test(u)) return '';
-  return `<img src="${esc(u)}" alt="${esc(dec(alt || ''))}" loading="lazy" decoding="async" onerror="this.style.display='none'">`;
+  return `<img src="${esc(u)}" alt="${esc(dec(alt || ''))}" width="24" height="24" loading="lazy" decoding="async" onerror="this.style.display='none'">`;
 }
 
+function riyadhYMD(day){
+  const off = day === 'yesterday' ? -1 : day === 'tomorrow' ? 1 : 0;
+  try {
+    const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh', year: 'numeric', month: '2-digit', day: '2-digit' });
+    return fmt.format(new Date(Date.now() + off * 86400000));
+  } catch {
+    return new Date(Date.now() + off * 86400000 + 3 * 3600000).toISOString().slice(0, 10);
+  }
+}
 let reqSeq = 0; // concurrency guard: stale day responses are ignored
 async function fetchData(day, silent){
   const wb = workerBase();
@@ -1542,18 +1555,35 @@ async function fetchData(day, silent){
       const r = await fetch(u + bust, { cache: silent ? 'no-store' : 'default', signal: ctrl.signal });
       if (!r.ok) return null;
       const j = await r.json();
-      return Array.isArray(j) ? j : null;
+      return Array.isArray(j) ? { u, data: j } : null;
     } catch { return null; } finally { clearTimeout(to); }
   });
   const results = await Promise.all(racers);
-  for (const r of results) if (r) return r;
+  for (const r of results){
+    if (!r) continue;
+    if (r.u === './matches.json'){
+      try {
+        const exp = riyadhYMD(day);
+        if (!r.data.every(m => String((m && m.start) || '').slice(0, 10) === exp)) continue;
+      } catch {}
+    }
+    return r.data;
+  }
   // Fallback bust cache if all missed
   for (const u of urls){
     try {
       const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout(3000) });
       if (!r.ok) continue;
       const j = await r.json();
-      if (Array.isArray(j)) return j;
+      if (Array.isArray(j)){
+        if (u === './matches.json'){
+          try {
+            const exp = riyadhYMD(day);
+            if (!j.every(m => String((m && m.start) || '').slice(0, 10) === exp)) continue;
+          } catch {}
+        }
+        return j;
+      }
     } catch {}
   }
   return null;
@@ -1633,7 +1663,7 @@ async function loadDay(day, silent){
         if (isFinite(ch) && isFinite(ph) && ch === ph + 1) who.push(m.home);
         else if (isFinite(ca) && isFinite(pa) && ca === pa + 1) who.push(m.away);
       }
-            if (who.length) GOAL_MSG = '\u26BD ' + t('goal') + ': ' + who.slice(0, 2).map(dispTeam).join(', ') + (who.length > 2 ? ' (+' + (who.length - 2) + ')' : '');
+            if (who.length) GOAL_MSG = '\u26BD ' + t('goal') + ': ' + who.slice(0, 2).map(dispTeam).join(', ') + (who.length > 2 ? ' ⁦(+' + (who.length - 2) + ')⁩' : '');
     }
   } catch {}
   // Rebuild chips on silent too (new leagues appear mid-day); the LEAGUE
@@ -1940,7 +1970,7 @@ async function loadPoly(){
     document.getElementById('polyList').innerHTML = j.top.map(p => {
       const chg = (p.chg == null || !isFinite(p.chg)) ? '' : `<small class="${p.chg >= 0 ? 'up' : 'dn'}">${p.chg >= 0 ? '▲' : '▼'}${esc(String(Math.abs(p.chg)))}</small>`;
       const img = (p.img && /^https:\/\//i.test(p.img) && !/[\s<>"]/.test(p.img))
-        ? `<img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">` : '';
+        ? `<img src="${esc(p.img)}" alt="${esc(p.name)}" width="28" height="28" loading="lazy" onerror="this.style.display='none'">` : '';
       return `<div class="poly-row">${img}<span class="pn">${esc(p.name)}</span><b>${esc(String(p.pct))}%</b>${chg}</div>`;
     }).join('');
     const lk = document.getElementById('polyLink');

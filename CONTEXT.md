@@ -4,7 +4,34 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-26 (AR-mode lookup fix — see CONTEXT 75).
+> Last updated: 2026-09-26 (sweep #2: 3 audits + 2 fix crews — see CONTEXT 76).
+
+## 76. Sweep #2: scope/shadowing + RTL/CSS + backend audits, 2 fix crews (2026-09-26, user: "WTF FIX ANY BUGS LIKE THIS AND FIND EVEN MORE AUDIT")
+
+- **Process.** 3 parallel read-only audits (JS scope/i18n-logic, RTL/CSS/a11y,
+  backend #2), triaged, then 2 parallel fix crews split pages-vs-backend
+  (zero conflicts), verified by me, one commit.
+- **Caught by audit, fixed.** (1) Odds dead in AR: `loadOdds` sent
+  `dispTeam()` (raw Arabic in AR → API rejects) — now `latName()` like the
+  other lookups. (2) TDZ on cached-geo fast path: sync `setLang(save=true)`
+  before later `let/const` init — deferred via `setTimeout 0`.
+  (3) `matches.json` had inverted `result_text` + postponed-as-FT rows
+  (regenerated + `تأجلت`→POST mapping). (4) Ballon d'Or rendered resolved
+  100% markets (now filtered). (5) CSP `connect-src` blocked legit custom
+  worker hosts + `font-src` gaps (fixed + documented worker scope).
+  (6) sw.js query-string false positives (anchored to host+path).
+  Plus: fractional H/A slot scoring, Yes-label-indexed prices, no-store
+  failure paths, encoded slugs, snapshot/redirect/timeout/size-cap
+  hardening, dead code + dup rules removed, contrast/hit-area/aria gaps
+  closed, numeric bidi isolation everywhere, toast queue, error+retry
+  states, stale-race + day-bucket TZ fixes.
+- **Deliberately not changed:** Egyptian-league exclusion, server-side lang
+  rendering, league landing pages, localized ad creatives, channel-host
+  allowlist (sandbox-accepted), `?league=` pre-list validation (harmless).
+- Verified: full suite green (syntax, parity 59/114 ×3, smoke, names,
+  fotmob, clock, theme, 100% coverage) + poly fractional + reversed-label
+  proofs + sitemap live-render + ESM imports + _sec asserts. Mirrors
+  zero-diff. **Pushed** to `origin main` (Vercel deploys).
 
 ## 75. Lookups now LANG-independent: latName() (2026-09-26, user: "same bug retry")
 
@@ -1676,13 +1703,13 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§75 (AR-mode lookup fix, match-data fixes, odds fallback,
-   skeletons, Polymarket odds, browser-verified polish, navigation, sweep
-   audits + fixes, 3-language i18n, dark mode, UI polish, real-live
-   minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to
-   `origin main` per owner order.** Watch the Vercel deploy; spot-check a
-   small-club player page IN ARABIC MODE (Match data loads now), odds box,
-   EN/FR/AR toggle, and `/api/poly` live.
+5. **Batches §56–§76 (sweep #2 audits + fixes, AR-mode lookup fix,
+   match-data fixes, odds fallback, skeletons, Polymarket odds,
+   browser-verified polish, navigation, sweep audits + fixes, 3-language
+   i18n, dark mode, UI polish, real-live minutes, GEO/ads/donate/SEO,
+   admin removed, 2026-09-24/26) pushed to `origin main` per owner order.**
+   Watch the Vercel deploy; spot-check player odds in AR mode, error/retry
+   states, dark toggle, EN/FR/AR toggle, and `/api/sitemap` live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 

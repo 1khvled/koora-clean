@@ -384,6 +384,7 @@ export default async function handler(req, res) {
       }
       live = { min, half };
     } catch {}
+    res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=60, stale-while-revalidate=60');
     return res.status(200).json({
       found: true,
       matchId: best.id,

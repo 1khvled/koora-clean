@@ -483,6 +483,10 @@ export default {
         return new Response('Proxy error', { status: 500, headers: cors });
       }
     }
+    // SCOPE: koora_worker serves /api/matches, /api/espn and the ?url=
+    // proxy only. Every other /api/* path 404s here by design — player,
+    // fotmob, alwan, athikoora, poly and sitemap run as Vercel serverless
+    // functions, not in this worker.
     if (path.startsWith('/api/')) {
       return new Response(JSON.stringify({ error: 'not found' }), { status: 404, headers: { 'content-type': 'application/json; charset=utf-8', ...cors } });
     }
