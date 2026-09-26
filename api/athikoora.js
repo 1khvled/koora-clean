@@ -1,4 +1,4 @@
-import { rl, fetchableUrl } from './_sec.js';
+import { rl, fetchableUrl, readCapped } from './_sec.js';
 export default async function handler(req, res) {
   // Athikoora 24/7 beIN channels — Blogger JSON feed (public, no auth).
   // These are the "قناة بين سبورتس" posts whose HTML holds an <iframe> to an
@@ -76,7 +76,8 @@ export default async function handler(req, res) {
           if (!ct.includes('text/html')) return c;
           const clen = +(r.headers.get('content-length') || 0);
           if (clen > 800000) return c;
-          const html = await r.text();
+          let html = '';
+          try { html = await readCapped(r, 800000); } catch { return null; }
           if (html.length < 2000) return null;
           if (DEAD_RE.test(html)) return null;
           return c;
@@ -84,7 +85,14 @@ export default async function handler(req, res) {
       } catch { return null; }
     };
     out.sort((a, b) => beinScore(a) - beinScore(b));
-    const channels = (await Promise.all(out.slice(0, 8).map(sniffAlive))).filter(Boolean).slice(0, 6);
+    // Overall sniff deadline (under 9s): per-channel timeouts stay, but the
+    // phase as a whole can never blow the 10s serverless budget. Fail-open.
+    const sniffed = await Promise.race([
+      Promise.all(out.slice(0, 8).map(sniffAlive)),
+      new Promise((r) => setTimeout(() => r(null), 8500)),
+    ]);
+    if (!sniffed) return fail();
+    const channels = sniffed.filter(Boolean).slice(0, 6);
     res.setHeader('Cache-Control', 'public, s-maxage=120, max-age=60');
     return res.status(200).json({ count: channels.length, channels });
   } catch {

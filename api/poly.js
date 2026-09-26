@@ -32,47 +32,71 @@ function yesPrice(m) {
   try {
     let op = m && m.outcomePrices;
     if (typeof op === 'string') op = JSON.parse(op);
-    const v = parseFloat(op && op[0]);
+    let idx = 0;
+    try {
+      let oc = m && m.outcomes;
+      if (typeof oc === 'string') oc = JSON.parse(oc);
+      if (Array.isArray(oc) && Array.isArray(op) && oc.length === op.length) {
+        const yi = oc.findIndex(o => String(o).toLowerCase() === 'yes');
+        if (yi >= 0) idx = yi;
+      }
+    } catch {}
+    const v = parseFloat(op && op[idx]);
     return isFinite(v) ? v : null;
   } catch { return null; }
 }
-const STOP = new Set(['fc', 'cf', 'sc', 'ac', 'as', 'club', 'deportivo', 'real', 'olympic']);
+const STOP = new Set(['club', 'deportivo', 'real', 'olympic']);
 export function toks(s) {
   return String(s || '').toLowerCase().replace(/[^a-z ]/g, ' ')
     .split(' ').map(w => w.trim()).filter(w => w.length >= 4 && !STOP.has(w));
 }
 export function scoreEvents(evs, hT, aT, qT) {
   const hit = (arr, title) => arr.some(w => title.includes(w));
-  const out = [];
-  for (const e of evs) {
-    if (!e || e.closed) continue;
-    const mks = Array.isArray(e.markets) ? e.markets : [];
-    if (mks.length < 3) continue;
-    const title = String(e.title || '').toLowerCase();
-    if (!hit(hT, title) || !hit(aT, title)) continue;
-    const tagStr = [...(Array.isArray(e.tags) ? e.tags : [])]
-      .map(t => String((t && t.slug) || '') + ' ' + String((t && t.label) || '')).join(' ').toLowerCase();
-    const soccer = /soccer|football/.test(tagStr) ? 1 : 0;
-    const ed = Date.parse(e.endDate || '');
-    const dd = (isFinite(qT) && isFinite(ed)) ? Math.abs(ed - qT) : null;
-    if (dd != null && dd > 36 * 3600000) continue;
-    out.push({ e, s: soccer * 1e15 - (dd == null ? 36 * 3600000 : dd) });
-  }
-  out.sort((a, b) => b.s - a.s);
-  return out;
+  const collect = (soccerOnly) => {
+    const out = [];
+    for (const e of evs) {
+      if (!e || e.closed) continue;
+      const mks = Array.isArray(e.markets) ? e.markets : [];
+      if (mks.length < 3) continue;
+      const title = String(e.title || '').toLowerCase();
+      if (!hit(hT, title) || !hit(aT, title)) continue;
+      const tagStr = [...(Array.isArray(e.tags) ? e.tags : [])]
+        .map(t => String((t && t.slug) || '') + ' ' + String((t && t.label) || '')).join(' ').toLowerCase();
+      const soccer = /soccer|football/.test(tagStr) ? 1 : 0;
+      if (soccerOnly && !soccer) continue;
+      const ed = Date.parse(e.endDate || '');
+      const dd = (isFinite(qT) && isFinite(ed)) ? Math.abs(ed - qT) : null;
+      if (dd == null) continue;
+      if (dd > 36 * 3600000) continue;
+      out.push({ e, s: soccer * 1e15 - dd });
+    }
+    out.sort((a, b) => b.s - a.s);
+    return out;
+  };
+  const first = collect(true);
+  return first.length ? first : collect(false);
 }
 const WIN_RE = /(win|beat)/;
 export function classifyMarkets(e, hT, aT) {
   let H = null, D = null, A = null;
-  const hit = (arr, title) => arr.some(w => title.includes(w));
+  const frac = (arr, title) => {
+    if (!arr.length) return 0;
+    let n = 0;
+    for (const w of arr) if (title.includes(w)) n++;
+    return n / arr.length;
+  };
   for (const m of (e.markets || [])) {
     if (!m || !m.active || m.closed) continue;
     const p = yesPrice(m);
     if (p == null || p <= 0 || p >= 1) continue;
     const ql = String(m.question || '').toLowerCase();
     if (ql.includes('draw')) { if (D == null) D = p; }
-    else if (hit(hT, ql) && WIN_RE.test(ql)) { if (H == null) H = p; }
-    else if (hit(aT, ql) && WIN_RE.test(ql)) { if (A == null) A = p; }
+    else if (WIN_RE.test(ql)) {
+      const hFrac = frac(hT, ql), aFrac = frac(aT, ql);
+      if (Math.max(hFrac, aFrac) <= 0) continue;
+      if (hFrac >= aFrac) { if (H == null) H = p; }
+      else { if (A == null) A = p; }
+    }
   }
   if (H == null || D == null || A == null) return null;
   const pct = v => Math.round(v * 1000) / 10;
@@ -105,7 +129,7 @@ export default async function handler(req, res) {
       for (const m of ev.markets) {
         if (!m || !m.active || m.closed) continue;
         const p = yesPrice(m);
-        if (p == null || p <= 0) continue;
+        if (p == null || p <= 0 || p >= 1) continue;
         const name = String(m.groupItemTitle || parseName(m.question) || '').trim().slice(0, 40);
         if (!name) continue;
         let chg = null;
@@ -119,7 +143,7 @@ export default async function handler(req, res) {
         found: true, title: String(ev.title || "Ballon d'Or Winner 2026").slice(0, 80),
         slug: BALLON_SLUG, url: BALLON_URL, top: rows.slice(0, 5),
       });
-    } catch { return res.status(200).json({ found: false }); }
+    } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ found: false }); }
   }
 
   // Per-match 1X2. Expects Latin team names (clients send translated ones).
@@ -139,9 +163,9 @@ export default async function handler(req, res) {
       const r = classifyMarkets(e, hT, aT);
       if (r) {
         return res.status(200).json({ found: true, slug: String(e.slug || '').slice(0, 120),
-          url: 'https://polymarket.com/event/' + String(e.slug || ''), home: r.H, draw: r.D, away: r.A });
+          url: 'https://polymarket.com/event/' + encodeURIComponent(String(e.slug || '').slice(0, 120)), home: r.H, draw: r.D, away: r.A });
       }
     }
     throw 0;
-  } catch { return res.status(200).json({ found: false }); }
+  } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ found: false }); }
 }

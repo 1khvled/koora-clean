@@ -24,15 +24,17 @@ self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 
 self.addEventListener('fetch', event => {
   const url = event.request.url;
-  let segAd = false;
-  try { const u = new URL(url); segAd = segHit(u.hostname, u.pathname); } catch { segAd = false; }
+  // Match host+path only — never the query string (legit ?q=onclick params
+  // must survive) and never bare relative asset URLs (no host to judge).
+  let segAd = false, hp = url;
+  try { const u = new URL(url); hp = u.hostname + u.pathname; segAd = segHit(u.hostname, u.pathname); } catch { segAd = false; }
 
   // block telegram + ads
-  if (BLOCK_RE.test(url) || PATH_BLOCK.test(url) || segAd) {
+  if (BLOCK_RE.test(hp) || PATH_BLOCK.test(hp) || segAd) {
     // notify page
     event.waitUntil(
       self.clients.matchAll().then(clients => {
-        clients.forEach(c => c.postMessage({type:'BLOCKED', reason: TELEGRAM_RE.test(url) ? 'Telegram (SW)' : 'Ad (SW)', url: url.slice(0,120)}));
+        clients.forEach(c => c.postMessage({type:'BLOCKED', reason: TELEGRAM_RE.test(hp) ? 'Telegram (SW)' : 'Ad (SW)', url: url.slice(0,120)}));
       })
     );
     // return empty response — prevents script/load
@@ -44,7 +46,7 @@ self.addEventListener('fetch', event => {
   }
 
   // For navigation requests that look like telegram hijack, block
-  if (event.request.mode === 'navigate' && TELEGRAM_RE.test(url)) {
+  if (event.request.mode === 'navigate' && TELEGRAM_RE.test(hp)) {
     return event.respondWith(new Response('', {status:204}));
   }
 

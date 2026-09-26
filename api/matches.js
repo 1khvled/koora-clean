@@ -39,6 +39,13 @@ export default async function handler(req, res) {
     return out;
   };
 
+  // Logo gate (mirrors poly.js imgOk): absolute https only, no spaces or
+  // angle brackets/quotes — anything else becomes '' server-side.
+  const logoOk = (u) => {
+    const s = String(u == null ? '' : u);
+    return /^https:\/\//i.test(s) && !/[\s<>"]/.test(s) ? s.slice(0, 200) : '';
+  };
+
   const fetchWithTimeout = async (url, ms, referer) => {
     const ctrl = new AbortController();
     const to = setTimeout(() => ctrl.abort(), ms);
@@ -97,7 +104,7 @@ export default async function handler(req, res) {
         const leagueText = leagueM ? decFull(leagueM[3].trim()) : '';
         // Scores
         const scoreM = [...b.matchAll(/RS-goals[^>]*>([^<]+)</gi)].map(m => m[1].trim());
-        const scoreHome = scoreM[0] || '', scoreAway = scoreM[1] || '';
+        let scoreHome = scoreM[0] || '', scoreAway = scoreM[1] || '';
         // Also try MT_Result
         // Start ISO from timeText
         let startIso = '';
@@ -129,7 +136,8 @@ export default async function handler(req, res) {
         // Status mapping
         let statusCode = 'NS', official = statText;
         const sLow = statText.toLowerCase();
-        if (/جارية|مباشر|live/i.test(sLow) || statText.includes('جارية')) statusCode = 'LIVE';
+        if (/تأجلت|تاجلت|postponed/i.test(statText)) { statusCode = 'POST'; scoreHome = ''; scoreAway = ''; }
+        else if (/جارية|مباشر|live/i.test(sLow) || statText.includes('جارية')) statusCode = 'LIVE';
         else if (/انتهت|نهاية|finished/i.test(sLow)) statusCode = 'FT';
         else if (/بعد قليل|لم تبدأ/i.test(sLow)) statusCode = 'NS';
         let stableId = '';
@@ -153,8 +161,8 @@ export default async function handler(req, res) {
           game_time: statusCode === 'LIVE' ? (timeText.includes("'") ? timeText : '') : '',
           score_home: scoreHome,
           score_away: scoreAway,
-          home_logo: logos[0] || '',
-          away_logo: logos[1] || '',
+          home_logo: logoOk(logos[0]),
+          away_logo: logoOk(logos[1]),
           time_text: timeText,
           result_text: scoreHome && scoreAway ? `${scoreHome}-${scoreAway}` : '',
           league_text: leagueText,
@@ -199,11 +207,12 @@ export default async function handler(req, res) {
       const league = getAttr('data-league');
       const start = getAttr('data-start');
       const gameends = getAttr('data-gameends');
-      const status = getAttr('data-status-code');
+      let status = getAttr('data-status-code');
       const official = getAttr('data-official-status');
       const gameTime = getAttr('data-game-time');
-      const scoreHome = getAttr('data-score-home');
-      const scoreAway = getAttr('data-score-away');
+      let scoreHome = getAttr('data-score-home');
+      let scoreAway = getAttr('data-score-away');
+      if (/تأجلت|تاجلت|postponed/i.test(official)) { status = 'POST'; scoreHome = ''; scoreAway = ''; }
       if (league.includes('المصري') || league.includes('Egypt')) continue;
       const after = kHtml.substring(m.index, m.index + 4000);
       const imgs = [...after.matchAll(/<img[^>]*src=(["'])(.*?)\1/gi)].map(x => x[2]).filter(Boolean);
@@ -232,8 +241,8 @@ export default async function handler(req, res) {
         game_time: decFull(gameTime),
         score_home: decFull(scoreHome),
         score_away: decFull(scoreAway),
-        home_logo: logos[0] || '',
-        away_logo: logos[1] || '',
+        home_logo: logoOk(logos[0]),
+        away_logo: logoOk(logos[1]),
         time_text: decFull(timeMatch ? timeMatch[1].trim() : ''),
         result_text: decFull(resultMatch ? resultMatch[1].trim() : ''),
         league_text: decFull(leagueMatch ? leagueMatch[1].trim() : league),
