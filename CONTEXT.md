@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-26 (match-data misses fixed — see CONTEXT 74).
+> Last updated: 2026-09-26 (AR-mode lookup fix — see CONTEXT 75).
+
+## 75. Lookups now LANG-independent: latName() (2026-09-26, user: "same bug retry")
+
+- **Why it persisted.** The §74 fix only helped EN/FR sessions: in Arabic
+  mode the page sent raw Arabic names to FotMob/ESPN lookups (display
+  language leaked into lookup language), so AR users still missed. New
+  `latName()` (dict + transliteration, LANG-independent) is now used by
+  all three lookup call sites (index ESPN, player ESPN, player FotMob);
+  display still uses LANG-aware `dispTeam`. Proven: `latName` returns
+  "DH El Jadida" under LANG=en/fr/ar while `dispTeam` stays raw in AR.
+- Verified: syntax, parity, LANG-independence asserts, mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 74. Match-data misses fixed: 14 teams from live sweep (2026-09-26, user: "Match data thing did u fix it ?")
 
@@ -1664,13 +1676,13 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§74 (match-data fixes, odds fallback, skeletons,
-   Polymarket odds, browser-verified polish, navigation, sweep audits +
-   fixes, 3-language i18n, dark mode, UI polish, real-live minutes,
-   GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to `origin main`
-   per owner order.** Watch the Vercel deploy; spot-check a small-club
-   player page (Match data loads now), odds box, dark toggle, EN/FR/AR
-   toggle, and `/api/poly` live.
+5. **Batches §56–§75 (AR-mode lookup fix, match-data fixes, odds fallback,
+   skeletons, Polymarket odds, browser-verified polish, navigation, sweep
+   audits + fixes, 3-language i18n, dark mode, UI polish, real-live
+   minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to
+   `origin main` per owner order.** Watch the Vercel deploy; spot-check a
+   small-club player page IN ARABIC MODE (Match data loads now), odds box,
+   EN/FR/AR toggle, and `/api/poly` live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
