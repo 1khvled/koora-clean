@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-26 (skeleton pulse batch — see CONTEXT 72).
+> Last updated: 2026-09-26 (odds fallback when no match market — see CONTEXT 73).
+
+## 73. Player odds always visible: Ballon d'Or fallback (2026-09-26, user: match odds never loads + screenshot)
+
+- **Why it never showed.** Probed live: ZERO open per-match soccer markets
+  on Polymarket right now (even Morocco/Egypt/Algeria/Nigeria/Senegal/Italy
+  — only outrights); per-match 1X2 only exists around big club games. The
+  widget correctly hid every time — it wasn't broken, there was no supply.
+  (Also: that screenshot was the FotMob section failing on a small fixture
+  with no FotMob coverage — backend healthy, fail-open by design.)
+- **Fix.** Player odds box now falls back to a Ballon d'Or top-3 mini when
+  no match market is open — the box is always visible with real odds.
+  Match 1X2 still wins whenever a market exists. New `polyTitle` key ×3.
+- Verified: both branches screenshotted (1X2 cells + Ballon rows, AR mode,
+  zero overflow/errors); syntax + parity 59/113 ×3; mirrors zero-diff.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 72. Skeleton pulse: minfo + server loading shimmer (2026-09-26, user: site feels static, add loading skeletons)
 
@@ -1637,12 +1652,12 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§72 (skeletons, Polymarket odds, browser-verified polish,
-   navigation, sweep audits + fixes, 3-language i18n, dark mode, UI polish,
-   real-live minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/26)
-   pushed to `origin main` per owner order.** Watch the Vercel deploy;
-   spot-check the Ballon d'Or odds card, skeletons, dark toggle, FotMob,
-   EN/FR/AR toggle, and `/api/sitemap` + `/api/poly?type=ballon` live.
+5. **Batches §56–§73 (odds fallback, skeletons, Polymarket odds,
+   browser-verified polish, navigation, sweep audits + fixes, 3-language
+   i18n, dark mode, UI polish, real-live minutes, GEO/ads/donate/SEO,
+   admin removed, 2026-09-24/26) pushed to `origin main` per owner order.**
+   Watch the Vercel deploy; spot-check the player odds box, Ballon d'Or
+   card, dark toggle, FotMob, EN/FR/AR toggle, and `/api/poly` live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
