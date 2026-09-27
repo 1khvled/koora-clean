@@ -26,10 +26,14 @@
   dropped; nonsense fixture → `found:false` (never another game's stream);
   swapped home/away → still the right game. A relative-margin gate FAILED
   the trap test during dev and was replaced by the absolute gate.
-- **Honest caveat.** Positive path against the REAL upstream is unverified
-  from here (sandbox can't reach it) — Vercel egress differs. If live
-  misses persist, the resolver needs field-shape tuning against real
-  responses. **Pushed** to `origin main` (Vercel deploys).
+- **Honest caveat, RESOLVED.** First version targeted `.su` shapes from
+  docs and couldn't reach the upstream from here — then the official
+  mirror list (strmd.link) gave two live mirrors (`.pk`/`.st`, both
+  verified 200). Rewired to real shapes (`teams.{home,away}`,
+  stream-detail arrays, title fallback) with pk→st failover, and proved
+  it live: Arabic query for a live MLS game → correct match → 3 real
+  `embed.st` servers in 3.7s, numbered labels, trap still rejected.
+  **Pushed** to `origin main` (Vercel deploys).
 
 ## 79. Stale mirrors committed at §78, re-synced (2026-09-26, self-caught during verification)
 
