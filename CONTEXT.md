@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-26 (post-match highlights — see CONTEXT 77).
+> Last updated: 2026-09-26 (page-flow reorg — see CONTEXT 78).
+
+## 78. Page-flow reorg: controls up, support down (2026-09-26, user: "orginize theUI UX")
+
+- **Player.** Video controls moved directly under the stage (they operate
+  the video); blocked-counter joins the server group; support/donate card
+  moved to page bottom above the ad. Flow is now video → controls →
+  match → odds → streams → highlights → data → support.
+- **Index.** Support card moved below the match list (matches first).
+- Pure block moves, zero JS/CSS/logic changes. Browser-screenshotted
+  both pages (390px, zero overflow/errors). During that check the empty
+  local render traced to the §76 stale-guard correctly rejecting the
+  2-day-old matches.json (fail-open error box works as designed).
+- Verified: syntax, parity 59/115 ×3, mirrors zero-diff. **Pushed**.
 
 ## 77. Post-match highlights on player (2026-09-26, user: highlights after match ends)
 
@@ -1717,13 +1730,14 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§77 (highlights, sweep #2 audits + fixes, AR-mode lookup
-   fix, match-data fixes, odds fallback, skeletons, Polymarket odds,
-   browser-verified polish, navigation, sweep audits + fixes, 3-language
-   i18n, dark mode, UI polish, real-live minutes, GEO/ads/donate/SEO,
-   admin removed, 2026-09-24/26) pushed to `origin main` per owner order.**
-   Watch the Vercel deploy; spot-check highlights on a finished match,
-   player odds, EN/FR/AR toggle, and `/api/highlights` live.
+5. **Batches §56–§78 (page-flow reorg, highlights, sweep #2 audits + fixes,
+   AR-mode lookup fix, match-data fixes, odds fallback, skeletons,
+   Polymarket odds, browser-verified polish, navigation, sweep audits +
+   fixes, 3-language i18n, dark mode, UI polish, real-live minutes,
+   GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to `origin main`
+   per owner order.** Watch the Vercel deploy; spot-check the new page flow
+   (controls under video, support at bottom), highlights, EN/FR/AR toggle,
+   and `/api/highlights` live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
