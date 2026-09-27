@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-27 (hidden EN fallback for zero-coverage leagues — see CONTEXT 80).
+> Last updated: 2026-09-27 (sandbox removed from player iframe — see CONTEXT 81).
+
+## 81. Sandbox removed from player iframe (2026-09-27, user: remove sandbox attributes + Edge UA)
+
+- **Done.** `sandbox="allow-same-origin allow-scripts allow-forms
+  allow-presentation"` removed from the stage `#player` iframe (allow,
+  allowfullscreen, tabindex kept). Highlights embed stays sandboxed.
+- **Stated trade-off (owner-ordered).** Sandbox was the popup jail; without
+  it, rogue embeds CAN open popups/top-navigations again. Remaining
+  layers still active: first-tap click-shield, `window.open` override,
+  BLOCK_RE + iframe-src watchdog with auto-advance, SW ad/request
+  blocking. If popups return on some servers, that's the cost — say the
+  word and a per-server sandbox toggle can go in instead.
+- Verified: mirrors zero-diff (hash-equal). **Pushed** to `origin main`.
 
 ## 80. Hidden EN fallback resolver (2026-09-27, user picked "Hidden EN fallback" for MLS-type gaps)
 
@@ -1771,15 +1784,14 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§80 (hidden EN fallback, mirror re-sync, page-flow reorg,
-   highlights, sweep #2 audits + fixes, AR-mode lookup fix, match-data
-   fixes, odds fallback, skeletons, Polymarket odds, browser-verified
-   polish, navigation, sweep audits + fixes, 3-language i18n, dark mode,
-   UI polish, real-live minutes, GEO/ads/donate/SEO, admin removed,
-   2026-09-24/27) pushed to `origin main` per owner order.** Watch the
-   Vercel deploy; spot-check an MLS player page (servers appear only if
-   the upstream is reachable), EN/FR/AR toggle, and `/api/highlights`
-   live.
+5. **Batches §56–§81 (sandbox removal, hidden EN fallback, mirror re-sync,
+   page-flow reorg, highlights, sweep #2 audits + fixes, AR-mode lookup
+   fix, match-data fixes, odds fallback, skeletons, Polymarket odds,
+   browser-verified polish, navigation, sweep audits + fixes, 3-language
+   i18n, dark mode, UI polish, real-live minutes, GEO/ads/donate/SEO,
+   admin removed, 2026-09-24/27) pushed to `origin main` per owner order.**
+   Watch the Vercel deploy; spot-check stream playback in Edge, EN/FR/AR
+   toggle, and `/api/highlights` live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
