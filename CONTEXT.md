@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-26 (page-flow reorg — see CONTEXT 78).
+> Last updated: 2026-09-26 (mirror sync fix — see CONTEXT 79).
+
+## 79. Stale mirrors committed at §78, re-synced (2026-09-26, self-caught during verification)
+
+- **What happened.** The §78 commit shipped stale `-inline` mirrors: my
+  hash check passed but the copy hadn't actually updated the files
+  (verified later by content diff — 28 lines drifted on index). The live
+  site was unaffected (Vercel serves index/player, mirrors are
+  robots-excluded spares), but the zero-diff invariant broke.
+- **Fix + lesson.** Re-copied with `-Force` and verified by CONTENT diff
+  (0 lines), not hashes alone. Mirror syncs must always end with a content
+  diff, never trust hash output from the same command chain.
+- Verified: content diff 0 both pages. **Pushed**.
 
 ## 78. Page-flow reorg: controls up, support down (2026-09-26, user: "orginize theUI UX")
 
@@ -1730,14 +1742,14 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§78 (page-flow reorg, highlights, sweep #2 audits + fixes,
-   AR-mode lookup fix, match-data fixes, odds fallback, skeletons,
-   Polymarket odds, browser-verified polish, navigation, sweep audits +
-   fixes, 3-language i18n, dark mode, UI polish, real-live minutes,
-   GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to `origin main`
-   per owner order.** Watch the Vercel deploy; spot-check the new page flow
-   (controls under video, support at bottom), highlights, EN/FR/AR toggle,
-   and `/api/highlights` live.
+5. **Batches §56–§79 (mirror re-sync, page-flow reorg, highlights, sweep #2
+   audits + fixes, AR-mode lookup fix, match-data fixes, odds fallback,
+   skeletons, Polymarket odds, browser-verified polish, navigation, sweep
+   audits + fixes, 3-language i18n, dark mode, UI polish, real-live
+   minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to
+   `origin main` per owner order.** Watch the Vercel deploy; spot-check
+   the new page flow, highlights, EN/FR/AR toggle, and `/api/highlights`
+   live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 
