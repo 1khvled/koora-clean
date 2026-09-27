@@ -393,6 +393,12 @@ body.ads-off .ad-wrap{display:none}
       </div>
     </div>
   </div>
+  <div class="controls">
+    <button class="btn" id="btnFull" data-i18n="fullscreen">⛶ Fullscreen</button>
+    <button class="btn ghost" id="btnReload" data-i18n="reload">⟳ Reload</button>
+    <button class="btn ghost" id="btnShare" aria-label="Share" data-i18n-aria="ariaShare">&#128279;</button>
+    <button class="btn ghost" id="btnBell" aria-label="Notifications" data-i18n-aria="ariaBell">&#128276;</button>
+  </div>
   <div class="disclaimer" data-i18n="commentaryNote">🔊 Commentary in Arabic</div>
   <div class="mcard" id="matchCard" hidden>
     <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt" width="44" height="44"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="Favorite" data-i18n-aria="ariaFav">&#9734;</button></div>
@@ -413,24 +419,7 @@ body.ads-off .ad-wrap{display:none}
   </div>
   <div class="servers" id="servers"></div>
   <p class="src-note" id="srcNote" hidden></p>
-  <div class="controls">
-    <button class="btn" id="btnFull" data-i18n="fullscreen">⛶ Fullscreen</button>
-    <button class="btn ghost" id="btnReload" data-i18n="reload">⟳ Reload</button>
-    <button class="btn ghost" id="btnShare" aria-label="Share" data-i18n-aria="ariaShare">&#128279;</button>
-    <button class="btn ghost" id="btnBell" aria-label="Notifications" data-i18n-aria="ariaBell">&#128276;</button>
-  </div>
-
-<div class="support" id="support">
-  <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us by keeping ads on or donating.</div>
-  <div class="sup-row">
-    <a class="sup-btn kofi" href="https://ko-fi.com/messistat" target="_blank" rel="noopener sponsored">☕ Ko-fi</a>
-    <button class="sup-btn" id="walletBtn" type="button" data-i18n="walletBtn" aria-controls="walletBox" aria-expanded="false">⧉ BEP20 wallet</button>
-    <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
-  </div>
-  <div class="sup-wallet" id="walletBox" hidden><code dir="ltr">0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
-</div>
-
-  <div class="status" id="status">Blocked: 0</div>
+<div class="status" id="status">Blocked: 0</div>
   
 <section class="minfo" id="hlSec" hidden>
   <div class="src-head" style="margin-top:0">
@@ -448,6 +437,18 @@ body.ads-off .ad-wrap{display:none}
     <div id="minfoBody"><div class="loading" data-i18n="minfoLoading">Loading lineups and ratings…</div><div class="mi-skel" aria-hidden="true"><div class="mi-skel-score"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div></div></div>
   </section>
   <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
+
+<div class="support" id="support">
+  <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us by keeping ads on or donating.</div>
+  <div class="sup-row">
+    <a class="sup-btn kofi" href="https://ko-fi.com/messistat" target="_blank" rel="noopener sponsored">☕ Ko-fi</a>
+    <button class="sup-btn" id="walletBtn" type="button" data-i18n="walletBtn" aria-controls="walletBox" aria-expanded="false">⧉ BEP20 wallet</button>
+    <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
+  </div>
+  <div class="sup-wallet" id="walletBox" hidden><code dir="ltr">0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
+</div>
+
+  
 </div>
 <div class="toast" id="toast" role="status"></div>
 
