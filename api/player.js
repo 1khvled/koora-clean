@@ -349,11 +349,12 @@ const resolveYacine = async (home, away, startIso) => {
     const enH = enToksOf(t1), enA = enToksOf(t2);
     return Math.min(orderScore(arH, arA, enH, enA), orderScore(arH, arA, enA, enH));
   };
-  const stFetch = async (path, ms) => {
+  const STHOSTS = ['https://streamed.pk', 'https://streamed.st'];
+  const stFetch = async (host, path, ms) => {
     const ctrl = new AbortController();
     const to = setTimeout(() => ctrl.abort(), ms);
     try {
-      const r = await fetch('https://streamed.su' + path, {
+      const r = await fetch(host + path, {
         signal: ctrl.signal,
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'application/json' },
       });
@@ -368,15 +369,23 @@ const resolveYacine = async (home, away, startIso) => {
   };
   const resolveStreamed = async (home, away, startIso) => {
     try {
-      const list = await stFetch('/api/matches/football', 6000);
-      const games = Array.isArray(list) ? list : [];
+      let games = [], ghost = STHOSTS[0];
+      for (const host of STHOSTS) {
+        const list = await stFetch(host, '/api/matches/football', 5000);
+        if (Array.isArray(list) && list.length) { games = list; ghost = host; break; }
+      }
       const now = Date.now();
       const arH = arToksOf(home), arA = arToksOf(away);
       if (!arH.length || !arA.length) return null;
       const cands = [];
       for (const g of games) {
-        const t1 = ((g && (g.team1 || {}).name) || (g && g.home) || '');
-        const t2 = ((g && (g.team2 || {}).name) || (g && g.away) || '');
+        const tm = (g && g.teams) || {};
+        let t1 = (((tm.home || {}).name) || ((g && g.team1 || {}).name) || (g && g.home) || '');
+        let t2 = (((tm.away || {}).name) || ((g && g.team2 || {}).name) || (g && g.away) || '');
+        if ((!t1 || !t2) && g && g.title) {
+          const parts = String(g.title).split(/\s+vs\.?\s+/i);
+          if (parts.length >= 2) { t1 = t1 || parts[0].trim(); t2 = t2 || (parts[1] || '').trim(); }
+        }
         if (!t1 || !t2) continue;
         const rawD = g && (g.date || g.start);
         const dt = (typeof rawD === 'number') ? rawD : Date.parse(rawD || '');
@@ -396,16 +405,23 @@ const resolveYacine = async (home, away, startIso) => {
       const srcs = Array.isArray(b0.g.sources) ? b0.g.sources : [];
       const det = await Promise.all(srcs.map(async (s) => {
         try {
-          const sid = s && (s.id || s.sourceId || s.source);
-          const snm = s && (s.source || s.name);
-          if (!sid || !snm) return null;
-          const d = await stFetch('/api/stream/' + encodeURIComponent(snm) + '/' + encodeURIComponent(sid), 5000);
-          const eu = d && d.embedUrl;
-          if (!eu || !/^https:\/\//i.test(String(eu))) return null;
-          return { url: String(eu), lang: String((d && d.language) || ''), hd: !!(d && d.hd), viewers: +(d && d.viewers) || 0 };
-        } catch { return null; }
+          const sid = s && s.id;
+          const snm = s && s.source;
+          if (!sid || !snm) return [];
+          let d = await stFetch(ghost, '/api/stream/' + encodeURIComponent(snm) + '/' + encodeURIComponent(sid), 4000);
+          if (!d) {
+            const other = STHOSTS.find(h => h !== ghost);
+            if (other) d = await stFetch(other, '/api/stream/' + encodeURIComponent(snm) + '/' + encodeURIComponent(sid), 4000);
+          }
+          const arr = Array.isArray(d) ? d : ((d && d.embedUrl) ? [d] : []);
+          return arr.map(e => {
+            const eu = e && e.embedUrl;
+            if (!eu || !/^https:\/\//i.test(String(eu))) return null;
+            return { url: String(eu), lang: String((e && e.language) || ''), hd: !!(e && e.hd), viewers: +(e && e.viewers) || 0 };
+          }).filter(Boolean);
+        } catch { return []; }
       }));
-      const ok = det.filter(Boolean);
+      const ok = det.flat().filter(Boolean);
       if (!ok.length) return null;
       ok.sort((a, b) =>
         (((/en/i.test(b.lang)) ? 1 : 0) - ((/en/i.test(a.lang)) ? 1 : 0)) ||
