@@ -4,7 +4,32 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-26 (mirror sync fix — see CONTEXT 79).
+> Last updated: 2026-09-27 (hidden EN fallback for zero-coverage leagues — see CONTEXT 80).
+
+## 80. Hidden EN fallback resolver (2026-09-27, user picked "Hidden EN fallback" for MLS-type gaps)
+
+- **Evidence first.** Probed live: 12 wall-clock-live MLS fixtures all
+  `found:false`; Yacine lists no MLS (NTs only); Kora MLS pages are
+  56KB embed-less shells. Genuine supply gap, not a matching bug.
+  yacinetv.watch (timeout), yacine-app.to (DNS dead), FIFA calendar (503),
+  Reddit (403), Streamed.su/DaddyLive (unreachable from sandbox) all
+  failed probing — implemented against the documented API shapes.
+- **What shipped (`api/player.js` only, no page changes).** New
+  `resolveStreamed` (Streamed.su free no-auth JSON) runs ONLY when Yacine +
+  Kora yield zero, bounded 4.5s race. Matching is ESPN-style ordered
+  scoring (proven gates) with a STRICT absolute gate (≤0.55, no margin
+  fallback — the pool is every live game worldwide). English→HD→viewers
+  preference, cap 3, `^https:` choke + dedupe via existing pushUnique.
+  Buttons stay numbered, zero brand leakage (client untouched).
+- **Proven by stubbed end-to-end tests** (live network unreachable here):
+  exact Arabic query → correct game, English HD first, `javascript:` URL
+  dropped; nonsense fixture → `found:false` (never another game's stream);
+  swapped home/away → still the right game. A relative-margin gate FAILED
+  the trap test during dev and was replaced by the absolute gate.
+- **Honest caveat.** Positive path against the REAL upstream is unverified
+  from here (sandbox can't reach it) — Vercel egress differs. If live
+  misses persist, the resolver needs field-shape tuning against real
+  responses. **Pushed** to `origin main` (Vercel deploys).
 
 ## 79. Stale mirrors committed at §78, re-synced (2026-09-26, self-caught during verification)
 
@@ -1742,13 +1767,14 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§79 (mirror re-sync, page-flow reorg, highlights, sweep #2
-   audits + fixes, AR-mode lookup fix, match-data fixes, odds fallback,
-   skeletons, Polymarket odds, browser-verified polish, navigation, sweep
-   audits + fixes, 3-language i18n, dark mode, UI polish, real-live
-   minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/26) pushed to
-   `origin main` per owner order.** Watch the Vercel deploy; spot-check
-   the new page flow, highlights, EN/FR/AR toggle, and `/api/highlights`
+5. **Batches §56–§80 (hidden EN fallback, mirror re-sync, page-flow reorg,
+   highlights, sweep #2 audits + fixes, AR-mode lookup fix, match-data
+   fixes, odds fallback, skeletons, Polymarket odds, browser-verified
+   polish, navigation, sweep audits + fixes, 3-language i18n, dark mode,
+   UI polish, real-live minutes, GEO/ads/donate/SEO, admin removed,
+   2026-09-24/27) pushed to `origin main` per owner order.** Watch the
+   Vercel deploy; spot-check an MLS player page (servers appear only if
+   the upstream is reachable), EN/FR/AR toggle, and `/api/highlights`
    live.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
