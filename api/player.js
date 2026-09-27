@@ -270,6 +270,151 @@ const resolveYacine = async (home, away, startIso) => {
     };
   } catch { return null; }
 };
+  // Hidden EN fallback (owner-authorized 2026-09-27): Streamed.su free
+  // no-auth JSON API — /api/matches/football (epoch-ms dates + sources),
+  // /api/stream/{source}/{id} -> {embedUrl,language,hd,viewers}.
+  // Used ONLY when Yacine + Kora yield zero servers (e.g. MLS with no
+  // Arabic coverage). Upstream brands never reach the UI — the client
+  // numbers every non-tv button. Fail-open throughout. Fuzzy core is the
+  // proven fotmob set (byte-identical logic); normAr() above is reused.
+  const AR_TR = {
+    'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a', 'ء': '', 'ؤ': 'w', 'ئ': 'y',
+    'ب': 'b', 'ة': 'a', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh',
+    'د': 'd', 'ذ': 'd', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh',
+    'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh',
+    'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+    'ه': 'h', 'و': 'o', 'ي': 'y', 'ى': 'a', 'ـ': '', ' ': ' ',
+  };
+  const EN_STOP = new Set(['vs', 'fc', 'sc', 'ac', 'cf', 'as', 'kf', 'fk', 'sk', 'if', 'bk', 'cd', 'ud', 'ssc']);
+  const trAr = (s) => (s || '').replace(/[ً-ْٰ]/g, '').split('')
+    .map(c => AR_TR[c] !== undefined ? AR_TR[c] : c).join('')
+    .toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const normLat = (s) => (s || '').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const editDist = (a, b) => {
+    const m = a.length, n = b.length;
+    if (!m) return n; if (!n) return m;
+    let prev = [...Array(n + 1).keys()], cur = new Array(n + 1);
+    for (let i = 1; i <= m; i++) {
+      cur[0] = i;
+      for (let j = 1; j <= n; j++)
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      const tmp = prev; prev = cur; cur = tmp;
+    }
+    return prev[n];
+  };
+  const noVow = (s) => s.replace(/[aeiou]/g, '');
+  const normFrag = (s) => normAr(s).replace(/[.\-_/]/g, ' ').replace(/\s+/g, ' ').trim();
+  const ALIAS = [
+    ['دي سي', ['dc', 'united']], ['ديسي', ['dc', 'united']],
+    ['فيلادلفيا', ['philadelphia']], ['كولومبوس', ['columbus']],
+    ['مونتريال', ['montreal']], ['شارلوت', ['charlotte']],
+    ['لوس أنجلوس', ['los', 'angeles']], ['نيويورك', ['new', 'york']],
+    ['فانكوفر', ['vancouver']], ['وايت كابس', ['whitecaps']], ['غالاكسي', ['galaxy']],
+    ['اتحاد العاصمة', ['usm', 'alger']], ['شبيبة الأبيار', ['el', 'biar']],
+  ];
+  const applyAlias = (toks, rawNorm) => {
+    let out = [...toks];
+    const flat = ' ' + rawNorm.replace(/[.\-_/]/g, ' ') + ' ';
+    for (const [frag, en] of ALIAS) {
+      const nf = normFrag(frag);
+      if (!nf || (!flat.includes(' ' + nf + ' ') && !flat.replace(/\s+/g, '').includes(nf.replace(/\s+/g, '')))) continue;
+      const drop = new Set((trAr(frag) + ' ' + trAr(frag.replace(/\s+/g, ''))).split(' ').map(noVow).filter(t => t.length >= 2));
+      out = out.filter(t => !drop.has(t));
+      out = out.concat(en.map(noVow).filter(t => t.length >= 2));
+    }
+    return [...new Set(out)];
+  };
+  // Per-side ordered scorer (same tuning as api/espn.js, validated on
+  // live fixtures): mean best normalized edit distance over devoweled
+  // consonant tokens, both home/away orders. Gates 0.55 / 0.85+0.08.
+  const arToksOf = (s) => applyAlias(
+    trAr(s).split(' ').map(noVow).filter(t => t.length >= 2), normAr(s));
+  const enToksOf = (name) => normLat(name || '')
+    .replace(/v/g, 'f').replace(/p/g, 'b').split(' ').map(noVow).filter(t => t && t.length >= 2 && !EN_STOP.has(t));
+  const sideDist = (arToks, enToks) => {
+    if (!arToks.length || !enToks.length) return 99;
+    let tot = 0;
+    for (const t of arToks) {
+      let best = Infinity;
+      for (const e of enToks) {
+        const d = editDist(t, e) / Math.max(t.length, e.length);
+        if (d < best) best = d;
+      }
+      tot += best;
+    }
+    return tot / arToks.length;
+  };
+  const orderScore = (arH, arA, enH, enA) => (sideDist(arH, enH) + sideDist(arA, enA)) / 2;
+  const streamScore = (arH, arA, t1, t2) => {
+    const enH = enToksOf(t1), enA = enToksOf(t2);
+    return Math.min(orderScore(arH, arA, enH, enA), orderScore(arH, arA, enA, enH));
+  };
+  const stFetch = async (path, ms) => {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), ms);
+    try {
+      const r = await fetch('https://streamed.su' + path, {
+        signal: ctrl.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'application/json' },
+      });
+      if (!r.ok) return null;
+      const cl = +(r.headers.get('content-length') || 0);
+      if (cl > 2000000) return null;
+      const tx = await r.text();
+      if (!tx || tx.length > 2000000) return null;
+      try { return JSON.parse(tx); } catch { return null; }
+    } catch { return null; }
+    finally { clearTimeout(to); }
+  };
+  const resolveStreamed = async (home, away, startIso) => {
+    try {
+      const list = await stFetch('/api/matches/football', 6000);
+      const games = Array.isArray(list) ? list : [];
+      const now = Date.now();
+      const arH = arToksOf(home), arA = arToksOf(away);
+      if (!arH.length || !arA.length) return null;
+      const cands = [];
+      for (const g of games) {
+        const t1 = ((g && (g.team1 || {}).name) || (g && g.home) || '');
+        const t2 = ((g && (g.team2 || {}).name) || (g && g.away) || '');
+        if (!t1 || !t2) continue;
+        const rawD = g && (g.date || g.start);
+        const dt = (typeof rawD === 'number') ? rawD : Date.parse(rawD || '');
+        if (!isFinite(dt)) continue;
+        if (dt < now - 105 * 60000 || dt > now + 30 * 60000) continue;
+        const sc = streamScore(arH, arA, t1, t2);
+        cands.push({ g, sc });
+      }
+      cands.sort((a, b) => a.sc - b.sc);
+      if (!cands.length) return null;
+      const b0 = cands[0];
+      // Strict absolute gate only (no relative-margin fallback): the pool
+      // is every live game worldwide, so relative differences are
+      // meaningless for garbage input — a miss must stay a miss, never
+      // another game's stream (see §48).
+      if (!(b0.sc <= 0.55)) return null;
+      const srcs = Array.isArray(b0.g.sources) ? b0.g.sources : [];
+      const det = await Promise.all(srcs.map(async (s) => {
+        try {
+          const sid = s && (s.id || s.sourceId || s.source);
+          const snm = s && (s.source || s.name);
+          if (!sid || !snm) return null;
+          const d = await stFetch('/api/stream/' + encodeURIComponent(snm) + '/' + encodeURIComponent(sid), 5000);
+          const eu = d && d.embedUrl;
+          if (!eu || !/^https:\/\//i.test(String(eu))) return null;
+          return { url: String(eu), lang: String((d && d.language) || ''), hd: !!(d && d.hd), viewers: +(d && d.viewers) || 0 };
+        } catch { return null; }
+      }));
+      const ok = det.filter(Boolean);
+      if (!ok.length) return null;
+      ok.sort((a, b) =>
+        (((/en/i.test(b.lang)) ? 1 : 0) - ((/en/i.test(a.lang)) ? 1 : 0)) ||
+        ((b.hd ? 1 : 0) - (a.hd ? 1 : 0)) ||
+        (b.viewers - a.viewers));
+      return { servers: ok.slice(0, 3).map(o => ({ url: o.url })) };
+    } catch { return null; }
+  };
+
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=30');
@@ -411,6 +556,17 @@ const resolveYacine = async (home, away, startIso) => {
       yacine.servers.forEach((s, i) => pushUnique({
         label: 'سيرفر ' + (i + 1), url: s.url, kind: 'leaf',
       }));
+    }
+    // Hidden EN fallback (owner-authorized): ONLY when Yacine + Kora yield
+    // zero servers. Bounded 4.5s race so the 10s budget survives fail-open.
+    if (!servers.length && matchHome && matchAway) {
+      try {
+        const en = await Promise.race([
+          resolveStreamed(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
+          new Promise(r => setTimeout(() => r(null), 4500))
+        ]);
+        if (en && en.servers) en.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live' }));
+      } catch {}
     }
 
     // found = a real playable embed exists (post-filter, not the raw inputs —
