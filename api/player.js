@@ -344,7 +344,13 @@ const resolveYacine = async (home, away, startIso) => {
     }
     return tot / arToks.length;
   };
-  const orderScore = (arH, arA, enH, enA) => (sideDist(arH, enH) + sideDist(arA, enA)) / 2;
+  // BOTH sides must match: take the WORSE of the two side scores, over both
+  // home/away orders. The old MEAN let one team's tokens match while the
+  // other team was completely unrelated, which is how "Uzbekistan vs Syria"
+  // latched onto "Israel vs Kosovo" (mean 0.50 <= 0.55 gate). MAX scores
+  // that decoy at 0.67 while real pairs stay <= 0.55 (CONTEXT 82).
+  const orderScore = (arH, arA, enH, enA) =>
+    Math.max(sideDist(arH, enH), sideDist(arA, enA));
   const streamScore = (arH, arA, t1, t2) => {
     const enH = enToksOf(t1), enA = enToksOf(t2);
     return Math.min(orderScore(arH, arA, enH, enA), orderScore(arH, arA, enA, enH));
@@ -367,7 +373,12 @@ const resolveYacine = async (home, away, startIso) => {
     } catch { return null; }
     finally { clearTimeout(to); }
   };
-  const resolveStreamed = async (home, away, startIso) => {
+  // Phase 1 (cheap): fetch the live list + pick the matching game. Runs in
+  // parallel with the Arabic resolvers so the match decision costs no extra
+  // wall-clock. Returns the game object only -- no stream details yet.
+  const streamedMatch = async (home, away, startIso) => {
+    // Our kickoff (ms) - used as a hard proximity gate below.
+    const qStartMs = Date.parse(startIso || '') || 0;
     try {
       let games = [], ghost = STHOSTS[0];
       for (const host of STHOSTS) {
@@ -391,6 +402,11 @@ const resolveYacine = async (home, away, startIso) => {
         const dt = (typeof rawD === 'number') ? rawD : Date.parse(rawD || '');
         if (!isFinite(dt)) continue;
         if (dt < now - 105 * 60000 || dt > now + 30 * 60000) continue;
+        // Kickoff proximity: the pools are independent, so a same-window
+        // kickoff is the strongest available corroboration that two records
+        // are the same fixture. Without it a decoy that merely looks similar
+        // can still slip through on names alone (CONTEXT 82).
+        if (qStartMs && Math.abs(dt - qStartMs) > 90 * 60000) continue;
         const sc = streamScore(arH, arA, t1, t2);
         cands.push({ g, sc });
       }
@@ -400,9 +416,19 @@ const resolveYacine = async (home, away, startIso) => {
       // Strict absolute gate only (no relative-margin fallback): the pool
       // is every live game worldwide, so relative differences are
       // meaningless for garbage input — a miss must stay a miss, never
-      // another game's stream (see §48).
+      // another game's stream (see §48). Scorer is MAX-of-both-sides so a
+      // decoy cannot pass on one team's tokens alone (CONTEXT 82).
       if (!(b0.sc <= 0.55)) return null;
-      const srcs = Array.isArray(b0.g.sources) ? b0.g.sources : [];
+      return { game: b0.g, host: ghost };
+    } catch { return null; }
+  };
+  // Phase 2 (expensive): only reached when every Arabic source came up
+  // empty, so the "hidden EN fallback" policy is unchanged.
+  const streamedDetail = async (hit) => {
+    if (!hit || !hit.game) return null;
+    const { game, host: ghost } = hit;
+    try {
+      const srcs = Array.isArray(game.sources) ? game.sources : [];
       const det = await Promise.all(srcs.map(async (s) => {
         try {
           const sid = s && s.id;
@@ -436,18 +462,112 @@ const resolveYacine = async (home, away, startIso) => {
   res.setHeader('Cache-Control', 'public, max-age=30');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!rl(req, res, 'player')) return;
+
+  // Hard response deadline. player.html aborts /api/player at ~4s on its first
+  // attempt and Vercel caps this function at 10s; the old Kora chain measured
+  // 8-17s and was being killed before it could answer (CONTEXT 82). Every
+  // optional step below is skipped once we are out of budget.
+  const T0 = Date.now();
+  const BUDGET_MS = 8500;
+  const left = () => BUDGET_MS - (Date.now() - T0);
+  const outOfTime = (need) => left() < (need || 0);
   
   if (!id && !href) {
     res.setHeader('Cache-Control', 'no-store'); // errors must never cache
     return res.status(400).json({ error: 'Missing id or href' });
   }
 
+  // Yassir (owner-supplied 2026-10-01, replaces the lost Arabic source):
+  // yassirtv.com/hard/<hash>.html?match=<id> just iframes
+  // <host>/playerv5.php?match=<id>&key=<key>. CRITICAL: that <id> is OUR id --
+  // cross-checked 22/22 fixtures against koora-l.live/game/<ourId> with exact
+  // Arabic team-name agreement. So this path needs NO name matching at all,
+  // which is exactly what makes it immune to the wrong-match bug the fuzzy
+  // English fallback hit (a "Uzbekistan vs Syria" query served the
+  // "Israel vs Kosovo" stream -- see CONTEXT 82).
+  // Live -> ~19.7KB page carrying <li><a data-path="kooora/kc/..."> AR tabs.
+  // Finished / not started -> 2366-byte "Match ended" page, zero tabs.
+  const YAS_HOSTS = ['https://912acsss8af382.yasirtv.com', 'https://yassirtv.com'];
+  const YAS_KEY = '9f39972b67d6ce22189507d008acwc26';
+  const resolveYassir = async (matchId) => {
+    const mid = String(matchId == null ? '' : matchId).trim();
+    if (!/^\d{4,12}$/.test(mid)) return null;
+    for (const host of YAS_HOSTS) {
+      const url = host + '/playerv5.php?match=' + encodeURIComponent(mid) +
+        '&key=' + YAS_KEY;
+      try {
+        // NOTE: headers are inlined, NOT spread from a `UA` const -- the only
+        // UA in this file's scope belongs to the disabled resolveHd7 and
+        // referencing it threw a ReferenceError that .catch() swallowed,
+        // which silently disabled this whole resolver (CONTEXT 82).
+        const r = await fetchT(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            Referer: 'https://yassirtv.com/',
+            'Accept-Language': 'ar,en;q=0.9',
+          },
+        }, Math.min(4500, Math.max(0, left() - 200)));
+        if (!r || !r.ok) continue;
+        const cl = +(r.headers.get('content-length') || 0);
+        if (cl > 400000) continue;
+        const html = await readCapped(r, 400000);
+        const tabs = [...html.matchAll(/data-path="([^"]+)"/g)].map(m => m[1]);
+        // Zero tabs == the "Match ended" placeholder. Never surface it.
+        if (!tabs.length) continue;
+        return { servers: [{ url, kind: 'live', tabs: tabs.length }] };
+      } catch { /* try next host */ }
+    }
+    return null;
+  };
+
+  // ---- Yassir fast path -------------------------------------------------
+  // Yassir (owner-supplied 2026-10-01, replaces the lost Arabic source) keys
+  // on OUR OWN match id -- cross-checked 22/22 fixtures against
+  // koora-l.live/game/<ourId> with exact Arabic team-name agreement -- so it
+  // needs neither the /api/matches self-lookup nor any name matching. Probing
+  // it first means one small request answers the whole request, well inside
+  // the client's abort window. Live -> ~19.7KB page with data-path tabs;
+  // finished/not started -> 2366-byte "Match ended" page with zero tabs.
+  if (id && !outOfTime(500)) {
+    const y = await resolveYassir(id);
+    if (y && y.servers && y.servers.length) {
+      const servers = [];
+      for (const s of y.servers) {
+        // SEC: only http(s) leaves the server (same choke as pushUnique).
+        if (!s || !/^https:\/\//i.test(String(s.url || ''))) continue;
+        if (servers.some(x => x.url === s.url)) continue;
+        servers.push({ label: 'سيرفر ' + (servers.length + 1), url: s.url, kind: 'live' });
+      }
+      if (servers.length) {
+        res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
+        return res.status(200).json({
+          id,
+          href: href || undefined,
+          home: qHome || undefined,
+          away: qAway || undefined,
+          playerSrc: servers[0].url,
+          found: true,
+          via: 'live',
+          embedUrl: servers[0].url,
+          count: servers.length,
+          servers,
+        });
+      }
+    }
+  }
+  // Yassir missed (finished, not yet live, or upstream down): carry on to the
+  // older Arabic + EN chain below, folding Yassir in if a late retry lands.
+  let yassirHit = false;
+  let yassirServers = null;
+
+
+
   // Try to get player from kooralive match page
   let target = href;
   let matchHome = qHome, matchAway = qAway;
   let targetStart = (typeof qStart !== 'undefined' ? qStart : '') || '';
   // qStart is start query param; will be enriched from match lookup below if needed
-  if ((!target || (!matchHome && !matchAway)) && id) {
+  if ((!target || (!matchHome && !matchAway)) && id && !outOfTime(2500)) {
     // If only id, try to find href + team names from matches API
     // (host-header-influenced URL is safe: any href it yields still passes
     // the kooralive allowlist below before being fetched).
@@ -465,7 +585,29 @@ const resolveYacine = async (home, away, startIso) => {
       }
     } catch {}
   }
-  
+
+  // Kick the name-matched resolvers off NOW, before the Kora chain, so they
+  // overlap it instead of queueing behind it. That serialisation was the
+  // difference between a ~2s answer and a 16s one (CONTEXT 82).
+  const kickoff = targetStart || qStart || '';
+  const kickMs = Date.parse(kickoff || '') || 0;
+  // Never fall back to "whatever is streaming right now" for a fixture that
+  // kicked off long ago: that was the live wrong-stream trigger (a finished
+  // match fell through and picked up an unrelated live game).
+  const tooOld = !!(kickMs && Date.now() > kickMs + 3.5 * 3600 * 1000);
+  const canEn = !!(matchHome && matchAway && !tooOld);
+  const batchP = Promise.all([
+    Promise.race([
+      resolveYacine(matchHome, matchAway, kickoff).catch(() => null),
+      new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
+    ]),
+    canEn ? Promise.race([
+        streamedMatch(matchHome, matchAway, kickoff).catch(() => null),
+        new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
+      ]).catch(() => null)
+          : Promise.resolve(null),
+  ]);
+
   // Allow yacine/hd7 lookup even when kooralive has no entry for this
   // fixture (e.g. Championship Coventry-Brighton is on yacinelive but not on
   // kooralive — previously 404'd before trying yacine, reported).
@@ -473,13 +615,12 @@ const resolveYacine = async (home, away, startIso) => {
   let kooraHtml = '';
   let playerHtml = null;
   let playerSrc = null;
-  if (target) {
+  if (target && !outOfTime(1500)) {
     if (/^http:\/\//i.test(target)) { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'href host not allowed' }); }
     if (!/^https:\/\//i.test(target)) target = 'https://kooralive-plus.info' + target;
     try { targetHost = new URL(target).hostname.toLowerCase(); } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'bad href' }); }
     if (!(targetHost === 'kooralive-plus.info' || targetHost.endsWith('.kooralive-plus.info'))){
-      res.setHeader('Cache-Control', 'no-store');
-      return res.status(400).json({ error: 'href host not allowed' });
+      res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'href host not allowed' });
     }
     try {
       const upstream = await fetchT(target, {
@@ -488,7 +629,7 @@ const resolveYacine = async (home, away, startIso) => {
           'Accept': 'text/html,application/xhtml+xml',
           'Referer': 'https://kooralive-plus.info/',
         }
-      }, 4000);
+      }, Math.min(4000, Math.max(0, left() - 300)));
       if (!upstream.ok) throw 0;
       kooraHtml = await readCapped(upstream, 3000000);
     } catch { kooraHtml = ''; }
@@ -511,7 +652,7 @@ const resolveYacine = async (home, away, startIso) => {
     // Match IDs are shared across the whole STING-clone ecosystem, so try
     // every known sister domain — if any one of them unlocks its API we get
     // players for all matches.
-    if (!playerSrc) {
+    if (!playerSrc && !outOfTime(1200)) {
       const apiBases = [
         'https://kooralive-plus.info',
         'https://kooralive24.com',
@@ -531,7 +672,7 @@ const resolveYacine = async (home, away, startIso) => {
               'Sec-Fetch-Mode': 'cors',
               'Sec-Fetch-Dest': 'empty',
             }
-          }, 3000);
+          }, Math.min(3000, Math.max(0, left() - 200)));
           if (!apiRes.ok) return null;
           const apiData = await apiRes.json();
           if (!Array.isArray(apiData)) return null;
@@ -549,13 +690,17 @@ const resolveYacine = async (home, away, startIso) => {
     // Clean direct src if we got one.
     if (playerSrc && playerSrc.startsWith('//')) playerSrc = 'https:' + playerSrc;
 
-    // JUST 2 SITES: Yacine primary, Kora backup (hd7 disabled per user)
-    const yacine = await Promise.race([
-      resolveYacine(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
-      new Promise(r => setTimeout(() => r(null), 5500))
-    ]);
 
+
+    // Yassir already answered (or was tried) in the fast path above; the
+    // name-matched resolvers were started before this chain and are awaited
+    // here. Yassir is folded in again only if the fast path did not return.
+    const [yacine, enHit] = await batchP;
     const servers = [];
+    if (id && !yassirHit) {
+      const y2 = await resolveYassir(id).catch(() => null);
+      if (y2 && y2.servers) yassirServers = y2.servers;
+    }
     const pushUnique = (entry) => {
       if (!entry || !entry.url) return;
       // SEC: only http(s) URLs leave the server — kills javascript:/data:
@@ -567,19 +712,24 @@ const resolveYacine = async (home, away, startIso) => {
     if (playerSrc) {
       pushUnique({ label: 'المصدر المباشر', url: playerSrc, livePage: null, kind: 'direct', via: 'direct' });
     }
-    // hd7 disabled — JUST 2 SITES
+    // hd7 disabled
+    if (yassirServers && yassirServers.length) {
+      yassirServers.forEach(s => pushUnique({
+        label: 'سيرفر ' + (servers.length + 1), url: s.url, kind: 'live',
+      }));
+    }
     if (yacine && yacine.servers) {
       yacine.servers.forEach((s, i) => pushUnique({
         label: 'سيرفر ' + (i + 1), url: s.url, kind: 'leaf',
       }));
     }
-    // Hidden EN fallback (owner-authorized): ONLY when Yacine + Kora yield
-    // zero servers. Bounded 4.5s race so the 10s budget survives fail-open.
-    if (!servers.length && matchHome && matchAway) {
+    // Hidden EN fallback (owner-authorized): phase 2, ONLY when Yassir +
+    // Yacine + Kora all yield zero servers.
+    if (!servers.length && enHit && !outOfTime(800)) {
       try {
         const en = await Promise.race([
-          resolveStreamed(matchHome, matchAway, targetStart || qStart || '').catch(() => null),
-          new Promise(r => setTimeout(() => r(null), 4500))
+          streamedDetail(enHit).catch(() => null),
+          new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 300)))),
         ]);
         if (en && en.servers) en.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live' }));
       } catch {}

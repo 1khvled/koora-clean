@@ -4,7 +4,58 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-09-27 (sandbox removed from player iframe — see CONTEXT 81).
+> Last updated: 2026-10-01 (Yassir Arabic source + wrong-stream fix — see CONTEXT 82).
+
+## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
+
+- **Owner ask.** Yacine/Kora had gone dry, so the owner supplied a new Arabic
+  source: `yassirtv.com/hard/<hash>.html?match=<id>`. Verified it is a wrapper
+  that iframes `<player-host>/playerv5.php?match=<id>&key=<key>`.
+- **The key discovery.** That `<id>` is **our own match id**. Cross-checked 22
+  fixtures: `koora-l.live/game/<ourId>` returned byte-identical Arabic home and
+  away names and matching kickoffs — 22/22, 0 mismatches. So yassir needs **no
+  team-name matching at all**, which is exactly why it cannot serve the wrong
+  match. `playerv5.php` also sends no `X-Frame-Options` and no CSP
+  `frame-ancestors`, so it embeds directly (the `/hard/` page itself is
+  `SAMEORIGIN` and is NOT embeddable — do not point the iframe at it).
+  Live -> ~19.7KB page with `<li><a data-path="kooora/kc/...">` AR tabs;
+  finished/not-started -> 2366-byte "Match ended" page with **zero** tabs.
+  That tab count is the only liveness gate needed. Key is not validated
+  upstream (keyless works); the real key is included for fidelity.
+- **Live wrong-stream bug found and fixed.** While testing, production served
+  the **Israel vs Kosovo** stream for **Uzbekistan vs Syria** — a finished
+  fixture that fell through to the English fallback and grabbed whatever was
+  live. Root cause was the MEAN-of-sides scorer: one team's tokens matched
+  while the other was unrelated (0.50 vs the 0.55 gate). Fixed three ways:
+  scorer is now MAX-of-both-sides (decoy scores 0.67, real pairs stay ≤0.55);
+  a kickoff-proximity gate (±90 min) corroborates names across independent
+  feeds; and the English fallback is skipped entirely for a match that kicked
+  off >3.5h ago. Proven by stubbed tests: decoy unreachable, right-teams-wrong-
+  time rejected, junk names borrow nothing, swapped home/away still correct.
+- **Latency unblocked (the real reason streams looked dead).** `player.html`
+  aborted `/api/player` at **4s** while the Kora chain measured **8–17s** and
+  Vercel caps at 10s — the server was being killed before it could answer.
+  Yassir is now probed **first** (one small request answers everything, needs
+  neither the self-lookup nor name matching), resolvers overlap the Kora chain
+  instead of queueing behind it, every optional stage is skipped once out of
+  budget (an earlier floored `Math.max(1200, …)` timeout could not shorten
+  below its floor and was what kept the chain at 16s), and the client's abort
+  windows went 4/3/2.5s -> 9/5/4s. Worst case measured **8.3s**.
+  The English fallback was split into `streamedMatch` (cheap, runs in the
+  parallel batch) + `streamedDetail` (only when every Arabic source is empty),
+  so the "hidden EN fallback only" policy is unchanged.
+- **Bugs I introduced and caught in the same session** (all via live tests,
+  not inspection): resolver first inserted at module scope where `fetchT` does
+  not exist; then it referenced a `UA` const that actually belonged to the
+  *disabled* `resolveHd7`, so the `ReferenceError` was swallowed by `.catch()`
+  and yassir silently never ran; then the definition sat after its first use
+  (TDZ); then an IIFE wrapper broke the parse. Lesson recorded: a
+  `.catch(() => null)` around a resolver hides scope errors — the empty result
+  looked like "upstream has no stream".
+- Verified live: 4/4 currently-live yassir fixtures resolve in **55ms–3.4s**,
+  Arabic, one numbered server, zero brand names. 6 stubbed EN tests + 6 live
+  regression tests pass; mirrors verified by **content** diff (§79 lesson).
+  **Pushed** to `origin main`.
 
 ## 81. Sandbox removed from player iframe (2026-09-27, user: remove sandbox attributes + Edge UA)
 
@@ -1784,14 +1835,17 @@ away teams.
    push, reply. Do not poll it. (Largely superseded by §10 resolver, but keep
    armed until play is confirmed.)
 4. **This file.** Update + push on every change (protocol at top).
-5. **Batches §56–§81 (sandbox removal, hidden EN fallback, mirror re-sync,
-   page-flow reorg, highlights, sweep #2 audits + fixes, AR-mode lookup
-   fix, match-data fixes, odds fallback, skeletons, Polymarket odds,
-   browser-verified polish, navigation, sweep audits + fixes, 3-language
-   i18n, dark mode, UI polish, real-live minutes, GEO/ads/donate/SEO,
-   admin removed, 2026-09-24/27) pushed to `origin main` per owner order.**
-   Watch the Vercel deploy; spot-check stream playback in Edge, EN/FR/AR
-   toggle, and `/api/highlights` live.
+5. **Batches §56–§82 (Yassir Arabic source + wrong-stream fix + latency
+   unblock, sandbox removal, hidden EN fallback, mirror re-sync, page-flow
+   reorg, highlights, sweep #2 audits + fixes, AR-mode lookup fix, match-data
+   fixes, odds fallback, skeletons, Polymarket odds, browser-verified polish,
+   navigation, sweep audits + fixes, 3-language i18n, dark mode, UI polish,
+   real-live minutes, GEO/ads/donate/SEO, admin removed, 2026-09-24/10-01)
+   pushed to `origin main` per owner order.** Watch the Vercel deploy;
+   spot-check that a **live** match on `/player` now shows a numbered Arabic
+   server within a few seconds (yassir), that a finished match shows the
+   no-links state rather than some other live game, plus EN/FR/AR toggle and
+   `/api/highlights`.
 
 ## 9. Hard-won environment notes (Windows, PowerShell 5.1)
 

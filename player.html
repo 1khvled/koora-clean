@@ -2189,7 +2189,9 @@ async function loadRealPlayer(){
     const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP });
     for (let attempt = 1; attempt <= 3; attempt++){
       srvNow.textContent = attempt > 1 ? t('retryN')(attempt) : t('loadingStream');
-      const ms = attempt === 1 ? 4000 : attempt === 2 ? 3000 : 2500;
+      // Server budget is ~8.5s (Yassir is asked first and can take a few
+      // seconds upstream), so 4s used to abort almost every real answer.
+      const ms = attempt === 1 ? 9000 : attempt === 2 ? 5000 : 4000;
       const ctrl = new AbortController();
       const to = setTimeout(() => ctrl.abort(), ms);
       try {
