@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (SEO keywords/H1 + Arabic-only صدقة جارية banner — see below).
+> Last updated: 2026-10-03 (Islamic links in banner+FAQ+footer with YouTube recitations — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -64,6 +64,13 @@
   returned row. Verified live: that match then read `0-5, 2nd half, 59'` and
   advanced to `3-0, 74'` across refreshes. Canceled maps to POST; the koora-l
   `-1` sentinel no longer leaks as a score.
+- **Islamic links in banner+FAQ+footer (2026-10-03).** The Arabic-only
+  set (`data-ar-only`, hidden for en/fr) now covers: the hero banner (Coran,
+  adkar, hadith, duas + فضائل القرآن), a new FAQ entry with the YouTube
+  recitations — سورة الكهف قراءة خاشعة (youtu.be/83qrY5qisus) and سورة البقرة
+  تلاوة خاشعة (youtube.com GJa5FAgQEGQ) — plus a compact footer row (📖 قرآن
+  · 🕌 أذكار · 📜 حديث · 🤲 أدعية · 📺 كهف · 📺 بقرة). One `setLang` rule
+  drives every Arabic-only block.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
