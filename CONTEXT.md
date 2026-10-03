@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (Islamic links in banner+FAQ+footer with YouTube recitations — see §82 bullet).
+> Last updated: 2026-10-03 (premium UI/UX pass — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -71,6 +71,19 @@
   تلاوة خاشعة (youtube.com GJa5FAgQEGQ) — plus a compact footer row (📖 قرآن
   · 🕌 أذكار · 📜 حديث · 🤲 أدعية · 📺 كهف · 📺 بقرة). One `setLang` rule
   drives every Arabic-only block.
+- **Premium UI/UX pass (2026-10-03).** CSS-only (0 deletions, 135 added
+  lines, zero HTML/JS/i18n touched): page-wide radial pitch glow + text
+  selection tint + smooth scroll; header with layered radial light and a
+  glowing ball; day-tabs/chips as glassy segmented pills with gradient
+  active states; match rows with inset top-light, score pills, pulsing live
+  badge, hover lift + grass border glow and glow-ringed live state, gold-tick
+  section titles and league headers; support/poly/FAQ cards elevated with
+  gradient buttons; footer hover states; softer skeleton sweep; press-scale
+  on buttons. Player page: cinematic 18px stage frame with grass ring + glow,
+  radial play-shield, 30px glowing score, live pills, tactile server cards
+  with gradient active state, gold-tick headers, gradient stat bars, glowing
+  pitch, gradient primary buttons. All motion gated by
+  prefers-reduced-motion. Mirrors re-synced by content diff.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
