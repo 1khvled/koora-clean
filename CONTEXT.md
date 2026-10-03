@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (Messi page v2 — see §82 bullet).
+> Last updated: 2026-10-03 (Messi page fully translated — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -151,6 +151,14 @@
   match" spotlight (teams + date + countdown); dynamic ItemList JSON-LD for
   SEO; refresh tightened to 30s. Proven headless: Inter Milan excluded,
   day-countdown/grouping/player-links/live-minute all render. Mirror synced.
+- **Messi page fully translated (2026-10-03, owner order: page not fully
+  translated).** Ported the entire index name system (TEAMMAP + LEAGUEMAP +
+  trAr, ~20KB) into messi.html — team names, league headers, spotlight and
+  schema all render through dispTeam/dispLeague now. Proven headless in
+  EN/FR/AR: Argentina, Inter Miami, Burkina Faso, Orlando City,
+  International Friendlies, Major League Soccer all dictionary hits; AR
+  stays raw; anything unknown falls back to readable Latin (never Arabic
+  script in EN/FR). Mirror synced by content diff.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner

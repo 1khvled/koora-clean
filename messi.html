@@ -372,18 +372,472 @@ function geoApply(cc){
       () => {}));
 })();
 try { document.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => setLang(b.getAttribute('data-lang')); }); } catch (e) {}
+/* Full team/league translations, identical to index (TEAMMAP + LEAGUEMAP + trAr transliteration fallback). Display layer only. */
+const TEAMMAP = {
+'ارسنال': 'Arsenal', 'آرسنال': 'Arsenal',
+'مانشستر سيتي': 'Man City', 'مانشستر يونايتد': 'Man United',
+'ليفربول': 'Liverpool', 'تشيلسي': 'Chelsea',
+'توتنهام': 'Tottenham', 'توتنهام هوتسبير': 'Tottenham',
+'نيوكاسل': 'Newcastle', 'نيوكاسل يونايتد': 'Newcastle',
+'استون فيلا': 'Aston Villa', 'برايتون': 'Brighton',
+'وست هام': 'West Ham', 'وست هام يونايتد': 'West Ham',
+'ايفرتون': 'Everton', 'فولهام': 'Fulham', 'برينتفورد': 'Brentford',
+'كريستال بالاس': 'Crystal Palace',
+'ولفرهامبتون': 'Wolves', 'وولفرهامبتون': 'Wolves',
+'بورنموث': 'Bournemouth',
+'نوتنغهام فورست': 'Nottingham Forest', 'نوتينغهام فورست': 'Nottingham Forest',
+'ليستر سيتي': 'Leicester', 'ليستر': 'Leicester',
+'ايبسويتش': 'Ipswich', 'ايبسويتش تاون': 'Ipswich',
+'ساوثهامبتون': 'Southampton', 'ليدز': 'Leeds', 'ليدز يونايتد': 'Leeds',
+'بيرنلي': 'Burnley', 'سندرلاند': 'Sunderland',
+'شيفيلد يونايتد': 'Sheffield Utd', 'نورويتش': 'Norwich',
+'وست بروميتش': 'West Brom', 'كوفنتري': 'Coventry',
+'ريال مدريد': 'Real Madrid', 'برشلونة': 'Barcelona',
+'اتلتيكو مدريد': 'Atlético Madrid', 'اتلتيك بلباو': 'Athletic Club',
+'فياريال': 'Villarreal', 'ريال بيتيس': 'Real Betis',
+'ريال سوسيداد': 'Real Sociedad', 'اشبيلية': 'Sevilla',
+'فالنسيا': 'Valencia', 'خيتافي': 'Getafe',
+'سيلتا فيجو': 'Celta Vigo', 'ليفانتي': 'Levante', 'مالقا': 'Málaga',
+'ديبورتيفو لاكورونيا': 'Deportivo La Coruña', 'اساسونا': 'Osasuna',
+'جيرونا': 'Girona', 'رايو فاليكانو': 'Rayo Vallecano', 'مايوركا': 'Mallorca',
+'اسبانيول': 'Espanyol', 'بلد الوليد': 'Valladolid', 'ريال بلد الوليد': 'Valladolid',
+'ليغانيس': 'Leganés', 'الافيس': 'Alavés',
+'انتر': 'Inter', 'انتر ميلان': 'Inter', 'ميلان': 'Milan', 'اي سي ميلان': 'Milan',
+'نابولي': 'Napoli', 'يوفنتوس': 'Juventus', 'روما': 'Roma', 'لاتسيو': 'Lazio',
+'اتالانتا': 'Atalanta', 'فيورنتينا': 'Fiorentina', 'بولونيا': 'Bologna',
+'تورينو': 'Torino', 'اودينيزي': 'Udinese', 'امبولي': 'Empoli',
+'ليتشي': 'Lecce', 'كالياري': 'Cagliari', 'جنوى': 'Genoa', 'بارما': 'Parma',
+'كومو': 'Como', 'هيلاس فيرونا': 'Verona', 'فيرونا': 'Verona',
+'مونزا': 'Monza', 'فينيزيا': 'Venezia', 'ساسولو': 'Sassuolo', 'سامبدوريا': 'Sampdoria',
+'بايرن ميونخ': 'Bayern', 'بايرن ميونيخ': 'Bayern',
+'بوروسيا دورتموند': 'Dortmund', 'دورتموند': 'Dortmund',
+'باير ليفركوزن': 'Leverkusen', 'لايبزيغ': 'RB Leipzig',
+'شتوتغارت': 'Stuttgart', 'اينتراخت فرانكفورت': 'Frankfurt',
+'مونشنغلادباخ': 'Gladbach', 'بوروسيا مونشنغلادباخ': 'Gladbach',
+'فولفسبورغ': 'Wolfsburg', 'فرايبورغ': 'Freiburg', 'هوفنهايم': 'Hoffenheim',
+'ماينز': 'Mainz', 'اوغسبورغ': 'Augsburg', 'فيردر بريمن': 'Werder Bremen',
+'يونيون برلين': 'Union Berlin', 'سانت باولي': 'St. Pauli',
+'بوخوم': 'Bochum', 'هايدنهايم': 'Heidenheim', 'هولشتاين كيل': 'Holstein Kiel',
+'هامبورغ': 'Hamburg', 'شالكه': 'Schalke', 'كولن': 'Köln', 'هيرتا برلين': 'Hertha',
+'باريس سان جيرمان': 'PSG', 'مارسيليا': 'Marseille', 'اولمبيك مارسيليا': 'Marseille',
+'موناكو': 'Monaco', 'ليل': 'Lille', 'ليون': 'Lyon', 'اولمبيك ليون': 'Lyon',
+'نيس': 'Nice', 'لانس': 'Lens', 'ستراسبورغ': 'Strasbourg',
+'رين': 'Rennes', 'ستاد رين': 'Rennes', 'نانت': 'Nantes', 'تولوز': 'Toulouse',
+'مونبلييه': 'Montpellier', 'اوكسير': 'Auxerre', 'سانت اتيان': 'St-Étienne',
+'لوهافر': 'Le Havre', 'انجيه': 'Angers', 'ريمس': 'Reims', 'ستاد ريمس': 'Reims',
+'بريست': 'Brest', 'ستاد بريست': 'Brest', 'باريس اف سي': 'Paris FC',
+'الهلال': 'Al Hilal', 'النصر': 'Al Nassr', 'الاتحاد': 'Al Ittihad',
+'الاهلي': 'Al Ahly', 'الشباب': 'Al Shabab', 'الاتفاق': 'Al Ettifaq',
+'الفتح': 'Al Fateh', 'التعاون': 'Al Taawoun', 'الفيحاء': 'Al Fayha',
+'ضمك': 'Damac', 'الخليج': 'Al Khaleej', 'الرائد': 'Al Raed',
+'الوحدة': 'Al Wehda', 'الاخدود': 'Al Okhdood', 'العروبة': 'Al Orubah',
+'الخلود': 'Al Kholood', 'الرياض': 'Al Riyadh', 'القادسية': 'Al Qadsiah',
+'نيوم': 'Neom', 'ابها': 'Abha', 'الطائي': 'Al Tai', 'الحزم': 'Al Hazem',
+'الفيصلي': 'Al Faisaly', 'الباطن': 'Al Batin', 'العدالة': 'Al Adalah',
+'الزمالك': 'Zamalek', 'بيراميدز': 'Pyramids', 'المصري': 'Al Masry',
+'انبي': 'ENPPI', 'بتروجت': 'Petrojet', 'البنك الاهلي': 'National Bank',
+'بترول اسيوط': 'Petrol Asyut', 'المقاولون العرب': 'Arab Contractors',
+'سموحة': 'Smouha', 'الاسماعيلي': 'Ismaily', 'غزل المحلة': 'Ghazl El Mahalla',
+'الاتحاد السكندري': 'Ittihad Alexandria', 'فاركو': 'Pharco',
+'سيراميكا': 'Ceramica', 'زد': 'ZED', 'الجونة': 'El Gouna',
+'طلائع الجيش': 'El Gaish', 'مودرن سبورت': 'Modern Sport',
+'منتخب السويس': 'Suez',
+'الوداد': 'Wydad', 'الوداد الرياضي': 'Wydad',
+'الرجاء': 'Raja', 'الرجاء الرياضي': 'Raja',
+'الجيش الملكي': 'FAR Rabat', 'نهضة بركان': 'RS Berkane', 'الفتح الرباطي': 'FUS Rabat',
+'الترجي': 'Espérance', 'الترجي الرياضي': 'Espérance',
+'النجم الساحلي': 'Étoile du Sahel', 'الصفاقسي': 'Sfaxien', 'النادي الصفاقسي': 'Sfaxien',
+'الافريقي': 'Club Africain', 'النادي الافريقي': 'Club Africain',
+'اتحاد العاصمة': 'USM Alger', 'مولودية الجزائر': 'MC Alger',
+'شباب بلوزداد': 'CR Belouizdad', 'وفاق سطيف': 'ES Sétif',
+'شبيبة القبائل': 'JS Kabylie', 'شبيبة الأبيار': 'JS El Biar',
+'السويحلي': 'Al Swehly', 'اهلي طرابلس': 'Al Ahli Tripoli',
+'المريخ': 'Al Merrikh', 'صن داونز': 'Sundowns', 'ماميلودي صن داونز': 'Sundowns',
+'كايزر تشيفز': 'Kaizer Chiefs', 'اورلاندو بايرتس': 'Orlando Pirates',
+'مازيمبي': 'TP Mazembe', 'السد': 'Al Sadd', 'الدحيل': 'Al Duhail',
+'الريان': 'Al Rayyan', 'الشارقة': 'Sharjah', 'العين': 'Al Ain',
+'الوحدات': 'Al Wehdat', 'الرمثا': 'Al Ramtha',
+'القوة الجوية': 'Al Quwa Al Jawiya', 'الزوراء': 'Al Zawraa',
+'العهد': 'Al Ahed', 'الكرامة': 'Al Karamah', 'تشرين': 'Tishreen',
+'السيب': 'Al Seeb', 'ظفار': 'Dhofar', 'المحرق': 'Al Muharraq',
+'الرفاع': 'Al Riffa', 'الكويت': 'Kuwait', 'القادسية الكويتي': 'Qadsia',
+'بورتو': 'Porto', 'بنفيكا': 'Benfica',
+'سبورتينغ لشبونة': 'Sporting CP', 'سبورتينغ': 'Sporting CP',
+'اياكس': 'Ajax', 'ايندهوفن': 'PSV', 'فينورد': 'Feyenoord',
+'سيلتيك': 'Celtic', 'رينجرز': 'Rangers',
+'غلطة سراي': 'Galatasaray', 'فنربخشة': 'Fenerbahçe',
+'بشكتاش': 'Beşiktaş', 'طرابزون سبور': 'Trabzonspor',
+'شاختار': 'Shakhtar', 'شاختار دونيتسك': 'Shakhtar',
+'دينامو زغرب': 'Dinamo Zagreb', 'النجم الاحمر': 'Red Star',
+'سالزبورغ': 'Salzburg', 'ريد بول سالزبورغ': 'Salzburg', 'شتورم غراتس': 'Sturm Graz',
+'كلوب بروج': 'Club Brugge', 'اندرلخت': 'Anderlecht',
+'سبارتا براغ': 'Sparta Prague', 'سلافيا براغ': 'Slavia Prague',
+'اولمبياكوس': 'Olympiacos', 'باناثينايكوس': 'Panathinaikos',
+'كانساس سيتي ويزردز': 'Sporting KC', 'لوس أنجلوس': 'Los Angeles',
+'لوس أنجلوس غالاكسي': 'LA Galaxy', 'سانت لويس سيتي': 'St. Louis City',
+'مينيسوتا يونايتد': 'Minnesota Utd', 'دالاس': 'FC Dallas',
+'بورتلاند تيمبرز': 'Portland Timbers', 'ريال سالت لايك': 'Real Salt Lake',
+'نيويورك سيتي': 'New York City FC', 'كولورادو رابيدز': 'Colorado Rapids',
+'مونتريال امباكت': 'CF Montréal', 'سياتل ساونديرز': 'Seattle Sounders',
+'سان خوسيه إرثكويكس': 'San Jose', 'هيوستن دينامو': 'Houston Dynamo',
+'شيكاغو فاير': 'Chicago Fire', 'نيو إنغلاند ريفوليوشن': 'New England',
+'فانكوفر وايت كابس': 'Vancouver Whitecaps', 'أوستن': 'Austin FC',
+'دي سي يونايتد': 'DC United', 'فيلادلفيا': 'Philadelphia Union',
+'كولومبوس': 'Columbus Crew', 'شارلوت': 'Charlotte FC',
+'نيويورك ريد بولز': 'NY Red Bulls', 'تورونتو': 'Toronto FC',
+'انتر ميامي': 'Inter Miami', 'اورلاندو': 'Orlando City',
+'اتلانتا يونايتد': 'Atlanta Utd', 'سينسيناتي': 'Cincinnati',
+'ناشفيل': 'Nashville', 'لوس أنجلوس اف سي': 'LAFC',
+'كي في زد': 'KVZ',
+'جزر سليمان': 'Solomon Islands',
+'فانواتو': 'Vanuatu',
+'بابوا غينيا الجديدة': 'Papua New Guinea',
+'كاليدونيا الجديدة': 'New Caledonia',
+'فلسطين': 'Palestine',
+'نيوزيلندا': 'New Zealand',
+'اليابان': 'Japan',
+'أوروغواي': 'Uruguay',
+'كوريا الجنوبية': 'South Korea',
+'الإكوادور': 'Ecuador',
+'الصين': 'China',
+'جزر المالديف': 'Maldives',
+'أوزبكستان': 'Uzbekistan',
+'إيران': 'Iran',
+'العراق': 'Iraq',
+'عمان': 'Oman',
+'السعودية': 'Saudi Arabia',
+'جبل طارق': 'Gibraltar',
+'ساو تومي': 'São Tomé',
+'ساو تومي وبرينسيب': 'São Tomé',
+'أذربيجان': 'Azerbaijan',
+'طاجيكستان': 'Tajikistan',
+'أستراليا': 'Australia',
+'البرازيل': 'Brazil',
+'الهند': 'India',
+'بنما': 'Panama',
+'ناميبيا': 'Namibia',
+'جمهورية الكونغو': 'Congo',
+'موريتانيا': 'Mauritania',
+'أفريقيا الوسطى': 'Central African Republic',
+'الكونغو الديمقراطية': 'DR Congo',
+'غينيا الاستوائية': 'Equatorial Guinea',
+'ليبيا': 'Libya',
+'بوتسوانا': 'Botswana',
+'سيراليون': 'Sierra Leone',
+'زيمبابوي': 'Zimbabwe',
+'كوت ديفوار': 'Ivory Coast',
+'غانا': 'Ghana',
+'الكاميرون': 'Cameroon',
+'جزر القمر': 'Comoros',
+'تونس': 'Tunisia',
+'أوغندا': 'Uganda',
+'تنزانيا': 'Tanzania',
+'غينيا بيساو': 'Guinea-Bissau',
+'موزمبيق': 'Mozambique',
+'السنغال': 'Senegal',
+'النيجر': 'Niger',
+'ليسوتو': 'Lesotho',
+'رواندا': 'Rwanda',
+'ليبيريا': 'Liberia',
+'مالاوي': 'Malawi',
+'جنوب السودان': 'South Sudan',
+'توغو': 'Togo',
+'بورندي': 'Burundi',
+'السودان': 'Sudan',
+'أثيوبيا': 'Ethiopia',
+'جامبيا': 'Gambia',
+'غامبيا': 'Gambia',
+'الصومال': 'Somalia',
+'نيجيريا': 'Nigeria',
+'مدغشقر': 'Madagascar',
+'مصر': 'Egypt',
+'أنجولا': 'Angola',
+'الجزائر': 'Algeria',
+'زامبيا': 'Zambia',
+'المغرب': 'Morocco',
+'الجابون': 'Gabon',
+'الغابون': 'Gabon',
+'بوركينا فاسو': 'Burkina Faso',
+'بنين': 'Benin',
+'مالي': 'Mali',
+'الرأس الأخضر': 'Cape Verde',
+'الإمارات': 'UAE',
+'اليمن': 'Yemen',
+'قطر': 'Qatar',
+'البحرين': 'Bahrain',
+'أندورا': 'Andorra',
+'مالطا': 'Malta',
+'هولندا': 'Netherlands',
+'ألمانيا': 'Germany',
+'صربيا': 'Serbia',
+'اليونان': 'Greece',
+'النرويج': 'Norway',
+'الدنمارك': 'Denmark',
+'البرتغال': 'Portugal',
+'ويلز': 'Wales',
+'النمسا': 'Austria',
+'اسرائيل': 'Israel',
+'إسرائيل': 'Israel',
+'كوسوفو': 'Kosovo',
+'أيرلندا': 'Ireland',
+'ليختنشتاين': 'Liechtenstein',
+'ليتوانيا': 'Lithuania',
+'جورجيا': 'Georgia',
+'إيرلندا الشمالية': 'Northern Ireland',
+'أرمينيا': 'Armenia',
+'لاتفيا': 'Latvia',
+'إيطاليا': 'Italy',
+'بلجيكا': 'Belgium',
+'تركيا': 'Turkey',
+'فرنسا': 'France',
+'المجر': 'Hungary',
+'أوكرانيا': 'Ukraine',
+'بولندا': 'Poland',
+'البوسنة الهرسك': 'Bosnia',
+'السويد': 'Sweden',
+'رومانيا': 'Romania',
+'مونتينيغرو': 'Montenegro',
+'قبرص': 'Cyprus',
+'إسبانيا': 'Spain',
+'إنجلترا': 'England',
+'الأرجنتين': 'Argentina',
+'كرواتيا': 'Croatia',
+'المكسيك': 'Mexico',
+'كندا': 'Canada',
+'أمريكا': 'USA',
+'الولايات المتحدة': 'USA',
+'جنوب أفريقيا': 'South Africa',
+'كولومبيا': 'Colombia',
+'تشيلي': 'Chile',
+'باراغواي': 'Paraguay',
+'بيرو': 'Peru',
+'فنزويلا': 'Venezuela',
+'بوليفيا': 'Bolivia',
+'كوستاريكا': 'Costa Rica',
+'هندوراس': 'Honduras',
+'السلفادور': 'El Salvador',
+'جامايكا': 'Jamaica',
+'هايتي': 'Haiti',
+'ترينيداد وتوباغو': 'Trinidad and Tobago',
+'كوراساو': 'Curaçao',
+'غواتيمالا': 'Guatemala',
+'نيكاراغوا': 'Nicaragua',
+'كوريا الشمالية': 'North Korea',
+'فيتنام': 'Vietnam',
+'تايلاند': 'Thailand',
+'ماليزيا': 'Malaysia',
+'إندونيسيا': 'Indonesia',
+'الفلبين': 'Philippines',
+'باكستان': 'Pakistan',
+'بنغلاديش': 'Bangladesh',
+'سريلانكا': 'Sri Lanka',
+'نيبال': 'Nepal',
+'ميانمار': 'Myanmar',
+'كمبوديا': 'Cambodia',
+'لاوس': 'Laos',
+'منغوليا': 'Mongolia',
+'هونغ كونغ': 'Hong Kong',
+'تايوان': 'Taiwan',
+'سنغافورة': 'Singapore',
+'سوريا': 'Syria',
+'الأردن': 'Jordan',
+'لبنان': 'Lebanon',
+'قيرغيزستان': 'Kyrgyzstan',
+'تركمانستان': 'Turkmenistan',
+'كازاخستان': 'Kazakhstan',
+'أفغانستان': 'Afghanistan',
+'بيلاروسيا': 'Belarus',
+'مولدوفا': 'Moldova',
+'ألبانيا': 'Albania',
+'مقدونيا الشمالية': 'North Macedonia',
+'سلوفينيا': 'Slovenia',
+'سلوفاكيا': 'Slovakia',
+'التشيك': 'Czechia',
+'بلغاريا': 'Bulgaria',
+'سويسرا': 'Switzerland',
+'لوكسمبورغ': 'Luxembourg',
+'أيسلندا': 'Iceland',
+'فنلندا': 'Finland',
+'اسكتلندا': 'Scotland',
+'سان مارينو': 'San Marino',
+'جزر فارو': 'Faroe Islands',
+'روسيا': 'Russia',
+'فيجي': 'Fiji',
+'تاهيتي': 'Tahiti',
+'ساموا': 'Samoa',
+'تونغا': 'Tonga',
+'كينيا': 'Kenya',
+'إريتريا': 'Eritrea',
+'جيبوتي': 'Djibouti',
+'تشاد': 'Chad',
+'غينيا': 'Guinea',
+'سيشل': 'Seychelles',
+'موريشيوس': 'Mauritius',
+'إسواتيني': 'Eswatini',
+'سوازيلاند': 'Eswatini',
+'اتحاد بن قردان': 'US Ben Guerdane',
+'الملعب التونسي': 'Stade Tunisien',
+'النجم الرياضي بالمتلوي': 'ES Métlaoui',
+'الترجي الجرجيسي': 'ES Zarzis',
+'الشبيبة الرياضية بالعمران': 'JS Omrane',
+'الأولمبي الباجي': 'Olympique Béja',
+'التقدم الرياضي بساقية الداير': 'Sakiet Eddaïer',
+'مستقبل المرسى': 'AS Marsa',
+'النادي الرياضي لحمام الأنف': 'Hammam-Lif',
+'البنزرتي': 'CA Bizertin',
+'الأمل الرياضي بحمام سوسة': 'Hammam-Sousse',
+'الاتحاد المنستيري': 'US Monastir',
+'سياتيل ساونديرز': 'Seattle Sounders',
+'أورلاندو سيتي': 'Orlando City',
+'إستونيا': 'Estonia',
+'اتحاد تواركة': 'Union Touarga',
+'الدفاع الحسني الجديدي': 'DH El Jadida',
+'المغرب التطواني': 'Moghreb Tétouan',
+'النادي المكناسي': 'COD Meknès',
+'الوداد الرياضي تمارة': 'Wydad Temara',
+'جزر الفارو': 'Faroe Islands',
+'جمهورية التشيك': 'Czechia',
+'دي.سي. يونايتد': 'DC United',
+'روسيا البيضاء': 'Belarus',
+'سان دييجو': 'San Diego FC',
+'فيلادلفيا يونيون': 'Philadelphia Union',
+'لوكسمبورج': 'Luxembourg',
+};
+const LEAGUEMAP = {
+'الدوري الانجليزي': ['Premier League', 'Premier League'],
+'الدوري الانجليزي الممتاز': ['Premier League', 'Premier League'],
+'البريميرليغ': ['Premier League', 'Premier League'],
+'الدوري الاسباني': ['La Liga', 'La Liga'],
+'الليغا': ['La Liga', 'La Liga'],
+'الدوري الايطالي': ['Serie A', 'Serie A'],
+'الكالتشيو': ['Serie A', 'Serie A'],
+'الدوري الالماني': ['Bundesliga', 'Bundesliga'],
+'البوندسليغا': ['Bundesliga', 'Bundesliga'],
+'الدوري الفرنسي': ['Ligue 1', 'Ligue 1'],
+'الدوري السعودي': ['Saudi Pro League', 'Saudi Pro League'],
+'دوري روشن': ['Saudi Pro League', 'Saudi Pro League'],
+'روشن': ['Saudi Pro League', 'Saudi Pro League'],
+'الدوري الامريكي': ['Major League Soccer', 'Major League Soccer'],
+'الدوري الامريكي الممتاز': ['Major League Soccer', 'Major League Soccer'],
+'دوري ابطال اوروبا': ['UEFA Champions League', 'Ligue des champions'],
+'دوري الابطال': ['UEFA Champions League', 'Ligue des champions'],
+'الدوري الاوروبي': ['UEFA Europa League', 'Ligue Europa'],
+'اليوروباليغ': ['UEFA Europa League', 'Ligue Europa'],
+'دوري المؤتمر الاوروبي': ['UEFA Conference League', 'Ligue Conférence'],
+'دوري ابطال افريقيا': ['CAF Champions League', 'Ligue des champions CAF'],
+'دوري ابطال افريقيا - تصفيات': ['CAF Champions League qualifying', 'Qualifications Ligue des champions CAF'],
+'كاس الكونفدرالية': ['CAF Confederation Cup', 'Coupe de la Confédération CAF'],
+'الدوري التركي': ['Süper Lig', 'Süper Lig'],
+'السوبر ليغ': ['Süper Lig', 'Süper Lig'],
+'الدوري الهولندي': ['Eredivisie', 'Eredivisie'],
+'الدوري البرتغالي': ['Primeira Liga', 'Primeira Liga'],
+'الدوري المصري': ['Egyptian Premier League', "Championnat d'Égypte"],
+'الدوري المغربي': ['Botola', 'Botola'],
+'البطولة المغربية': ['Botola', 'Botola'],
+'الدوري الجزائري': ['Algerian Ligue 1', 'Ligue 1 algérienne'],
+'الدوري التونسي': ['Tunisian Ligue 1', 'Ligue 1 tunisienne'],
+'الدوري الاماراتي': ['UAE Pro League', 'Championnat des Émirats'],
+'الدوري القطري': ['Qatar Stars League', 'Championnat du Qatar'],
+'الدوري الكويتي': ['Kuwait Premier League', 'Championnat du Koweït'],
+'الدوري البحريني': ['Bahraini Premier League', 'Championnat de Bahreïn'],
+'الدوري العماني': ['Oman Professional League', "Championnat d'Oman"],
+'الدوري الاردني': ['Jordanian Pro League', 'Championnat de Jordanie'],
+'الدوري العراقي': ['Iraq Stars League', "Championnat d'Irak"],
+'الدوري اللبناني': ['Lebanese Premier League', 'Championnat du Liban'],
+'الدوري السوري': ['Syrian Premier League', 'Championnat de Syrie'],
+'الدوري اليمني': ['Yemeni League', 'Championnat du Yémen'],
+'الدوري الليبي': ['Libyan Premier League', 'Championnat de Libye'],
+'الدوري السوداني': ['Sudan Premier League', 'Championnat du Soudan'],
+'الدوري الموريتاني': ['Mauritanian Premier League', 'Championnat de Mauritanie'],
+'كاس اسبانيا': ['Copa del Rey', 'Copa del Rey'],
+'كاس ايطاليا': ['Coppa Italia', 'Coppa Italia'],
+'كاس فرنسا': ['Coupe de France', 'Coupe de France'],
+'كاس المانيا': ['DFB-Pokal', 'DFB-Pokal'],
+'كاس الاتحاد الانجليزي': ['FA Cup', 'FA Cup'],
+'كاس الرابطة': ['EFL Cup', 'EFL Cup'],
+'السوبر الاسباني': ['Supercopa', 'Supercopa'],
+'دوري الامم الاوروبية': ['UEFA Nations League', 'Ligue des nations'],
+'تصفيات كاس العالم': ['World Cup Qualifiers', 'Éliminatoires Coupe du monde'],
+'كاس العالم للاندية': ['FIFA Club World Cup', 'Coupe du monde des clubs'],
+'المباريات الودية الدولية': ['International Friendlies', 'Matchs amicaux internationaux'],
+'تصفيات كاس امم افريقيا': ['AFCON Qualifiers', 'Éliminatoires CAN'],
+'كاس امم افريقيا': ['Africa Cup of Nations', 'Coupe d’Afrique des nations'],
+'كاس الخليج': ['Gulf Cup', 'Coupe du Golfe'],
+'كاس العرب': ['Arab Cup', 'Coupe arabe'],
+'كاس امم اسيا': ['Asian Cup', 'Coupe d’Asie'],
+'كوبا امريكا': ['Copa América', 'Copa América'],
+'الرابطة التونسية المحترفة الأولى': ['Tunisian Ligue Professionnelle 1', 'Ligue Professionnelle 1 tunisienne'],
+'دوري الامم الاوروبية - دوري أ - بيت 1': ['UEFA Nations League A, Group 1', 'Ligue des nations UEFA A, groupe 1'],
+'دوري الامم الاوروبية - دوري أ - بيت 2': ['UEFA Nations League A, Group 2', 'Ligue des nations UEFA A, groupe 2'],
+'دوري الامم الاوروبية - دوري أ - بيت 3': ['UEFA Nations League A, Group 3', 'Ligue des nations UEFA A, groupe 3'],
+'دوري الامم الاوروبية - دوري أ - بيت 4': ['UEFA Nations League A, Group 4', 'Ligue des nations UEFA A, groupe 4'],
+'دوري الامم الاوروبية - دوري ب - بيت 1': ['UEFA Nations League B, Group 1', 'Ligue des nations UEFA B, groupe 1'],
+'دوري الامم الاوروبية - دوري ب - بيت 2': ['UEFA Nations League B, Group 2', 'Ligue des nations UEFA B, groupe 2'],
+'دوري الامم الاوروبية - دوري ب - بيت 3': ['UEFA Nations League B, Group 3', 'Ligue des nations UEFA B, groupe 3'],
+'دوري الامم الاوروبية - دوري ب - بيت 4': ['UEFA Nations League B, Group 4', 'Ligue des nations UEFA B, groupe 4'],
+'دوري الامم الاوروبية - دوري ج - بيت 1': ['UEFA Nations League C, Group 1', 'Ligue des nations UEFA C, groupe 1'],
+'دوري الامم الاوروبية - دوري ج - بيت 2': ['UEFA Nations League C, Group 2', 'Ligue des nations UEFA C, groupe 2'],
+'دوري الامم الاوروبية - دوري ج - بيت 3': ['UEFA Nations League C, Group 3', 'Ligue des nations UEFA C, groupe 3'],
+'دوري الامم الاوروبية - دوري ج - بيت 4': ['UEFA Nations League C, Group 4', 'Ligue des nations UEFA C, groupe 4'],
+'دوري الامم الاوروبية - دوري د - بيت 1': ['UEFA Nations League D, Group 1', 'Ligue des nations UEFA D, groupe 1'],
+'دوري الامم الاوروبية - دوري د - بيت 2': ['UEFA Nations League D, Group 2', 'Ligue des nations UEFA D, groupe 2'],
+'دوري الامم الاوروبية - دوري د - بيت 3': ['UEFA Nations League D, Group 3', 'Ligue des nations UEFA D, groupe 3'],
+'دوري الامم الاوروبية - دوري د - بيت 4': ['UEFA Nations League D, Group 4', 'Ligue des nations UEFA D, groupe 4'],
+};
+
+/* Auto-transliteration fallback (EN/FR): upstream names missing from the
+   dictionaries render as readable Latin instead of Arabic script. Runs on
+   the raw feed text at display time — no build step, works for any future
+   name. Dictionary hits always win; Latin input passes through untouched. */
+const TR_AR = {'\u0627':'a','\u0623':'a','\u0625':'i','\u0622':'a','\u0621':'','\u0624':'ou','\u0626':'i','\u0628':'b','\u0629':'a','\u062a':'t','\u062b':'th','\u062c':'j','\u062d':'h','\u062e':'kh','\u062f':'d','\u0630':'dh','\u0631':'r','\u0632':'z','\u0633':'s','\u0634':'sh','\u0635':'s','\u0636':'d','\u0637':'t','\u0638':'z','\u0639':'a','\u063a':'gh','\u0641':'f','\u0642':'q','\u0643':'k','\u0644':'l','\u0645':'m','\u0646':'n','\u0647':'h','\u0648':'ou','\u064a':'i','\u0649':'a','\u0640':''};
+function trAr(s){
+  try {
+    let o = String(s == null ? '' : s).replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/\s+/g, ' ').trim();
+    if (!o || !/[\u0600-\u06FF]/.test(o)) return o;
+    let out = '';
+    for (const ch of o) out += (ch === ' ' ? ' ' : (TR_AR[ch] !== undefined ? TR_AR[ch] : ch));
+    return out.replace(/\s+/g, ' ').trim().replace(/(^|\s)([a-z])/g, (m, p, c) => p + c.toUpperCase());
+  } catch (e) { return String(s == null ? '' : s); }
+}
+function normKey(s){
+  return String(s == null ? '' : s)
+    .replace(/[\u0623\u0625\u0622]/g, '\u0627').replace(/\u0629/g, '\u0647').replace(/\u0649/g, '\u064a')
+    .replace(/[\u064B-\u0652\u0670\u0640]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim();
+}
+const TEAMN = {};
+try { for (const k in TEAMMAP) TEAMN[normKey(k)] = TEAMMAP[k]; } catch (e) {}
+const LEAGUEN = {};
+try { for (const k in LEAGUEMAP) LEAGUEN[normKey(k)] = LEAGUEMAP[k]; } catch (e) {}
+function latName(n){
+  if (n == null || n === '') return n == null ? '' : n;
+  try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
+  return trAr(n);
+}
+function dispTeam(n){
+
+  if (n == null || n === '') return n == null ? '' : n;
+  if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
+  try { const v = TEAMN[normKey(n)]; if (v) return v; } catch (e) {}
+  return trAr(n);
+}
+function dispTime(s){
+  const x = String(s == null ? '' : s).trim();
+  return /[\u0600-\u06FF]/.test(x) ? '' : x;
+}
+function dispLeague(n){
+
+  if (n == null || n === '') return n == null ? '' : n;
+  if (typeof LANG !== 'undefined' && LANG === 'ar') return n == null ? '' : n;
+  try { const e = LEAGUEN[normKey(n)]; if (e) return LANG === 'fr' ? e[1] : e[0]; } catch (er) {}
+  return trAr(n);
+}
 /* Messi filter: Inter Miami or Argentina, in any of the 3 languages. Never
    Inter Milan (ميلان/Milan/Milano) — that is a different Inter. */
 function isMessi(m){
   const s = ((m.home || '') + ' ' + (m.away || '') + ' ' + (m.league_text || m.league || '')).toLowerCase();
   if (/milan|milano|ميلان/.test(s)) return false;
   return /miami|ميا|إنتر ميامي|انتر ميامي|inter miami|argentin|الأرجنتين|الارجنتين/.test(s);
-}
-function messiName(n){
-  const s = String(n || '');
-  if (LANG !== 'ar' && /إنتر|انتر/i.test(s) && /ميا|miami/i.test(s)) return 'Inter Miami';
-  if (LANG !== 'ar' && /الأرجنتين|الارجنتين|argentin/i.test(s)) return LANG === 'fr' ? 'Argentine' : 'Argentina';
-  return s;
 }
 function cls(m){
   const st = String(m.official_status || m.status || '');
@@ -416,8 +870,8 @@ function rowCard(m, day){
   return `<a class="m${c === 'live' ? ' is-live' : ''}" href="${href}">
     <div class="st"><div class="t">${top}</div>${subHtml}</div>
     <div class="teams">
-      <div class="t"><span>${esc(messiName(m.home || ''))}</span><b>${sh}</b></div>
-      <div class="t"><span>${esc(messiName(m.away || ''))}</span><b>${sa}</b></div>
+      <div class="t"><span>${esc(dispTeam(m.home || ''))}</span><b>${sh}</b></div>
+      <div class="t"><span>${esc(dispTeam(m.away || ''))}</span><b>${sa}</b></div>
     </div>
     <div class="go">${LANG === 'ar' ? '‹' : '›'}</div>
   </a>`;
@@ -435,7 +889,7 @@ function groupHtml(arr){
   let html = '', last = null;
   arr.forEach(m => {
     const lg = m.league_text || m.league || '';
-    if (lg !== last){ last = lg; html += `<div class="live-lg">${esc(lg)}</div>`; }
+    if (lg !== last){ last = lg; html += `<div class="live-lg">${esc(dispLeague(lg))}</div>`; }
     html += rowCard(m, m._d);
   });
   return html;
@@ -491,7 +945,7 @@ function render(){
         if (fut){
           spot.hidden = false;
           document.getElementById('spotTeams').textContent =
-            messiName(fut.home || '') + ' ' + t('vs') + ' ' + messiName(fut.away || '');
+            dispTeam(fut.home || '') + ' ' + t('vs') + ' ' + dispTeam(fut.away || '');
           const cd = kickoffIn(fut.start);
           document.getElementById('spotTime').textContent =
             (fut.start ? String(fut.start).slice(0, 16).replace('T', ' ') : '') + (cd ? ' • ' + cd : '');
@@ -502,7 +956,7 @@ function render(){
       const all = [...live, ...up, ...res].slice(0, 30);
       let sj = document.getElementById('jsonld-messi');
       if (!sj){ sj = document.createElement('script'); sj.type = 'application/ld+json'; sj.id = 'jsonld-messi'; document.head.appendChild(sj); }
-      sj.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [{ '@type': 'ItemList', name: t('brand'), numberOfItems: all.length, itemListElement: all.map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: 'https://kooraadz.vercel.app/player.html?m=' + encodeURIComponent(m.id || '') + '&d=' + encodeURIComponent(m._d || 'today'), name: messiName(m.home || '') + ' vs ' + messiName(m.away || '') })) }] });
+      sj.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [{ '@type': 'ItemList', name: t('brand'), numberOfItems: all.length, itemListElement: all.map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: 'https://kooraadz.vercel.app/player.html?m=' + encodeURIComponent(m.id || '') + '&d=' + encodeURIComponent(m._d || 'today'), name: dispTeam(m.home || '') + ' vs ' + dispTeam(m.away || '') })) }] });
     } catch (e) {}
   } catch (e) {}
 }
