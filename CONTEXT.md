@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (geo-routed deals + Ronaldo header buttons — see §82 bullet).
+> Last updated: 2026-10-03 (sliding language control — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -237,6 +237,14 @@
   (crimson, promo rows on index/player, lang groups on star pages;
   cross-links both ways). Fixed a duplicate `ftCR7` key from overlapping
   batches. Mirrors content-verified.
+- **Calm promo row + sliding language control (2026-10-03, owner order).**
+  Promo pills are now uniform ghost chips (gold text only on Messi, no
+  colored gradients, no hover jump) and the Arabic deals button starts
+  hidden so first paint is final — the flashing row is gone. EN/FR/AR is
+  now a true segmented control: a measured pill glides to the active
+  language (RTL-safe, re-seats on resize/font load, auto-disables when
+  wrapped or under reduced-motion). Purely visual — state stays in
+  button.on. Mirrors content-verified.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner

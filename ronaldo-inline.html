@@ -269,6 +269,16 @@ button{touch-action:manipulation}
 }
 
 .lang a.cr7{background:#be123c;border-color:transparent;color:#fff}
+
+/* ── segmented language control: sliding pill (visual only) ── */
+.lang{position:relative}
+.lang .seg-thumb{position:absolute;top:4px;bottom:4px;border-radius:999px;background:#fff;
+  transition:left .28s cubic-bezier(.2,.7,.2,1),width .28s cubic-bezier(.2,.7,.2,1),opacity .2s;
+  z-index:0;pointer-events:none;opacity:0}
+.lang.seg-on .seg-thumb{opacity:1}
+.lang.seg-on button[data-lang]{position:relative;z-index:1;background:transparent;border-color:transparent}
+.lang.seg-on button[data-lang].on{color:var(--pitch)}
+@media (prefers-reduced-motion:reduce){.lang .seg-thumb{transition:none}}
 </style>
 </head>
 <body>
@@ -276,7 +286,7 @@ button{touch-action:manipulation}
   <div class="brand">
     <a class="home" href="/" data-i18n="ftHome">Home</a>
     <div><h1 data-i18n="brand">Watch Ronaldo Live — Al Nassr & Portugal</h1><small data-i18n="tagline">Every Ronaldo match: live, upcoming & results</small></div>
-    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo" data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" data-deals="ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="promo" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
+    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo" data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="promo" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
   </div>
 </header>
 <div class="wrap">
@@ -317,7 +327,7 @@ button{touch-action:manipulation}
   </section>
   <section class="seo faq" id="faq"><h2 data-i18n="faqH">Watch Ronaldo Live — FAQ</h2><details><summary data-i18n="fq1">How do I watch Ronaldo live?</summary><p data-i18n="fa1">Open any live Al Nassr or Portugal match on this page to start the free stream.</p></details><details><summary data-i18n="fq2">Which Ronaldo matches are listed?</summary><p data-i18n="fa2">Every Al Nassr and Portugal fixture — live now, upcoming and recent results.</p></details><details><summary data-i18n="fq3">Is the Ronaldo stream free?</summary><p data-i18n="fa3">Yes — every Ronaldo stream here is free, with no account and no popups.</p></details><details><summary data-i18n="fq4">Does it work on mobile?</summary><p data-i18n="fa4">Yes — this page is fully mobile-optimized and works on any phone, tablet or desktop.</p></details></section>
 </div>
-<footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a data-deals="ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="#top" data-i18n="ftTop">Top</a></footer>
+<footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="#top" data-i18n="ftTop">Top</a></footer>
 
 <script>
 'use strict';
@@ -1163,6 +1173,40 @@ try {
   };
 } catch (e) {}
 
+</script>
+
+<script>
+/* Sliding pill for the language segmented control. Visual only: the real
+   state stays in button.on (set by setLang); this thumb just glides to it.
+   Measured, so it stays correct in RTL and after font loads. */
+try {
+document.querySelectorAll('.lang').forEach(function(g){
+  if (g.querySelector(':scope > .seg-thumb')) return;
+  var th = document.createElement('span');
+  th.className = 'seg-thumb'; th.setAttribute('aria-hidden', 'true');
+  g.insertBefore(th, g.firstChild);
+});
+var segMove = function(){
+  try {
+    document.querySelectorAll('.lang').forEach(function(g){
+      var on = g.querySelector('button.on[data-lang]');
+      var th = g.querySelector(':scope > .seg-thumb');
+      if (!on || !th) return;
+      var top = on.offsetTop, same = true;
+      g.querySelectorAll('button[data-lang]').forEach(function(b){ if (b.offsetTop !== top) same = false; });
+      if (!same || !on.offsetWidth){ g.classList.remove('seg-on'); return; }
+      th.style.left = on.offsetLeft + 'px';
+      th.style.width = on.offsetWidth + 'px';
+      g.classList.add('seg-on');
+    });
+  } catch (e) {}
+};
+new MutationObserver(segMove).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class'] });
+window.addEventListener('resize', segMove);
+window.addEventListener('load', function(){ setTimeout(segMove, 60); });
+if (document.fonts && document.fonts.ready) { try { document.fonts.ready.then(function(){ segMove(); }); } catch (e) {} }
+segMove();
+} catch (e) {}
 </script>
 </body>
 </html>
