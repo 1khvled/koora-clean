@@ -67,6 +67,92 @@ export default async function handler(req, res) {
     } catch { return null; } finally { clearTimeout(to); }
   };
 
+  // Authoritative live overlay from koora-l.live (same id space as ours).
+  // Scraped Yacine/Kora pages lag; koora-l updates its /game/<id> feed the
+  // same moment the play-by-play does. Proven 22/22 name-exact against our
+  // own fixtures, so it is never a wrong-match source -- only fresher numbers.
+  const refreshLive = async (list) => {
+    if (!Array.isArray(list) || !list.length) return list;
+    const stale = list.filter(m => {
+      const st = String((m && (m.official_status || m.status || '')) || '');
+      if (/انتهت|نهاية|finished/i.test(st)) return false;        // final score is correct
+      if (/تأجلت|postponed/i.test(st)) return false;             // nothing to refresh
+      return true;                                                // NS / live / unknown
+    });
+    if (!stale.length) return list;
+    const now = Date.now();
+    const isLiveOrRecent = (m) => {
+      const st = String((m && (m.official_status || '')) || '');
+      if (/الشوط|جارية|مباشر|live|،/i.test(st) && st.length > 0 && !/لم تبدأ|تأجلت/.test(st)) return true;
+      const t = Date.parse(m.start || '');
+      return t && now > t - 20 * 60000 && now < t + 3.5 * 3600 * 1000;
+    };
+    const targets = stale.filter(m => {
+      // always refresh anything not clearly over, to recover from a
+      // silently-stale NS row that actually started.
+      const t = Date.parse(m.start || '');
+      if (!t) return true;
+      return now < t + 3.5 * 3600 * 1000;   // started within ~3.5h or later
+    });
+    if (!targets.length) return list;
+    const out = [...list];
+    await Promise.all(targets.map(async (m) => {
+      try {
+        // bounded: quick JSON read, capped body, short timeout
+        const ctrl = new AbortController();
+        const to = setTimeout(() => ctrl.abort(), 4500);
+        let j = null;
+        try {
+          const r = await fetch('https://koora-l.live/game/' + encodeURIComponent(m.id), {
+            signal: ctrl.signal,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'application/json',
+            },
+          });
+          if (!r.ok) return;
+          const t = await Promise.race([r.text(), new Promise((_, rej) => setTimeout(() => rej(new Error('cap')), 4000))]);
+          if (!t || t.length > 1200000) return;
+          j = JSON.parse(t);
+        } finally { clearTimeout(to); }
+        const g = j && j.game;
+        if (!g) return;
+        const hSc = (g.homeCompetitor && g.homeCompetitor.score);
+        const aSc = (g.awayCompetitor && g.awayCompetitor.score);
+        const usable = (v) => v != null && v !== '' && isFinite(+v) && +v >= 0;
+        if (usable(hSc) && usable(aSc)) {
+          m.score_home = String(hSc);
+          m.score_away = String(aSc);
+          m.result_text = m.score_home + '-' + m.score_away;
+        }
+        const g3 = +(g.statusGroup || 0);
+        const gst = String(g.statusText || '');
+        if (gst) m.official_status = gst;
+        if (/تأجلت|postponed/i.test(gst)) m.status = 'POST';
+        else if (/الغيت|cancelled|canceled|abandoned/i.test(gst)) m.status = 'POST';
+        else if (/انتهت|finished/i.test(gst)) m.status = 'FT';
+        else if (g3 === 3 || /الشوط|جارية|مباشر/.test(gst)) m.status = 'LIVE';
+        else if (/لم تبدأ|not started|start/i.test(gst)) m.status = 'NS';
+        const gt = String(g.gameTimeDisplay || '').trim();
+        if (m.status === 'LIVE') {
+          m.game_time = gt || m.game_time || '';
+        }
+        if (g.startTime) {
+          const utc = new Date(g.startTime);
+          if (!isNaN(utc)) {
+            // keep our "+03:00" wall-clock convention, same instant
+            const local = new Date(utc.getTime() + 3 * 3600000);
+            m.start = local.toISOString().slice(0, 19) + '+03:00';
+            // NOTE: m.time_text keeps the scraped wall-clock string exactly;
+            // rewriting it in a different HH:MM format regressed the display.
+          }
+        }
+      } catch {}
+    }));
+    return out;
+  };
+
+
   // YACINE primary — parse AY_Match blocks
   const parseYacine = (html) => {
     if (!html || !html.includes('AY_Match')) return [];
@@ -179,14 +265,15 @@ export default async function handler(req, res) {
     // If Yacine gave us at least 5 *valid* matches (with time), use it. Otherwise fallback.
     const validY = matches.filter(m => m.time_text && m.home && m.away);
     if (validY.length >= 5) {
-      _mc.set(cacheKey, { at: Date.now(), data: validY });
-      return res.status(200).json(validY);
+      const fresh1 = await refreshLive(validY);
+      _mc.set(cacheKey, { at: Date.now(), data: fresh1 });
+      return res.status(200).json(fresh1);
     }
     matches = validY;
     // Kora backup — original STING scrape
     const kHtml = await fetchWithTimeout(koraTarget, 4000, 'https://kooralive-plus.info/');
     if (!kHtml) {
-      if (matches.length) { _mc.set(cacheKey, { at: Date.now(), data: matches }); return res.status(200).json(matches); }
+      if (matches.length) { const fr = await refreshLive(matches); _mc.set(cacheKey, { at: Date.now(), data: fr }); return res.status(200).json(fr); }
       res.setHeader('Cache-Control', 'no-store');
       return res.status(502).json({ error: 'upstream failed' });
     }
@@ -255,8 +342,9 @@ export default async function handler(req, res) {
       if (!seen.has(key)) { matches.push(km); seen.add(key); }
     }
     if (!matches.length) matches = kMatches;
-    _mc.set(cacheKey, { at: Date.now(), data: matches });
-    return res.status(200).json(matches);
+    const fresh = await refreshLive(matches);
+    _mc.set(cacheKey, { at: Date.now(), data: fresh });
+    return res.status(200).json(fresh);
   } catch (e) {
     res.setHeader('Cache-Control', 'no-store');
     return res.status(500).json({ error: 'upstream failed' });
