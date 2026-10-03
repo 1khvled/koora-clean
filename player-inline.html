@@ -377,22 +377,22 @@ body.ads-off .ad-wrap{display:none}
 ::selection{background:var(--grass);color:#04120c}
 html{scroll-behavior:smooth}
 body{background:
-  radial-gradient(900px 300px at 50% -140px,rgba(22,163,74,.12),transparent 70%),
+  radial-gradient(900px 300px at 50% -140px,rgba(22,163,74,.06),transparent 70%),
   var(--paper)}
 /* stage: cinematic frame with a grass-tinted ring */
-.stage{border-radius:18px;border:1px solid rgba(255,255,255,.09);
-  box-shadow:0 16px 44px rgba(0,0,0,.55),0 0 0 1px rgba(22,163,74,.16),0 0 34px rgba(22,163,74,.10)}
-.click-shield{background:radial-gradient(420px 260px at 50% 42%,rgba(22,163,74,.22),rgba(4,12,9,.82) 75%)}
-.click-shield button{background:linear-gradient(160deg,#22c55e,#15803d);
-  box-shadow:0 10px 28px rgba(22,163,74,.45),inset 0 1px 0 rgba(255,255,255,.3);
+.stage{border-radius:18px;border:1px solid var(--line);
+  box-shadow:0 10px 28px rgba(0,0,0,.5)}
+.click-shield{background:rgba(4,12,9,.82)}
+.click-shield button{background:var(--grass);
+  box-shadow:0 6px 18px rgba(22,163,74,.35);
   transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
 @media (hover:hover){.click-shield button:hover{transform:translateY(-1px) scale(1.02);filter:brightness(1.06)}}
 /* scoreboard: big tabular score, pill-style live marker */
-.mcard{background:linear-gradient(165deg,#14382c,var(--card) 70%);
-  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.07)}
-.fm-score{background:linear-gradient(180deg,#14382c,var(--card) 85%);
-  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.07)}
-.fm-score .gl{font-size:30px;letter-spacing:3px;text-shadow:0 2px 12px rgba(22,163,74,.35)}
+.mcard{background:var(--card);
+  box-shadow:var(--shadow)}
+.fm-score{background:var(--card);
+  box-shadow:var(--shadow)}
+.fm-score .gl{font-size:30px;letter-spacing:3px}
 .mcard .mid .vs.live,.fm-score .st.live{background:var(--live);color:#fff;
   border-radius:999px;padding:2px 12px;display:inline-block;animation:pulse 1.2s infinite}
 /* servers: tactile cards, gradient active state */
@@ -401,30 +401,30 @@ body{background:
   .srv:hover{transform:translateY(-1px);border-color:rgba(22,163,74,.6);box-shadow:0 6px 18px rgba(0,0,0,.5)}
   .srv:active{transform:translateY(0) scale(.99)}
 }
-.srv.on{background:linear-gradient(160deg,#127a4e,var(--pitch));
-  border-color:var(--grass);box-shadow:0 0 0 1px var(--grass),0 6px 18px rgba(22,163,74,.35),inset 0 1px 0 rgba(255,255,255,.2)}
+.srv.on{background:var(--pitch);
+  border-color:var(--grass);box-shadow:0 0 0 1px var(--grass),0 4px 12px rgba(22,163,74,.3)}
 .srv.on .num{background:rgba(255,255,255,.16);color:#fff}
 /* section headers get the gold tick; stat bars get gradient fill */
 .minfo h3,.src-head h2,.odds-head{display:flex;align-items:center;gap:8px}
 .minfo h3::before,.src-head h2::before{content:"";width:4px;height:15px;border-radius:4px;
-  background:linear-gradient(180deg,var(--gold),#e08a00);flex:none}
+  background:var(--gold);flex:none}
 .stat .bars{box-shadow:inset 0 1px 3px rgba(0,0,0,.4)}
-.stat .bars .h{background:linear-gradient(90deg,#15803d,#22c55e)}
-.stat .bars .a{background:linear-gradient(90deg,#55705f,#7d9187)}
+.stat .bars .h{background:var(--grass)}
+.stat .bars .a{background:#55705f}
 .minfo-tabs button{transition:transform .15s ease,filter .15s ease}
-.minfo-tabs button[aria-pressed="true"]{background:linear-gradient(160deg,#22c55e,#15803d);
-  box-shadow:0 4px 12px rgba(22,163,74,.35),inset 0 1px 0 rgba(255,255,255,.25)}
+.minfo-tabs button[aria-pressed="true"]{background:var(--grass);
+  box-shadow:0 2px 8px rgba(22,163,74,.3)}
 .fchip[aria-pressed="true"]{box-shadow:0 3px 10px rgba(22,163,74,.35)}
 /* pitch + cards depth */
-.pitch{box-shadow:0 12px 32px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.15)}
+.pitch{box-shadow:0 8px 24px rgba(0,0,0,.45)}
 .lu,.fm-score{box-shadow:var(--shadow)}
 .odd b{font-variant-numeric:tabular-nums}
 /* primary buttons with gradient + press depth */
-.btn{background:linear-gradient(160deg,#127a4e,var(--pitch));
-  box-shadow:0 4px 12px rgba(11,61,46,.4),inset 0 1px 0 rgba(255,255,255,.2)}
+.btn{background:var(--pitch);
+  box-shadow:0 2px 8px rgba(11,61,46,.35)}
 /* toast + popover polish */
 .toast{box-shadow:0 12px 32px rgba(0,0,0,.55)}
-.mpop{box-shadow:0 16px 40px rgba(0,0,0,.6)}
+.mpop{box-shadow:0 10px 28px rgba(0,0,0,.5)}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .mcard .mid .vs.live,.fm-score .st.live{animation:none}
@@ -443,8 +443,6 @@ html[lang="ar"] .only-enfr{display:none!important}
 ::-webkit-scrollbar-thumb{background:#2a4a3e;border-radius:99px;border:2px solid var(--paper)}
 ::-webkit-scrollbar-thumb:hover{background:var(--grass)}
 /* play button glows until first tap */
-.click-shield:not(.hidden) button{animation:glowPulse 2.4s ease-in-out infinite}
-@keyframes glowPulse{50%{box-shadow:0 10px 34px rgba(22,163,74,.65),inset 0 1px 0 rgba(255,255,255,.3)}}
 /* popover pops in instead of blinking on */
 .mpop{animation:popIn .18s ease;transform-origin:top center}
 @keyframes popIn{from{opacity:0;transform:scale(.95) translateY(-4px)}}
@@ -481,13 +479,10 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 /* top performers: displayed order gets gold / silver / bronze rings */
 .toprow .topchip{transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
 @media (hover:hover){.toprow .topchip:hover{transform:translateY(-1px)}}
-.toprow .topchip:nth-child(1){border-color:rgba(255,184,0,.7);box-shadow:0 0 0 1px rgba(255,184,0,.35)}
-.toprow .topchip:nth-child(2){border-color:rgba(200,200,200,.7);box-shadow:0 0 0 1px rgba(200,200,200,.3)}
-.toprow .topchip:nth-child(3){border-color:rgba(205,127,50,.7);box-shadow:0 0 0 1px rgba(205,127,50,.3)}
 /* events timeline: goals glow gold, cards tint red, rows breathe on hover */
 .ev{border-radius:10px;transition:background .15s ease}
 .ev[data-kind="goal"]{background:rgba(255,184,0,.10)}
-.ev[data-kind="goal"] .mn{background:linear-gradient(160deg,#ffd34d,#e08a00);color:#231a00}
+.ev[data-kind="goal"] .mn{background:var(--gold);color:#231a00}
 .ev[data-kind="card"]{background:rgba(224,32,46,.08)}
 .ev:hover{background:rgba(22,163,74,.10)}
 /* lineups: hover tracking + crisper rating pills */
@@ -497,12 +492,9 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 /* score header scorers sit quieter under the big number */
 .fm-score .scorers{opacity:.92}
 /* Polymarket: glowing figures, leader row ringed, head link as pill */
-.odd b{text-shadow:0 0 18px rgba(34,197,94,.35)}
 .odds-head a{border:1px solid var(--line);border-radius:999px;padding:6px 12px;
   text-decoration:none;transition:border-color .15s ease}
 @media (hover:hover){.odds-head a:hover{border-color:var(--grass)}}
-.borow:first-child{border-color:rgba(255,184,0,.55);
-  box-shadow:0 0 0 1px rgba(255,184,0,.3)}
 @media (prefers-reduced-motion:reduce){
   .stat .bars i{transition:none}
 }
@@ -530,10 +522,10 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
   padding:9px 16px;min-height:44px;display:inline-flex;align-items:center;gap:6px;
   text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--card);
   transition:transform .15s ease,filter .15s ease,border-color .15s ease,box-shadow .15s ease}
-.pbtn.gold{background:linear-gradient(160deg,#ffd34d,#e08a00);color:#231a00;border-color:transparent;
-  box-shadow:0 4px 12px rgba(224,138,0,.35),inset 0 1px 0 rgba(255,255,255,.4)}
-.pbtn.tg{background:linear-gradient(160deg,#37aee2,#1e96c8);color:#fff;border-color:transparent;
-  box-shadow:0 4px 12px rgba(30,150,200,.3),inset 0 1px 0 rgba(255,255,255,.25)}
+.pbtn.gold{background:var(--gold);color:#231a00;border-color:transparent;
+  box-shadow:0 2px 8px rgba(224,138,0,.3)}
+.pbtn.tg{background:#229ed9;color:#fff;border-color:transparent;
+  box-shadow:0 2px 8px rgba(30,150,200,.3)}
 @media (hover:hover){.pbtn:hover{transform:translateY(-1px);filter:brightness(1.07);border-color:var(--grass)}}
 .pbtn:active{transform:scale(.97)}
 .lang button{transition:transform .15s ease,background .15s ease}
@@ -541,6 +533,11 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 .lang button:active{transform:scale(.95)}
 .back{transition:transform .15s ease,border-color .15s ease}
 @media (hover:hover){.back:hover{border-color:var(--gold);transform:translateY(-1px)}}
+
+/* ── skeletons (2026-10-03): calm staggered pulse cards ── */
+.srv.skel{position:relative;overflow:hidden}
+.mi-skel-score,.mi-skel-line{position:relative;overflow:hidden}
+@media (prefers-reduced-motion:reduce){.srv.skel::after,.mi-skel-score::after,.mi-skel-line::after{animation:none}}
 </style>
 </head>
 <body>

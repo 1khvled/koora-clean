@@ -51,8 +51,7 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;font-family:var(--font);background:
-  radial-gradient(900px 300px at 50% -140px,rgba(255,184,0,.10),transparent 70%),
-  radial-gradient(900px 300px at 50% -140px,rgba(22,163,74,.12),transparent 70%),
+  radial-gradient(900px 300px at 50% -140px,rgba(22,163,74,.06),transparent 70%),
   var(--paper);
   color:var(--ink);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
   text-rendering:optimizeLegibility;overflow-x:hidden;
@@ -61,15 +60,13 @@ body{margin:0;font-family:var(--font);background:
 .wrap{max-width:880px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom))}
 /* header */
 .topbar{background:
-  radial-gradient(420px 200px at 85% -60px,rgba(255,184,0,.16),transparent 70%),
-  radial-gradient(420px 200px at 12% -60px,rgba(22,163,74,.30),transparent 70%),
   linear-gradient(160deg,var(--night),var(--pitch));
   color:#fff;padding:calc(14px + env(safe-area-inset-top, 0px)) 16px calc(16px + 22px);position:relative;overflow:hidden}
 .brand{display:flex;align-items:center;gap:10px;position:relative;z-index:1;max-width:880px;margin:0 auto}
 .brand>div{min-width:0;flex:1}
 .brand .goat{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;
   font-size:24px;background:radial-gradient(circle at 32% 30%,#3ddc74,var(--grass) 62%,#0b3d2e);
-  box-shadow:0 2px 10px rgba(0,0,0,.4),0 0 0 3px rgba(255,255,255,.12),0 0 18px rgba(22,163,74,.45)}
+  box-shadow:0 2px 10px rgba(0,0,0,.4),0 0 0 3px rgba(255,255,255,.12)}
 .brand h1{display:block;font-size:19px;font-weight:900;line-height:1.25;margin:0;letter-spacing:.01em}
 .brand small{display:block;color:#bfe3cf;font-size:12px;font-weight:600;letter-spacing:.03em}
 .home{flex:none;text-decoration:none;color:#fff;font-weight:800;font-size:13px;
@@ -83,21 +80,21 @@ body{margin:0;font-family:var(--font);background:
 /* hero */
 .hero{max-width:880px;margin:-22px auto 0;position:relative;z-index:2;background:linear-gradient(165deg,#14382c,var(--card) 75%);
   border:1px solid var(--line);border-radius:20px;padding:26px 22px;text-align:center;
-  box-shadow:0 16px 44px rgba(0,0,0,.5),0 0 0 1px rgba(255,184,0,.12),inset 0 1px 0 rgba(255,255,255,.07)}
+  box-shadow:var(--shadow)}
 .hero .big{font-size:44px;line-height:1;filter:drop-shadow(0 4px 14px rgba(255,184,0,.35))}
 .hero h2{margin:10px 0 6px;font-size:22px;font-weight:900;letter-spacing:.01em}
 .hero h2 .gold{color:var(--gold)}
 .hero p{margin:0 0 16px;color:var(--muted);font-size:14px;font-weight:600;line-height:1.8}
 .hero .cta{display:inline-block;font-family:var(--font);text-decoration:none;
-  background:linear-gradient(160deg,#22c55e,#15803d);color:#04120c;font-weight:900;
+  background:var(--grass);color:#04120c;font-weight:900;
   font-size:15px;border-radius:12px;padding:13px 30px;min-height:52px;
-  box-shadow:0 10px 28px rgba(22,163,74,.45),inset 0 1px 0 rgba(255,255,255,.3)}
+  box-shadow:0 6px 18px rgba(22,163,74,.35)}
 @media (hover:hover){.hero .cta:hover{transform:translateY(-1px);filter:brightness(1.06)}}
 .hero .cta:active{transform:scale(.98)}
 /* sections */
 .sec-title{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:900;margin:22px 2px 10px}
 .sec-title::before{content:"";width:4px;height:18px;border-radius:4px;
-  background:linear-gradient(180deg,var(--gold),#e08a00);flex:none}
+  background:var(--gold);flex:none}
 .sec-title .count{background:var(--live);color:#fff;font-size:12px;font-weight:800;
   border-radius:999px;padding:2px 10px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--live);flex:none;
@@ -122,7 +119,7 @@ body{margin:0;font-family:var(--font);background:
 .m .go{flex:none;color:var(--muted);font-size:18px;transition:transform .15s ease}
 .m.is-live{background:linear-gradient(90deg,rgba(224,32,46,.10),var(--card) 55%);
   border-color:rgba(224,32,46,.4);
-  box-shadow:0 0 0 1px rgba(224,32,46,.28),0 8px 22px rgba(224,32,46,.18),inset 0 1px 0 rgba(255,255,255,.06)}
+  box-shadow:var(--shadow)}
 @media (hover:hover){
   .m:hover{transform:translateY(-2px);border-color:rgba(255,184,0,.55);box-shadow:0 8px 22px rgba(0,0,0,.5)}
   .m:active{transform:translateY(0) scale(.995)}
@@ -134,8 +131,6 @@ body{margin:0;font-family:var(--font);background:
 .empty{text-align:center;color:var(--muted);padding:26px 0;font-weight:600;font-size:14px}
 .loading{text-align:center;color:var(--muted);padding:34px 0;font-weight:600}
 .skel-list{display:grid;gap:8px}
-.skel-row{height:64px;border-radius:16px;background:linear-gradient(90deg,var(--line) 20%,#28463b 50%,var(--line) 80%);background-size:200% 100%;animation:shimmer 1.4s infinite}
-@keyframes shimmer{to{background-position:-200% 0}}
 /* faq */
 .seo{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.9;border-top:1px dashed var(--line);padding-top:14px}
 .seo h2{font-size:15px;font-weight:800;color:var(--ink);margin:0 2px 6px}
@@ -182,12 +177,46 @@ button{touch-action:manipulation}
 .live-lg::after{content:"";flex:1;height:1px;background:var(--line)}
 .spot{margin-top:14px;border:1px solid rgba(255,184,0,.4);border-radius:14px;
   padding:12px 14px;background:rgba(255,184,0,.07);text-align:center;
-  box-shadow:0 0 0 1px rgba(255,184,0,.15)}
+  }
 .spot[hidden]{display:none}
 .spot small{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;
   text-transform:uppercase;color:var(--gold)}
 .spot b{display:block;font-size:17px;font-weight:900;margin:4px 0 2px}
 .spot span{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* ── donations (2026-10-03): Ko-fi + BEP20, same wallets as home ── */
+.support{margin-top:18px;background:linear-gradient(180deg,#14382c,var(--card) 85%);
+  border:1px solid var(--line);border-radius:var(--radius);padding:14px;
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.07)}
+.sup-msg{font-size:13px;font-weight:700;margin:0 0 10px}
+.sup-row{display:flex;gap:8px;flex-wrap:wrap}
+.sup-btn{font-family:var(--font);border:0;border-radius:10px;min-height:44px;
+  padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;
+  background:var(--pitch);color:#fff;text-decoration:none;
+  display:inline-flex;align-items:center;
+  box-shadow:0 4px 12px rgba(11,61,46,.4),inset 0 1px 0 rgba(255,255,255,.2)}
+.sup-btn.kofi{background:#c81e1e;
+  box-shadow:0 2px 8px rgba(200,30,30,.3)}
+.sup-wallet{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.sup-wallet[hidden]{display:none}
+.sup-wallet code{flex:1;min-width:0;font-size:12px;word-break:break-all;color:var(--ink);
+  background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px}
+@media (hover:hover){.sup-btn:hover{transform:translateY(-1px);filter:brightness(1.06)}}
+.sup-btn:active{transform:scale(.97)}
+@media (max-width:480px){.sup-row .sup-btn{flex:1 1 44%}}
+
+/* ── skeletons (2026-10-03): calm card-shaped pulse ── */
+.skel-row{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;
+  height:76px;padding:12px 14px;background:var(--card);border:1px solid var(--line);animation:none}
+.skel-row i{display:block;border-radius:8px;background:var(--line);animation:pulse 1.4s infinite}
+.sk-t{flex:none;width:52px;height:34px}
+.sk-teams{flex:1;display:grid;gap:8px;min-width:0}
+.sk-teams i{height:14px}
+.sk-teams i:last-child{width:72%}
+.sk-s{flex:none;width:18px;height:26px}
+.skel-list .skel-row:nth-child(2) i{animation-delay:.12s}
+.skel-list .skel-row:nth-child(3) i{animation-delay:.24s}
+@media (prefers-reduced-motion:reduce){.skel-row i{animation:none}}
 </style>
 </head>
 <body>
@@ -207,7 +236,7 @@ button{touch-action:manipulation}
     <div class="spot" id="spot" hidden><small data-i18n="nextUp">Next Messi match</small><b id="spotTeams">—</b><span id="spotTime"></span></div>
   </section>
   <main id="content">
-    <div id="loading"><div class="loading" data-i18n="loading">Loading Messi matches…</div><div class="skel-list" aria-hidden="true"><div class="skel-row"></div><div class="skel-row"></div><div class="skel-row"></div></div></div>
+    <div id="loading"><div class="loading" data-i18n="loading">Loading Messi matches…</div><div class="skel-list" aria-hidden="true"><div class="skel-row"><i class="sk-t"></i><div class="sk-teams"><i></i><i></i></div><i class="sk-s"></i></div><div class="skel-row"><i class="sk-t"></i><div class="sk-teams"><i></i><i></i></div><i class="sk-s"></i></div><div class="skel-row"><i class="sk-t"></i><div class="sk-teams"><i></i><i></i></div><i class="sk-s"></i></div></div></div>
     <section id="liveSec" hidden>
       <div class="sec-title"><span class="dot"></span> <span data-i18n="liveNow">Messi is playing now</span> <span class="count" id="liveCount"></span></div>
       <div id="liveList"></div>
@@ -222,6 +251,14 @@ button{touch-action:manipulation}
     </section>
     <div id="emptyAll" class="empty" hidden data-i18n="emptyAll">No Messi match in the next few days — check back soon.</div>
   </main>
+  <div class="support" id="support">
+    <div class="sup-msg" data-i18n="supMsg">Donate</div>
+    <div class="sup-row">
+      <a class="sup-btn kofi" href="https://ko-fi.com/messistat" target="_blank" rel="noopener sponsored">☕ Ko-fi</a>
+      <button class="sup-btn" id="walletBtn" type="button" data-i18n="walletBtn" aria-controls="walletBox" aria-expanded="false">BEP20</button>
+    </div>
+    <div class="sup-wallet" id="walletBox" hidden><code dir="ltr">0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
+  </div>
   <section class="seo faq" id="faq"><h2 data-i18n="faqH">Watch Messi Live — FAQ</h2><details><summary data-i18n="fq1">How do I watch Messi live?</summary><p data-i18n="fa1">Open any live Inter Miami or Argentina match on this page to start the free stream.</p></details><details><summary data-i18n="fq2">Which Messi matches are listed?</summary><p data-i18n="fa2">Every Inter Miami and Argentina fixture — live now, upcoming and recent results.</p></details><details><summary data-i18n="fq3">Is the Messi stream free?</summary><p data-i18n="fa3">Yes — every Messi stream here is free, with no account and no popups.</p></details><details><summary data-i18n="fq4">Does it work on mobile?</summary><p data-i18n="fa4">Yes — this page is fully mobile-optimized and works on any phone, tablet or desktop.</p></details></section>
 </div>
 <footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a href="#top" data-i18n="ftTop">Top</a></footer>
@@ -238,6 +275,8 @@ startsInD: (d, h) => `in ${d}d ${h}h`,
 liveNow: 'Messi is playing now', upNext: 'Upcoming Messi matches', results: 'Recent Messi results',
 loading: 'Loading Messi matches…', emptyAll: 'No Messi match in the next few days — check back soon.',
 live: 'Live', ended: 'FT', upcoming: 'Upcoming', vs: 'vs', ftHome: 'Home', ftTop: 'Top',
+supMsg: '❤ Messi streams are free — support us with a donation.',
+walletBtn: '⧉ BEP20 wallet', copyBtn: 'Copy', copyOk: 'Address copied',
 dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats',
 faqH: 'Watch Messi Live — FAQ',
 fq1: 'How do I watch Messi live?', fa1: 'Open any live Inter Miami or Argentina match on this page to start the free stream.',
@@ -259,6 +298,8 @@ startsInD: (d, h) => `dans ${d}j ${h}h`,
 liveNow: 'Messi joue en ce moment', upNext: 'Prochains matchs de Messi', results: 'Résultats récents de Messi',
 loading: 'Chargement des matchs de Messi…', emptyAll: 'Aucun match de Messi ces prochains jours — revenez bientôt.',
 live: 'Direct', ended: 'Terminé', upcoming: 'À venir', vs: 'vs', ftHome: 'Accueil', ftTop: 'Haut',
+supMsg: '❤ Les streams de Messi sont gratuits — soutenez-nous avec un don.',
+walletBtn: '⧉ Wallet BEP20', copyBtn: 'Copier', copyOk: 'Adresse copiée',
 dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats',
 faqH: 'Regarder Messi en Direct — FAQ',
 fq1: 'Comment regarder Messi en direct ?', fa1: 'Ouvrez un match en direct de l’Inter Miami ou de l’Argentine sur cette page pour lancer le stream gratuit.',
@@ -280,6 +321,8 @@ startsInD: (d, h) => `بعد ${d} يوم ${h} س`,
 liveNow: 'ميسي يلعب الآن', upNext: 'مباريات ميسي القادمة', results: 'نتائج ميسي الأخيرة',
 loading: 'جاري تحميل مباريات ميسي…', emptyAll: 'لا توجد مباراة لميسي في الأيام القادمة — عُد قريباً.',
 live: 'مباشر', ended: 'انتهت', vs: 'ضد', upcoming: 'لم تبدأ', ftHome: 'الرئيسية', ftTop: 'الأعلى',
+supMsg: '❤ بثوث ميسي مجانية — ادعمنا بتبرع.',
+walletBtn: '⧉ محفظة BEP20', copyBtn: 'نسخ', copyOk: 'تم نسخ العنوان',
 dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats',
 faqH: 'مشاهدة ميسي بث مباشر — أسئلة شائعة',
 fq1: 'كيف أشاهد ميسي بث مباشر؟', fa1: 'افتح أي مباراة مباشرة لإنتر ميامي أو الأرجنتين في هذه الصفحة لبدء البث المجاني.',
@@ -858,7 +901,11 @@ function rowCard(m, day){
     if (sh !== '' && sa !== ''){ top = sh + ' - ' + sa; sub = t('ended'); }
     else { top = t('ended'); }
   } else {
-    const tt = String(m.time_text || '').trim();
+    // time_text is raw upstream text and can be Arabic ("لم تبدأ") — same
+    // guard as index dispTime(): never paint feed language, fall back to
+    // kickoff HH:MM, then the translated Upcoming label.
+    const ttx = String(m.time_text || '').trim();
+    const tt = /[؀-ۿ]/.test(ttx) ? '' : ttx;
     if (tt) top = esc(tt);
     else if (m.start) top = esc(String(m.start).slice(11, 16));
     else top = '–';
@@ -962,6 +1009,18 @@ function render(){
 }
 load();
 setInterval(load, 30000);
+try {
+  const wb = document.getElementById('walletBtn'), wx = document.getElementById('walletBox');
+  if (wb && wx) wb.onclick = () => { const open = wx.hidden; wx.hidden = !open; wb.setAttribute('aria-expanded', String(open)); };
+  const wc = document.getElementById('walletCopy');
+  if (wc) wc.onclick = async () => {
+    const addr = '0xe78ee7a6ce01978562c90df0fa3f775215457390';
+    try { await navigator.clipboard.writeText(addr); }
+    catch (e) { try { const ta = document.createElement('textarea'); ta.value = addr; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); } catch (_) {} }
+    const o = wc.textContent; wc.textContent = t('copyOk'); setTimeout(() => { wc.textContent = o; }, 1500);
+  };
+} catch (e) {}
+
 </script>
 </body>
 </html>

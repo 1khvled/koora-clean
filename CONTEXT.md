@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (header promo row with Messi button — see §82 bullet).
+> Last updated: 2026-10-03 (de-slop UI pass — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -166,6 +166,24 @@
   lang group (group is back to EN/FR/AR + theme only). All header buttons
   got hover lift + press-scale; player back button lifts with a gold border.
   HTML+CSS only, mirrors content-verified.
+- **Messi status-language guard (2026-10-03, owner screenshot).** Upcoming
+  rows painted the raw feed `time_text` ("لم تبدأ") even in EN/FR. Same guard
+  as index `dispTime`: Arabic-script times are dropped, falling back to
+  kickoff HH:MM, then the translated Upcoming label. Proven headless in all
+  3 languages. Mirror synced.
+- **Messi donations (2026-10-03, owner order).** Ko-fi + BEP20 wallet
+  (same address, clipboard copy with fallback) on messi.html, 4 new keys in
+  all 3 dicts (parity 27/27 verified). Mirror synced.
+- **Calm skeleton loaders (2026-10-03, owner order).** Structured
+  card-shaped skeletons (time / team lines / score blocks) with a soft
+  staggered pulse on all 3 pages; player server + FotMob skeletons match.
+  Reduced-motion-gated. Mirrors synced.
+- **De-slop UI pass (2026-10-03, owner order: less AI slop).** Stripped the
+  generic look: zero gradient buttons (solid pitch/red/gold/blue), zero
+  decorative glows, rings, sheen sweeps and medal colors; pulse kept only on
+  live indicators; skeleton sheen replaced by a calm pulse; dead keyframes
+  removed. Verified zero slop markers site-wide, CSS balanced, JS parses.
+  Mirrors content-verified.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
