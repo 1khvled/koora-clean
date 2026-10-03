@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (premium round 2 — see §82 bullet).
+> Last updated: 2026-10-03 (premium round 3: FotMob + Polymarket — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -112,6 +112,15 @@
   button. Player: glowing play CTA pulse, pop-in formation popover, pitch-dot
   hover rings, lifting odds/ballot rows, press-depth on controls, wider title
   type on desktop. All motion reduced-motion-gated. Mirrors re-synced.
+- **Premium round 3 (2026-10-03, owner order: FotMob + Polymarket + overall).**
+  CSS-only (62 added, 0 removed). FotMob: uppercase tracked section labels,
+  glass sticky tabs, stat bars that sweep to new widths on refresh, gold/
+  silver/bronze rings on the top-3 performer chips, goal rows glowing gold
+  (gold minute pill) vs red-tinted card rows, hover-tracking lineup rows.
+  Polymarket: ranked-leaderboard counters with medal top-3 + ringed leader
+  row on the index board, glowing odds figures and ringed leader on the
+  player page. Overall: hairline above the odds board, grass list markers,
+  lifting SSR rows and ad card. Reduced-motion-gated. Mirrors re-synced.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner

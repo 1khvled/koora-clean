@@ -467,6 +467,45 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
   .click-shield:not(.hidden) button{animation:none}
   .mpop{animation:none}
 }
+
+/* ── premium pass 3 (2026-10-03): FotMob section + Polymarket ── */
+/* section labels read as labels; sticky tabs float on glass */
+.minfo h3{text-transform:uppercase;letter-spacing:.08em;font-size:12px;color:var(--muted)}
+.minfo-tabs{background:color-mix(in srgb,var(--card) 88%,transparent);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);border-radius:10px;padding-inline:6px}
+/* stat bars sweep to their new width on every refresh */
+.stat .bars i{transition:width .7s cubic-bezier(.2,.7,.2,1)}
+.stat{border-radius:10px;padding:6px 8px;transition:background .15s ease}
+.stat:hover{background:rgba(22,163,74,.06)}
+/* top performers: displayed order gets gold / silver / bronze rings */
+.toprow .topchip{transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+@media (hover:hover){.toprow .topchip:hover{transform:translateY(-1px)}}
+.toprow .topchip:nth-child(1){border-color:rgba(255,184,0,.7);box-shadow:0 0 0 1px rgba(255,184,0,.35)}
+.toprow .topchip:nth-child(2){border-color:rgba(200,200,200,.7);box-shadow:0 0 0 1px rgba(200,200,200,.3)}
+.toprow .topchip:nth-child(3){border-color:rgba(205,127,50,.7);box-shadow:0 0 0 1px rgba(205,127,50,.3)}
+/* events timeline: goals glow gold, cards tint red, rows breathe on hover */
+.ev{border-radius:10px;transition:background .15s ease}
+.ev[data-kind="goal"]{background:rgba(255,184,0,.10)}
+.ev[data-kind="goal"] .mn{background:linear-gradient(160deg,#ffd34d,#e08a00);color:#231a00}
+.ev[data-kind="card"]{background:rgba(224,32,46,.08)}
+.ev:hover{background:rgba(22,163,74,.10)}
+/* lineups: hover tracking + crisper rating pills */
+.pl{border-radius:8px;transition:background .15s ease}
+.pl:hover{background:rgba(22,163,74,.08)}
+.rpill{box-shadow:inset 0 1px 2px rgba(0,0,0,.3)}
+/* score header scorers sit quieter under the big number */
+.fm-score .scorers{opacity:.92}
+/* Polymarket: glowing figures, leader row ringed, head link as pill */
+.odd b{text-shadow:0 0 18px rgba(34,197,94,.35)}
+.odds-head a{border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+  text-decoration:none;transition:border-color .15s ease}
+@media (hover:hover){.odds-head a:hover{border-color:var(--grass)}}
+.borow:first-child{border-color:rgba(255,184,0,.55);
+  box-shadow:0 0 0 1px rgba(255,184,0,.3)}
+@media (prefers-reduced-motion:reduce){
+  .stat .bars i{transition:none}
+}
 </style>
 </head>
 <body>

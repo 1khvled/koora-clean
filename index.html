@@ -384,6 +384,29 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 @media (prefers-reduced-motion:reduce){
   .faq details[open] > p{animation:none}
 }
+
+/* ── premium pass 3 (2026-10-03): Polymarket leaderboard + overall ── */
+/* odds board reads as a ranked leaderboard, medals for the displayed top 3 */
+.poly-list{counter-reset:prank}
+.poly-row{position:relative;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+.poly-row::before{counter-increment:prank;content:counter(prank);flex:none;
+  width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  font-size:12px;font-weight:900;background:var(--paper);border:1px solid var(--line);
+  color:var(--muted);font-variant-numeric:tabular-nums}
+.poly-row:nth-child(1)::before{background:linear-gradient(160deg,#ffd34d,#e08a00);color:#231a00;border-color:transparent}
+.poly-row:nth-child(2)::before{background:linear-gradient(160deg,#e8e8e8,#a8a8a8);color:#222;border-color:transparent}
+.poly-row:nth-child(3)::before{background:linear-gradient(160deg,#f0a35e,#b26a2a);color:#231a00;border-color:transparent}
+.poly-row:nth-child(1){border-color:rgba(255,184,0,.55);
+  box-shadow:0 0 0 1px rgba(255,184,0,.3),var(--shadow)}
+.poly-row b{font-size:16px}
+@media (hover:hover){.poly-row:hover{transform:translateY(-1px);border-color:rgba(22,163,74,.5)}}
+/* overall: calmer page rhythm + hairline above the odds board */
+#polySec{border-top:1px dashed var(--line);padding-top:14px}
+.seo ul li::marker{color:var(--grass)}
+.ssr-list li{transition:border-color .15s ease,transform .15s ease}
+@media (hover:hover){.ssr-list li:hover{border-color:rgba(22,163,74,.5);transform:translateY(-1px)}}
+.ad{transition:transform .15s ease,box-shadow .15s ease}
+@media (hover:hover){.ad:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(7,31,25,.16)}}
 </style>
 </head>
 <body>
