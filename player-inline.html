@@ -523,6 +523,24 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
   .servers{grid-template-columns:1fr}
   .mcard .mid{min-width:70px}
 }
+
+/* ── header buttons (2026-10-03): promo strip + tactile controls ── */
+.promo-row{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.pbtn{font-family:var(--font);font-size:12.5px;font-weight:800;border-radius:999px;
+  padding:9px 16px;min-height:44px;display:inline-flex;align-items:center;gap:6px;
+  text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--card);
+  transition:transform .15s ease,filter .15s ease,border-color .15s ease,box-shadow .15s ease}
+.pbtn.gold{background:linear-gradient(160deg,#ffd34d,#e08a00);color:#231a00;border-color:transparent;
+  box-shadow:0 4px 12px rgba(224,138,0,.35),inset 0 1px 0 rgba(255,255,255,.4)}
+.pbtn.tg{background:linear-gradient(160deg,#37aee2,#1e96c8);color:#fff;border-color:transparent;
+  box-shadow:0 4px 12px rgba(30,150,200,.3),inset 0 1px 0 rgba(255,255,255,.25)}
+@media (hover:hover){.pbtn:hover{transform:translateY(-1px);filter:brightness(1.07);border-color:var(--grass)}}
+.pbtn:active{transform:scale(.97)}
+.lang button{transition:transform .15s ease,background .15s ease}
+@media (hover:hover){.lang button:hover{background:rgba(22,163,74,.15)}}
+.lang button:active{transform:scale(.95)}
+.back{transition:transform .15s ease,border-color .15s ease}
+@media (hover:hover){.back:hover{border-color:var(--gold);transform:translateY(-1px)}}
 </style>
 </head>
 <body>
@@ -531,8 +549,9 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
   <div class="head">
     <a class="back" href="/" id="backBtn" data-i18n="back">‹ Back</a>
     <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
-    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></div>
+    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
   </div>
+    <div class="promo-row"><a class="pbtn gold" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="pbtn tg only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn tg only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></div>
   <div class="stage">
     <iframe id="player" title="player" tabindex="-1" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       loading="eager"></iframe>

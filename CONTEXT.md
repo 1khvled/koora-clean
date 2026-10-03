@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (Messi page fully translated — see §82 bullet).
+> Last updated: 2026-10-03 (header promo row with Messi button — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -159,6 +159,13 @@
   International Friendlies, Major League Soccer all dictionary hits; AR
   stays raw; anything unknown falls back to readable Latin (never Arabic
   script in EN/FR). Mirror synced by content diff.
+- **Header promo row with Messi button (2026-10-03, owner order).** Both
+  headers now carry their own promo row under the brand: gold 🐐 Messi page
+  button (reuses `ftMessi`, all 3 languages) + per-language Telegram deals
+  button + MessiStats button. The old pills were pulled out of the crowded
+  lang group (group is back to EN/FR/AR + theme only). All header buttons
+  got hover lift + press-scale; player back button lifts with a gold border.
+  HTML+CSS only, mirrors content-verified.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
