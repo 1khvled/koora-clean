@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (ALL suggestions batch: titles, report, bells, Ronaldo, Telegram — see §82 bullet).
+> Last updated: 2026-10-03 (backlinks + mobile declutter — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -217,6 +217,15 @@
     channel URL into the constant on any page to activate site-wide.
   Verified: all JS parses, CSS balanced, dict parity everywhere, 4/4
   mirrors content-identical + CRLF. Logged here.
+- **Backlinks + mobile declutter (2026-10-03, owner: backlinks first).**
+  Follow-link inventory: header pill + footer text (index/player), footer
+  text (star pages); ad banners are `sponsored` (pass no value — kept).
+  Added a keyword-rich stats-partner card (follow link, "MessiStats.com —
+  live stats & records" anchor) on messi + ronaldo; index FAQ already
+  carried the fq8 follow link. Star pages decluttered under 480px
+  (smaller hero/brand/rows/type, tighter rhythm, tagline hidden under
+  360px) — same treatment both pages (shared template). Parity 3/3,
+  JS parses, CSS balanced, mirrors content-verified.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner

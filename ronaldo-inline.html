@@ -224,6 +224,50 @@ button{touch-action:manipulation}
   font-family:var(--font);transition:border-color .15s ease,background .15s ease,transform .15s ease}
 .mball.on{border-color:var(--gold);background:rgba(255,184,0,.12)}
 .mball:active{transform:scale(.94)}
+
+/* ── stats partner card (2026-10-03): the backlink that counts ── */
+.partner{margin-top:14px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:14px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow)}
+.partner .pinfo{flex:1;min-width:0}
+.partner b{font-size:14px;font-weight:900}
+.partner p{margin:4px 0 0;font-size:12.5px;color:var(--muted);font-weight:600;line-height:1.7}
+.partner .pcta{flex:none;font-family:var(--font);font-size:13px;font-weight:800;color:#04120c;
+  background:var(--grass);border-radius:10px;padding:10px 16px;min-height:44px;
+  display:inline-flex;align-items:center;text-decoration:none}
+@media (hover:hover){.partner .pcta:hover{filter:brightness(1.07)}}
+.partner .pcta:active{transform:scale(.97)}
+@media (max-width:480px){.partner{flex-direction:column;align-items:stretch;text-align:center}.partner .pcta{justify-content:center}}
+
+/* ── mobile declutter (2026-10-03): roomy on desktop, calm on phones ── */
+@media (max-width:480px){
+  .brand h1{font-size:clamp(14px,4vw,17px)}
+  .brand .goat{width:36px;height:36px;font-size:19px}
+  .home{padding:8px 12px;font-size:12px}
+  .lang button,.lang a.promo{padding:7px 11px;font-size:11.5px;min-height:42px}
+  .hero{padding:18px 14px}
+  .hero .big{font-size:32px}
+  .hero h2{font-size:17px}
+  .hero p{font-size:13px;margin-bottom:12px}
+  .hero .cta{padding:11px 22px;min-height:48px;font-size:14px}
+  .spot{padding:10px 12px}
+  .spot b{font-size:15px}
+  .sec-title{font-size:15px;margin:16px 2px 8px}
+  .live-lg{margin:8px 2px 4px}
+  .m{padding:9px 11px;gap:9px;min-height:58px}
+  .m .t{font-size:12.5px}
+  .m .t img{width:22px;height:22px}
+  .m .t b{font-size:14px;min-width:30px;padding:0 6px}
+  .m .st{min-width:48px}
+  .m .st .t{font-size:13px}
+  .mball{width:40px;height:40px}
+  .support{padding:12px}
+  .faq summary{font-size:13.5px}
+  .foot{font-size:12px;padding:14px 10px calc(20px + env(safe-area-inset-bottom))}
+}
+@media (max-width:360px){
+  .brand small{display:none}
+  .hero .big{font-size:28px}
+}
 </style>
 </head>
 <body>
@@ -266,6 +310,10 @@ button{touch-action:manipulation}
     </div>
     <div class="sup-wallet" id="walletBox" hidden><code dir="ltr">0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
   </div>
+  <section class="partner">
+    <div class="pinfo"><b data-i18n="partnerH">Stats</b><p data-i18n="partnerP">Stats partner.</p></div>
+    <a class="pcta" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="partnerCta">Open</a>
+  </section>
   <section class="seo faq" id="faq"><h2 data-i18n="faqH">Watch Ronaldo Live — FAQ</h2><details><summary data-i18n="fq1">How do I watch Ronaldo live?</summary><p data-i18n="fa1">Open any live Al Nassr or Portugal match on this page to start the free stream.</p></details><details><summary data-i18n="fq2">Which Ronaldo matches are listed?</summary><p data-i18n="fa2">Every Al Nassr and Portugal fixture — live now, upcoming and recent results.</p></details><details><summary data-i18n="fq3">Is the Ronaldo stream free?</summary><p data-i18n="fa3">Yes — every Ronaldo stream here is free, with no account and no popups.</p></details><details><summary data-i18n="fq4">Does it work on mobile?</summary><p data-i18n="fa4">Yes — this page is fully mobile-optimized and works on any phone, tablet or desktop.</p></details></section>
 </div>
 <footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="#top" data-i18n="ftTop">Top</a></footer>
@@ -287,6 +335,7 @@ bellBtn: 'Remind me at kickoff', bellOn: 'Reminder set', bellOff: 'Reminder remo
 bellStart: 'Kickoff!', bellUnsupported: 'Notifications not supported', bellDenied: 'Enable notifications in your browser',
 supMsg: '❤ Messi streams are free — support us with a donation.',
 walletBtn: '⧉ BEP20 wallet', copyBtn: 'Copy', copyOk: 'Address copied',
+partnerH: '📊 Live Ronaldo stats', partnerP: 'Goals, records and live data on MessiStats.com — our stats partner.', partnerCta: 'Open MessiStats.com',
 dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats', ftMessi: '🐐 Messi',
 faqH: 'Watch Ronaldo Live — FAQ',
 fq1: 'How do I watch Ronaldo live?', fa1: 'Open any live Al Nassr or Portugal match on this page to start the free stream.',
@@ -313,6 +362,7 @@ bellBtn: 'Me rappeler au coup d’envoi', bellOn: 'Rappel activé', bellOff: 'Ra
 bellStart: 'Coup d’envoi !', bellUnsupported: 'Notifications non prises en charge', bellDenied: 'Activez les notifications dans le navigateur',
 supMsg: '❤ Les streams de Messi sont gratuits — soutenez-nous avec un don.',
 walletBtn: '⧉ Wallet BEP20', copyBtn: 'Copier', copyOk: 'Adresse copiée',
+partnerH: '📊 Stats de Ronaldo en direct', partnerP: 'Buts, records et données live sur MessiStats.com — notre partenaire stats.', partnerCta: 'Ouvrir MessiStats.com',
 dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats', ftMessi: '🐐 Messi',
 faqH: 'Regarder Ronaldo en Direct — FAQ',
 fq1: 'Comment regarder Ronaldo en direct ?', fa1: 'Ouvrez un match en direct d’Al Nassr ou du Portugal sur cette page pour lancer le stream gratuit.',
@@ -338,6 +388,7 @@ bellBtn: 'ذكرني عند بداية المباراة', bellOn: 'تم تفعي
 bellStart: 'بدأت المباراة!', bellUnsupported: 'التنبيهات غير مدعومة', bellDenied: 'فعّل التنبيهات في المتصفح',
 supMsg: '❤ بثوث ميسي مجانية — ادعمنا بتبرع.',
 walletBtn: '⧉ محفظة BEP20', copyBtn: 'نسخ', copyOk: 'تم نسخ العنوان',
+partnerH: '📊 إحصائيات رونالدو المباشرة', partnerP: 'الأهداف والأرقام والبيانات المباشرة على MessiStats.com — شريكنا للإحصائيات.', partnerCta: 'افتح MessiStats.com',
 dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats', ftMessi: '🐐 ميسي',
 faqH: 'مشاهدة رونالدو بث مباشر — أسئلة شائعة',
 fq1: 'كيف أشاهد رونالدو بث مباشر؟', fa1: 'افتح أي مباراة مباشرة للنصر أو البرتغال في هذه الصفحة لبدء البث المجاني.',
