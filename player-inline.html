@@ -434,8 +434,7 @@ body{background:
 .lang a.promo:active{transform:scale(.97)}
 .foot{display:flex;gap:4px;justify-content:center;align-items:center;flex-wrap:wrap;padding:14px 12px calc(20px + env(safe-area-inset-bottom));color:var(--muted);font-size:13px;font-weight:700}
 .foot a{color:inherit;text-decoration:none;padding:10px 12px;min-height:44px;display:inline-flex;align-items:center;border-radius:8px}
-html:not([lang="ar"]) .only-ar{display:none!important}
-html[lang="ar"] .only-enfr{display:none!important}
+[data-deals][hidden]{display:none!important}
 
 /* ── premium pass 2 (2026-10-03): motion + tactile controls ── */
 ::-webkit-scrollbar{width:10px;height:8px}
@@ -545,6 +544,9 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
   min-height:40px;padding:6px 12px;cursor:pointer;transition:border-color .15s ease,color .15s ease}
 @media (hover:hover){.repbtn:hover{border-color:var(--live);color:var(--live)}}
 .repbtn:active{transform:scale(.96)}
+
+.pbtn.cr7{background:#be123c;color:#fff;border-color:transparent;
+  box-shadow:0 2px 8px rgba(190,18,60,.3)}
 </style>
 </head>
 <body>
@@ -555,7 +557,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
     <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
     <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
   </div>
-    <div class="promo-row"><a class="pbtn gold" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="pbtn tg only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn tg only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a class="pbtn tg" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
+    <div class="promo-row"><a class="pbtn gold" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="pbtn cr7" href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a class="pbtn tg" data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn tg" data-deals="ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a class="pbtn tg" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
   <div class="stage">
     <iframe id="player" title="player" tabindex="-1" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       loading="eager"></iframe>
@@ -626,7 +628,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 
   
 </div>
-<footer class="foot"><a href="/" data-i18n="footHome">Home</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></footer>
+<footer class="foot"><a href="/" data-i18n="footHome">Home</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a data-deals="ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></footer>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -898,6 +900,11 @@ if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@gr
 }
 const SITE_TG = ''; // <-- paste the site Telegram channel URL here to activate
 function siteTgPaint(){ try { const u = (typeof SITE_TG === 'string' ? SITE_TG.trim() : ''); document.querySelectorAll('[data-sitetg]').forEach(a => { if (u){ a.href = u; a.hidden = false; } else { a.hidden = true; } }); } catch (e) {} }
+function dealsPaint(){ try {
+  const g = (document.documentElement.getAttribute('data-dealsgeo') || '').toLowerCase();
+  const want = (g === 'fr' || g === 'ar') ? g : ((document.documentElement.lang === 'ar') ? 'ar' : 'fr');
+  document.querySelectorAll('[data-deals]').forEach(a => { a.hidden = (a.getAttribute('data-deals') !== want); });
+} catch (e) {} }
 function setLang(l, save){
 if (!I18N[l]) return;
 LANG = l;
@@ -905,6 +912,7 @@ try { document.documentElement.lang = l; document.documentElement.dir = (l === '
 if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
 try { applyStatic(); updateMeta(); } catch (e) {}
 try { siteTgPaint(); } catch (e) {}
+try { dealsPaint(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
 if (save !== false){
 try {
@@ -960,6 +968,10 @@ function geoApply(cc){
   const c = String(cc).toUpperCase().trim();
   if (!/^[A-Z]{2}$/.test(c)) return;
   geoSave(c);
+  try { if (GEO_FR.has(c)) document.documentElement.setAttribute('data-dealsgeo', 'fr');
+  else if (GEO_AR.has(c)) document.documentElement.setAttribute('data-dealsgeo', 'ar');
+  else document.documentElement.removeAttribute('data-dealsgeo');
+  dealsPaint(); } catch (e) {}
   if (GEO_FR.has(c) && LANG !== 'fr'){ GEO_LOCK = true; try { setLang('fr'); } catch (e) {} }
   else if (GEO_AR.has(c) && LANG !== 'ar'){ GEO_LOCK = true; try { setLang('ar'); } catch (e) {} }
 }

@@ -150,8 +150,7 @@ body{margin:0;font-family:var(--font);background:
 .foot a{color:inherit;text-decoration:none;padding:10px 12px;min-height:44px;display:inline-flex;align-items:center;border-radius:8px}
 @media (hover:hover){.foot a:hover{background:rgba(22,163,74,.12);color:var(--ink)}}
 .foot [hidden]{display:none}
-html:not([lang="ar"]) .only-ar{display:none!important}
-html[lang="ar"] .only-enfr{display:none!important}
+[data-deals][hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px;border-radius:6px}
 button{touch-action:manipulation}
 /* small phones */
@@ -268,6 +267,8 @@ button{touch-action:manipulation}
   .brand small{display:none}
   .hero .big{font-size:28px}
 }
+
+.lang a.cr7{background:#be123c;border-color:transparent;color:#fff}
 </style>
 </head>
 <body>
@@ -275,7 +276,7 @@ button{touch-action:manipulation}
   <div class="brand">
     <a class="home" href="/" data-i18n="ftHome">Home</a>
     <div><h1 data-i18n="brand">Watch Ronaldo Live — Al Nassr & Portugal</h1><small data-i18n="tagline">Every Ronaldo match: live, upcoming & results</small></div>
-    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
+    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo" data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" data-deals="ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="promo" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
   </div>
 </header>
 <div class="wrap">
@@ -316,7 +317,7 @@ button{touch-action:manipulation}
   </section>
   <section class="seo faq" id="faq"><h2 data-i18n="faqH">Watch Ronaldo Live — FAQ</h2><details><summary data-i18n="fq1">How do I watch Ronaldo live?</summary><p data-i18n="fa1">Open any live Al Nassr or Portugal match on this page to start the free stream.</p></details><details><summary data-i18n="fq2">Which Ronaldo matches are listed?</summary><p data-i18n="fa2">Every Al Nassr and Portugal fixture — live now, upcoming and recent results.</p></details><details><summary data-i18n="fq3">Is the Ronaldo stream free?</summary><p data-i18n="fa3">Yes — every Ronaldo stream here is free, with no account and no popups.</p></details><details><summary data-i18n="fq4">Does it work on mobile?</summary><p data-i18n="fa4">Yes — this page is fully mobile-optimized and works on any phone, tablet or desktop.</p></details></section>
 </div>
-<footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="#top" data-i18n="ftTop">Top</a></footer>
+<footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a data-deals="ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="#top" data-i18n="ftTop">Top</a></footer>
 
 <script>
 'use strict';
@@ -426,6 +427,11 @@ const ogU = document.querySelector('meta[property="og:url"]'); if (ogU) ogU.setA
 }
 const SITE_TG = ''; // <-- paste the site Telegram channel URL here to activate
 function siteTgPaint(){ try { const u = (typeof SITE_TG === 'string' ? SITE_TG.trim() : ''); document.querySelectorAll('[data-sitetg]').forEach(a => { if (u){ a.href = u; a.hidden = false; } else { a.hidden = true; } }); } catch (e) {} }
+function dealsPaint(){ try {
+  const g = (document.documentElement.getAttribute('data-dealsgeo') || '').toLowerCase();
+  const want = (g === 'fr' || g === 'ar') ? g : ((document.documentElement.lang === 'ar') ? 'ar' : 'fr');
+  document.querySelectorAll('[data-deals]').forEach(a => { a.hidden = (a.getAttribute('data-deals') !== want); });
+} catch (e) {} }
 function setLang(l, save){
 if (!I18N[l]) return;
 LANG = l;
@@ -433,6 +439,7 @@ try { document.documentElement.lang = l; document.documentElement.dir = (l === '
 if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
 try { applyStatic(); updateMeta(); render(); } catch (e) {}
 try { siteTgPaint(); } catch (e) {}
+try { dealsPaint(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
 }
 try {
@@ -465,6 +472,10 @@ function geoApply(cc){
   const c = String(cc).toUpperCase().trim();
   if (!/^[A-Z]{2}$/.test(c)) return;
   geoSave(c);
+  try { if (GEO_FR.has(c)) document.documentElement.setAttribute('data-dealsgeo', 'fr');
+  else if (GEO_AR.has(c)) document.documentElement.setAttribute('data-dealsgeo', 'ar');
+  else document.documentElement.removeAttribute('data-dealsgeo');
+  dealsPaint(); } catch (e) {}
   if (GEO_FR.has(c) && LANG !== 'fr'){ GEO_LOCK = true; try { setLang('fr'); } catch (e) {} }
   else if (GEO_AR.has(c) && LANG !== 'ar'){ GEO_LOCK = true; try { setLang('ar'); } catch (e) {} }
 }

@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (backlinks + mobile declutter — see §82 bullet).
+> Last updated: 2026-10-03 (geo-routed deals + Ronaldo header buttons — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -226,6 +226,17 @@
   (smaller hero/brand/rows/type, tighter rhythm, tagline hidden under
   360px) — same treatment both pages (shared template). Parity 3/3,
   JS parses, CSS balanced, mirrors content-verified.
+- **Geo-routed deals + Ronaldo header buttons (2026-10-03, owner order).**
+  Deals buttons no longer follow interface language — French GEO sees the
+  French channel, Arab-world GEO the Arabic channel, everyone else falls
+  back to language (EN→FR channel). Implemented as `data-deals` anchors +
+  `dealsPaint()` driven by `data-dealsgeo` (set in `geoApply`, cached geo
+  included), replacing the old `html[lang]` CSS toggles on all 4 pages.
+  Headless-proven: FR-geo-over-AR-lang, DZ-geo-over-FR-lang, defaults and
+  unknown-geo fallback all correct. Also added the 👑 Ronaldo header button
+  (crimson, promo rows on index/player, lang groups on star pages;
+  cross-links both ways). Fixed a duplicate `ftCR7` key from overlapping
+  batches. Mirrors content-verified.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
