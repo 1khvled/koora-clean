@@ -442,7 +442,7 @@ body{background:
   <div class="head">
     <a class="back" href="/" id="backBtn" data-i18n="back">‹ Back</a>
     <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
-    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></div>
+    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo" href="https://t.me/francedealsdz" class="tg-deals" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></div>
   </div>
   <div class="stage">
     <iframe id="player" title="player" tabindex="-1" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
@@ -513,7 +513,7 @@ body{background:
 
   
 </div>
-<footer class="foot"><a href="/" data-i18n="footHome">Home</a><a href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></footer>
+<footer class="foot"><a href="/" data-i18n="footHome">Home</a><a href="https://t.me/francedealsdz" class="tg-deals" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></footer>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -781,6 +781,7 @@ try { document.documentElement.lang = l; document.documentElement.dir = (l === '
 if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
 try { applyStatic(); updateMeta(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
+try { var TG_URL = (l === 'ar') ? 'https://t.me/DzAliexpress0' : 'https://t.me/francedealsdz'; document.querySelectorAll('a.tg-deals').forEach(function(a){ try { a.href = TG_URL; } catch (e) {} }); } catch (e) {}
 if (save !== false){
 try {
 paintTitle();
