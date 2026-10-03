@@ -346,6 +346,44 @@ html.dark .support{box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.06)}
 .lang a.promo:active{transform:scale(.97)}
 html:not([lang="ar"]) .only-ar{display:none!important}
 html[lang="ar"] .only-enfr{display:none!important}
+
+/* ── premium pass 2 (2026-10-03): iconography, motion, structure ── */
+/* search with magnifier at the inline-start (never collides with native clear) */
+#searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6f65' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:18px;background-position:left 14px center;
+  padding-left:42px}
+[dir="rtl"] #searchInput{background-position:right 14px center;padding-left:14px;padding-right:42px}
+html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db5a8' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E")}
+/* themed page scrollbar (webkit) */
+::-webkit-scrollbar{width:10px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--pitch) 35%,var(--line));border-radius:99px;border:2px solid var(--paper)}
+::-webkit-scrollbar-thumb:hover{background:var(--grass)}
+/* live cards breathe a little larger */
+.live-list .m{padding:14px 16px}
+.live-list .m .t{font-size:15px;font-weight:700}
+.live-list .m .t b{font-size:18px}
+.live-list .m .t img{width:28px;height:28px}
+/* FAQ accordion: animated open + clearer affordance */
+.faq details{overflow:hidden}
+.faq details[open] > p{animation:fadeSlide .22s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-5px)}}
+.faq summary{position:relative;padding-inline-end:28px}
+.faq summary::after{content:"+";position:absolute;inset-inline-end:12px;top:50%;
+  transform:translateY(-50%);color:var(--grass);font-size:20px;font-weight:900;line-height:1}
+.faq details[open] summary::after{content:"\2212"}
+/* structural hairlines: footer + seo read as designed sections */
+.foot{border-top:1px solid var(--line);margin-top:20px}
+.seo{border-top:1px dashed var(--line);padding-top:14px}
+#liveJump{transition:transform .15s ease,box-shadow .15s ease}
+@media (hover:hover){#liveJump:hover{transform:translateY(-2px) scale(1.04)}}
+#liveJump:active{transform:scale(.96)}
+/* retry + empty states feel intentional, not broken */
+#errbox .chip{border-color:rgba(224,32,46,.4)}
+#empty{padding:56px 0}
+@media (prefers-reduced-motion:reduce){
+  .faq details[open] > p{animation:none}
+}
 </style>
 </head>
 <body>

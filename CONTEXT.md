@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (two separate deals buttons, CSS toggle — see §82 bullet).
+> Last updated: 2026-10-03 (premium round 2 — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -104,6 +104,14 @@
   t.me/DzAliexpress0 + FR channel t.me/francedealsdz) toggled by pure CSS on
   `html[lang]` — no JS involved, nothing left to break. Dead setter removed;
   mirrors re-synced.
+- **Premium round 2 (2026-10-03).** CSS-only (69 added, 0 removed): search
+  field with inline-start magnifier (dark-mode aware, RTL-flipped, clear of
+  the native clear-button), themed page scrollbars, larger live cards with
+  bigger type/scores/logos, animated FAQ accordion (+/− affordance),
+  structural hairlines above footer and SEO sections, tactile live-jump
+  button. Player: glowing play CTA pulse, pop-in formation popover, pitch-dot
+  hover rings, lifting odds/ballot rows, press-depth on controls, wider title
+  type on desktop. All motion reduced-motion-gated. Mirrors re-synced.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
