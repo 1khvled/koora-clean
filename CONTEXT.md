@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-01 (Yassir Arabic source + wrong-stream fix — see CONTEXT 82).
+> Last updated: 2026-10-03 (score/status now overlaid from koora-l — see CONTEXT 82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -56,6 +56,14 @@
   Arabic, one numbered server, zero brand names. 6 stubbed EN tests + 6 live
   regression tests pass; mirrors verified by **content** diff (§79 lesson).
   **Pushed** to `origin main`.
+- **Score/status feed recovered (2026-10-03).** The index showed a live match
+  as `0-2, 1st half` while the real feed was `0-5, 2nd half, 55'` — the
+  scraped Yacine/Kora pages lag minutes to hours. Because yassir proved our
+  ids are shared with koora-l.live's feed, `api/matches.js` now overlays the
+  authoritative `/game/<ourId>` score, status, minute, kickoff onto every
+  returned row. Verified live: that match then read `0-5, 2nd half, 59'` and
+  advanced to `3-0, 74'` across refreshes. Canceled maps to POST; the koora-l
+  `-1` sentinel no longer leaks as a score.
 
 ## 81. Sandbox removed from player iframe (2026-09-27, user: remove sandbox attributes + Edge UA)
 
