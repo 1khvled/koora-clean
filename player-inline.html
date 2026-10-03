@@ -304,12 +304,6 @@ button{touch-action:manipulation}
 .btn{transition:filter .15s ease}
 .btn:hover{filter:brightness(1.1)}
 }
-
-/* sponsor banner (messistat.com) — one slim footer leaderboard, labeled, lazy */
-.ad-wrap{max-width:728px;margin:12px auto 0}
-.ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card)}
-.ad img{display:block;width:100%;height:auto}
-.ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.72);border-radius:6px;padding:1px 8px}
 .lang{display:flex;gap:6px;flex:none}
 .lang button{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
 .disclaimer{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
@@ -349,7 +343,7 @@ button{touch-action:manipulation}
 
 .lang button.on{background:var(--grass);color:#04120c;border-color:var(--grass)}
 
-/* support card: donations + ad toggle (extensible: any .ad-wrap[data-ad-slot] obeys body.ads-off) */
+/* support card: donations */
 .support{max-width:728px;margin:12px auto 0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
 .sup-msg{font-size:13px;font-weight:700;margin:0 0 8px}
 .sup-row{display:flex;gap:8px;flex-wrap:wrap}
@@ -360,7 +354,6 @@ button{touch-action:manipulation}
 .sup-wallet{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
 .sup-wallet[hidden]{display:none}
 .sup-wallet code{flex:1;min-width:0;font-size:12px;word-break:break-all;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px}
-body.ads-off .ad-wrap{display:none}
 @media (max-width:480px){.support{padding:10px}.sup-msg{font-size:12px}}
 
 
@@ -545,15 +538,22 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 .repbtn:active{transform:scale(.96)}
 
 
-/* ── segmented language control: sliding pill (visual only) ── */
-.lang{position:relative}
-.lang .seg-thumb{position:absolute;top:4px;bottom:4px;border-radius:999px;background:var(--grass);
-  transition:left .28s cubic-bezier(.2,.7,.2,1),width .28s cubic-bezier(.2,.7,.2,1),opacity .2s;
-  z-index:0;pointer-events:none;opacity:0}
-.lang.seg-on .seg-thumb{opacity:1}
-.lang.seg-on button[data-lang]{position:relative;z-index:1;background:transparent;border-color:transparent}
-.lang.seg-on button[data-lang].on{color:#04120c}
-@media (prefers-reduced-motion:reduce){.lang .seg-thumb{transition:none}}
+
+
+/* ── compact headers (2026-10-03): smaller controls, calm on phones ── */
+.lang button,.lang a.promo{padding:6px 12px;min-height:38px;font-size:11.5px}
+@media (max-width:480px){
+  .topbar{padding:calc(10px + env(safe-area-inset-top, 0px)) 12px calc(12px + 18px)}
+  .brand{ gap:8px }
+  .brand h1{font-size:15px}
+  .brand small{font-size:11px}
+  .brand .ball{width:34px;height:34px;font-size:18px}
+  .promo-row{gap:6px;margin-top:8px}
+  .promo-row .pbtn{padding:7px 12px;min-height:40px;font-size:11.5px}
+  .head{flex-wrap:wrap}
+  .title h1{font-size:14px}
+  .back{padding:8px 12px;min-height:40px;font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -621,19 +621,15 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
     </div>
     <div id="minfoBody"><div class="loading" data-i18n="minfoLoading">Loading lineups and ratings…</div><div class="mi-skel" aria-hidden="true"><div class="mi-skel-score"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div></div></div>
   </section>
-  <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 
 <div class="support" id="support">
-  <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us by keeping ads on or donating.</div>
+  <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us with a donation.</div>
   <div class="sup-row">
     <a class="sup-btn kofi" href="https://ko-fi.com/messistat" target="_blank" rel="noopener sponsored">☕ Ko-fi</a>
     <button class="sup-btn" id="walletBtn" type="button" data-i18n="walletBtn" aria-controls="walletBox" aria-expanded="false">⧉ BEP20 wallet</button>
-    <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
   </div>
   <div class="sup-wallet" id="walletBox" hidden><code dir="ltr">0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
 </div>
-
-  
 </div>
 <footer class="foot"><a href="/" data-i18n="footHome">Home</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></footer>
 <div class="toast" id="toast" role="status"></div>
@@ -706,9 +702,8 @@ fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked',
 ariaFav: 'Toggle favorite', ariaLike: 'Like this match', ariaShare: 'Share match link', ariaBell: 'Match notifications', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentary in Arabic',
 updatedAgo: (s) => 'updated ' + s + 's ago',
-minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
-    supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
-    adsOn: 'Ads: ON', adsOff: 'Ads: OFF', copyBtn: 'Copy',
+minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', supMsg: '❤ Streams are free — support us with a donation.',
+    copyBtn: 'Copy',
 dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats', footHome: 'Home', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo',
 oddsTitle: 'Match odds', oddsDraw: 'Draw', polyLink: 'Full odds',
 polyTitle: 'Ballon d’Or 2026 — odds',
@@ -764,9 +759,8 @@ fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués',
 ariaFav: 'Ajouter aux favoris', ariaLike: 'Aimer ce match', ariaShare: 'Copier le lien du match', ariaBell: 'Notifications du match', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentaires en arabe',
 updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
-minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
-    supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
-    adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF', copyBtn: 'Copier',
+minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', supMsg: '❤ Les streams sont gratuits — soutenez-nous avec un don.',
+    copyBtn: 'Copier',
 dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats', footHome: 'Accueil', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo',
 oddsTitle: 'Cotes du match', oddsDraw: 'Nul', polyLink: 'Toutes les cotes',
 polyTitle: 'Ballon d’Or 2026 — cotes',
@@ -822,8 +816,7 @@ fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', bloc
 ariaFav: 'إضافة إلى المفضلة', ariaLike: 'أعجبني', ariaShare: 'نسخ رابط المباراة', ariaBell: 'تنبيهات المباراة', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 التعليق باللغة العربية',
 updatedAgo: (s) => 'تم التحديث قبل ' + s + ' ث',
-minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', ad: 'إعلان',
-live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
+minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
 favAdd: 'أضيفت إلى المفضلة', favRemove: 'أزيلت إلى المفضلة',
 bellStart: 'بدأت المباراة', bellGoal: '⚽ هدف', bellScore: 'تغيرت النتيجة',
 bellUnsupported: 'التنبيهات غير مدعومة', bellDenied: 'فعل التنبيهات من المتصفح',
@@ -855,8 +848,8 @@ close: 'إغلاق', noPlayerEvents: 'لا أحداث لهذا اللاعب',
 defaultTitle: 'مشاهدة المباراة', leagueFallback: 'بث نظيف بدون إعلانات',
 watchTitle: (h, a) => 'مشاهدة ' + h + ' × ' + a + ' بث مباشر — كورة لايف',
 watchDesc: (h, a, l) => 'مشاهدة ' + h + ' × ' + a + (l ? ' (' + l + ')' : '') + ' بث مباشر بجودة عالية — كورة لايف',
-supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانات أو بالتبرع.',
-adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة', copyBtn: 'نسخ',
+supMsg: '❤ البث مجاني — ادعمنا بتبرع.',
+copyBtn: 'نسخ',
 dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats', footHome: 'الرئيسية', ftMessi: '🐐 ميسي', ftCR7: '👑 رونالدو',
 oddsTitle: 'احتمالات المباراة', oddsDraw: 'تعادل', polyLink: 'كل الاحتمالات',
 polyTitle: 'الكرة الذهبية 2026 — الاحتمالات',
@@ -926,7 +919,6 @@ try {
 paintTitle();
 if (home || away) paintMatch(home, away, homeLogo, awayLogo, leagueP);
 paintStars();
-paintAds();
 statusEl.textContent = t('blocked') + ': ' + blocked;
 if (serverList && serverList.length){
 serversEl.innerHTML = serverList.map((s, i) => btnHtml(s, i, i === srvIdx)).join('');
@@ -1001,14 +993,6 @@ function geoApply(cc){
   );
 })();
 
-/* SUPPORT — donations + ad toggle. New ad slots: add class="ad-wrap"
-   data-ad-slot="name" anywhere; the toggle + CSS pick them up automatically. */
-function adsOn(){ try { return localStorage.getItem('koora_ads') !== '0'; } catch (e) { return true; } }
-function paintAds(){
-  const on = adsOn();
-  try { document.body.classList.toggle('ads-off', !on); } catch (e) {}
-  try { const b = document.getElementById('adsBtn'); if (b){ b.textContent = on ? t('adsOn') : t('adsOff'); b.setAttribute('aria-pressed', on ? 'true' : 'false'); } } catch (e) {}
-}
 function copyText(txt, okK, failK){
   const done = () => { try { toast(t(okK)); } catch (e) {} };
   const fail = () => { try { toast(t(failK)); } catch (e) {} };
@@ -1018,9 +1002,6 @@ function copyText(txt, okK, failK){
   } catch (e) { fail(); }
 }
 try {
-  paintAds();
-  const ab = document.getElementById('adsBtn');
-  if (ab) ab.onclick = () => { try { localStorage.setItem('koora_ads', adsOn() ? '0' : '1'); } catch (e) {} paintAds(); };
   const wb = document.getElementById('walletBtn');
   if (wb) wb.onclick = () => { const box = document.getElementById('walletBox'); if (box) { box.hidden = !box.hidden; try { wb.setAttribute('aria-expanded', box.hidden ? 'false' : 'true'); } catch {} } };
   const cb = document.getElementById('walletCopy');
@@ -3134,41 +3115,6 @@ try {
 
 </script>
 
-<script>
-/* Sliding pill for the language segmented control. Visual only: the real
-   state stays in button.on (set by setLang); this thumb just glides to it.
-   Measured, so it stays correct in RTL and after font loads. */
-try {
-document.querySelectorAll('.lang').forEach(function(g){
-  if (g.querySelector(':scope > .seg-thumb')) return;
-  var th = document.createElement('span');
-  th.className = 'seg-thumb'; th.setAttribute('aria-hidden', 'true');
-  g.insertBefore(th, g.firstChild);
-});
-var segMove = function(){
-  try {
-    document.querySelectorAll('.lang').forEach(function(g){
-      var on = g.querySelector('button.on[data-lang]');
-      var th = g.querySelector(':scope > .seg-thumb');
-      if (!on || !th) return;
-      var top = on.offsetTop, same = true;
-      g.querySelectorAll('button[data-lang]').forEach(function(b){ if (b.offsetTop !== top) same = false; });
-      // NOTE: write ONLY on change — unconditional writes re-trigger this
-      // same observer forever and freeze the page (fixed 2026-10-03).
-      if (!same || !on.offsetWidth){ if (g.classList.contains('seg-on')) g.classList.remove('seg-on'); return; }
-      var L = on.offsetLeft + 'px', W = on.offsetWidth + 'px';
-      if (th.style.left !== L) th.style.left = L;
-      if (th.style.width !== W) th.style.width = W;
-      if (!g.classList.contains('seg-on')) g.classList.add('seg-on');
-    });
-  } catch (e) {}
-};
-new MutationObserver(segMove).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class'] });
-window.addEventListener('resize', segMove);
-window.addEventListener('load', function(){ setTimeout(segMove, 60); });
-if (document.fonts && document.fonts.ready) { try { document.fonts.ready.then(function(){ segMove(); }); } catch (e) {} }
-segMove();
-} catch (e) {}
-</script>
+
 </body>
 </html>

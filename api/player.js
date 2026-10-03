@@ -458,6 +458,83 @@ const resolveYacine = async (home, away, startIso) => {
   };
 
 
+
+  // VIPBox (verified 2026-10-04): the football-schedule carries genuinely
+  // niche fixtures (South/Central American + lower US leagues) with
+  // /onair/football/<slug> pages exposing data-uri /live/... players.
+  // The /live pages send no X-Frame-Options and no CSP, so they embed
+  // directly — no token reversal needed. Hidden fallback BEHIND Streamed:
+  // runs ONLY when every Arabic source + Streamed yields zero (numbered
+  // buttons, zero brand leakage, same strict gates as the EN path).
+  const VIP_HOSTS = ['https://vipbox.live', 'https://vipbox.fm'];
+  // Phase 1 (cheap): schedule fetch + name match. Schedule times read as
+  // UTC (calibrated: evening slots line up with UTC wall-clock); the strict
+  // MAX-of-sides name gate carries precision, time is corroboration only.
+  const vipMatch = async (home, away, startIso) => {
+    const qStartMs = Date.parse(startIso || '') || 0;
+    try {
+      const arH = arToksOf(home), arA = arToksOf(away);
+      if (!arH.length || !arA.length) return null;
+      let sched = '', ghost = VIP_HOSTS[0];
+      for (const host of VIP_HOSTS) {
+        try {
+          const r = await fetchT(host + '/football-schedule', {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'text/html,application/xhtml+xml',
+              'Referer': host + '/',
+            },
+          }, 4500);
+          if (!r || !r.ok) continue;
+          const tx = await readCapped(r, 1500000);
+          if (tx && tx.includes('/onair/')) { sched = tx; ghost = host; break; }
+        } catch {}
+      }
+      if (!sched) return null;
+      const nowMs = Date.now();
+      const nowD = new Date();
+      const cands = [];
+      for (const m of sched.matchAll(/<a[^>]+href="(\/onair\/[^"]+)"[^>]*>([\s\S]{0,200}?)<\/a>/gi)) {
+        const t = m[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        const tm = t.match(/(\d{1,2}):(\d{2})\s+(.*)/);
+        if (!tm) continue;
+        const parts = tm[3].split(/\s+vs\.?\s+/i);
+        if (parts.length < 2) continue;
+        const t1 = parts[0].trim(), t2 = parts.slice(1).join(' vs ').trim();
+        if (!t1 || !t2) continue;
+        let dt = Date.UTC(nowD.getUTCFullYear(), nowD.getUTCMonth(), nowD.getUTCDate(), +tm[1], +tm[2]);
+        if (dt - nowMs > 12 * 3600 * 1000) dt -= 86400000;
+        if (nowMs - dt > 12 * 3600 * 1000) dt += 86400000;
+        if (qStartMs && Math.abs(dt - qStartMs) > 150 * 60000) continue;
+        const sc = streamScore(arH, arA, t1, t2);
+        cands.push({ href: m[1], sc });
+      }
+      cands.sort((a, b) => a.sc - b.sc);
+      if (!cands.length) return null;
+      const b0 = cands[0];
+      if (!(b0.sc <= 0.55)) return null;
+      return { href: b0.href, host: ghost };
+    } catch { return null; }
+  };
+  // Phase 2: the /onair page's data-uri players (embeddable live pages).
+  const vipDetail = async (hit) => {
+    if (!hit || !hit.href) return null;
+    try {
+      const r = await fetchT(hit.host + hit.href, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'text/html,application/xhtml+xml',
+          'Referer': hit.host + '/football-schedule',
+        },
+      }, 4500);
+      if (!r || !r.ok) return null;
+      const html = await readCapped(r, 800000);
+      const links = [...new Set([...html.matchAll(/data-uri="(\/live\/[^"]+)"/gi)].map(x => x[1]))].slice(0, 3);
+      if (!links.length) return null;
+      return { servers: links.map(u => ({ url: hit.host + u })) };
+    } catch { return null; }
+  };
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=30');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -606,6 +683,11 @@ const resolveYacine = async (home, away, startIso) => {
         new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
       ]).catch(() => null)
           : Promise.resolve(null),
+    canEn ? Promise.race([
+        vipMatch(matchHome, matchAway, kickoff).catch(() => null),
+        new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
+      ]).catch(() => null)
+          : Promise.resolve(null),
   ]);
 
   // Allow yacine/hd7 lookup even when kooralive has no entry for this
@@ -695,7 +777,7 @@ const resolveYacine = async (home, away, startIso) => {
     // Yassir already answered (or was tried) in the fast path above; the
     // name-matched resolvers were started before this chain and are awaited
     // here. Yassir is folded in again only if the fast path did not return.
-    const [yacine, enHit] = await batchP;
+    const [yacine, enHit, vipHit] = await batchP;
     const servers = [];
     if (id && !yassirHit) {
       const y2 = await resolveYassir(id).catch(() => null);
@@ -732,6 +814,17 @@ const resolveYacine = async (home, away, startIso) => {
           new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 300)))),
         ]);
         if (en && en.servers) en.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live' }));
+      } catch {}
+    }
+    // VIPBox niche fallback (verified 2026-10-04): ONLY when every other
+    // source yields zero. Same strict gates; never surfaces a wrong match.
+    if (!servers.length && vipHit && !outOfTime(800)) {
+      try {
+        const vb = await Promise.race([
+          vipDetail(vipHit).catch(() => null),
+          new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 300)))),
+        ]);
+        if (vb && vb.servers) vb.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live' }));
       } catch {}
     }
 

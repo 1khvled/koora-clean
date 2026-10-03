@@ -216,17 +216,11 @@ html.dark .live-lg,html.dark .league>h2{color:#8fe3ae}
 html.dark .seo a:hover{color:#8fe3ae}
 html.dark .lang button{border-color:rgba(255,255,255,.25)}
 html.dark .m .st .s.live, html.dark .mcard .mid .vs.live, html.dark .like.on{color:#ff6b74}
-
-/* sponsor banner (messistat.com) — one slim footer leaderboard, labeled, lazy */
-.ad-wrap{max-width:728px;margin:14px auto;padding:0 16px}
-.ad{position:relative;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow)}
-.ad img{display:block;width:100%;height:auto}
-.ad .tag{position:absolute;top:6px;inset-inline-start:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 8px}
 .lang{display:flex;gap:6px;position:relative;z-index:1;margin-top:10px}
 .lang button{font-family:var(--font);border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
 .lang button.on{background:#fff;color:var(--pitch);border-color:#fff}
 
-/* support card: donations + ad toggle (extensible: any .ad-wrap[data-ad-slot] obeys body.ads-off) */
+/* support card: donations */
 .support{max-width:728px;margin:12px auto 0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
 .sup-msg{font-size:13px;font-weight:700;margin:0 0 8px}
 .sup-row{display:flex;gap:8px;flex-wrap:wrap}
@@ -237,8 +231,6 @@ html.dark .m .st .s.live, html.dark .mcard .mid .vs.live, html.dark .like.on{col
 .sup-wallet{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
 .sup-wallet[hidden]{display:none}
 .sup-wallet code{flex:1;min-width:0;font-size:12px;word-break:break-all;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px}
-body.ads-off .ad-wrap{display:none}
-
 @media (max-width:480px){.support{padding:10px}.sup-msg{font-size:12px}}
 /* tablets/desktops: wider content */
 @media (min-width:768px){
@@ -400,8 +392,6 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .seo ul li::marker{color:var(--grass)}
 .ssr-list li{transition:border-color .15s ease,transform .15s ease}
 @media (hover:hover){.ssr-list li:hover{border-color:rgba(22,163,74,.5);transform:translateY(-1px)}}
-.ad{transition:transform .15s ease,box-shadow .15s ease}
-@media (hover:hover){.ad:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(7,31,25,.16)}}
 
 /* ── mobile optimization (2026-10-03): small screens first ── */
 @media (max-width:480px){
@@ -466,15 +456,22 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .mball:active{transform:scale(.94)}
 
 
-/* ── segmented language control: sliding pill (visual only) ── */
-.lang{position:relative}
-.lang .seg-thumb{position:absolute;top:4px;bottom:4px;border-radius:999px;background:#fff;
-  transition:left .28s cubic-bezier(.2,.7,.2,1),width .28s cubic-bezier(.2,.7,.2,1),opacity .2s;
-  z-index:0;pointer-events:none;opacity:0}
-.lang.seg-on .seg-thumb{opacity:1}
-.lang.seg-on button[data-lang]{position:relative;z-index:1;background:transparent;border-color:transparent}
-.lang.seg-on button[data-lang].on{color:var(--pitch)}
-@media (prefers-reduced-motion:reduce){.lang .seg-thumb{transition:none}}
+
+
+/* ── compact headers (2026-10-03): smaller controls, calm on phones ── */
+.lang button,.lang a.promo{padding:6px 12px;min-height:38px;font-size:11.5px}
+@media (max-width:480px){
+  .topbar{padding:calc(10px + env(safe-area-inset-top, 0px)) 12px calc(12px + 18px)}
+  .brand{ gap:8px }
+  .brand h1{font-size:15px}
+  .brand small{font-size:11px}
+  .brand .ball{width:34px;height:34px;font-size:18px}
+  .promo-row{gap:6px;margin-top:8px}
+  .promo-row .pbtn{padding:7px 12px;min-height:40px;font-size:11.5px}
+  .head{flex-wrap:wrap}
+  .title h1{font-size:14px}
+  .back{padding:8px 12px;min-height:40px;font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -523,11 +520,10 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 </main>
 
 <div class="support" id="support">
-  <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us by keeping ads on or donating.</div>
+  <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us with a donation.</div>
   <div class="sup-row">
     <a class="sup-btn kofi" href="https://ko-fi.com/messistat" target="_blank" rel="noopener sponsored">☕ Ko-fi</a>
     <button class="sup-btn" id="walletBtn" type="button" data-i18n="walletBtn" aria-controls="walletBox" aria-expanded="false">⧉ BEP20 wallet</button>
-    <button class="sup-btn ghost" id="adsBtn" type="button" aria-pressed="true">Ads: ON</button>
   </div>
   <div class="sup-wallet" id="walletBox" hidden><code dir="ltr">0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
 </div>
@@ -540,7 +536,6 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 
 <section class="seo"><h2 data-i18n="seoH">Today’s Live Football Matches — Scores, Schedule & Streams</h2><p data-i18n="seoP">An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.</p><ul><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A" data-lg="الدوري الإنجليزي" data-lg-link><strong>Premier League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D8%B3%D8%A8%D8%A7%D9%86%D9%8A" data-lg="الدوري الإسباني" data-lg-link><strong>La Liga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A" data-lg="الدوري الإيطالي" data-lg-link><strong>Serie A:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A" data-lg="الدوري الألماني" data-lg-link><strong>Bundesliga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D9%81%D8%B1%D9%86%D8%B3%D9%8A" data-lg="الدوري الفرنسي" data-lg-link><strong>Ligue 1:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A" data-lg="الدوري السعودي" data-lg-link><strong>Saudi Pro League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A3%D8%A8%D8%B7%D8%A7%D9%84%20%D8%A3%D9%88%D8%B1%D9%88%D8%A8%D8%A7" data-lg="دوري أبطال أوروبا" data-lg-link><strong>UEFA Champions League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li></ul><p data-i18n="seoCta">Pick a match from the list to open its stream page.</p></section>
 <section class="seo faq" id="faq"><h2 data-i18n="faqH">Live Football Streams — FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details><details><summary data-i18n="fq5">Can I watch on mobile?</summary><p data-i18n="fa5">Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.</p></details><details><summary data-i18n="fq6">What stream quality can I expect?</summary><p data-i18n="fa6">HD live football streams with live scores and minute-by-minute updates, free with no account needed.</p></details><details><summary data-i18n="fq9">Is Koora Live a good Yacine TV alternative?</summary><p data-i18n="fa9">Yes — free live football streams with live scores, no account and no popups, on any phone or desktop.</p></details><details><summary data-i18n="fq10">Will the 2026 World Cup be covered?</summary><p data-i18n="fa10">Yes — World Cup 2026 fixtures, live scores and streams appear here with kickoff times and live minutes.</p></details><details id="faqArLinks" data-ar-only hidden lang="ar" dir="rtl" style="margin-top:10px"><summary>🤲 روابط قرآن وأذكار وأدعية وخاشعة</summary><p style="line-height:2"><a href="https://quran.com/ar" target="_blank" rel="noopener">📖 القرآن الكريم</a><br><a href="https://www.islamweb.net" target="_blank" rel="noopener">🕌 أذكار المسلم</a><br><a href="https://sunnah.com" target="_blank" rel="noopener">📜 الحديث الشريف</a><br><a href="https://www.islamweb.net" target="_blank" rel="noopener">🤲 الأدعية</a><br><a href="https://youtu.be/83qrY5qisus" target="_blank" rel="noopener">📺 سورة الكهف (قراءة خاشعة)</a><br><a href="https://www.youtube.com/watch?v=GJa5FAgQEGQ" target="_blank" rel="noopener">📺 سورة البقرة (تلاوة خاشعة)</a><br></p></details><details><summary data-i18n="fq7">Where are the AliExpress deals?</summary><p><span data-i18n="fa7">Our Telegram channel posts AliExpress France finds daily.</span> <a data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a></p></details><details><summary data-i18n="fq8">What is MessiStats?</summary><p><span data-i18n="fa8">MessiStats.com tracks Messi stats, records and live data.</span> <a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></p></details></section>
-<div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 <button id="liveJump" type="button" hidden></button>
 <footer class="foot"><a href="#top" data-i18n="ftTop">Top</a><a href="#liveSec" id="footLive" data-i18n="ftLive" hidden>Live</a><a href="#faq" data-i18n="ftFaq">FAQ</a><a href="#support" data-i18n="ftSupport">Support</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><div data-ar-only hidden lang="ar" dir="rtl" style="margin-top:8px;line-height:2"><b>صدقة جارية:</b> <a href="https://quran.com/ar" target="_blank" rel="noopener">📖 القرآن الكريم</a> · <a href="https://www.islamweb.net" target="_blank" rel="noopener">🕌 الأذكار</a> · <a href="https://sunnah.com" target="_blank" rel="noopener">📜 الحديث</a> · <a href="https://www.islamweb.net" target="_blank" rel="noopener">🤲 الأدعية</a> · <a href="https://youtu.be/83qrY5qisus" target="_blank" rel="noopener">📺 سورة الكهف</a> · <a href="https://www.youtube.com/watch?v=GJa5FAgQEGQ" target="_blank" rel="noopener">📺 سورة البقرة</a></div></footer>
 <div class="toast" id="toast" role="status"></div>
@@ -595,9 +590,7 @@ upcoming: 'Upcoming',
 live: 'Live', halfBreak: 'HT', ended: 'FT', vs: 'vs', sport: 'Football',
 otherLeagues: 'Other competitions', hiddenLeagues: 'Other Arab leagues — hidden',
 loadFail: "Couldn't load matches — check your connection", loadErr: "Couldn't load matches — check your connection.", retryBtn: 'Retry', chipsLabel: 'Filter by league', walletBtn: '⧉ BEP20 wallet', goal: 'Goal',
-todayMatches: "Today's matches", ad: 'Ad',
-    supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
-    adsOn: 'Ads: ON', adsOff: 'Ads: OFF',
+todayMatches: "Today's matches", supMsg: '❤ Streams are free — support us with a donation.',
     copyOk: 'Address copied', copyFail: 'Copy failed', copyBtn: 'Copy',
 themeToggle: 'Toggle dark mode',
 ftTop: 'Top', ftLive: 'Live', ftFaq: 'FAQ', ftSupport: 'Support',
@@ -638,9 +631,7 @@ upcoming: 'À venir',
 live: 'Direct', halfBreak: 'MT', ended: 'Terminé', vs: 'vs', sport: 'Football',
 otherLeagues: 'Autres compétitions', hiddenLeagues: 'Autres ligues arabes — masquées',
 loadFail: 'Chargement impossible — vérifiez votre connexion', loadErr: 'Chargement impossible — vérifiez votre connexion.', retryBtn: 'Réessayer', chipsLabel: 'Filtrer par compétition', walletBtn: '⧉ BEP20 wallet', goal: 'But',
-todayMatches: 'Matchs du jour', ad: 'Pub',
-    supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
-    adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF',
+todayMatches: 'Matchs du jour', supMsg: '❤ Les streams sont gratuits — soutenez-nous avec un don.',
     copyOk: 'Adresse copiée', copyFail: 'Copie impossible', copyBtn: 'Copier',
 themeToggle: 'Activer le mode sombre',
 ftTop: 'Haut', ftLive: 'En direct', ftFaq: 'FAQ', ftSupport: 'Soutien',
@@ -681,8 +672,7 @@ upcoming: 'لم تبدأ',
 live: 'مباشر', halfBreak: 'استراحة', ended: 'انتهت', vs: 'ضد', sport: 'كرة القدم',
 otherLeagues: 'بطولات أخرى', hiddenLeagues: 'دوريات عربية أخرى — مخفية',
 loadFail: 'تعذّر تحميل المباريات — تحقق من الاتصال', loadErr: 'تعذّر تحميل المباريات — تحقق من الاتصال.', retryBtn: 'إعادة المحاولة', chipsLabel: 'تصفية حسب البطولة', walletBtn: '⧉ BEP20 wallet', goal: 'هدف',
-todayMatches: 'مباريات اليوم', ad: 'إعلان',
-seoH: 'مباريات اليوم بث مباشر',
+todayMatches: 'مباريات اليوم', seoH: 'مباريات اليوم بث مباشر',
 seoP: 'جدول مباريات اليوم محدث باستمرار: مشاهدة مباريات اليوم بث مباشر مع المواعيد والنتائج لحظة بلحظة للدوري الإنجليزي والإسباني والإيطالي والألماني والفرنسي والسعودي ودوري أبطال أوروبا وكأس العالم 2026 — بديل ياسين تيفي وكورة أون لاين.',
 seoSuffix: 'مباشر اليوم والنتائج لحظة بلحظة.',
 seoCta: 'اختر المباراة من القائمة لفتح صفحة البث.',
@@ -693,8 +683,7 @@ fq3: 'ما البطولات المغطاة؟', fa3: 'الدوري الإنجلي
 fq4: 'لماذا تتغير الدقيقة باستمرار؟', fa4: 'الدقيقة تجمع البث المباشر مع مواعيد انطلاق المباريات وتتحدث تلقائياً.',
 fq5: 'هل يمكنني المشاهدة على الهاتف؟', fa5: 'نعم — الموقع متوافق تماماً مع الهواتف ويعمل على أي هاتف أو لوحي أو كمبيوتر.',
 fq6: 'ما جودة البث المتوقعة؟', fa6: 'بث مباشر بجودة عالية مع نتائج لحظة بلحظة وتحديث الدقائق، مجاني وبدون حساب.',
-supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانات أو بالتبرع.',
-adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة',
+supMsg: '❤ البث مجاني — ادعمنا بتبرع.',
 copyOk: 'تم نسخ العنوان', copyFail: 'تعذّر النسخ', copyBtn: 'نسخ',
 themeToggle: 'تبديل الوضع الليلي',
 ftTop: 'الأعلى', ftLive: 'المباشر', ftFaq: 'الأسئلة الشائعة', ftSupport: 'الدعم',
@@ -766,7 +755,7 @@ try { applyStatic(); updateMeta(); } catch (e) {}
 try { siteTgPaint(); } catch (e) {}
 try { dealsPaint(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
-if (save !== false){ try { buildChips(); render(true); paintAds(); } catch (e) {} }
+if (save !== false){ try { buildChips(); render(true); } catch (e) {} }
 }
 try {
 let init = 'en';
@@ -828,14 +817,6 @@ function geoApply(cc){
   );
 })();
 
-/* SUPPORT — donations + ad toggle. New ad slots: add class="ad-wrap"
-   data-ad-slot="name" anywhere; the toggle + CSS pick them up automatically. */
-function adsOn(){ try { return localStorage.getItem('koora_ads') !== '0'; } catch (e) { return true; } }
-function paintAds(){
-  const on = adsOn();
-  try { document.body.classList.toggle('ads-off', !on); } catch (e) {}
-  try { const b = document.getElementById('adsBtn'); if (b){ b.textContent = on ? t('adsOn') : t('adsOff'); b.setAttribute('aria-pressed', on ? 'true' : 'false'); } } catch (e) {}
-}
 function copyText(txt, okK, failK){
   const done = () => { try { toast(t(okK)); } catch (e) {} };
   const fail = () => { try { toast(t(failK)); } catch (e) {} };
@@ -845,9 +826,6 @@ function copyText(txt, okK, failK){
   } catch (e) { fail(); }
 }
 try {
-  paintAds();
-  const ab = document.getElementById('adsBtn');
-  if (ab) ab.onclick = () => { try { localStorage.setItem('koora_ads', adsOn() ? '0' : '1'); } catch (e) {} paintAds(); };
   const wb = document.getElementById('walletBtn');
   if (wb) wb.onclick = () => { const box = document.getElementById('walletBox'); if (box) { box.hidden = !box.hidden; try { wb.setAttribute('aria-expanded', box.hidden ? 'false' : 'true'); } catch {} } };
   const cb = document.getElementById('walletCopy');
@@ -2333,41 +2311,6 @@ if ('serviceWorker' in navigator){
 }
 </script>
 
-<script>
-/* Sliding pill for the language segmented control. Visual only: the real
-   state stays in button.on (set by setLang); this thumb just glides to it.
-   Measured, so it stays correct in RTL and after font loads. */
-try {
-document.querySelectorAll('.lang').forEach(function(g){
-  if (g.querySelector(':scope > .seg-thumb')) return;
-  var th = document.createElement('span');
-  th.className = 'seg-thumb'; th.setAttribute('aria-hidden', 'true');
-  g.insertBefore(th, g.firstChild);
-});
-var segMove = function(){
-  try {
-    document.querySelectorAll('.lang').forEach(function(g){
-      var on = g.querySelector('button.on[data-lang]');
-      var th = g.querySelector(':scope > .seg-thumb');
-      if (!on || !th) return;
-      var top = on.offsetTop, same = true;
-      g.querySelectorAll('button[data-lang]').forEach(function(b){ if (b.offsetTop !== top) same = false; });
-      // NOTE: write ONLY on change — unconditional writes re-trigger this
-      // same observer forever and freeze the page (fixed 2026-10-03).
-      if (!same || !on.offsetWidth){ if (g.classList.contains('seg-on')) g.classList.remove('seg-on'); return; }
-      var L = on.offsetLeft + 'px', W = on.offsetWidth + 'px';
-      if (th.style.left !== L) th.style.left = L;
-      if (th.style.width !== W) th.style.width = W;
-      if (!g.classList.contains('seg-on')) g.classList.add('seg-on');
-    });
-  } catch (e) {}
-};
-new MutationObserver(segMove).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class'] });
-window.addEventListener('resize', segMove);
-window.addEventListener('load', function(){ setTimeout(segMove, 60); });
-if (document.fonts && document.fonts.ready) { try { document.fonts.ready.then(function(){ segMove(); }); } catch (e) {} }
-segMove();
-} catch (e) {}
-</script>
+
 </body>
 </html>

@@ -270,15 +270,22 @@ button{touch-action:manipulation}
 
 .lang a.cr7{background:#be123c;border-color:transparent;color:#fff}
 
-/* ── segmented language control: sliding pill (visual only) ── */
-.lang{position:relative}
-.lang .seg-thumb{position:absolute;top:4px;bottom:4px;border-radius:999px;background:#fff;
-  transition:left .28s cubic-bezier(.2,.7,.2,1),width .28s cubic-bezier(.2,.7,.2,1),opacity .2s;
-  z-index:0;pointer-events:none;opacity:0}
-.lang.seg-on .seg-thumb{opacity:1}
-.lang.seg-on button[data-lang]{position:relative;z-index:1;background:transparent;border-color:transparent}
-.lang.seg-on button[data-lang].on{color:var(--pitch)}
-@media (prefers-reduced-motion:reduce){.lang .seg-thumb{transition:none}}
+
+
+/* ── compact headers (2026-10-03): smaller controls, calm on phones ── */
+.lang button,.lang a.promo{padding:6px 12px;min-height:38px;font-size:11.5px}
+@media (max-width:480px){
+  .topbar{padding:calc(10px + env(safe-area-inset-top, 0px)) 12px calc(12px + 18px)}
+  .brand{ gap:8px }
+  .brand h1{font-size:15px}
+  .brand small{font-size:11px}
+  .brand .ball{width:34px;height:34px;font-size:18px}
+  .promo-row{gap:6px;margin-top:8px}
+  .promo-row .pbtn{padding:7px 12px;min-height:40px;font-size:11.5px}
+  .head{flex-wrap:wrap}
+  .title h1{font-size:14px}
+  .back{padding:8px 12px;min-height:40px;font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -1175,41 +1182,6 @@ try {
 
 </script>
 
-<script>
-/* Sliding pill for the language segmented control. Visual only: the real
-   state stays in button.on (set by setLang); this thumb just glides to it.
-   Measured, so it stays correct in RTL and after font loads. */
-try {
-document.querySelectorAll('.lang').forEach(function(g){
-  if (g.querySelector(':scope > .seg-thumb')) return;
-  var th = document.createElement('span');
-  th.className = 'seg-thumb'; th.setAttribute('aria-hidden', 'true');
-  g.insertBefore(th, g.firstChild);
-});
-var segMove = function(){
-  try {
-    document.querySelectorAll('.lang').forEach(function(g){
-      var on = g.querySelector('button.on[data-lang]');
-      var th = g.querySelector(':scope > .seg-thumb');
-      if (!on || !th) return;
-      var top = on.offsetTop, same = true;
-      g.querySelectorAll('button[data-lang]').forEach(function(b){ if (b.offsetTop !== top) same = false; });
-      // NOTE: write ONLY on change — unconditional writes re-trigger this
-      // same observer forever and freeze the page (fixed 2026-10-03).
-      if (!same || !on.offsetWidth){ if (g.classList.contains('seg-on')) g.classList.remove('seg-on'); return; }
-      var L = on.offsetLeft + 'px', W = on.offsetWidth + 'px';
-      if (th.style.left !== L) th.style.left = L;
-      if (th.style.width !== W) th.style.width = W;
-      if (!g.classList.contains('seg-on')) g.classList.add('seg-on');
-    });
-  } catch (e) {}
-};
-new MutationObserver(segMove).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class'] });
-window.addEventListener('resize', segMove);
-window.addEventListener('load', function(){ setTimeout(segMove, 60); });
-if (document.fonts && document.fonts.ready) { try { document.fonts.ready.then(function(){ segMove(); }); } catch (e) {} }
-segMove();
-} catch (e) {}
-</script>
+
 </body>
 </html>
