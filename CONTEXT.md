@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (premium round 3: FotMob + Polymarket — see §82 bullet).
+> Last updated: 2026-10-03 (SEO keyword assault + mobile pass — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -121,6 +121,17 @@
   row on the index board, glowing odds figures and ringed leader on the
   player page. Overall: hairline above the odds board, grass list markers,
   lifting SSR rows and ad card. Reduced-motion-gated. Mirrors re-synced.
+- **SEO keyword assault + mobile pass (2026-10-03, owner order).** H1s now
+  keyword-rich per language (live matches/scores/streams + مشاهدة/بث مباشر/
+  نتائج); titles/descs/OG target "Yacine TV & Kora Online alternative",
+  "Alternative Yacine TV", "ياسين تيفي وكورة أون لاين" + World Cup 2026 /
+  Coupe du monde 2026 / كأس العالم 2026; mega keywords meta (~90 terms
+  AR/FR/EN); seo paragraphs list every top league; 2 new FAQs per language
+  (Yacine TV alternative, World Cup 2026) wired into visible FAQ + FAQPage
+  schema (now fq1–fq10); static crawler-facing H1/title/desc updated.
+  Mobile: fluid clamp H1, compact rows/type/logos under 480px, 44px+ targets,
+  single-column servers under 380px, offscreen league skip-rendering.
+  Verified parity 3/3, JS parses, CSS balanced, mirrors re-synced.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
