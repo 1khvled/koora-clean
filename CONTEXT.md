@@ -70,6 +70,16 @@
   (green card with a dua and a link to the Quran) that is hidden by default
   and revealed only when `LANG` is `'ar'` (toggled inside `setLang`). Mirrors
   re-synced by content diff.
+- **Security audit + polish (2026-10-03).** Audited XSS handling — `esc()`
+  escapes `& < > " '`, all upstream strings in `innerHTML` templates are
+  wrapped by `esc(decFull(x))`, sitemap URLs are allowlist-guarded, and every
+  upstream fetch route funnels through `fetchableUrl` (public-host, https-
+  only, no-userinfo). No XSS/SSRF hole found. Only caveat: the player iframe
+  has no `sandbox` (it broke playback, CONTEXT 81) — popup/hijack defenses
+  (click-shield, BLOCK_RE, window.open override) remain armed. Polish:
+  font smoothing + optimizeLegibility, a universal `:focus-visible` outline,
+  hover/transition polish on rows/chips/buttons, a soft red gradient on live
+  rows, tracked-out uppercase league titles, and an `overflow-x` guard.
 
 ## 81. Sandbox removed from player iframe (2026-09-27, user: remove sandbox attributes + Edge UA)
 
