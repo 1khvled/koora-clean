@@ -506,6 +506,23 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 @media (prefers-reduced-motion:reduce){
   .stat .bars i{transition:none}
 }
+
+/* ── mobile optimization (2026-10-03): small screens first ── */
+@media (max-width:480px){
+  .title h1{font-size:15px}
+  .mcard{padding:10px 12px;gap:8px}
+  .mcard .team img{width:38px;height:38px}
+  .mcard .team b{font-size:12px}
+  .srv{min-height:60px}
+  .fm-score .gl{font-size:24px}
+  .minfo{padding:12px}
+  .odds{padding:10px 12px}
+  .back{padding:10px 12px}
+}
+@media (max-width:380px){
+  .servers{grid-template-columns:1fr}
+  .mcard .mid{min-width:70px}
+}
 </style>
 </head>
 <body>

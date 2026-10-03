@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#071f19">
 <script>try{var __t=localStorage.getItem('koora_theme');if(__t!=='light'&&__t!=='dark'){__t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}if(__t==='dark')document.documentElement.classList.add('dark');}catch(e){}</script>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<title>Koora Live — Live Football Matches & Streams</title>
-<meta name="description" content="Today's football matches live: kickoff times, live scores and clean streams. Schedules, results and channels.">
-<meta name="keywords" content="kورة لايف, كورة لايف مباشر, مباريات اليوم, بث مباشر, نتائج المباريات, جدول المباريات, مباريات اليوم بث مباشر, كورا لايف, live football, live score, live football streams, Koora Live, today football matches, match results, fixtures, Premier League live, La Liga live, Serie A live, Champions League live, Saudi Pro League live, football streaming, live matches, free streams no popups">
+<title>Koora Live — Live Football Matches & Streams | Yacine TV & Kora Online Alternative</title>
+<meta name="description" content="Koora Live: today's football matches live — kickoff times, live scores, results and clean HD streams. A free Yacine TV & Kora Online alternative for the World Cup 2026, Champions League, Premier League, La Liga and more.">
+<meta name="keywords" content="كورة لايف, كوره لايف, كورة لايف مباشر, مشاهدة مباريات اليوم بث مباشر, مباريات اليوم, مباريات اليوم بث مباشر, نتائج المباريات, نتائج مباشرة, جدول المباريات, مواعيد المباريات, ياسين تيفي, ياسين tv, yacine tv, yassin tv, كورة أون لاين, kora online, koora live, kora live, koralive, yalla shoot, كورة لايف بدون تقطيع, بث مباشر, مشاهدة, كأس العالم, كاس العالم 2026, مونديال 2026, دوري أبطال أوروبا, الدوري الإنجليزي, الدوري الإسباني, الدوري الإيطالي, الدوري الألماني, الدوري الفرنسي, الدوري السعودي, bein sport, القنوات الناقلة, أهداف المباريات, ملخص المباريات, live football, football live stream, soccer live stream, live score, live scores, football results, fixtures, today matches, world cup 2026, champions league live, premier league live, la liga live, serie a live, bundesliga live, ligue 1 live, saudi pro league, free football streams, yacine tv alternative, kora online alternative, match en direct, foot en direct, streaming foot, score en direct, résultats foot, calendrier matchs, matchs du jour, coupe du monde 2026, ligue des champions en direct, premier league en direct, liga en direct, serie a en direct, ligue 1 en direct, streaming gratuit, sans popups">
 <link rel="canonical" href="https://kooraadz.vercel.app/">
 <link rel="alternate" hreflang="en" href="https://kooraadz.vercel.app/">
 <link rel="alternate" hreflang="fr" href="https://kooraadz.vercel.app/?lang=fr">
@@ -19,7 +19,7 @@
 <meta property="og:locale:alternate" content="fr_FR">
 <meta property="og:locale:alternate" content="ar_AR">
 <meta property="og:site_name" content="Koora Live">
-<meta property="og:title" content="Koora Live — Today's matches live">
+<meta property="og:title" content="Koora Live — Live Football Matches & Streams | Yacine TV Alternative">
 <meta property="og:description" content="Today's football live: clean HD streams with no annoying popups.">
 <meta property="og:url" content="https://kooraadz.vercel.app/">
 <meta property="og:image" content="https://kooraadz.vercel.app/og-cover.png">
@@ -30,7 +30,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://kooraadz.vercel.app/og-cover.png">
 <meta name="twitter:image:alt" content="Koora Live">
-<meta name="twitter:title" content="Koora Live — Today's matches live">
+<meta name="twitter:title" content="Koora Live — Live Football Matches & Streams | Yacine TV Alternative">
 <meta name="twitter:description" content="Today's football live: clean HD streams with no annoying popups.">
 <!-- Google Search Console: create a property for https://kooraadz.vercel.app/, choose the HTML-tag method,
      and paste the code below (replace REPLACE_WITH_SEARCH_CONSOLE_CODE). -->
@@ -407,13 +407,40 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 @media (hover:hover){.ssr-list li:hover{border-color:rgba(22,163,74,.5);transform:translateY(-1px)}}
 .ad{transition:transform .15s ease,box-shadow .15s ease}
 @media (hover:hover){.ad:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(7,31,25,.16)}}
+
+/* ── mobile optimization (2026-10-03): small screens first ── */
+@media (max-width:480px){
+  .brand h1{font-size:clamp(15px,4.6vw,20px)}
+  .brand .ball{width:36px;height:36px;font-size:19px}
+  .brand small{font-size:11px}
+  .topbar{padding:calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + 20px)}
+  .days{margin:-20px 12px 0}
+  .days button{font-size:14px;min-height:46px}
+  .toolbar{padding:10px 12px 0}
+  #searchInput{padding:12px 12px 12px 42px}
+  [dir="rtl"] #searchInput{padding:12px 42px 12px 12px}
+  .m{padding:10px 12px;gap:10px;min-height:60px}
+  .m .t{font-size:13px}
+  .m .t img{width:22px;height:22px}
+  .m .t b{font-size:15px;min-width:32px;padding:0 7px}
+  .m .st{min-width:52px}
+  .sec-title{font-size:15px}
+  .league>h2{font-size:12px}
+  .live-list .m{padding:12px 14px}
+  .sup-row .sup-btn{flex:1 1 44%}
+  .foot{font-size:12px}
+  .seo{font-size:12.5px}
+  .poly-row .pn{font-size:12px}
+}
+/* perf: skip rendering offscreen league groups until scrolled to */
+.league{content-visibility:auto;contain-intrinsic-size:auto 320px}
 </style>
 </head>
 <body>
 <header class="topbar" id="top">
   <div class="brand">
     <span class="ball">⚽</span>
-    <div><h1 data-i18n="brand">Koora Live — Live Football Streams</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
+    <div><h1 data-i18n="brand">Koora Live — Live Football Matches, Scores &amp; Streams</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
     <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><button type="button" id="themeBtn" data-i18n-aria="themeToggle" aria-label="Toggle dark mode">🌙</button><a class="promo only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></div>
   </div>
 </header>
@@ -470,7 +497,7 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 </section>
 
 <section class="seo"><h2 data-i18n="seoH">Today’s Live Football Matches — Scores, Schedule & Streams</h2><p data-i18n="seoP">An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.</p><ul><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A" data-lg="الدوري الإنجليزي" data-lg-link><strong>Premier League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D8%B3%D8%A8%D8%A7%D9%86%D9%8A" data-lg="الدوري الإسباني" data-lg-link><strong>La Liga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A" data-lg="الدوري الإيطالي" data-lg-link><strong>Serie A:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A" data-lg="الدوري الألماني" data-lg-link><strong>Bundesliga:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D9%81%D8%B1%D9%86%D8%B3%D9%8A" data-lg="الدوري الفرنسي" data-lg-link><strong>Ligue 1:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A" data-lg="الدوري السعودي" data-lg-link><strong>Saudi Pro League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li><li><a href="/?league=%D8%AF%D9%88%D8%B1%D9%8A%20%D8%A3%D8%A8%D8%B7%D8%A7%D9%84%20%D8%A3%D9%88%D8%B1%D9%88%D8%A8%D8%A7" data-lg="دوري أبطال أوروبا" data-lg-link><strong>UEFA Champions League:</strong> <span data-i18n="seoSuffix">live today with moment-by-moment scores.</span></a></li></ul><p data-i18n="seoCta">Pick a match from the list to open its stream page.</p></section>
-<section class="seo faq" id="faq"><h2 data-i18n="faqH">Live Football Streams — FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details><details><summary data-i18n="fq5">Can I watch on mobile?</summary><p data-i18n="fa5">Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.</p></details><details><summary data-i18n="fq6">What stream quality can I expect?</summary><p data-i18n="fa6">HD live football streams with live scores and minute-by-minute updates, free with no account needed.</p></details><details id="faqArLinks" data-ar-only hidden lang="ar" dir="rtl" style="margin-top:10px"><summary>🤲 روابط قرآن وأذكار وأدعية وخاشعة</summary><p style="line-height:2"><a href="https://quran.com/ar" target="_blank" rel="noopener">📖 القرآن الكريم</a><br><a href="https://www.islamweb.net" target="_blank" rel="noopener">🕌 أذكار المسلم</a><br><a href="https://sunnah.com" target="_blank" rel="noopener">📜 الحديث الشريف</a><br><a href="https://www.islamweb.net" target="_blank" rel="noopener">🤲 الأدعية</a><br><a href="https://youtu.be/83qrY5qisus" target="_blank" rel="noopener">📺 سورة الكهف (قراءة خاشعة)</a><br><a href="https://www.youtube.com/watch?v=GJa5FAgQEGQ" target="_blank" rel="noopener">📺 سورة البقرة (تلاوة خاشعة)</a><br></p></details><details><summary data-i18n="fq7">Where are the AliExpress deals?</summary><p><span data-i18n="fa7">Our Telegram channel posts AliExpress France finds daily.</span> <a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a></p></details><details><summary data-i18n="fq8">What is MessiStats?</summary><p><span data-i18n="fa8">MessiStats.com tracks Messi stats, records and live data.</span> <a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></p></details></section>
+<section class="seo faq" id="faq"><h2 data-i18n="faqH">Live Football Streams — FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details><details><summary data-i18n="fq5">Can I watch on mobile?</summary><p data-i18n="fa5">Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.</p></details><details><summary data-i18n="fq6">What stream quality can I expect?</summary><p data-i18n="fa6">HD live football streams with live scores and minute-by-minute updates, free with no account needed.</p></details><details><summary data-i18n="fq9">Is Koora Live a good Yacine TV alternative?</summary><p data-i18n="fa9">Yes — free live football streams with live scores, no account and no popups, on any phone or desktop.</p></details><details><summary data-i18n="fq10">Will the 2026 World Cup be covered?</summary><p data-i18n="fa10">Yes — World Cup 2026 fixtures, live scores and streams appear here with kickoff times and live minutes.</p></details><details id="faqArLinks" data-ar-only hidden lang="ar" dir="rtl" style="margin-top:10px"><summary>🤲 روابط قرآن وأذكار وأدعية وخاشعة</summary><p style="line-height:2"><a href="https://quran.com/ar" target="_blank" rel="noopener">📖 القرآن الكريم</a><br><a href="https://www.islamweb.net" target="_blank" rel="noopener">🕌 أذكار المسلم</a><br><a href="https://sunnah.com" target="_blank" rel="noopener">📜 الحديث الشريف</a><br><a href="https://www.islamweb.net" target="_blank" rel="noopener">🤲 الأدعية</a><br><a href="https://youtu.be/83qrY5qisus" target="_blank" rel="noopener">📺 سورة الكهف (قراءة خاشعة)</a><br><a href="https://www.youtube.com/watch?v=GJa5FAgQEGQ" target="_blank" rel="noopener">📺 سورة البقرة (تلاوة خاشعة)</a><br></p></details><details><summary data-i18n="fq7">Where are the AliExpress deals?</summary><p><span data-i18n="fa7">Our Telegram channel posts AliExpress France finds daily.</span> <a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a></p></details><details><summary data-i18n="fq8">What is MessiStats?</summary><p><span data-i18n="fa8">MessiStats.com tracks Messi stats, records and live data.</span> <a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></p></details></section>
 <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 <button id="liveJump" type="button" hidden></button>
 <footer class="foot"><a href="#top" data-i18n="ftTop">Top</a><a href="#liveSec" id="footLive" data-i18n="ftLive" hidden>Live</a><a href="#faq" data-i18n="ftFaq">FAQ</a><a href="#support" data-i18n="ftSupport">Support</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><div data-ar-only hidden lang="ar" dir="rtl" style="margin-top:8px;line-height:2"><b>صدقة جارية:</b> <a href="https://quran.com/ar" target="_blank" rel="noopener">📖 القرآن الكريم</a> · <a href="https://www.islamweb.net" target="_blank" rel="noopener">🕌 الأذكار</a> · <a href="https://sunnah.com" target="_blank" rel="noopener">📜 الحديث</a> · <a href="https://www.islamweb.net" target="_blank" rel="noopener">🤲 الأدعية</a> · <a href="https://youtu.be/83qrY5qisus" target="_blank" rel="noopener">📺 سورة الكهف</a> · <a href="https://www.youtube.com/watch?v=GJa5FAgQEGQ" target="_blank" rel="noopener">📺 سورة البقرة</a></div></footer>
@@ -518,7 +545,7 @@ try {
    ESPN fuzzy matcher intentionally still match the Arabic data strings. */
 const I18N = {
 en: {
-brand: 'Koora Live — Live Football Matches & Streams', tagline: 'Clean streams, no popups',
+brand: 'Koora Live — Live Football Matches, Scores & Streams', tagline: 'Clean streams, no popups',
 chooseDay: 'Choose day', yesterday: 'Yesterday', today: 'Today', tomorrow: 'Tomorrow',
 searchPh: 'Search team or league…', loading: 'Loading matches…', liveNow: 'Live now',
 empty: 'No matches match your search', all: 'All', favorites: 'Favorites',
@@ -535,12 +562,14 @@ ftTop: 'Top', ftLive: 'Live', ftFaq: 'FAQ', ftSupport: 'Support',
 dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats',
 fq7: 'Where are the AliExpress deals?', fa7: 'Follow our Telegram deals channel for daily AliExpress finds.',
 fq8: 'What is MessiStats?', fa8: 'MessiStats.com tracks Messi stats, records and live data.',
+fq9: 'Is Koora Live a good Yacine TV alternative?', fa9: 'Yes — free live football streams with live scores, no account and no popups, on any phone or desktop.',
+fq10: 'Will the 2026 World Cup be covered?', fa10: 'Yes — World Cup 2026 fixtures, live scores and streams appear here with kickoff times and live minutes.',
 polyTitle: 'Ballon d’Or 2026 — odds', polyLink: 'Full odds',
 startsIn: (h, m) => h > 0 ? `in ${h}h ${m}m` : `in ${m}m`,
     fq5: 'Can I watch on mobile?', fa5: 'Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.',
     fq6: 'What stream quality can I expect?', fa6: 'HD live football streams with live scores and minute-by-minute updates, free with no account needed.',
 seoH: "Today's Live Football Matches — Scores, Schedule & Streams",
-seoP: 'An always-updated fixture list: kickoff times and moment-by-moment results for the top leagues.',
+seoP: 'An always-updated fixture list: kickoff times and moment-by-moment results for the Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League, Champions League and the 2026 World Cup — a free Yacine TV and Kora Online alternative.',
 seoSuffix: 'live today with moment-by-moment scores.',
 seoCta: 'Pick a match from the list to open its stream page.',
 faqH: 'Live Football Streams — FAQ',
@@ -549,14 +578,14 @@ fq2: 'Is the stream free?', fa2: 'Yes — every listed stream is free.',
 fq3: 'Which competitions are covered?', fa3: 'Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.',
 fq4: 'Why does the minute keep updating?', fa4: 'The minute fuses the live feed with kickoff times and refreshes automatically.',
 meta: {
-title: "Koora Live — Live Football Matches & Streams",
-desc: "Koora Live — today's football matches live: kickoff times, live scores, results and clean HD streams. Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and Champions League fixtures and results.",
-ogTitle: "Koora Live — Today's matches live",
+title: "Koora Live — Live Football Matches & Streams | Yacine TV & Kora Online Alternative",
+desc: "Koora Live: today's football matches live — kickoff times, live scores, results and clean HD streams. A free Yacine TV & Kora Online alternative for the World Cup 2026, Champions League, Premier League, La Liga, Serie A and more.",
+ogTitle: "Koora Live — Live Football Matches & Streams | Yacine TV Alternative",
 ogDesc: "Today's football live: clean HD streams with no annoying popups."
 }
 },
 fr: {
-brand: 'Koora Live — Matchs de foot en direct & scores', tagline: 'Streams propres, sans popups',
+brand: 'Koora Live — Matchs de Foot en Direct, Scores & Résultats', tagline: 'Streams propres, sans popups',
 chooseDay: 'Choisir le jour', yesterday: 'Hier', today: "Aujourd'hui", tomorrow: 'Demain',
 searchPh: 'Rechercher une équipe ou une compétition…', loading: 'Chargement des matchs…', liveNow: 'En direct',
 empty: 'Aucun match pour votre recherche', all: 'Tout', favorites: 'Favoris',
@@ -573,12 +602,14 @@ ftTop: 'Haut', ftLive: 'En direct', ftFaq: 'FAQ', ftSupport: 'Soutien',
 dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats',
 fq7: 'Où sont les bons plans AliExpress ?', fa7: 'Notre canal Telegram publie chaque jour les bons plans AliExpress France.',
 fq8: 'C’est quoi MessiStats ?', fa8: 'MessiStats.com suit les stats, records et données live de Messi.',
+fq9: 'Koora Live est-il une bonne alternative à Yacine TV ?', fa9: 'Oui — streams de foot gratuits avec scores en direct, sans compte ni popups, sur mobile comme sur PC.',
+fq10: 'La Coupe du monde 2026 sera-t-elle couverte ?', fa10: 'Oui — matchs, scores en direct et streams de la Coupe du monde 2026 avec horaires et minutes live.',
 polyTitle: 'Ballon d’Or 2026 — cotes', polyLink: 'Toutes les cotes',
 startsIn: (h, m) => h > 0 ? `dans ${h}h ${m}m` : `dans ${m}m`,
     fq5: 'Puis-je regarder sur mobile ?', fa5: 'Oui — le site est 100 % optimisé mobile et marche sur téléphone, tablette ou PC.',
     fq6: 'Quelle qualité de stream ?', fa6: 'Des streams de foot en direct en HD, scores en direct et minute par minute, gratuits et sans compte.',
 seoH: 'Matchs de foot en direct — scores et calendrier',
-seoP: 'Un calendrier toujours à jour : horaires et résultats minute par minute des grandes compétitions.',
+seoP: 'Un calendrier toujours à jour : horaires et résultats minute par minute de la Premier League, la Liga, la Serie A, la Bundesliga, la Ligue 1, la Saudi Pro League, la Ligue des champions et la Coupe du monde 2026 — alternative gratuite à Yacine TV.',
 seoSuffix: "en direct aujourd'hui avec les scores minute par minute.",
 seoCta: 'Choisissez un match pour ouvrir sa page de diffusion.',
 faqH: 'FAQ — Streams de foot en direct',
@@ -587,14 +618,14 @@ fq2: 'Le stream est-il gratuit ?', fa2: 'Oui — tous les streams listés sont g
 fq3: 'Quelles compétitions sont couvertes ?', fa3: 'Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League et la Ligue des champions.',
 fq4: 'Pourquoi la minute change-t-elle ?', fa4: 'La minute combine le flux en direct et les heures de coup d’envoi, avec actualisation auto.',
 meta: {
-title: 'Koora Live — Matchs du jour en direct',
-desc: 'Koora Live — matchs de foot du jour en direct : horaires, scores, résultats et streams propres HD. Premier League, Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League et Ligue des champions.',
-ogTitle: 'Koora Live — Matchs du jour en direct',
+title: 'Koora Live — Matchs de Foot en Direct | Alternative Yacine TV & Kora',
+desc: 'Koora Live : matchs de foot du jour en direct — horaires, scores, résultats et streams HD propres. Alternative gratuite à Yacine TV pour la Coupe du monde 2026, la Ligue des champions, la Premier League, la Liga et plus.',
+ogTitle: 'Koora Live — Matchs de Foot en Direct | Alternative Yacine TV',
 ogDesc: 'Le foot en direct : des streams HD propres, sans popups agaçants.'
 }
 },
 ar: {
-brand: 'كورة لايف — بث مباشر لمباريات اليوم والنتائج', tagline: 'بث نظيف بدون إعلانات',
+brand: 'كورة لايف — مشاهدة مباريات اليوم بث مباشر | النتائج والمواعيد', tagline: 'بث نظيف بدون إعلانات',
 chooseDay: 'اختر اليوم', yesterday: 'أمس', today: 'اليوم', tomorrow: 'الغد',
 searchPh: 'ابحث عن فريق أو بطولة…', loading: 'جاري تحميل المباريات…', liveNow: 'جارية الآن',
 empty: 'لا توجد مباريات مطابقة لبحثك', all: 'الكل', favorites: 'المفضلة',
@@ -604,7 +635,7 @@ otherLeagues: 'بطولات أخرى', hiddenLeagues: 'دوريات عربية �
 loadFail: 'تعذّر تحميل المباريات — تحقق من الاتصال', loadErr: 'تعذّر تحميل المباريات — تحقق من الاتصال.', retryBtn: 'إعادة المحاولة', chipsLabel: 'تصفية حسب البطولة', walletBtn: '⧉ BEP20 wallet', goal: 'هدف',
 todayMatches: 'مباريات اليوم', ad: 'إعلان',
 seoH: 'مباريات اليوم بث مباشر',
-seoP: 'جدول مباريات اليوم محدث باستمرار: مواعيد مباريات والنتائج لحظة بلحظة لأهم الدورييات.',
+seoP: 'جدول مباريات اليوم محدث باستمرار: مشاهدة مباريات اليوم بث مباشر مع المواعيد والنتائج لحظة بلحظة للدوري الإنجليزي والإسباني والإيطالي والألماني والفرنسي والسعودي ودوري أبطال أوروبا وكأس العالم 2026 — بديل ياسين تيفي وكورة أون لاين.',
 seoSuffix: 'مباشر اليوم والنتائج لحظة بلحظة.',
 seoCta: 'اختر المباراة من القائمة لفتح صفحة البث.',
 faqH: 'أسئلة شائعة',
@@ -622,12 +653,14 @@ ftTop: 'الأعلى', ftLive: 'المباشر', ftFaq: 'الأسئلة الشا
 dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats',
 fq7: 'أين عروض علي إكسبريس؟', fa7: 'قناتنا على تيليغرام تنشر عروض علي إكسبريس يومياً.',
 fq8: 'ما هو ميسي ستات؟', fa8: 'موقع MessiStats.com يتابع إحصائيات ميسي وأرقامه المباشرة.',
+fq9: 'هل كورة لايف بديل جيد لياسين تيفي؟', fa9: 'نعم — بث مباشر مجاني لجميع المباريات مع نتائج لحظية، بدون حساب وبدون إعلانات مزعجة، على الهاتف والكمبيوتر.',
+fq10: 'هل ستتم تغطية كأس العالم 2026؟', fa10: 'نعم — مباريات كأس العالم 2026 ونتائجها وبثها المباشر ستكون هنا مع المواعيد والدقائق لحظة بلحظة.',
 polyTitle: 'الكرة الذهبية 2026 — الاحتمالات', polyLink: 'كل الاحتمالات',
 startsIn: (h, m) => h > 0 ? `بعد ${h} س ${m} د` : `بعد ${m} د`,
 meta: {
-title: 'كورة لايف — مباريات اليوم بث مباشر بدون إعلانات',
-desc: 'كورة لايف — مباريات اليوم بث مباشر: مواعيد، نتائج لحظية وجداول. الدوري الإنجليزي والإسباني والإيطالي والألماني والسعودي ودوري أبطال أوروبا.',
-ogTitle: 'كورة لايف — مباريات اليوم بث مباشر',
+title: 'كورة لايف — مباريات اليوم بث مباشر | ياسين تيفي وكورة أون لاين',
+desc: 'كورة لايف: مشاهدة مباريات اليوم بث مباشر — مواعيد، نتائج لحظية وجداول. بديل مجاني لياسين تيفي وكورة أون لاين لكأس العالم 2026 ودوري أبطال أوروبا والدوريات الخمسة الكبرى.',
+ogTitle: 'كورة لايف — مباريات اليوم بث مباشر | ياسين تيفي',
 ogDesc: 'مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة.'
 }
 },
@@ -2083,7 +2116,11 @@ function injectJsonLd(list){ // #9: one SportsEvent per listed match
     { '@type': 'Question', name: t('fq3'), acceptedAnswer: { '@type': 'Answer', text: t('fa3') } },
     { '@type': 'Question', name: t('fq4'), acceptedAnswer: { '@type': 'Answer', text: t('fa4') } },
     { '@type': 'Question', name: t('fq5'), acceptedAnswer: { '@type': 'Answer', text: t('fa5') } },
-    { '@type': 'Question', name: t('fq6'), acceptedAnswer: { '@type': 'Answer', text: t('fa6') } }
+    { '@type': 'Question', name: t('fq6'), acceptedAnswer: { '@type': 'Answer', text: t('fa6') } },
+    { '@type': 'Question', name: t('fq7'), acceptedAnswer: { '@type': 'Answer', text: t('fa7') } },
+    { '@type': 'Question', name: t('fq8'), acceptedAnswer: { '@type': 'Answer', text: t('fa8') } },
+    { '@type': 'Question', name: t('fq9'), acceptedAnswer: { '@type': 'Answer', text: t('fa9') } },
+    { '@type': 'Question', name: t('fq10'), acceptedAnswer: { '@type': 'Answer', text: t('fa10') } }
   ]});
   if (list.length) graph.push({ '@type': 'ItemList', name: t('todayMatches'), numberOfItems: list.length, itemListElement: list.slice(0, 50).map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(playerLink(m), location.href).toString(), name: `${dispTeam(m.home || '')} ${t('vs')} ${dispTeam(m.away || '')}` })) });
   const s = document.createElement('script');
