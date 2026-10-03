@@ -249,6 +249,20 @@ body.ads-off .ad-wrap{display:none}
   .m{padding:14px 16px}
   .brand h1{font-size:22px}
 }
+/* ── polish pass ───────────────────────────── */
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+/* keyboard focus is visible everywhere, without fighting the design */
+:focus-visible{outline:2px solid var(--grass);outline-offset:2px;border-radius:6px}
+.chip,.days button,.lang button,.m,.srv{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease,background .15s ease}
+.m{box-shadow:var(--shadow)}
+.m.is-live{background:linear-gradient(90deg,rgba(224,32,46,.06),var(--card) 60%)}
+#searchInput,.chip{transition:box-shadow .15s ease,border-color .15s ease}
+#searchInput:focus,.chip:focus-visible{box-shadow:0 0 0 3px rgba(22,163,74,.25);outline:none}
+/* softer, more designed section dividers */
+.league>h2{text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--pitch)}
+html.dark .league>h2{color:#8fe3ae}
+/* avoid any horizontal jump warnings on RTL/LTR swaps */
+body{overflow-x:hidden}
 </style>
 </head>
 <body>
