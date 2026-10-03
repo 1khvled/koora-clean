@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /index-inline.html
 Disallow: /player-inline.html
+Disallow: /messi-inline.html
 Sitemap: https://kooraadz.vercel.app/sitemap.xml
 Sitemap: https://kooraadz.vercel.app/api/sitemap
