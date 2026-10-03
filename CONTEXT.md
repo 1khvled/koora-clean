@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (Telegram news bridge — see §82 bullet).
+> Last updated: 2026-10-03 (frozen-page hotfix — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -247,6 +247,13 @@
   NEEDS FROM OWNER: (1) revoke the chat-exposed bot token, (2) bot admin in
   the target channel + its @name/-100 id as TARGET_CHAT, (3) my.telegram.org
   api_id/api_hash + TG_SESSION via `tg_login.py`. See `scripts/TG_SETUP.md`.
+- **HOTFIX 2026-10-03 (owner: site frozen, nothing clickable).** My sliding
+  language pill's MutationObserver re-triggered itself: the handler wrote
+  thumb styles on every run, each write re-fired the observer — an infinite
+  loop freezing the main thread. Fixed by writing ONLY on real change
+  (guarded left/width/classList writes). Headless-proven: first run writes
+  3×, later runs write nothing. Lesson: any observer/handler pair must be
+  write-guarded; add a no-write-rerun test for future observers.
 - **Calm promo row + sliding language control (2026-10-03, owner order).**
   Promo pills are now uniform ghost chips (gold text only on Messi, no
   colored gradients, no hover jump) and the Arabic deals button starts

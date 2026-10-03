@@ -3153,10 +3153,13 @@ var segMove = function(){
       if (!on || !th) return;
       var top = on.offsetTop, same = true;
       g.querySelectorAll('button[data-lang]').forEach(function(b){ if (b.offsetTop !== top) same = false; });
-      if (!same || !on.offsetWidth){ g.classList.remove('seg-on'); return; }
-      th.style.left = on.offsetLeft + 'px';
-      th.style.width = on.offsetWidth + 'px';
-      g.classList.add('seg-on');
+      // NOTE: write ONLY on change — unconditional writes re-trigger this
+      // same observer forever and freeze the page (fixed 2026-10-03).
+      if (!same || !on.offsetWidth){ if (g.classList.contains('seg-on')) g.classList.remove('seg-on'); return; }
+      var L = on.offsetLeft + 'px', W = on.offsetWidth + 'px';
+      if (th.style.left !== L) th.style.left = L;
+      if (th.style.width !== W) th.style.width = W;
+      if (!g.classList.contains('seg-on')) g.classList.add('seg-on');
     });
   } catch (e) {}
 };
