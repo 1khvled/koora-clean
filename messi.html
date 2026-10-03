@@ -175,6 +175,19 @@ button{touch-action:manipulation}
   .skel-row{animation:none}
   .m{transition:none}
 }
+
+/* ── messi v2 (2026-10-03): league groups + hero spotlight ── */
+.live-lg{font-size:12px;font-weight:800;color:var(--gold);margin:12px 2px 6px;
+  display:flex;align-items:center;gap:8px}
+.live-lg::after{content:"";flex:1;height:1px;background:var(--line)}
+.spot{margin-top:14px;border:1px solid rgba(255,184,0,.4);border-radius:14px;
+  padding:12px 14px;background:rgba(255,184,0,.07);text-align:center;
+  box-shadow:0 0 0 1px rgba(255,184,0,.15)}
+.spot[hidden]{display:none}
+.spot small{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gold)}
+.spot b{display:block;font-size:17px;font-weight:900;margin:4px 0 2px}
+.spot span{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -191,6 +204,7 @@ button{touch-action:manipulation}
     <h2 data-i18n="heroT">Never miss a Messi match again</h2>
     <p data-i18n="heroSub">Every Inter Miami and Argentina game — live streams, scores and kickoff times, free.</p>
     <a class="cta" href="#liveSec" data-i18n="watchNow">Watch Messi now</a>
+    <div class="spot" id="spot" hidden><small data-i18n="nextUp">Next Messi match</small><b id="spotTeams">—</b><span id="spotTime"></span></div>
   </section>
   <main id="content">
     <div id="loading"><div class="loading" data-i18n="loading">Loading Messi matches…</div><div class="skel-list" aria-hidden="true"><div class="skel-row"></div><div class="skel-row"></div><div class="skel-row"></div></div></div>
@@ -218,7 +232,9 @@ button{touch-action:manipulation}
 const I18N = {
 en: {
 brand: 'Watch Messi Live — Inter Miami & Argentina', tagline: 'Every Messi match: live, upcoming & results',
-heroT: 'Never miss a Messi match again', heroSub: 'Every Inter Miami and Argentina game — live streams, scores and kickoff times, free.', watchNow: 'Watch Messi now',
+heroT: 'Never miss a Messi match again', heroSub: 'Every Inter Miami and Argentina game — live streams, scores and kickoff times, free.', watchNow: 'Watch Messi now', nextUp: 'Next Messi match',
+startsIn: (h, m) => h > 0 ? `in ${h}h ${m}m` : `in ${m}m`,
+startsInD: (d, h) => `in ${d}d ${h}h`,
 liveNow: 'Messi is playing now', upNext: 'Upcoming Messi matches', results: 'Recent Messi results',
 loading: 'Loading Messi matches…', emptyAll: 'No Messi match in the next few days — check back soon.',
 live: 'Live', ended: 'FT', upcoming: 'Upcoming', vs: 'vs', ftHome: 'Home', ftTop: 'Top',
@@ -237,7 +253,9 @@ ogDesc: 'Every Messi match live: free streams, scores and kickoff times.'
 },
 fr: {
 brand: 'Regarder Messi en Direct — Inter Miami & Argentine', tagline: 'Tous les matchs de Messi : en direct, à venir et résultats',
-heroT: 'Ne ratez plus jamais un match de Messi', heroSub: 'Tous les matchs de l’Inter Miami et de l’Argentine — streams, scores et horaires, gratuits.', watchNow: 'Regarder Messi',
+heroT: 'Ne ratez plus jamais un match de Messi', heroSub: 'Tous les matchs de l’Inter Miami et de l’Argentine — streams, scores et horaires, gratuits.', watchNow: 'Regarder Messi', nextUp: 'Prochain match de Messi',
+startsIn: (h, m) => h > 0 ? `dans ${h}h ${m}m` : `dans ${m}m`,
+startsInD: (d, h) => `dans ${d}j ${h}h`,
 liveNow: 'Messi joue en ce moment', upNext: 'Prochains matchs de Messi', results: 'Résultats récents de Messi',
 loading: 'Chargement des matchs de Messi…', emptyAll: 'Aucun match de Messi ces prochains jours — revenez bientôt.',
 live: 'Direct', ended: 'Terminé', upcoming: 'À venir', vs: 'vs', ftHome: 'Accueil', ftTop: 'Haut',
@@ -256,7 +274,9 @@ ogDesc: 'Tous les matchs de Messi en direct : streams gratuits, scores et horair
 },
 ar: {
 brand: 'مشاهدة ميسي بث مباشر — إنتر ميامي والأرجنتين', tagline: 'كل مباريات ميسي: مباشر والقادم والنتائج',
-heroT: 'لا تفوّت أي مباراة لميسي بعد اليوم', heroSub: 'كل مباريات إنتر ميامي والأرجنتين — بث مباشر ونتائج ومواعيد، مجاناً.', watchNow: 'شاهد ميسي الآن',
+heroT: 'لا تفوّت أي مباراة لميسي بعد اليوم', heroSub: 'كل مباريات إنتر ميامي والأرجنتين — بث مباشر ونتائج ومواعيد، مجاناً.', watchNow: 'شاهد ميسي الآن', nextUp: 'مباراة ميسي القادمة',
+startsIn: (h, m) => h > 0 ? `بعد ${h} س ${m} د` : `بعد ${m} د`,
+startsInD: (d, h) => `بعد ${d} يوم ${h} س`,
 liveNow: 'ميسي يلعب الآن', upNext: 'مباريات ميسي القادمة', results: 'نتائج ميسي الأخيرة',
 loading: 'جاري تحميل مباريات ميسي…', emptyAll: 'لا توجد مباراة لميسي في الأيام القادمة — عُد قريباً.',
 live: 'مباشر', ended: 'انتهت', vs: 'ضد', upcoming: 'لم تبدأ', ftHome: 'الرئيسية', ftTop: 'الأعلى',
@@ -387,7 +407,9 @@ function rowCard(m, day){
     const tt = String(m.time_text || '').trim();
     if (tt) top = esc(tt);
     else if (m.start) top = esc(String(m.start).slice(11, 16));
-    else top = t('upcoming');
+    else top = '–';
+    const cd = kickoffIn(m.start);
+    if (cd) sub = cd;
   }
   const subHtml = sub ? `<div class="s ${subCls}">${esc(sub)}</div>` : '';
   const href = 'player.html?m=' + encodeURIComponent(m.id || '') + '&d=' + encodeURIComponent(day);
@@ -399,6 +421,24 @@ function rowCard(m, day){
     </div>
     <div class="go">${LANG === 'ar' ? '‹' : '›'}</div>
   </a>`;
+}
+function kickoffIn(start){
+  try {
+    const ms = Date.parse(start || '') - Date.now();
+    if (!isFinite(ms) || ms <= 0 || ms > 8 * 86400000) return '';
+    const d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000), m = Math.floor(ms % 3600000 / 60000);
+    if (d > 0){ const f = t('startsInD'); return (typeof f === 'function') ? f(d, h) : ''; }
+    const f = t('startsIn'); return (typeof f === 'function') ? f(h, m) : '';
+  } catch (e) { return ''; }
+}
+function groupHtml(arr){
+  let html = '', last = null;
+  arr.forEach(m => {
+    const lg = m.league_text || m.league || '';
+    if (lg !== last){ last = lg; html += `<div class="live-lg">${esc(lg)}</div>`; }
+    html += rowCard(m, m._d);
+  });
+  return html;
 }
 let CACHE = { today: [], tomorrow: [], yesterday: [] };
 async function load(){
@@ -434,7 +474,7 @@ function render(){
       const sec = document.getElementById(secId);
       if (!sec) return;
       sec.hidden = !arr.length;
-      document.getElementById(listId).innerHTML = arr.map(m => rowCard(m, m._d)).join('');
+      document.getElementById(listId).innerHTML = groupHtml(arr);
       const cEl = countId ? document.getElementById(countId) : null;
       if (cEl) cEl.textContent = arr.length;
     };
@@ -443,10 +483,31 @@ function render(){
     show('resSec', 'resList', null, res);
     const none = !live.length && !up.length && !res.length;
     const ea = document.getElementById('emptyAll'); if (ea) ea.hidden = !none;
+    try {
+      const spot = document.getElementById('spot');
+      const fut = up.filter(m => Date.parse(m.start || '') > Date.now())
+        .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))[0] || up[0];
+      if (spot){
+        if (fut){
+          spot.hidden = false;
+          document.getElementById('spotTeams').textContent =
+            messiName(fut.home || '') + ' ' + t('vs') + ' ' + messiName(fut.away || '');
+          const cd = kickoffIn(fut.start);
+          document.getElementById('spotTime').textContent =
+            (fut.start ? String(fut.start).slice(0, 16).replace('T', ' ') : '') + (cd ? ' • ' + cd : '');
+        } else spot.hidden = true;
+      }
+    } catch (e) {}
+    try {
+      const all = [...live, ...up, ...res].slice(0, 30);
+      let sj = document.getElementById('jsonld-messi');
+      if (!sj){ sj = document.createElement('script'); sj.type = 'application/ld+json'; sj.id = 'jsonld-messi'; document.head.appendChild(sj); }
+      sj.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [{ '@type': 'ItemList', name: t('brand'), numberOfItems: all.length, itemListElement: all.map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: 'https://kooraadz.vercel.app/player.html?m=' + encodeURIComponent(m.id || '') + '&d=' + encodeURIComponent(m._d || 'today'), name: messiName(m.home || '') + ' vs ' + messiName(m.away || '') })) }] });
+    } catch (e) {}
   } catch (e) {}
 }
 load();
-setInterval(load, 60000);
+setInterval(load, 30000);
 </script>
 </body>
 </html>

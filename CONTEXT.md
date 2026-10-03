@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (dedicated Messi watch page — see §82 bullet).
+> Last updated: 2026-10-03 (Messi page v2 — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -145,6 +145,12 @@
   promos with the two separate Telegram buttons. Proven live: Argentina vs
   Burkina Faso correctly picked up, 0 false positives. Linked from both
   footers (new `ftMessi` key ×3). Mirrors content-verified.
+- **Messi page v2 (2026-10-03, owner order: improve /messi.html).** Rows now
+  grouped under league headers; upcoming rows show kickoff time + a live
+  ticking countdown (per-language, day-aware); hero gained a "next Messi
+  match" spotlight (teams + date + countdown); dynamic ItemList JSON-LD for
+  SEO; refresh tightened to 30s. Proven headless: Inter Milan excluded,
+  day-countdown/grouping/player-links/live-minute all render. Mirror synced.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
