@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (per-language Telegram deals URLs — see §82 bullet).
+> Last updated: 2026-10-03 (two separate deals buttons, CSS toggle — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -97,6 +97,13 @@
   get the French channel (t.me/francedealsdz). Every deals anchor carries
   class `tg-deals` and `setLang` rewrites its href on each switch (both
   pages); AR fa7 wording decoupled from France. Mirrors re-synced.
+- **Two separate deals buttons (2026-10-03, owner order).** Root cause of
+  "Arabic still opens the French channel": the patch emitted two `class=`
+  attributes on one anchor, which browsers ignore — so the JS rewrite hook
+  never attached. Replaced with two real buttons per slot (AR channel
+  t.me/DzAliexpress0 + FR channel t.me/francedealsdz) toggled by pure CSS on
+  `html[lang]` — no JS involved, nothing left to break. Dead setter removed;
+  mirrors re-synced.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
