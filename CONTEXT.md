@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (SEO keyword assault + mobile pass — see §82 bullet).
+> Last updated: 2026-10-03 (dedicated Messi watch page — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -132,6 +132,19 @@
   Mobile: fluid clamp H1, compact rows/type/logos under 480px, 44px+ targets,
   single-column servers under 380px, offscreen league skip-rendering.
   Verified parity 3/3, JS parses, CSS balanced, mirrors re-synced.
+- **Dedicated Messi watch page (2026-10-03, owner order: MessiStats EN/FR
+  traffic).** New `messi.html` at `/messi.html` (+ `messi-inline` mirror,
+  sitemap entry priority 0.9, robots disallow for the mirror): always-dark
+  page with 🐐 hero, **Messi-is-live / upcoming / recent-results** sections
+  fed by `/api/matches` (today+tomorrow+yesterday) filtered to Inter Miami
+  and Argentina in any language — with an explicit Inter **Milan** exclusion
+  so the wrong Inter never sneaks in. Rows link to the normal player page
+  (streams + highlights), 60s auto-refresh, Messi-team names localized for
+  EN/FR (opponents stay raw upstream), full EN/FR/AR dict (23 keys, verified
+  3/3), GEO language, Messi keywords + FAQ + FAQPage JSON-LD, header/footer
+  promos with the two separate Telegram buttons. Proven live: Argentina vs
+  Burkina Faso correctly picked up, 0 false positives. Linked from both
+  footers (new `ftMessi` key ×3). Mirrors content-verified.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
