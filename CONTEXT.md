@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (score/status now overlaid from koora-l — see CONTEXT 82 bullet).
+> Last updated: 2026-10-03 (SEO keywords/H1 + Arabic-only صدقة جارية banner — see below).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -64,6 +64,12 @@
   returned row. Verified live: that match then read `0-5, 2nd half, 59'` and
   advanced to `3-0, 74'` across refreshes. Canceled maps to POST; the koora-l
   `-1` sentinel no longer leaks as a score.
+- **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
+  `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
+  fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
+  (green card with a dua and a link to the Quran) that is hidden by default
+  and revealed only when `LANG` is `'ar'` (toggled inside `setLang`). Mirrors
+  re-synced by content diff.
 
 ## 81. Sandbox removed from player iframe (2026-09-27, user: remove sandbox attributes + Edge UA)
 
