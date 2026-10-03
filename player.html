@@ -538,6 +538,13 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 .srv.skel{position:relative;overflow:hidden}
 .mi-skel-score,.mi-skel-line{position:relative;overflow:hidden}
 @media (prefers-reduced-motion:reduce){.srv.skel::after,.mi-skel-score::after,.mi-skel-line::after{animation:none}}
+
+/* ── report button (2026-10-03): learning which sources die ── */
+.repbtn{font-family:var(--font);flex:none;font-size:11px;font-weight:800;color:var(--muted);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  min-height:40px;padding:6px 12px;cursor:pointer;transition:border-color .15s ease,color .15s ease}
+@media (hover:hover){.repbtn:hover{border-color:var(--live);color:var(--live)}}
+.repbtn:active{transform:scale(.96)}
 </style>
 </head>
 <body>
@@ -548,7 +555,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
     <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
     <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
   </div>
-    <div class="promo-row"><a class="pbtn gold" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="pbtn tg only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn tg only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></div>
+    <div class="promo-row"><a class="pbtn gold" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="pbtn tg only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn tg only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a class="pbtn tg" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
   <div class="stage">
     <iframe id="player" title="player" tabindex="-1" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       loading="eager"></iframe>
@@ -584,6 +591,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
   <div class="src-head">
     <h2><span data-i18n="srcTitle">📡 Stream sources</span> <span class="n" id="srvCount" hidden>0</span></h2>
     <small id="srvNow" data-i18n="searching" aria-live="polite">Searching for servers…</small>
+    <button class="repbtn" id="btnReport" type="button" data-i18n="reportBtn">Report</button>
   </div>
   <div class="servers" id="servers"></div>
   <p class="src-note" id="srcNote" hidden></p>
@@ -618,7 +626,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 
   
 </div>
-<footer class="foot"><a href="/" data-i18n="footHome">Home</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></footer>
+<footer class="foot"><a href="/" data-i18n="footHome">Home</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></footer>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -683,6 +691,8 @@ loadingTitle: 'Loading match…', tagline: 'Clean streams, no popups',
 playBtn: '▶ Tap to watch', playHint: 'First tap only opens the stream — no popups',
 homeAlt: 'Home team logo', awayAlt: 'Away team logo',
 srcTitle: '📡 Stream sources', searching: 'Searching for servers…',
+tgBtn: '📢 Telegram',
+reportBtn: '⚠ Report dead', reportThanks: 'Reported — trying the next server', reportNone: 'No server playing right now',
 fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked',
 ariaFav: 'Toggle favorite', ariaLike: 'Like this match', ariaShare: 'Share match link', ariaBell: 'Match notifications', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentary in Arabic',
@@ -690,7 +700,7 @@ updatedAgo: (s) => 'updated ' + s + 's ago',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
     supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF', copyBtn: 'Copy',
-dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats', footHome: 'Home', ftMessi: '🐐 Messi',
+dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats', footHome: 'Home', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo',
 oddsTitle: 'Match odds', oddsDraw: 'Draw', polyLink: 'Full odds',
 polyTitle: 'Ballon d’Or 2026 — odds',
 hiTitle: '🎬 Highlights',
@@ -725,6 +735,7 @@ tabs: 'Match data sections', tabOv: 'Overview', tabLu: 'Lineups', tabEv: 'Events
 close: 'Close', noPlayerEvents: 'No events for this player',
 defaultTitle: 'Watch match', leagueFallback: 'Clean streams, no popups',
 watchTitle: (h, a) => 'Watch ' + h + ' vs ' + a + ' live — Koora Live',
+watchDesc: (h, a, l) => 'Watch ' + h + ' vs ' + a + (l ? ' (' + l + ')' : '') + ' live stream in HD — Koora Live',
 meta: {
 title: 'Watch match live — Koora Live',
 desc: 'Watch the match live in clean HD quality with no annoying popups on Koora Live.',
@@ -738,6 +749,8 @@ loadingTitle: 'Chargement du match…', tagline: 'Streams propres, sans popups',
 playBtn: '▶ Toucher pour regarder', playHint: 'Le premier toucher ouvre seulement le stream — sans popups',
 homeAlt: 'Logo de l’équipe domicile', awayAlt: 'Logo de l’équipe extérieur',
 srcTitle: '📡 Sources du stream', searching: 'Recherche de serveurs…',
+tgBtn: '📢 Telegram',
+reportBtn: '⚠ Signaler', reportThanks: 'Signalé — serveur suivant', reportNone: 'Aucun serveur en cours',
 fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués',
 ariaFav: 'Ajouter aux favoris', ariaLike: 'Aimer ce match', ariaShare: 'Copier le lien du match', ariaBell: 'Notifications du match', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentaires en arabe',
@@ -745,7 +758,7 @@ updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
     supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF', copyBtn: 'Copier',
-dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats', footHome: 'Accueil', ftMessi: '🐐 Messi',
+dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats', footHome: 'Accueil', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo',
 oddsTitle: 'Cotes du match', oddsDraw: 'Nul', polyLink: 'Toutes les cotes',
 polyTitle: 'Ballon d’Or 2026 — cotes',
 hiTitle: '🎬 Résumé vidéo',
@@ -780,6 +793,7 @@ tabs: 'Sections des données du match', tabOv: 'Aperçu', tabLu: 'Compos', tabEv
 close: 'Fermer', noPlayerEvents: 'Aucun événement pour ce joueur',
 defaultTitle: 'Voir le match', leagueFallback: 'Streams propres, sans popups',
 watchTitle: (h, a) => 'Voir ' + h + ' vs ' + a + ' en direct — Koora Live',
+watchDesc: (h, a, l) => 'Voir ' + h + ' vs ' + a + (l ? ' (' + l + ')' : '') + ' en direct et en HD — Koora Live',
 meta: {
 title: 'Voir le match en direct — Koora Live',
 desc: 'Regardez le match en direct en HD propre, sans popups agaçants sur Koora Live.',
@@ -793,6 +807,8 @@ loadingTitle: 'جاري تحميل المباراة…', tagline: 'بث نظيف
 playBtn: '▶ اضغط للمشاهدة', playHint: 'أول ضغطة تفتح البث فقط — بدون إعلانات',
 homeAlt: 'شعار الفريق المضيف', awayAlt: 'شعار الفريق الضيف',
 srcTitle: '📡 مصادر البث', searching: 'جاري البحث عن السيرفرات…',
+tgBtn: '📢 تيليغرام',
+reportBtn: '⚠ إبلاغ عن عطل', reportThanks: 'تم الإبلاغ — جاري التحويل لسيرفر آخر', reportNone: 'لا يوجد سيرفر يعمل الآن',
 fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', blocked: 'محظور',
 ariaFav: 'إضافة إلى المفضلة', ariaLike: 'أعجبني', ariaShare: 'نسخ رابط المباراة', ariaBell: 'تنبيهات المباراة', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 التعليق باللغة العربية',
@@ -829,9 +845,10 @@ tabs: 'أقسام بيانات المباراة', tabOv: 'نظرة عامة', ta
 close: 'إغلاق', noPlayerEvents: 'لا أحداث لهذا اللاعب',
 defaultTitle: 'مشاهدة المباراة', leagueFallback: 'بث نظيف بدون إعلانات',
 watchTitle: (h, a) => 'مشاهدة ' + h + ' × ' + a + ' بث مباشر — كورة لايف',
+watchDesc: (h, a, l) => 'مشاهدة ' + h + ' × ' + a + (l ? ' (' + l + ')' : '') + ' بث مباشر بجودة عالية — كورة لايف',
 supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانات أو بالتبرع.',
 adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة', copyBtn: 'نسخ',
-dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats', footHome: 'الرئيسية', ftMessi: '🐐 ميسي',
+dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats', footHome: 'الرئيسية', ftMessi: '🐐 ميسي', ftCR7: '👑 رونالدو',
 oddsTitle: 'احتمالات المباراة', oddsDraw: 'تعادل', polyLink: 'كل الاحتمالات',
 polyTitle: 'الكرة الذهبية 2026 — الاحتمالات',
 hiTitle: '🎬 ملخص المباراة',
@@ -879,12 +896,15 @@ if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@gr
 { '@type': 'WebPage', '@id': 'https://kooraadz.vercel.app/player.html#page', url: 'https://kooraadz.vercel.app/player.html', name: m.title, inLanguage: ['en', 'fr', 'ar'], isPartOf: { '@id': 'https://kooraadz.vercel.app/#site' } }
 ]});
 }
+const SITE_TG = ''; // <-- paste the site Telegram channel URL here to activate
+function siteTgPaint(){ try { const u = (typeof SITE_TG === 'string' ? SITE_TG.trim() : ''); document.querySelectorAll('[data-sitetg]').forEach(a => { if (u){ a.href = u; a.hidden = false; } else { a.hidden = true; } }); } catch (e) {} }
 function setLang(l, save){
 if (!I18N[l]) return;
 LANG = l;
 try { document.documentElement.lang = l; document.documentElement.dir = (l === 'ar' ? 'rtl' : 'ltr'); } catch (e) {}
 if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
 try { applyStatic(); updateMeta(); } catch (e) {}
+try { siteTgPaint(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
 if (save !== false){
 try {
@@ -1583,7 +1603,10 @@ function paintTitle(){
       ]});
     document.head.appendChild(bc);
   } catch {}
-  try { const md = document.querySelector('meta[name="description"]'); if (md && (home || away)){ const __tm = dispTime(timeP); let __ds = `Watch ${__H} vs ${__A}${__L ? ` (${__L})` : ''} live stream in HD — Koora Live`; if (__tm) __ds += ` — ${__tm}`; md.setAttribute('content', __ds); } } catch {}
+  try { const md = document.querySelector('meta[name="description"]'); if (md && (home || away)){ const __tm = dispTime(timeP); let __ds = t('watchDesc')(__H, __A, __L || ''); if (__tm) __ds += ` — ${__tm}`; md.setAttribute('content', __ds);
+    const __od = document.querySelector('meta[property="og:description"]'); if (__od) __od.setAttribute('content', __ds);
+    const __td = document.querySelector('meta[name="twitter:description"]'); if (__td) __td.setAttribute('content', __ds); } } catch {}
+  try { if (home || away){ const __ot = document.querySelector('meta[property="og:title"]'); if (__ot) __ot.setAttribute('content', document.title); const __tt = document.querySelector('meta[name="twitter:title"]'); if (__tt) __tt.setAttribute('content', document.title); } } catch {}
 }
 /* Short-link snapshot: sessionStorage (same-tab instant) → localStorage
    (12h TTL) → matchday API lookup (d, today, yesterday, tomorrow). */
@@ -2218,10 +2241,32 @@ function showSkeleton(){
   srvNow.textContent = t('searching');
   srcNote.hidden = true;
 }
+
+/* Report-dead-source: instant skip + the URL sinks to the bottom of every
+   future list on this device. Aggregated upstream best-effort (RPC may not
+   exist yet — fail-open by design). */
+function badGet(){ try { const a = JSON.parse(localStorage.getItem('koora:bad') || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } }
+function badAdd(u){ try { const a = badGet(); const k = String(u || '').slice(0, 300); if (k && !a.includes(k)){ a.push(k); localStorage.setItem('koora:bad', JSON.stringify(a.slice(-200))); } } catch {} }
+function badLast(urls){ try { const bad = badGet(); if (!bad.length) return urls; return [...urls].sort((a, b) => ((bad.includes(a.play || a.url)) ? 1 : 0) - ((bad.includes(b.play || b.url)) ? 1 : 0)); } catch { return urls; } }
+async function reportCurrent(){
+  try {
+    const s = serverList[srvIdx];
+    const u = s && (s.play || s.url);
+    if (!u){ toast(t('reportNone')); return; }
+    badAdd(u);
+    try { sbRpc('koora_report_stream', { p_match: String(id || '').slice(0, 120), p_url: String(u).slice(0, 500), p_voter: sbVid() }); } catch {}
+    const rest = serverList.filter(x => (x.play || x.url) !== u);
+    toast(t('reportThanks'));
+    if (!rest.length){ loadRealPlayer(); return; }
+    showServersFromList(rest);
+    goServer(0, true);
+  } catch {}
+}
+
 function showServersFromList(list){
   // Drop unplayable URLs up-front so counts never include dead servers.
   const dedup = (arr) => (arr || []).filter(s => s && s.url && safeSrc(s.play || s.url)).filter((s, i, a) => a.findIndex(x => x.url === s.url) === i);
-  const ar = dedup(list);
+  const ar = badLast(dedup(list));
   serverList = [...ar];
   srvIdx = 0;
   if (!ar.length){
@@ -2532,6 +2577,7 @@ document.getElementById('btnLike').onclick = () => likeToggle();
 document.getElementById('starH').onclick = () => favToggle(home);
 document.getElementById('starA').onclick = () => favToggle(away);
 document.getElementById('btnBell').onclick = () => bellToggle();
+try { document.getElementById('btnReport').onclick = () => reportCurrent(); } catch {}
 document.getElementById('btnShare').onclick = async () => {
 
   const url = location.href;

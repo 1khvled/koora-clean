@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (de-slop UI pass — see §82 bullet).
+> Last updated: 2026-10-03 (ALL suggestions batch: titles, report, bells, Ronaldo, Telegram — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -184,6 +184,39 @@
   live indicators; skeleton sheen replaced by a calm pulse; dead keyframes
   removed. Verified zero slop markers site-wide, CSS balanced, JS parses.
   Mirrors content-verified.
+- **ALL batch 2026-10-03 (owner: do ALL, Telegram last, automate).**
+  - #1 Dynamic titles COMPLETE: player paintTitle already set
+    document.title — added OG/twitter title+description updates and a
+    localized `watchDesc` dict fn ×3. Verified in markup.
+  - #2 Report-dead-stream SHIPPED: ⚠ button in the sources header;
+    one tap skips to the next server, the dead URL sinks to the bottom of
+    every future list on that device (localStorage, capped), plus a
+    best-effort `koora_report_stream` Supabase RPC (fail-open if the
+    function doesn't exist yet — create it to aggregate globally). A
+    headless test caught an INVERTED sort comparator here (reported would
+    have floated first); fixed and re-proven.
+  - #3 Kickoff bells SHIPPED on index + Messi upcoming rows (🔕/🔔 toggle
+    inside the card, navigation killed properly): persists across visits,
+    fires a system notification (toast fallback) at kickoff, purges fired
+    and ancient bells, 30s checker. 6 keys ×3 dicts verified; headless
+    test proves persist/fire/cleanup/no-fire-for-ancient.
+  - #4 Standings NOT SHIPPED (blocked, evidence): 9 probes — FotMob has
+    no table endpoint (matchDetails carries no table; leagues endpoint
+    returns data:null), ESPN core chain resolves but `records` is empty
+    for BOTH 2025 and 2026 seasons, and full names need a 20-fetch fan-out
+    per view. Per the must-work rule, no parser was written for
+    unverified shapes. Revisit when a table source verifies.
+  - #5 Ronaldo page SHIPPED (`/ronaldo.html` + mirror, sitemap 0.9,
+    robots, 👑 CR7 links in all 3 footers with `ftCR7` ×3): Al Nassr +
+    Portugal filter with Brazil exclusion (headless-proven, incl. live
+    check with 0 fixtures right now), full EN/FR/AR, translations,
+    countdowns, spotlight, donations, SEO schema; cross-linked both ways
+    with the Messi page (`ftMessi` on Ronaldo).
+  - #6 Telegram slots READY: `SITE_TG = ''` + `data-sitetg` buttons in all
+    4 headers (hidden while empty — zero visual change today). Paste the
+    channel URL into the constant on any page to activate site-wide.
+  Verified: all JS parses, CSS balanced, dict parity everywhere, 4/4
+  mirrors content-identical + CRLF. Logged here.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner

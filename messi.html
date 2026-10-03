@@ -217,6 +217,13 @@ button{touch-action:manipulation}
 .skel-list .skel-row:nth-child(2) i{animation-delay:.12s}
 .skel-list .skel-row:nth-child(3) i{animation-delay:.24s}
 @media (prefers-reduced-motion:reduce){.skel-row i{animation:none}}
+
+/* ── kickoff bell (2026-10-03): remind me at kickoff ── */
+.mball{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);
+  background:transparent;font-size:17px;cursor:pointer;display:grid;place-items:center;
+  font-family:var(--font);transition:border-color .15s ease,background .15s ease,transform .15s ease}
+.mball.on{border-color:var(--gold);background:rgba(255,184,0,.12)}
+.mball:active{transform:scale(.94)}
 </style>
 </head>
 <body>
@@ -224,7 +231,7 @@ button{touch-action:manipulation}
   <div class="brand">
     <a class="home" href="/" data-i18n="ftHome">Home</a>
     <div><h1 data-i18n="brand">Watch Messi Live — Inter Miami & Argentina</h1><small data-i18n="tagline">Every Messi match: live, upcoming & results</small></div>
-    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a></div>
+    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
   </div>
 </header>
 <div class="wrap">
@@ -261,7 +268,7 @@ button{touch-action:manipulation}
   </div>
   <section class="seo faq" id="faq"><h2 data-i18n="faqH">Watch Messi Live — FAQ</h2><details><summary data-i18n="fq1">How do I watch Messi live?</summary><p data-i18n="fa1">Open any live Inter Miami or Argentina match on this page to start the free stream.</p></details><details><summary data-i18n="fq2">Which Messi matches are listed?</summary><p data-i18n="fa2">Every Inter Miami and Argentina fixture — live now, upcoming and recent results.</p></details><details><summary data-i18n="fq3">Is the Messi stream free?</summary><p data-i18n="fa3">Yes — every Messi stream here is free, with no account and no popups.</p></details><details><summary data-i18n="fq4">Does it work on mobile?</summary><p data-i18n="fa4">Yes — this page is fully mobile-optimized and works on any phone, tablet or desktop.</p></details></section>
 </div>
-<footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a href="#top" data-i18n="ftTop">Top</a></footer>
+<footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a href="#top" data-i18n="ftTop">Top</a></footer>
 
 <script>
 'use strict';
@@ -275,9 +282,12 @@ startsInD: (d, h) => `in ${d}d ${h}h`,
 liveNow: 'Messi is playing now', upNext: 'Upcoming Messi matches', results: 'Recent Messi results',
 loading: 'Loading Messi matches…', emptyAll: 'No Messi match in the next few days — check back soon.',
 live: 'Live', ended: 'FT', upcoming: 'Upcoming', vs: 'vs', ftHome: 'Home', ftTop: 'Top',
+tgBtn: '📢 Telegram',
+bellBtn: 'Remind me at kickoff', bellOn: 'Reminder set', bellOff: 'Reminder removed',
+bellStart: 'Kickoff!', bellUnsupported: 'Notifications not supported', bellDenied: 'Enable notifications in your browser',
 supMsg: '❤ Messi streams are free — support us with a donation.',
 walletBtn: '⧉ BEP20 wallet', copyBtn: 'Copy', copyOk: 'Address copied',
-dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats',
+dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats', ftCR7: '👑 Ronaldo',
 faqH: 'Watch Messi Live — FAQ',
 fq1: 'How do I watch Messi live?', fa1: 'Open any live Inter Miami or Argentina match on this page to start the free stream.',
 fq2: 'Which Messi matches are listed?', fa2: 'Every Inter Miami and Argentina fixture — live now, upcoming and recent results.',
@@ -298,9 +308,12 @@ startsInD: (d, h) => `dans ${d}j ${h}h`,
 liveNow: 'Messi joue en ce moment', upNext: 'Prochains matchs de Messi', results: 'Résultats récents de Messi',
 loading: 'Chargement des matchs de Messi…', emptyAll: 'Aucun match de Messi ces prochains jours — revenez bientôt.',
 live: 'Direct', ended: 'Terminé', upcoming: 'À venir', vs: 'vs', ftHome: 'Accueil', ftTop: 'Haut',
+tgBtn: '📢 Telegram',
+bellBtn: 'Me rappeler au coup d’envoi', bellOn: 'Rappel activé', bellOff: 'Rappel retiré',
+bellStart: 'Coup d’envoi !', bellUnsupported: 'Notifications non prises en charge', bellDenied: 'Activez les notifications dans le navigateur',
 supMsg: '❤ Les streams de Messi sont gratuits — soutenez-nous avec un don.',
 walletBtn: '⧉ Wallet BEP20', copyBtn: 'Copier', copyOk: 'Adresse copiée',
-dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats',
+dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats', ftCR7: '👑 Ronaldo',
 faqH: 'Regarder Messi en Direct — FAQ',
 fq1: 'Comment regarder Messi en direct ?', fa1: 'Ouvrez un match en direct de l’Inter Miami ou de l’Argentine sur cette page pour lancer le stream gratuit.',
 fq2: 'Quels matchs de Messi sont listés ?', fa2: 'Tous les matchs de l’Inter Miami et de l’Argentine — en direct, à venir et résultats récents.',
@@ -320,10 +333,12 @@ startsIn: (h, m) => h > 0 ? `بعد ${h} س ${m} د` : `بعد ${m} د`,
 startsInD: (d, h) => `بعد ${d} يوم ${h} س`,
 liveNow: 'ميسي يلعب الآن', upNext: 'مباريات ميسي القادمة', results: 'نتائج ميسي الأخيرة',
 loading: 'جاري تحميل مباريات ميسي…', emptyAll: 'لا توجد مباراة لميسي في الأيام القادمة — عُد قريباً.',
-live: 'مباشر', ended: 'انتهت', vs: 'ضد', upcoming: 'لم تبدأ', ftHome: 'الرئيسية', ftTop: 'الأعلى',
+live: 'مباشر', ended: 'انتهت', vs: 'ضد', tgBtn: '📢 تيليغرام', upcoming: 'لم تبدأ', ftHome: 'الرئيسية', ftTop: 'الأعلى',
+bellBtn: 'ذكرني عند بداية المباراة', bellOn: 'تم تفعيل التذكير', bellOff: 'تم إلغاء التذكير',
+bellStart: 'بدأت المباراة!', bellUnsupported: 'التنبيهات غير مدعومة', bellDenied: 'فعّل التنبيهات في المتصفح',
 supMsg: '❤ بثوث ميسي مجانية — ادعمنا بتبرع.',
 walletBtn: '⧉ محفظة BEP20', copyBtn: 'نسخ', copyOk: 'تم نسخ العنوان',
-dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats',
+dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats', ftCR7: '👑 رونالدو',
 faqH: 'مشاهدة ميسي بث مباشر — أسئلة شائعة',
 fq1: 'كيف أشاهد ميسي بث مباشر؟', fa1: 'افتح أي مباراة مباشرة لإنتر ميامي أو الأرجنتين في هذه الصفحة لبدء البث المجاني.',
 fq2: 'ما مباريات ميسي المعروضة؟', fa2: 'كل مباريات إنتر ميامي والأرجنتين — المباشر والقادم والنتائج الأخيرة.',
@@ -358,12 +373,15 @@ const can = document.querySelector('link[rel="canonical"]'); if (can) can.setAtt
 const ogU = document.querySelector('meta[property="og:url"]'); if (ogU) ogU.setAttribute('content', base);
 } catch (e) {}
 }
+const SITE_TG = ''; // <-- paste the site Telegram channel URL here to activate
+function siteTgPaint(){ try { const u = (typeof SITE_TG === 'string' ? SITE_TG.trim() : ''); document.querySelectorAll('[data-sitetg]').forEach(a => { if (u){ a.href = u; a.hidden = false; } else { a.hidden = true; } }); } catch (e) {} }
 function setLang(l, save){
 if (!I18N[l]) return;
 LANG = l;
 try { document.documentElement.lang = l; document.documentElement.dir = (l === 'ar' ? 'rtl' : 'ltr'); } catch (e) {}
 if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
 try { applyStatic(); updateMeta(); render(); } catch (e) {}
+try { siteTgPaint(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
 }
 try {
@@ -888,6 +906,65 @@ function cls(m){
   if (m.status === 'LIVE' || /الشوط|جارية|مباشر|live/i.test(st)) return 'live';
   return 'up';
 }
+
+/* Kickoff reminders: bell on any upcoming row. In-page timers + persisted
+   across visits; fires a system notification (or toast fallback) at kickoff.
+   NOTE: the button lives inside the row anchor by design — the handler kills
+   the navigation via preventDefault/stopPropagation. */
+function bellGet(){ try { const o = JSON.parse(localStorage.getItem('koora:bells') || '{}'); return (o && typeof o === 'object') ? o : {}; } catch { return {}; } }
+function bellSet(o){ try { localStorage.setItem('koora:bells', JSON.stringify(o)); } catch {} }
+function bellFind(mid){
+  try {
+    for (const d of ['today', 'tomorrow', 'yesterday']){
+      const m = ((typeof CACHE !== 'undefined' && CACHE[d]) || []).find(x => String(x.id) === String(mid));
+      if (m) return { start: m.start, home: m.home || '', away: m.away || '' };
+    }
+    return null;
+  } catch { return null; }
+}
+function bellSnap(m){ return { start: m.start, home: m.home || '', away: m.away || '' }; }
+
+function bellToggleMatch(ev, el){
+  try { ev.preventDefault(); ev.stopPropagation(); } catch {}
+  try {
+    const mid = el && el.getAttribute('data-bell');
+    if (!mid) return;
+    if (!('Notification' in window)){ toast(t('bellUnsupported')); return; }
+    const all = bellGet();
+    if (all[mid]){ delete all[mid]; bellSet(all); toast(t('bellOff')); }
+    else {
+      const m = bellFind(mid);
+      if (!m || !m.start) return;
+      const arm = () => { const a2 = bellGet(); a2[mid] = bellSnap(m); bellSet(a2); toast(t('bellOn')); paintBells(); bellCheck(); };
+      if (Notification.permission === 'granted') arm();
+      else {
+        try {
+          Notification.requestPermission().then(p => { if (p === 'granted') arm(); else toast(t('bellDenied')); }).catch(() => {});
+        } catch { return; }
+        return;
+      }
+    }
+    paintBells(); bellCheck();
+  } catch {}
+}
+function paintBells(){ try { const all = bellGet(); document.querySelectorAll('[data-bell]').forEach(b => { const on = !!all[b.getAttribute('data-bell')]; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.textContent = on ? '🔔' : '🔕'; }); } catch {} }
+function bellCheck(){
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const all = bellGet(); let ch = false;
+    for (const k of Object.keys(all)){
+      const r = all[k]; const ms = Date.parse(r.start || '') - Date.now();
+      if (!isFinite(ms)){ delete all[k]; ch = true; continue; }
+      if (ms <= 0 && ms > -3.5 * 3600 * 1000){
+        try { new Notification((r.home || '') + ' × ' + (r.away || ''), { body: t('bellStart') }); } catch {}
+        try { toast((r.home || '') + ' × ' + (r.away || '') + ' — ' + t('bellStart')); } catch {}
+        delete all[k]; ch = true;
+      } else if (ms <= -3.5 * 3600 * 1000){ delete all[k]; ch = true; }
+    }
+    if (ch) bellSet(all);
+  } catch {}
+}
+
 function rowCard(m, day){
   const c = cls(m);
   const sh = (m.score_home !== '' && m.score_home != null) ? esc(m.score_home) : '';
@@ -913,6 +990,7 @@ function rowCard(m, day){
     if (cd) sub = cd;
   }
   const subHtml = sub ? `<div class="s ${subCls}">${esc(sub)}</div>` : '';
+  const bellHtml = (c === 'up') ? `<button type="button" class="mball" data-bell="${esc(String(m.id))}" aria-pressed="false" aria-label="${esc(t('bellBtn'))}" onclick="bellToggleMatch(event,this)">🔕</button>` : '';
   const href = 'player.html?m=' + encodeURIComponent(m.id || '') + '&d=' + encodeURIComponent(day);
   return `<a class="m${c === 'live' ? ' is-live' : ''}" href="${href}">
     <div class="st"><div class="t">${top}</div>${subHtml}</div>
@@ -920,7 +998,7 @@ function rowCard(m, day){
       <div class="t"><span>${esc(dispTeam(m.home || ''))}</span><b>${sh}</b></div>
       <div class="t"><span>${esc(dispTeam(m.away || ''))}</span><b>${sa}</b></div>
     </div>
-    <div class="go">${LANG === 'ar' ? '‹' : '›'}</div>
+    ${bellHtml}<div class="go">${LANG === 'ar' ? '‹' : '›'}</div>
   </a>`;
 }
 function kickoffIn(start){
@@ -984,6 +1062,7 @@ function render(){
     show('resSec', 'resList', null, res);
     const none = !live.length && !up.length && !res.length;
     const ea = document.getElementById('emptyAll'); if (ea) ea.hidden = !none;
+    try { paintBells(); bellCheck(); } catch {}
     try {
       const spot = document.getElementById('spot');
       const fut = up.filter(m => Date.parse(m.start || '') > Date.now())
@@ -1009,6 +1088,7 @@ function render(){
 }
 load();
 setInterval(load, 30000);
+setInterval(bellCheck, 30000);
 try {
   const wb = document.getElementById('walletBtn'), wx = document.getElementById('walletBox');
   if (wb && wx) wb.onclick = () => { const open = wx.hidden; wx.hidden = !open; wb.setAttribute('aria-expanded', String(open)); };

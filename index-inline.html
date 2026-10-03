@@ -459,6 +459,13 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .skel-list .skel-row:nth-child(2) i{animation-delay:.12s}
 .skel-list .skel-row:nth-child(3) i{animation-delay:.24s}
 @media (prefers-reduced-motion:reduce){.skel-row i{animation:none}}
+
+/* ── kickoff bell (2026-10-03): remind me at kickoff ── */
+.mball{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);
+  background:transparent;font-size:17px;cursor:pointer;display:grid;place-items:center;
+  font-family:var(--font);transition:border-color .15s ease,background .15s ease,transform .15s ease}
+.mball.on{border-color:var(--gold);background:rgba(255,184,0,.12)}
+.mball:active{transform:scale(.94)}
 </style>
 </head>
 <body>
@@ -468,7 +475,7 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
     <div><h1 data-i18n="brand">Koora Live — Live Football Matches, Scores &amp; Streams</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
     <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><button type="button" id="themeBtn" data-i18n-aria="themeToggle" aria-label="Toggle dark mode">🌙</button></div>
   </div>
-  <div class="promo-row"><a class="pbtn gold" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="pbtn tg only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn tg only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></div>
+  <div class="promo-row"><a class="pbtn gold" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="pbtn tg only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn tg only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a class="pbtn tg" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
 </header>
 <nav class="days" id="dayTabs" aria-label="Day" data-i18n-aria="chooseDay">
   <button data-day="yesterday" data-i18n="yesterday">Yesterday</button>
@@ -526,7 +533,7 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 <section class="seo faq" id="faq"><h2 data-i18n="faqH">Live Football Streams — FAQ</h2><details><summary data-i18n="fq1">How do I watch?</summary><p data-i18n="fa1">Pick a match from the list to open its stream.</p></details><details><summary data-i18n="fq2">Is the stream free?</summary><p data-i18n="fa2">Yes — every listed stream is free.</p></details><details><summary data-i18n="fq3">Which competitions are covered?</summary><p data-i18n="fa3">Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and the Champions League.</p></details><details><summary data-i18n="fq4">Why does the minute keep updating?</summary><p data-i18n="fa4">The minute fuses the live feed with kickoff times and refreshes automatically.</p></details><details><summary data-i18n="fq5">Can I watch on mobile?</summary><p data-i18n="fa5">Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.</p></details><details><summary data-i18n="fq6">What stream quality can I expect?</summary><p data-i18n="fa6">HD live football streams with live scores and minute-by-minute updates, free with no account needed.</p></details><details><summary data-i18n="fq9">Is Koora Live a good Yacine TV alternative?</summary><p data-i18n="fa9">Yes — free live football streams with live scores, no account and no popups, on any phone or desktop.</p></details><details><summary data-i18n="fq10">Will the 2026 World Cup be covered?</summary><p data-i18n="fa10">Yes — World Cup 2026 fixtures, live scores and streams appear here with kickoff times and live minutes.</p></details><details id="faqArLinks" data-ar-only hidden lang="ar" dir="rtl" style="margin-top:10px"><summary>🤲 روابط قرآن وأذكار وأدعية وخاشعة</summary><p style="line-height:2"><a href="https://quran.com/ar" target="_blank" rel="noopener">📖 القرآن الكريم</a><br><a href="https://www.islamweb.net" target="_blank" rel="noopener">🕌 أذكار المسلم</a><br><a href="https://sunnah.com" target="_blank" rel="noopener">📜 الحديث الشريف</a><br><a href="https://www.islamweb.net" target="_blank" rel="noopener">🤲 الأدعية</a><br><a href="https://youtu.be/83qrY5qisus" target="_blank" rel="noopener">📺 سورة الكهف (قراءة خاشعة)</a><br><a href="https://www.youtube.com/watch?v=GJa5FAgQEGQ" target="_blank" rel="noopener">📺 سورة البقرة (تلاوة خاشعة)</a><br></p></details><details><summary data-i18n="fq7">Where are the AliExpress deals?</summary><p><span data-i18n="fa7">Our Telegram channel posts AliExpress France finds daily.</span> <a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a></p></details><details><summary data-i18n="fq8">What is MessiStats?</summary><p><span data-i18n="fa8">MessiStats.com tracks Messi stats, records and live data.</span> <a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></p></details></section>
 <div class="ad-wrap" data-ad-slot="messistat-footer"><a class="ad" href="https://messistat.com" target="_blank" rel="sponsored noopener" aria-label="MessiStat — advertisement"><span class="tag" data-i18n="ad">Ad</span><img src="./ads/messi-stats-en.jpg" alt="MessiStat.com — uncover the legend, explore live stats" loading="lazy" decoding="async" width="1600" height="400"></a></div>
 <button id="liveJump" type="button" hidden></button>
-<footer class="foot"><a href="#top" data-i18n="ftTop">Top</a><a href="#liveSec" id="footLive" data-i18n="ftLive" hidden>Live</a><a href="#faq" data-i18n="ftFaq">FAQ</a><a href="#support" data-i18n="ftSupport">Support</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><div data-ar-only hidden lang="ar" dir="rtl" style="margin-top:8px;line-height:2"><b>صدقة جارية:</b> <a href="https://quran.com/ar" target="_blank" rel="noopener">📖 القرآن الكريم</a> · <a href="https://www.islamweb.net" target="_blank" rel="noopener">🕌 الأذكار</a> · <a href="https://sunnah.com" target="_blank" rel="noopener">📜 الحديث</a> · <a href="https://www.islamweb.net" target="_blank" rel="noopener">🤲 الأدعية</a> · <a href="https://youtu.be/83qrY5qisus" target="_blank" rel="noopener">📺 سورة الكهف</a> · <a href="https://www.youtube.com/watch?v=GJa5FAgQEGQ" target="_blank" rel="noopener">📺 سورة البقرة</a></div></footer>
+<footer class="foot"><a href="#top" data-i18n="ftTop">Top</a><a href="#liveSec" id="footLive" data-i18n="ftLive" hidden>Live</a><a href="#faq" data-i18n="ftFaq">FAQ</a><a href="#support" data-i18n="ftSupport">Support</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a class="only-enfr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="only-ar" href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><div data-ar-only hidden lang="ar" dir="rtl" style="margin-top:8px;line-height:2"><b>صدقة جارية:</b> <a href="https://quran.com/ar" target="_blank" rel="noopener">📖 القرآن الكريم</a> · <a href="https://www.islamweb.net" target="_blank" rel="noopener">🕌 الأذكار</a> · <a href="https://sunnah.com" target="_blank" rel="noopener">📜 الحديث</a> · <a href="https://www.islamweb.net" target="_blank" rel="noopener">🤲 الأدعية</a> · <a href="https://youtu.be/83qrY5qisus" target="_blank" rel="noopener">📺 سورة الكهف</a> · <a href="https://www.youtube.com/watch?v=GJa5FAgQEGQ" target="_blank" rel="noopener">📺 سورة البقرة</a></div></footer>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -585,7 +592,10 @@ todayMatches: "Today's matches", ad: 'Ad',
     copyOk: 'Address copied', copyFail: 'Copy failed', copyBtn: 'Copy',
 themeToggle: 'Toggle dark mode',
 ftTop: 'Top', ftLive: 'Live', ftFaq: 'FAQ', ftSupport: 'Support',
-dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats', ftMessi: '🐐 Messi',
+tgBtn: '📢 Telegram',
+bellBtn: 'Remind me at kickoff', bellOn: 'Reminder set', bellOff: 'Reminder removed',
+bellStart: 'Kickoff!', bellUnsupported: 'Notifications not supported', bellDenied: 'Enable notifications in your browser',
+dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo',
 fq7: 'Where are the AliExpress deals?', fa7: 'Follow our Telegram deals channel for daily AliExpress finds.',
 fq8: 'What is MessiStats?', fa8: 'MessiStats.com tracks Messi stats, records and live data.',
 fq9: 'Is Koora Live a good Yacine TV alternative?', fa9: 'Yes — free live football streams with live scores, no account and no popups, on any phone or desktop.',
@@ -625,7 +635,10 @@ todayMatches: 'Matchs du jour', ad: 'Pub',
     copyOk: 'Adresse copiée', copyFail: 'Copie impossible', copyBtn: 'Copier',
 themeToggle: 'Activer le mode sombre',
 ftTop: 'Haut', ftLive: 'En direct', ftFaq: 'FAQ', ftSupport: 'Soutien',
-dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats', ftMessi: '🐐 Messi',
+tgBtn: '📢 Telegram',
+bellBtn: 'Me rappeler au coup d’envoi', bellOn: 'Rappel activé', bellOff: 'Rappel retiré',
+bellStart: 'Coup d’envoi !', bellUnsupported: 'Notifications non prises en charge', bellDenied: 'Activez les notifications dans le navigateur',
+dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo',
 fq7: 'Où sont les bons plans AliExpress ?', fa7: 'Notre canal Telegram publie chaque jour les bons plans AliExpress France.',
 fq8: 'C’est quoi MessiStats ?', fa8: 'MessiStats.com suit les stats, records et données live de Messi.',
 fq9: 'Koora Live est-il une bonne alternative à Yacine TV ?', fa9: 'Oui — streams de foot gratuits avec scores en direct, sans compte ni popups, sur mobile comme sur PC.',
@@ -676,7 +689,10 @@ adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّ
 copyOk: 'تم نسخ العنوان', copyFail: 'تعذّر النسخ', copyBtn: 'نسخ',
 themeToggle: 'تبديل الوضع الليلي',
 ftTop: 'الأعلى', ftLive: 'المباشر', ftFaq: 'الأسئلة الشائعة', ftSupport: 'الدعم',
-dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats', ftMessi: '🐐 ميسي',
+tgBtn: '📢 تيليغرام',
+bellBtn: 'ذكرني عند بداية المباراة', bellOn: 'تم تفعيل التذكير', bellOff: 'تم إلغاء التذكير',
+bellStart: 'بدأت المباراة!', bellUnsupported: 'التنبيهات غير مدعومة', bellDenied: 'فعّل التنبيهات في المتصفح',
+dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats', ftMessi: '🐐 ميسي', ftCR7: '👑 رونالدو',
 fq7: 'أين عروض علي إكسبريس؟', fa7: 'قناتنا على تيليغرام تنشر عروض علي إكسبريس يومياً.',
 fq8: 'ما هو ميسي ستات؟', fa8: 'موقع MessiStats.com يتابع إحصائيات ميسي وأرقامه المباشرة.',
 fq9: 'هل كورة لايف بديل جيد لياسين تيفي؟', fa9: 'نعم — بث مباشر مجاني لجميع المباريات مع نتائج لحظية، بدون حساب وبدون إعلانات مزعجة، على الهاتف والكمبيوتر.',
@@ -723,6 +739,8 @@ if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@gr
 { '@type': 'WebSite', '@id': 'https://kooraadz.vercel.app/#site', url: 'https://kooraadz.vercel.app/', name: 'Koora Live', inLanguage: ['en', 'fr', 'ar'], publisher: { '@id': 'https://kooraadz.vercel.app/#org' } }
 ]});
 }
+const SITE_TG = ''; // <-- paste the site Telegram channel URL here to activate
+function siteTgPaint(){ try { const u = (typeof SITE_TG === 'string' ? SITE_TG.trim() : ''); document.querySelectorAll('[data-sitetg]').forEach(a => { if (u){ a.href = u; a.hidden = false; } else { a.hidden = true; } }); } catch (e) {} }
 function setLang(l, save){
 if (!I18N[l]) return;
 LANG = l;
@@ -731,6 +749,7 @@ if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {}
 try { const sd = document.getElementById('sadaqa'); if (sd) sd.hidden = (l !== 'ar'); } catch (e) {}
   try { document.querySelectorAll('[data-ar-only]').forEach(function(el){ el.hidden = (l !== 'ar'); }); } catch (e) {}
 try { applyStatic(); updateMeta(); } catch (e) {}
+try { siteTgPaint(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
 if (save !== false){ try { buildChips(); render(true); paintAds(); } catch (e) {} }
 }
@@ -2039,6 +2058,59 @@ function countdown(m, now){
     return t('startsIn')(Math.floor(ms / 3600000), Math.floor(ms % 3600000 / 60000));
   } catch (e) { return ''; }
 }
+
+/* Kickoff reminders: bell on any upcoming row. In-page timers + persisted
+   across visits; fires a system notification (or toast fallback) at kickoff.
+   NOTE: the button lives inside the row anchor by design — the handler kills
+   the navigation via preventDefault/stopPropagation. */
+function bellGet(){ try { const o = JSON.parse(localStorage.getItem('koora:bells') || '{}'); return (o && typeof o === 'object') ? o : {}; } catch { return {}; } }
+function bellSet(o){ try { localStorage.setItem('koora:bells', JSON.stringify(o)); } catch {} }
+function bellFind(mid){
+  try { const m = ((typeof ALL !== 'undefined' && ALL) || []).find(x => String(x.id) === String(mid)); if (!m) return null; return { start: m.start, home: m.home || '', away: m.away || '' }; } catch { return null; }
+}
+function bellSnap(m){ return { start: m.start, home: m.home || '', away: m.away || '' }; }
+
+function bellToggleMatch(ev, el){
+  try { ev.preventDefault(); ev.stopPropagation(); } catch {}
+  try {
+    const mid = el && el.getAttribute('data-bell');
+    if (!mid) return;
+    if (!('Notification' in window)){ toast(t('bellUnsupported')); return; }
+    const all = bellGet();
+    if (all[mid]){ delete all[mid]; bellSet(all); toast(t('bellOff')); }
+    else {
+      const m = bellFind(mid);
+      if (!m || !m.start) return;
+      const arm = () => { const a2 = bellGet(); a2[mid] = bellSnap(m); bellSet(a2); toast(t('bellOn')); paintBells(); bellCheck(); };
+      if (Notification.permission === 'granted') arm();
+      else {
+        try {
+          Notification.requestPermission().then(p => { if (p === 'granted') arm(); else toast(t('bellDenied')); }).catch(() => {});
+        } catch { return; }
+        return;
+      }
+    }
+    paintBells(); bellCheck();
+  } catch {}
+}
+function paintBells(){ try { const all = bellGet(); document.querySelectorAll('[data-bell]').forEach(b => { const on = !!all[b.getAttribute('data-bell')]; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.textContent = on ? '🔔' : '🔕'; }); } catch {} }
+function bellCheck(){
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const all = bellGet(); let ch = false;
+    for (const k of Object.keys(all)){
+      const r = all[k]; const ms = Date.parse(r.start || '') - Date.now();
+      if (!isFinite(ms)){ delete all[k]; ch = true; continue; }
+      if (ms <= 0 && ms > -3.5 * 3600 * 1000){
+        try { new Notification((r.home || '') + ' × ' + (r.away || ''), { body: t('bellStart') }); } catch {}
+        try { toast((r.home || '') + ' × ' + (r.away || '') + ' — ' + t('bellStart')); } catch {}
+        delete all[k]; ch = true;
+      } else if (ms <= -3.5 * 3600 * 1000){ delete all[k]; ch = true; }
+    }
+    if (ch) bellSet(all);
+  } catch {}
+}
+
 function rowCard(m){
 
   const st = statusLabel(m);
@@ -2060,16 +2132,18 @@ function rowCard(m){
   }
   else { top = dispTime(m.time_text) || t('upcoming'); sub = countdown(m); }
   const subHtml = sub ? `<div class="s ${subCls}">${tx(sub)}</div>` : '';
+  const bellHtml = (!live && !isEnded(m)) ? `<button type="button" class="mball" data-bell="${esc(String(m.id))}" aria-pressed="false" aria-label="${tx(t('bellBtn'))}" onclick="bellToggleMatch(event,this)">🔕</button>` : '';
   return `<a class="m${live ? ' is-live' : ''}${GOAL_IDS.includes(m.id) ? ' flash' : ''}" href="${playerLink(m)}">
     <div class="st"><div class="t">${tx(top)}</div>${subHtml}</div>
     <div class="teams">
       <div class="t">${logoImg(m.home_logo, dispTeam(m.home))}<span>${tx(dispTeam(m.home || ''))}</span><b>${sh}</b></div>
       <div class="t">${logoImg(m.away_logo, dispTeam(m.away))}<span>${tx(dispTeam(m.away || ''))}</span><b>${sa}</b></div>
     </div>
-    <div class="go">${LANG === 'ar' ? '‹' : '›'}</div>
+    ${bellHtml}<div class="go">${LANG === 'ar' ? '‹' : '›'}</div>
   </a>`;
 }
 
+setInterval(bellCheck, 30000);
 function render(silent){
   try { document.getElementById('ssr-fallback')?.remove(); } catch {}
   const rail = $('#liveRail');
@@ -2107,6 +2181,7 @@ function render(silent){
     groupsHtml += `<details class="arab-more"><summary>${hn ? '<span class="dot"></span>' : ''}${t('hiddenLeagues')} <span class="n">${hid.length}</span></summary><div class="body">${hid.map(rowCard).join('')}</div></details>`;
   }
   $('#leagues').innerHTML = groupsHtml;
+  try { paintBells(); bellCheck(); } catch {}
   // #empty is for "filter matched nothing" — offline keeps the stale list
   // with a toast instead (loadDay returns early on !data).
   $('#empty').hidden = list.length > 0 || ALL.length === 0;
