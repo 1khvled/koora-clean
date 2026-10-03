@@ -17,6 +17,30 @@ import urllib.parse
 import urllib.request
 
 STATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_state.json')
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_config.json')
+
+
+def file_config():
+    """Repo-committed fallback (owner order) when Secrets are absent."""
+    try:
+        with open(CONFIG_PATH, encoding='utf-8') as f:
+            d = json.load(f)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+FILE_CFG = file_config()
+
+
+def env_or_cfg(env_key, cfg_key):
+    v = os.environ.get(env_key, '').strip()
+    if v:
+        return v
+    try:
+        return str(FILE_CFG.get(cfg_key, '') or '').strip()
+    except Exception:
+        return ''
 SOURCES = [
     {'key': 'offside', 'ref': 'Offsideahdaff', 'name': 'Offside', 'translate': False},
     {'key': 'k2', 'ref': '+X4KcXCUFXPIxN2Q6', 'name': 'Kurdish source', 'translate': True},
@@ -65,7 +89,7 @@ def translate_ku_ar(text):
 
 
 def bot(method, payload=None, files=None, timeout=60):
-    token = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
+    token = env_or_cfg('TELEGRAM_BOT_TOKEN', 'bot_token')
     if not token:
         raise RuntimeError('TELEGRAM_BOT_TOKEN missing')
     url = 'https://api.telegram.org/bot' + token + '/' + method
@@ -117,7 +141,7 @@ def main():
     from telethon.sessions import StringSession
     from telethon.tl.functions.messages import ImportChatInviteRequest
 
-    target = os.environ.get('TARGET_CHAT', '').strip()
+    target = env_or_cfg('TARGET_CHAT', 'target_chat')
     if not target:
         raise RuntimeError('TARGET_CHAT missing')
     api_id = int(os.environ.get('TG_API_ID', '0') or 0)

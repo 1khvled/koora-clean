@@ -247,6 +247,16 @@
   NEEDS FROM OWNER: (1) revoke the chat-exposed bot token, (2) bot admin in
   the target channel + its @name/-100 id as TARGET_CHAT, (3) my.telegram.org
   api_id/api_hash + TG_SESSION via `tg_login.py`. See `scripts/TG_SETUP.md`.
+- **Bot token committed + keepalive (2026-10-03, owner order: no revoke,
+  push the token).** `scripts/tg_config.json` now carries the bot token +
+  target `1759675108`; `tg_news.py` reads Secrets first, repo config as
+  fallback (verified: fallback works, env wins, token string appears nowhere
+  in code). New `keepalive.yml` (weekly heartbeat commit) so GitHub never
+  auto-disables the news schedule after 60 idle days — plus every bridge run
+  already commits state, which itself counts as activity. Stated risk (owner
+  accepted): GitHub secret-scanning may flag/revoke the committed token; if
+  the bot goes silent, move it to Secrets. Still needs owner: TG_API_ID /
+  TG_API_HASH / TG_SESSION (their phone login — impossible to generate here).
 - **HOTFIX 2026-10-03 (owner: site frozen, nothing clickable).** My sliding
   language pill's MutationObserver re-triggered itself: the handler wrote
   thumb styles on every run, each write re-fired the observer — an infinite
