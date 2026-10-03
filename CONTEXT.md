@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (sliding language control — see §82 bullet).
+> Last updated: 2026-10-03 (Telegram news bridge — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -237,6 +237,16 @@
   (crimson, promo rows on index/player, lang groups on star pages;
   cross-links both ways). Fixed a duplicate `ftCR7` key from overlapping
   batches. Mirrors content-verified.
+- **Telegram news bridge (2026-10-03, owner order: automate the channel).**
+  GitHub Actions every 20 min (`telegram-news.yml`) runs `scripts/tg_news.py`:
+  reads `@Offsideahdaff` (Arabic, verbatim) + the private Kurdish channel
+  (auto-joined via invite, translated to Arabic — NO LLM: MyMemory →
+  Google unofficial ckb/ku/auto → original, verified live Kurdish→Arabic),
+  reposts text + first photo via Bot API, dedupes in `scripts/tg_state.json`
+  (auto-committed, max 10/run). Secrets only, nothing committed.
+  NEEDS FROM OWNER: (1) revoke the chat-exposed bot token, (2) bot admin in
+  the target channel + its @name/-100 id as TARGET_CHAT, (3) my.telegram.org
+  api_id/api_hash + TG_SESSION via `tg_login.py`. See `scripts/TG_SETUP.md`.
 - **Calm promo row + sliding language control (2026-10-03, owner order).**
   Promo pills are now uniform ghost chips (gold text only on Messi, no
   colored gradients, no hover jump) and the Arabic deals button starts
