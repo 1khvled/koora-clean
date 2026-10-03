@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (premium UI/UX pass — see §82 bullet).
+> Last updated: 2026-10-03 (Telegram deals + MessiStats promos everywhere — see §82 bullet).
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
@@ -84,6 +84,14 @@
   with gradient active state, gold-tick headers, gradient stat bars, glowing
   pitch, gradient primary buttons. All motion gated by
   prefers-reduced-motion. Mirrors re-synced by content diff.
+- **Telegram deals + MessiStats promos (2026-10-03, owner order).** The
+  French AliExpress deals channel (t.me/francedealsdz) and messistat.com are
+  now linked in the header (promo pills in the lang group), the footer, and
+  the FAQ (two new entries: AliExpress deals, What is MessiStats) — on all
+  pages and in all three languages (new keys dealsBtn/messiBtn/fq7/fa7/fq8/
+  fa8 in every dict, verified 3/3; player also gained a proper footer with
+  Home + both promos since it had none). External links use
+  target=_blank rel=noopener; mirrors re-synced by content diff.
 - **SEO + Arabic صدقة جارية (2026-10-03).** Added a keyword-rich
   `<meta name="keywords">`, enriched each language's H1/`meta.desc` with
   fixture/live/stream terms, and added an Arabic-only **صدقة جارية** banner
