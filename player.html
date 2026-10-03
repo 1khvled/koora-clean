@@ -429,6 +429,11 @@ body{background:
   html{scroll-behavior:auto}
   .mcard .mid .vs.live,.fm-score .st.live{animation:none}
 }
+.lang{flex-wrap:wrap}
+.lang a.promo{font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;border-radius:999px;padding:8px 14px;min-height:44px;display:inline-flex;align-items:center;text-decoration:none}
+.lang a.promo:active{transform:scale(.97)}
+.foot{display:flex;gap:4px;justify-content:center;align-items:center;flex-wrap:wrap;padding:14px 12px calc(20px + env(safe-area-inset-bottom));color:var(--muted);font-size:13px;font-weight:700}
+.foot a{color:inherit;text-decoration:none;padding:10px 12px;min-height:44px;display:inline-flex;align-items:center;border-radius:8px}
 </style>
 </head>
 <body>
@@ -437,7 +442,7 @@ body{background:
   <div class="head">
     <a class="back" href="/" id="backBtn" data-i18n="back">‹ Back</a>
     <div class="title"><h1 id="matchTitle" data-i18n="loadingTitle">Loading match…</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
-    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
+    <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><a class="promo" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="promo" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></div>
   </div>
   <div class="stage">
     <iframe id="player" title="player" tabindex="-1" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
@@ -508,6 +513,7 @@ body{background:
 
   
 </div>
+<footer class="foot"><a href="/" data-i18n="footHome">Home</a><a href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a></footer>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -579,6 +585,7 @@ updatedAgo: (s) => 'updated ' + s + 's ago',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', ad: 'Ad',
     supMsg: '❤ Streams are free — support us by keeping ads on or donating.',
     adsOn: 'Ads: ON', adsOff: 'Ads: OFF', copyBtn: 'Copy',
+dealsBtn: '🔥 Deals', messiBtn: '📊 MessiStats', footHome: 'Home',
 oddsTitle: 'Match odds', oddsDraw: 'Draw', polyLink: 'Full odds',
 polyTitle: 'Ballon d’Or 2026 — odds',
 hiTitle: '🎬 Highlights',
@@ -633,6 +640,7 @@ updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', ad: 'Pub',
     supMsg: '❤ Les streams sont gratuits — soutenez-nous en gardant les pubs ou en donnant.',
     adsOn: 'Pubs : ON', adsOff: 'Pubs : OFF', copyBtn: 'Copier',
+dealsBtn: '🔥 Bons plans', messiBtn: '📊 MessiStats', footHome: 'Accueil',
 oddsTitle: 'Cotes du match', oddsDraw: 'Nul', polyLink: 'Toutes les cotes',
 polyTitle: 'Ballon d’Or 2026 — cotes',
 hiTitle: '🎬 Résumé vidéo',
@@ -718,6 +726,7 @@ defaultTitle: 'مشاهدة المباراة', leagueFallback: 'بث نظيف ب
 watchTitle: (h, a) => 'مشاهدة ' + h + ' × ' + a + ' بث مباشر — كورة لايف',
 supMsg: '❤ البث مجاني — ادعمنا بإبقاء الإعلانات أو بالتبرع.',
 adsOn: 'الإعلانات: مفعّلة', adsOff: 'الإعلانات: معطّلة', copyBtn: 'نسخ',
+dealsBtn: '🔥 عروض', messiBtn: '📊 MessiStats', footHome: 'الرئيسية',
 oddsTitle: 'احتمالات المباراة', oddsDraw: 'تعادل', polyLink: 'كل الاحتمالات',
 polyTitle: 'الكرة الذهبية 2026 — الاحتمالات',
 hiTitle: '🎬 ملخص المباراة',
