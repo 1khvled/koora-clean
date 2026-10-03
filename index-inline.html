@@ -8,6 +8,7 @@
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <title>Koora Live — Live Football Matches & Streams</title>
 <meta name="description" content="Today's football matches live: kickoff times, live scores and clean streams. Schedules, results and channels.">
+<meta name="keywords" content="kورة لايف, كورة لايف مباشر, مباريات اليوم, بث مباشر, نتائج المباريات, جدول المباريات, مباريات اليوم بث مباشر, كورا لايف, live football, live score, live football streams, Koora Live, today football matches, match results, fixtures, Premier League live, La Liga live, Serie A live, Champions League live, Saudi Pro League live, football streaming, live matches, free streams no popups">
 <link rel="canonical" href="https://kooraadz.vercel.app/">
 <link rel="alternate" hreflang="en" href="https://kooraadz.vercel.app/">
 <link rel="alternate" hreflang="fr" href="https://kooraadz.vercel.app/?lang=fr">
@@ -276,6 +277,14 @@ body.ads-off .ad-wrap{display:none}
   </section>
   <div id="leagues"><div id="ssr-fallback"><p class="ssr-note">Today's matches — auto-updating</p><ul class="ssr-list"><li><a href="/player.html?m=4621360&amp;d=today">Sporting Kansas City vs Los Angeles — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621361&amp;d=today">St. Louis City vs Minnesota United — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621362&amp;d=today">FC Dallas vs Portland Timbers — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621358&amp;d=today">Real Salt Lake vs New York City FC — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621359&amp;d=today">Colorado Rapids vs CF Montréal — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621356&amp;d=today">LA Galaxy vs Seattle Sounders — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621357&amp;d=today">San Jose vs Houston Dynamo — FT</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621354&amp;d=today">Chicago Fire vs New England — Upcoming</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4621355&amp;d=today">Vancouver Whitecaps vs Austin FC — Upcoming</a> <small>Major League Soccer</small></li><li><a href="/player.html?m=4750868&amp;d=today">Celta Vigo vs Málaga — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750867&amp;d=today">Levante vs Barcelona — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750869&amp;d=today">Getafe vs Deportivo La Coruña — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4750862&amp;d=today">Real Sociedad vs Atlético Madrid — Upcoming</a> <small>La Liga</small></li><li><a href="/player.html?m=4805164&amp;d=today">KVZ vs Al Swehly — Upcoming</a> <small>CAF Champions League qualifying</small></li></ul><p class="ssr-more"><a href="/api/sitemap">All matches</a></p></div></div>
   <div id="empty" hidden data-i18n="empty">No matches match your search</div>
+
+  <!-- صدقة جارية: shown only to Arabic viewers (toggled in setLang) -->
+  <section id="sadaqa" class="sadaqa" hidden lang="ar" dir="rtl" aria-label="صدقة جارية" style="margin:18px auto;max-width:820px;padding:16px 18px;border-radius:16px;background:linear-gradient(135deg,#0b3d2e,#065f46);color:#e8f5ec;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25)">
+    <b style="display:block;font-size:20px;color:#a7f3d0">🌸 صدقة جارية</b>
+    <p style="margin:8px 0 12px;line-height:1.8">جعلها الله في ميزان حسناتكم — يُرجى قراءة القرآن الكريم والأذكار وعمل المعروف، فالأجر يستمر بإذن الله.</p>
+    <a href="https://quran.com" target="_blank" rel="noopener" style="display:inline-block;padding:9px 18px;border-radius:999px;background:#10b981;color:#04351f;font-weight:700;text-decoration:none">📖 القرآن الكريم</a>
+  </section>
+
 </main>
 
 <div class="support" id="support">
@@ -343,7 +352,7 @@ try {
    ESPN fuzzy matcher intentionally still match the Arabic data strings. */
 const I18N = {
 en: {
-brand: 'Koora Live — Live Football Streams', tagline: 'Clean streams, no popups',
+brand: 'Koora Live — Live Football Matches & Streams', tagline: 'Clean streams, no popups',
 chooseDay: 'Choose day', yesterday: 'Yesterday', today: 'Today', tomorrow: 'Tomorrow',
 searchPh: 'Search team or league…', loading: 'Loading matches…', liveNow: 'Live now',
 empty: 'No matches match your search', all: 'All', favorites: 'Favorites',
@@ -372,13 +381,13 @@ fq3: 'Which competitions are covered?', fa3: 'Premier League, La Liga, Serie A, 
 fq4: 'Why does the minute keep updating?', fa4: 'The minute fuses the live feed with kickoff times and refreshes automatically.',
 meta: {
 title: "Koora Live — Live Football Matches & Streams",
-desc: "Today's football matches live: kickoff times, live scores and clean streams. Schedules, results and channels.",
+desc: "Koora Live — today's football matches live: kickoff times, live scores, results and clean HD streams. Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League and Champions League fixtures and results.",
 ogTitle: "Koora Live — Today's matches live",
 ogDesc: "Today's football live: clean HD streams with no annoying popups."
 }
 },
 fr: {
-brand: 'Koora Live — Foot en direct', tagline: 'Streams propres, sans popups',
+brand: 'Koora Live — Matchs de foot en direct & scores', tagline: 'Streams propres, sans popups',
 chooseDay: 'Choisir le jour', yesterday: 'Hier', today: "Aujourd'hui", tomorrow: 'Demain',
 searchPh: 'Rechercher une équipe ou une compétition…', loading: 'Chargement des matchs…', liveNow: 'En direct',
 empty: 'Aucun match pour votre recherche', all: 'Tout', favorites: 'Favoris',
@@ -407,13 +416,13 @@ fq3: 'Quelles compétitions sont couvertes ?', fa3: 'Premier League, La Liga, Se
 fq4: 'Pourquoi la minute change-t-elle ?', fa4: 'La minute combine le flux en direct et les heures de coup d’envoi, avec actualisation auto.',
 meta: {
 title: 'Koora Live — Matchs du jour en direct',
-desc: 'Matchs de foot du jour en direct : horaires, scores en direct et streams propres. Calendrier, résultats et chaînes.',
+desc: 'Koora Live — matchs de foot du jour en direct : horaires, scores, résultats et streams propres HD. Premier League, Liga, Serie A, Bundesliga, Ligue 1, Saudi Pro League et Ligue des champions.',
 ogTitle: 'Koora Live — Matchs du jour en direct',
 ogDesc: 'Le foot en direct : des streams HD propres, sans popups agaçants.'
 }
 },
 ar: {
-brand: 'كورة لايف — مباريات اليوم بث مباشر', tagline: 'بث نظيف بدون إعلانات',
+brand: 'كورة لايف — بث مباشر لمباريات اليوم والنتائج', tagline: 'بث نظيف بدون إعلانات',
 chooseDay: 'اختر اليوم', yesterday: 'أمس', today: 'اليوم', tomorrow: 'الغد',
 searchPh: 'ابحث عن فريق أو بطولة…', loading: 'جاري تحميل المباريات…', liveNow: 'جارية الآن',
 empty: 'لا توجد مباريات مطابقة لبحثك', all: 'الكل', favorites: 'المفضلة',
@@ -442,7 +451,7 @@ polyTitle: 'الكرة الذهبية 2026 — الاحتمالات', polyLink: 
 startsIn: (h, m) => h > 0 ? `بعد ${h} س ${m} د` : `بعد ${m} د`,
 meta: {
 title: 'كورة لايف — مباريات اليوم بث مباشر بدون إعلانات',
-desc: 'مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة. جدول المباريات، النتائج المباشرة، والقنوات الناقلة.',
+desc: 'كورة لايف — مباريات اليوم بث مباشر: مواعيد، نتائج لحظية وجداول. الدوري الإنجليزي والإسباني والإيطالي والألماني والسعودي ودوري أبطال أوروبا.',
 ogTitle: 'كورة لايف — مباريات اليوم بث مباشر',
 ogDesc: 'مباريات اليوم بث مباشر بجودة عالية وبدون إعلانات مزعجة.'
 }
@@ -485,6 +494,7 @@ if (!I18N[l]) return;
 LANG = l;
 try { document.documentElement.lang = l; document.documentElement.dir = (l === 'ar' ? 'rtl' : 'ltr'); } catch (e) {}
 if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
+try { const sd = document.getElementById('sadaqa'); if (sd) sd.hidden = (l !== 'ar'); } catch (e) {}
 try { applyStatic(); updateMeta(); } catch (e) {}
 try { document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG)); } catch (e) {}
 if (save !== false){ try { buildChips(); render(true); paintAds(); } catch (e) {} }
