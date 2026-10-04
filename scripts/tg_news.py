@@ -245,7 +245,10 @@ def scrape_offside_preview(limit=25):
         pm = re.findall(r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"', b)
         pm += re.findall(r"background-image:url\('([^']+)'", b)
         pm = [u for u in pm if 'telesco.pe' in u]
-        out.append({'key': mid, 'text': txt, 'photos': pm})
+        pv = [u for u in re.findall(r'<video[^>]+src="([^"]+)"', b)
+              if '.mp4' in u]
+        out.append({'key': mid, 'text': txt, 'photos': pm,
+                    'preview_video': pv[0] if pv else ''})
     seen = {}
     for x in out:
         for u in set(x['photos']):
@@ -377,25 +380,36 @@ def dl_photo(url, timeout=25, limit=8000000):
         return None
 
 
-def dl_video(url, timeout=120, limit=48000000):
+def dl_video(url, timeout=120, limit=48000000, tries=2):
     """Fetch video bytes (Bot API caps at 50MB; we stop at 48MB).
-    Returns bytes or None (oversize counts as None -> photo fallback)."""
-    try:
-        req = urllib.request.Request(url, headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Referer': 'https://t.me/s/Offsideahdaff', 'Accept': 'video/*,*/*'})
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            if (r.status or 200) != 200:
-                return None
-            ct = (r.headers.get('Content-Type') or '').lower()
-            if ct and 'video' not in ct and 'octet-stream' not in ct:
-                return None
-            out = r.read(limit + 1)
-            if not out or len(out) > limit:
-                return None
-            return out
-    except Exception:
-        return None
+    Returns bytes, or None with the reason printed -- a silent None here is
+    what made 'video sometimes missing' impossible to diagnose."""
+    for attempt in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://t.me/s/Offsideahdaff', 'Accept': 'video/*,*/*'})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                if (r.status or 200) != 200:
+                    print('video: http %s' % r.status)
+                    return None
+                ct = (r.headers.get('Content-Type') or '').lower()
+                if ct and 'video' not in ct and 'octet-stream' not in ct:
+                    print('video: unexpected content-type %s' % ct[:30])
+                    return None
+                out = r.read(limit + 1)
+                if not out:
+                    print('video: empty body')
+                    return None
+                if len(out) > limit:
+                    print('video: oversize %d > %d (bot api 50MB cap)' % (
+                        len(out), limit))
+                    return None
+                return out
+        except Exception as e:
+            print('video: attempt %d failed (%s)' % (
+                attempt + 1, str(e)[:70] or type(e).__name__))
+    return None
 
 
 def single_region(html, mid):
@@ -412,20 +426,21 @@ def single_region(html, mid):
         return ''
 
 
-def post_video(mid):
-    """Direct mp4 URL for one message. Tokens expire, so this is used
-    immediately and never stored. '' when the message has no video."""
+def post_video(mid, also=None):
+    """Direct mp4 URL for one message, from the single-message page. Tokens
+    expire, so it is used immediately and never stored. `also` is an mp4 seen
+    in the preview page, used only if the single page has none. '' when the
+    message genuinely has no video."""
     try:
         seg = single_region(fetch_single(mid), mid)
     except Exception as e:
         print('video probe failed #%s: %s' % (mid, str(e)[:70]))
-        return ''
-    if not seg:
-        return ''
-    for m in re.finditer(r'<video[^>]+src="([^"]+)"', seg):
-        u = m.group(1)
-        if '.mp4' in u and u != AVATAR_URL:
-            return u
+        seg = ''
+    for src in (seg, also or ''):
+        for m in re.finditer(r'<video[^>]+src="([^"]+)"', src):
+            u = m.group(1)
+            if '.mp4' in u and u != AVATAR_URL:
+                return u
     return ''
 
 
@@ -815,13 +830,14 @@ def public_preview_run(target):
             state['offside'] = x['key']
             continue
         vid = None
-        vurl = post_video(x['key'])
+        vurl = post_video(x['key'], also=x.get('preview_video'))
         if vurl:
-            try:
-                vid = dl_video(vurl)
-            except Exception:
-                vid = None
+            vid = dl_video(vurl)
+        else:
+            print('#%d: source has no video' % x['key'])
         img = None
+        if not vid and vurl:
+            print('#%d: VIDEO FAILED -> falling back to photo' % x['key'])
         if not vid:
             url = post_photo(x['key'], x.get('photo') or '')
             if url:
@@ -836,6 +852,8 @@ def public_preview_run(target):
                 out = got if kind == 'photo' else None  # branding: text only
             if send_post(target, body, out, vid) is True:
                 posted += 1
+                print('#%d: posted %s' % (
+                    x['key'], 'VIDEO' if vid else ('PHOTO' if out else 'TEXT')))
                 fp = fingerprint(src_txt)
                 if fp:
                     state.setdefault('seen', []).append(fp)
