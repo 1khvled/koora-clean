@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§109 — videos post, same quality).
+> Last updated: 2026-10-04 (§110 — state race fixed, dupes deleted).
+
+## 110. State-push race fixed; duplicate reposts deleted (2026-10-04)
+
+- **Owner:** video-or-photo confusion + Arabic on new posts. Two real bugs:
+  (1) schedule + cron-job.org both write `tg_state.json`: the 18:45 run posted
+  then failed push ("fetch first"), the 18:50 run reprocessed the same items
+  -> duplicate spam (#62-66 etc.). Fixed with merge-by-max (IDs only grow)
+  + fetch/rebase/push retries in both workflows (merge proven: union
+  {110, 5}, no conflict possible). (2) Those reposts ran pre-fallback code,
+  hence Arabic + photo fallback. Translated + upgraded survivors; deleted
+  reposts #53/#61/#63/#65/#66 (kept first of each text group).
+- Verified: YAML parses, merge-max unit green, channel re-audited. Committed
+  + pushed.
 
 ## 109. Videos post at full quality (2026-10-04)
 
