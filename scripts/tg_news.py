@@ -176,13 +176,18 @@ def scrape_offside_preview(limit=25):
         # every message (NOT post content); real attachments are unique.
         # Emoji backgrounds live in the text div, so <img> never matches emoji.
         pm = re.findall(r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"', b)
+        pm += re.findall(r"background-image:url\('([^']+)'", b)
+        pm = [u for u in pm if 'telesco.pe' in u]
         out.append({'key': mid, 'text': txt, 'photos': pm})
     seen = {}
     for x in out:
-        for u in x['photos']:
+        for u in set(x['photos']):
             seen[u] = seen.get(u, 0) + 1
+    # Avatar check: stamped on ~every message. A genuine repost repeats only
+    # a few times, so drop solely majority-or-5+ sightings -- never a few.
+    total = len(out) or 1
     for x in out:
-        uniq = [u for u in x['photos'] if seen.get(u, 0) < 2]
+        uniq = [u for u in x['photos'] if not (seen.get(u, 0) >= 5 or seen.get(u, 0) * 2 > total)]
         x['photo'] = uniq[0] if uniq else ''
         del x['photos']
     # numeric order, newest last, cap

@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§97 — Groq bullets lists, nothing lost).
+> Last updated: 2026-10-04 (§98 — real post photos found, automation posts photos again).
+
+## 98. Real post photos found (automation posts photos again) (2026-10-04)
+
+- **Owner:** automation is not posting photos. Correct: every "photo" was the
+  channel avatar (same 160px file on all 20 posts) because the scraper only
+  read `<img>` tags. Real attachments live in `photo_wrap` background-images:
+  measured 15/20 posts carry them, all unique telesco.pe files.
+- **Fix.** Scraper now collects `<img>` + photo-wrap background URLs, then
+  drops only majority-or-5+ repeats (avatar stamped on ~every message; a
+  genuine 2-3x repost survives). Verified live: 19/20 current items carry a
+  true unique attachment. Brand-check + watermark path unchanged downstream.
+- Verified: new wrap suite green (avatar dropped, reposts + unique kept) +
+  all prior suites green. Committed + pushed.
 
 ## 97b. Site Telegram button linked to the channel (2026-10-04)
 
