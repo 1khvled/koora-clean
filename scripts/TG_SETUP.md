@@ -41,18 +41,36 @@ whole step and everything else keeps working.
 
 1. Go to https://my.telegram.org → log in → **API development tools** →
    create an app → copy **api_id** + **api_hash**.
-2. Locally once:
+2. Locally once (**must be interactive** — Telegram sends a login code to
+   your phone, so no CI runner and no bot can do this step for you):
    ```
    pip install telethon
    python scripts/tg_login.py
    ```
-   Enter api_id, api_hash, your phone number, then the login code.
-   It prints a one-line session string (`TG_SESSION`).
+   Enter api_id, api_hash, your phone number, then the login code and 2FA
+   password. It prints a one-line session string (`TG_SESSION`).
+   *Fixed 2026-10-04: the script used to save the session without ever
+   calling `start()`, so it produced an unauthorized session that could read
+   nothing. It now logs in before printing.*
 3. With that same account, open the private invite
    `https://t.me/+X4KcXCUFXPIxN2Q6` once (or let the bridge auto-join).
 4. Add `TG_API_ID` / `TG_API_HASH` / `TG_SESSION` to repo
    Settings → Secrets → Actions. The next run pulls the Kurdish channel too
    (auto-translated to Arabic, no LLM).
+
+### The same three secrets also fix GIFs
+
+Telegram's website never serves the bytes of a GIF — only one frozen frame
+plus "Media is too big / VIEW IN TELEGRAM" (verified across21 probes:7
+user-agents × 3 URL variants, plus every `<head>` meta tag). So a GIF post
+could only ever be re-uploaded as a still photo, and our bot cannot read the
+source channel either (`getChatMember` → "member list is inaccessible"), so
+`copyMessage` is out.
+
+With `TG_SESSION` present the bridge fetches the real clip over MTProto and
+posts it with `sendAnimation`, automatically. Until then each GIF post is
+logged as `GIF/animation - web preview has no bytes` and its frame is posted
+as a photo — owner chose that over skipping the post (2026-10-04).
 
 ## 3. GitHub Secrets (repo → Settings → Secrets → Actions)
 

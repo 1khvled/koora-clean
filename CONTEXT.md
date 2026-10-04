@@ -4,7 +4,37 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§117 — GIFs classified; animation path ready).
+> Last updated: 2026-10-04 (§118 — GIF download proven impossible publicly; login script fixed).
+
+## 118. GIFs cannot be fetched without a login — and why (2026-10-04)
+
+- **Owner** asked for a script that just downloads the GIFs autonomously.
+  Tested every autonomous route first; all three are closed by Telegram:
+  1. **Public web** — 21 probes (7 user-agents: Chrome, Googlebot, Twitterbot,
+     TelegramBot, iOS, curl × `/id`, `?embed=1`, `/s/chan/id`) returned **0**
+     `.mp4` urls, plus every `<head>` meta tag checked. Only the poster frame
+     and `Media is too big / VIEW IN TELEGRAM`.
+  2. **Our own bot** — `getChatMember` → `member list is inaccessible`,
+     `getChat` by plain id → `chat not found`. So `copyMessage` /
+     `forwardMessage` cannot read the source.
+  3. **Third-party mirrors** — excluded by the owner's standing rule.
+  A downloader therefore has to be an *authenticated* Telegram client. That one
+  step needs a phone + SMS code, so it cannot live in CI.
+- **Owner decision:** until a session exists, GIF posts keep their frozen
+  frame as a photo (chosen over skipping the post). The log always says which
+  happened, so it is never a silent downgrade.
+- **Bug found in `scripts/tg_login.py`:** it called
+  `client.session.save()` inside a `with TelegramClient(...)` block, which only
+  calls `connect()` — never `start()`. It therefore printed an
+  **unauthorized** session that could read nothing. Fixed to `start()` first
+  (login code + 2FA), then print, and to fail loudly on a bad `api_id`.
+  Removed the duplicate `make_session.py` I had added; `tg_login.py` is the
+  single documented entry point, and `TG_SETUP.md` now explains it also enables
+  GIFs.
+- Once `TG_API_ID` / `TG_API_HASH` / `TG_SESSION` exist, `tele_animation()`
+  fetches the real clip and `sendAnimation` posts it. Those three env vars are
+  already wired into the workflow and Telethon is already installed, so no
+  further code is needed.
 
 ## 117. GIFs: what the source posts vs what the web preview gives (2026-10-04)
 
