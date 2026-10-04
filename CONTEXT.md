@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§87 — news now posts to the @messistatdotcom channel).
+> Last updated: 2026-10-04 (§88 — news every 5 min: workflow cron + cron-job.org backup).
+
+## 88. News every 5 minutes (2026-10-04)
+
+- **Owner:** "post as they post, make them 5min". `telegram-news.yml` cron
+  `*/20` → `*/5`. Dispatch-tested after the edit: run `37168155565`
+  completed success. Double runs are safe (concurrency group + state dedupe).
+- **cron-job.org backup** (GitHub's scheduler lags on private repos):
+  step-by-step in `TG_SETUP.md` §5 — fine-grained PAT (`cron-dispatch`,
+  this repo only, Actions read+write) → POST
+  `api.github.com/repos/1khvled/koora-clean/actions/workflows/telegram-news.yml/dispatches`
+  with `{"ref":"main"}` every 5 min. Needs the owner's login; can't be done here.
+- **Cost warning given:** ~8,600 Actions min/month vs 2,000 free on a private
+  repo — runs stop at quota unless billing is added. Offered: slim the
+  workflow or go public (unlimited free minutes) once the token lives in
+  Secrets only.
 
 ## 87. News target switched to the @messistatdotcom channel (2026-10-04)
 
