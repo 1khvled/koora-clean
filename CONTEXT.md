@@ -4,7 +4,16 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§106 — Arabic restored, English was my misread).
+> Last updated: 2026-10-04 (§107 — English always, old posts translated).
+
+## 107. English always: prompt back + all old posts translated (2026-10-04)
+
+- **Owner:** REVERT TO ENGLISH ALWAYS, translate old posts, futures in
+  English. Prompt flipped back the same hour (§106 undone).
+- All 15 channel posts translated via Groq + edited in place (media posts
+  need editMessageMedia -- editMessageText fails on captions with "no text
+  in the message"). Verified: zero Arabic chars remain. Future posts go
+  through the same English prompt. Committed + pushed.
 
 ## 106. Arabic restored (2026-10-04)
 
