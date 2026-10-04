@@ -4,7 +4,39 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§114 — all three complaints closed, verified live).
+> Last updated: 2026-10-04 (§115 — match links from kooraadz; video truth proven).
+
+## 115. Match links + why videos looked random (2026-10-04)
+
+- **Owner:** "when a match start post the link from our website
+  https://kooraadz.vercel.app find it and post the exact match link always",
+  and "videos sometimes you post sometimes you dont".
+- **Videos are not random — measured.** Over a 100-item sweep of the source,
+  **only 10 items contain a video at all**; `post_video` found **10/10**, zero
+  missed. The other 90% the source posts a still photo, so we repost the photo.
+  The post shown in the screenshot traces to source **#375808**, which is
+  `mp4=0 photo=1` — there was never a video to take. To stop this being
+  indistinguishable from a silent failure: `dl_video` now logs the reason
+  (http / content-type / oversize / error) and retries, and the loop logs
+  `#id posted VIDEO|PHOTO|TEXT` plus `source has no video` and
+  `VIDEO FAILED -> falling back to photo`. A missing video is now provable.
+- **Match links.** URL contract confirmed from the live site and from
+  `player.html`: `https://kooraadz.vercel.app/player.html?m=<id>&d=<day>`,
+  where `<id>` comes from `/api/matches?day=today|tomorrow`. The page's
+  `fetchSnap(sid, day)` probes today/yesterday/tomorrow, so the link
+  self-heals if the day drifts. Teams on our site are Arabic, and so is the
+  source, so matching runs on the **Arabic original** before translation:
+  `norm_team` strips tatweel/harakat, unifies alef/ya/ta-marbuta, drops the
+  article; a fixture matches only when **every** token of both teams appears.
+- **Never guess.** `match_link` returns a link only when **exactly one** of our
+  fixtures is named. A Klopp roundup naming four matches logs `ambiguous` and
+  gets no link — a wrong link is worse than none. Site down → no link,
+  never a broken post.
+- `fingerprint()` now strips URLs and the "Watch live:" line, otherwise every
+  channel caption would fingerprint differently from its Arabic source and the
+  channel-seeded dedup window would never match.
+- Verified: new `linkunit` suite (9 cases), 14 suites green, live dry run links
+  5/19 real posts and every link checked by hand against the fixture.
 
 ## 114. All three complaints closed, verified live (2026-10-04)
 

@@ -158,7 +158,9 @@ def fingerprint(text):
     enough."""
     import hashlib
     import re as _re
-    t = _re.sub(r'[^\w\u0600-\u06FF]+', '', (text or '').lower())
+    t = _re.sub(r'(?im)^\W*watch\s*live:?\s*https?://\S+', ' ', text or '')
+    t = _re.sub(r'https?://\S+', ' ', t)   # links are not content
+    t = _re.sub(r'[^\w\u0600-\u06FF]+', '', t.lower())
     if len(t) < 8:
         return ''
     return hashlib.sha1(t.encode('utf-8')).hexdigest()[:12]
@@ -730,6 +732,89 @@ def translate_free_ar_en(text):
     return text
 
 
+SITE_BASE = 'https://kooraadz.vercel.app'
+_FIXTURES = {'at': 0.0, 'items': []}
+_AR_MARKS = '\u064b-\u0652\u0670\u06d6-\u06ed\u0640'
+
+
+def site_fixtures(max_age=600):
+    """Live fixtures from our own site (today + tomorrow), cached briefly.
+    Never raises: if the site is down we post news without a link."""
+    import time as _t
+    if _FIXTURES['items'] and (_t.time() - _FIXTURES['at']) < max_age:
+        return _FIXTURES['items']
+    out = []
+    for day in ('today', 'tomorrow'):
+        try:
+            d = http_get_json('%s/api/matches?day=%s' % (SITE_BASE, day), timeout=20)
+            for m in (d if isinstance(d, list) else []):
+                if isinstance(m, dict) and m.get('id'):
+                    out.append({'id': str(m['id']), 'day': day,
+                                'home': m.get('home') or '',
+                                'away': m.get('away') or ''})
+        except Exception as e:
+            print('fixtures %s failed: %s' % (day, str(e)[:60]))
+    if out:
+        _FIXTURES['items'] = out
+        _FIXTURES['at'] = _t.time()
+    return _FIXTURES['items']
+
+
+def norm_team(s):
+    """Arabic-insensitive team key: drop tatweel/harakat, unify alef and ya,
+    strip punctuation and a leading article."""
+    t = re.sub('[' + _AR_MARKS + ']', '', s or '')
+    t = re.sub('[\u0622\u0623\u0625\u0671]', '\u0627', t)
+    t = re.sub('\u0649', '\u064a', t)
+    t = re.sub('\u0629', '\u0647', t)
+    t = re.sub('[^\u0620-\u064a0a-z0-9 ]+', ' ', t)
+    t = re.sub(r'\s+', ' ', t).strip().lower()
+    return re.sub(r'^\u0627\u0644 ?', '', t)
+
+
+def team_tokens(name):
+    t = [w for w in norm_team(name).split() if len(w) >= 3]
+    if t:
+        return t
+    k = norm_team(name)
+    return [k] if len(k) >= 3 else []
+
+
+def match_link(text):
+    """The exact player link for the fixture this post names. Only when
+    exactly one of our fixtures matches: two or more means the post is about
+    several matches and guessing would post the wrong link."""
+    if not text:
+        return ''
+    fx = site_fixtures()
+    if not fx:
+        return ''
+    nt = norm_team(text)
+    hits = [f for f in fx
+            if team_tokens(f['home']) and team_tokens(f['away'])
+            and all(w in nt for w in team_tokens(f['home']))
+            and all(w in nt for w in team_tokens(f['away']))]
+    if len(hits) != 1:
+        if len(hits) > 1:
+            print('match link skipped: %d fixtures named (ambiguous)' % len(hits))
+        return ''
+    f = hits[0]
+    return '%s/player.html?m=%s&d=%s' % (SITE_BASE, f['id'], f['day'])
+
+
+def with_link(body, url):
+    """Append the watch link, staying inside the 1024-char caption budget."""
+    if not url or not body or url in body:
+        return body
+    line = '\n\n\U0001f3a6 Watch live: %s' % url
+    if len(body) + len(line) <= 1024:
+        return body + line
+    room = 1024 - len(line)
+    if room < 40:
+        return body
+    return body[:room].rstrip() + line
+
+
 def send_post(target, body, out, video=None):
     """Deliver one post. Video first (streamable upload, same caption rules),
     then photo, then text-only. Long captions (>1024) split into media +
@@ -829,6 +914,7 @@ def public_preview_run(target):
             print('skipped promo post #%d' % x['key'])
             state['offside'] = x['key']
             continue
+        body = with_link(body, match_link(src_txt))
         vid = None
         vurl = post_video(x['key'], also=x.get('preview_video'))
         if vurl:
