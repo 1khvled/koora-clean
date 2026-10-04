@@ -23,14 +23,10 @@ purpose (your call); if GitHub secret-scanning ever revokes it, replace it in
 
 ## 1. Bot → destination (done, verified)
 
-`@messistatBOT` now reaches `1759675108`, which is a **private chat** (your own
-account), so news is delivered to you directly — no admin step needed.
-
-If you would rather have it post in a channel: create/open the channel, add
-`@messistatBOT` as **administrator with "post messages"**, then get the real id
-(forward any channel post to `@userinfobot` → `id: -100xxxxxxxxxx`) and put it in
-`TARGET_CHAT` (Actions secret + `scripts/tg_config.json`). The bridge posts
-wherever `TARGET_CHAT` points, so nothing else changes.
+News goes to the **@messistatdotcom channel** (`-1004345140678`). Verified:
+`getChat` OK, bot is administrator with `can_post=True`, test post delivered
+then removed. Both `scripts/tg_config.json` and the `TARGET_CHAT` secret point
+there. Owner's own id is `5625295907` (kept for reference; not the target).
 
 ## 2. Optional upgrade: the private Kurdish source (skip if you don't need it)
 
@@ -61,7 +57,7 @@ whole step and everything else keeps working.
 | Secret | Value |
 |---|---|
 | `TELEGRAM_BOT_TOKEN` | bot token (already set ✅) |
-| `TARGET_CHAT` | `1759675108` (already set ✅) |
+| `TARGET_CHAT` | `-1004345140678` = @messistatdotcom channel (bot is admin, can post ✅) |
 | `TG_API_ID` | only for the optional Kurdish source (step 2) |
 | `TG_API_HASH` | only for the optional Kurdish source (step 2) |
 | `TG_SESSION` | only for the optional Kurdish source (step 2) |

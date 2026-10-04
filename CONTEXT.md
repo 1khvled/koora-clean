@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§86 — news bridge works bot-only, zero extra secrets; Argentina gap explained).
+> Last updated: 2026-10-04 (§87 — news now posts to the @messistatdotcom channel).
+
+## 87. News target switched to the @messistatdotcom channel (2026-10-04)
+
+- **Owner:** user id `5625295907`; bot is admin in `https://t.me/messistatdotcom`.
+  Verified via Bot API: `getChat @messistatdotcom` → id `-1004345140678`,
+  type channel, title "Messistat.com"; `getChatAdministrators` →
+  `@messistatBOT` administrator, `can_post=True`. Live test post delivered
+  (msg 3) then deleted to keep the channel clean.
+- `scripts/tg_config.json` + `TARGET_CHAT` secret both updated to
+  `-1004345140678`. Full `tg_news.py` run against the channel: preflight
+  `@messistatBOT -> Messistat.com (channel)`, `preview: 1 new, posted=0`
+  (the one new item was textless, correctly skipped), exit 0.
+  `TG_SETUP.md` updated; owner's id kept for reference.
 
 ## 86. News bridge goes bot-only (no login needed); Argentina has no ad-free stream (2026-10-04)
 
