@@ -625,14 +625,20 @@ def llm_fix(text):
     system = ('You are a football-news translator and copy editor. Translate '
               'the Arabic post to natural ENGLISH and fix it: correct typos and '
               'obvious factual slips (for example a scoreline written backwards '
-              'against its own listed goals). Transliterate player and team names '
-              'to their standard Latin spelling. Then format it as a clean '
+              'against its own listed goals). Transliterate player and team '
+              'names to their standard Latin spelling, but if you are not '
+              'confident of the real Latin spelling of a name, keep that name '
+              'EXACTLY as the source wrote it -- never invent a spelling and '
+              'never mangle a name into a different word. Then format it as a clean '
               'readable list: header line first, then one bullet per item, each '
               'on its own line starting with the bullet char. Keep the emojis '
               'and the item order; keep scores, numbers, and minute marks '
-              'exactly. The whole output must be English only. Add nothing '
-              'else -- no headers, footers, mentions, tags, links, hashtags, '
-              'bold, Arabic leftovers, or commentary. Output ONLY the corrected post.')
+              'exactly. The whole output must be English only. Never output '
+              'the word "translation" or any label of your own (no '
+              '"Translation:", no "Corrected:", no "Here is"), and never restate '
+              'the post as instructions. Add nothing else -- no headers, '
+              'footers, mentions, tags, links, hashtags, bold, Arabic leftovers, '
+              'or commentary. Output ONLY the corrected post.')
     for model in models:
         try:
             out = groq_chat(key, model, system, text[:3500])
@@ -651,6 +657,10 @@ def llm_fix(text):
         if has_arabic(out):
             print('[lang] groq output rejected (still arabic)')
             continue  # untranslated output: never let it out
+        if _re.match(r'(?i)\s*(translation|translated|corrected|here is|output)\b',
+                     out):
+            print('[lang] groq output rejected (meta-label)')
+            continue  # it narrated the job instead of doing it
         return out
     fb = translate_free_ar_en(text)
     if fb and fb != text and not has_arabic(fb):
