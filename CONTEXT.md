@@ -4,7 +4,15 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§98 — real post photos found, automation posts photos again).
+> Last updated: 2026-10-04 (§99 — text-only posts backfilled with their photos).
+
+## 99. Backfilled photos onto text-only posts (2026-10-04)
+
+- **Owner:** edit old posts, add their photos. Matched #28-33 to source items
+  375682-375687 (word overlap 1.00 each), downloaded each attachment,
+  watermarked via the existing brand path (none were branding), and attached
+  with `editMessageMedia` keeping captions byte-identical. All 6 edits
+  accepted; channel audit confirms PHOTO=True on all six. No code changed.
 
 ## 98. Real post photos found (automation posts photos again) (2026-10-04)
 
