@@ -1,21 +1,28 @@
 """One-time login: prints a Telethon StringSession for GitHub Secrets.
-Run LOCALLY (it asks for your phone number + the code Telegram sends you):
 
-    pip install telethon
+Run LOCALLY (it asks for your phone number + the code from your Telegram app):
+
     python scripts/tg_login.py
 
-Then paste the printed line into the TG_SESSION secret (or send it to whoever
-manages the repo and they will add it). After that the bridge downloads GIFs
-and posts them as real animations, on its own, forever.
+Paste the printed line into the TG_SESSION secret. After that the bridge
+downloads GIFs and posts them as real animations, on its own, forever.
 
-NOTE: this needs to be interactive. Telegram sends a login code to your phone,
-so no CI runner and no bot can do this step for you.
+This MUST be interactive: Telegram sends a login code to your phone, so no CI
+runner and no bot can do this step for you.
+
+Two bugs were fixed here on 2026-10-04 after it wasted a successful login:
+  * it used the async client, so connect()/get_me() returned coroutines and the
+    script died with "'coroutine' object has no attribute ..." AFTER signing
+    in - losing the session;
+  * it printed a friendly message before the session line, so any later error
+    also lost it.
+It now uses the blocking client and prints the session first.
 """
 import sys
 
 try:
-    from telethon import TelegramClient
     from telethon.sessions import StringSession
+    from telethon.sync import TelegramClient       # blocking, no await needed
 except ImportError:
     print('Need Telethon first:  pip install telethon')
     sys.exit(1)
@@ -34,22 +41,27 @@ if not api_hash:
 client = TelegramClient(StringSession(), api_id, api_hash,
                         device_model='koora-news', system_version='1.0',
                         app_version='1.0', lang_code='en')
-client.connect()
-# start() is what actually sends the code / asks for the password. Without
-# this the session saved below is NOT authorized and the bridge cannot read
-# anything - the previous version of this file had that bug.
-try:
-    client.start()          # asks: phone number -> login code -> 2FA password
-except KeyboardInterrupt:
-    print('\ncancelled')
-    sys.exit(1)
+# start() blocks and prompts for phone -> login code -> 2FA password.
+client.start()
 
-me = client.get_me()
-print('\nlogged in as %s (id %s)' % (getattr(me, 'username', None) or me.first_name,
-                                     me.id))
+# The session line comes FIRST and is flushed immediately: nothing after this
+# point can lose it.
+session = client.session.save()
 print('\n=== COPY THIS INTO THE TG_SESSION SECRET (one line) ===')
-print(client.session.save())
-print('=== END ===')
-print('\nSecrets needed: TG_API_ID=%d, TG_API_HASH=<the hash above>, '
-      'TG_SESSION=<the line above>' % api_id)
-client.disconnect()
+print(session)
+sys.stdout.flush()
+
+try:
+    me = client.get_me()
+    who = getattr(me, 'username', None) or getattr(me, 'first_name', '') or '?'
+    print('=== END ===')
+    print('\nsigned in as: %s' % who)
+except Exception as e:
+    print('=== END ===')
+    print('(could not read the account name: %s - the session above is still '
+          'fine)' % type(e).__name__)
+try:
+    client.disconnect()
+except Exception:
+    pass
+print('\nSecrets: TG_API_ID, TG_API_HASH, TG_SESSION (the line above).')
