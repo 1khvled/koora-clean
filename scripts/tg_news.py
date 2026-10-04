@@ -854,44 +854,82 @@ def with_link(body, url):
 _TELE = {'client': None, 'tried': False}
 
 
-def tele_animation(mid, limit=48000000):
-    """The animation's real bytes via a user session. Returns None when no
-    reader session is configured or the media cannot be fetched -- the web
-    preview genuinely does not expose it."""
+def _tele_client():
+    """The blocking telethon client for the reader session, or None when no
+    session is configured."""
     import os as _os
     api_id = int(_os.environ.get('TG_API_ID', '0') or 0)
     api_hash = _os.environ.get('TG_API_HASH', '').strip()
     session = _os.environ.get('TG_SESSION', '').strip()
     if not (api_id and api_hash and session):
         return None
+    if _TELE['tried']:
+        return _TELE['client']
     try:
-        if not _TELE['tried']:
-            from telethon import TelegramClient
-            from telethon.sessions import StringSession
-            _TELE['client'] = TelegramClient(
-                StringSession(session), api_id, api_hash,
-                device_model='koora-news', system_version='1.0',
-                app_version='1.0', lang_code='en')
-            _TELE['client'].connect()
-            _TELE['tried'] = True
-        cl = _TELE['client']
+        # telethon.sync is the BLOCKING client. The async one returns
+        # coroutines that nothing awaits, so every download silently returned
+        # nothing (verified: "coroutine ... was never awaited").
+        from telethon.sessions import StringSession
+        from telethon.sync import TelegramClient
+        cl = TelegramClient(
+            StringSession(session), api_id, api_hash,
+            device_model='koora-news', system_version='1.0',
+            app_version='1.0', lang_code='en')
+        if not cl.is_connected():
+            cl.connect()
+        ok = bool(cl.is_user_authorized())
+        print('animation: reader session %s' % ('connected' if ok else 'NOT authorized'))
+        _TELE['tried'] = True          # never retry per post
+        _TELE['client'] = cl if ok else None
+    except Exception as e:
+        print('reader session failed: %s' % str(e)[:70])
+        _TELE['tried'] = True
+        _TELE['client'] = None
+    return _TELE['client']
+
+
+def tele_media(mid, limit=48000000):
+    """(true_kind, bytes) straight from telegram. true_kind is 'animation' for a
+    real gif, 'video' for a normal clip, '' when the message has no document.
+    bytes is None when the file exceeds the bot api's 50MB cap -- nothing can be
+    done about that, so the caller frames it instead."""
+    cl = _tele_client()
+    if cl is None:
+        return '', None
+    try:
         if not cl.is_connected():
             cl.connect()
         msg = cl.get_messages('Offsideahdaff', ids=int(mid))
-        if msg is None:
-            return None
-        for attr in ('animation', 'video'):
-            media = getattr(msg, attr, None)
-            if media is not None:
-                out = cl.download_media(media, bytes)
-                if out and len(out) <= limit:
-                    return out
-                print('animation: %s bytes unavailable or oversize' % attr)
-                return None
-        return None
+        if msg is None or getattr(msg, 'document', None) is None:
+            return '', None
+        doc = msg.document
+        kind = 'video'
+        try:
+            from telethon.tl.types import (DocumentAttributeAnimated,
+                                           DocumentAttributeVideo)
+            for a in (doc.attributes or []):
+                if isinstance(a, DocumentAttributeAnimated):
+                    kind = 'animation'
+                elif isinstance(a, DocumentAttributeVideo):
+                    kind = 'video'
+        except Exception:
+            pass
+        size = int(getattr(doc, 'size', 0) or 0)
+        if size > limit:
+            print('animation: #%d %s is %d bytes - over the bot api cap, '
+                  'posting its frame' % (mid, kind, size))
+            return kind, None
+        out = cl.download_media(msg, bytes)
+        return kind, (out if out and len(out) <= limit else None)
     except Exception as e:
         print('animation fetch failed #%s: %s' % (mid, str(e)[:80]))
-        return None
+        return '', None
+
+
+def tele_animation(mid, limit=48000000):
+    """The real clip bytes via a user session, or None. Kept as a thin wrapper
+    so callers that only want bytes do not care about the type."""
+    return tele_media(mid, limit)[1]
 
 
 def send_post(target, body, out, video=None, animation=None):
@@ -911,7 +949,9 @@ def send_post(target, body, out, video=None, animation=None):
             params = {'chat_id': target}
             if body:
                 params['caption'] = body[:1024]
-            r = bot('sendAnimation', params, files={'animation': ('clip.mp4', animation)})
+            r = bot('sendAnimation', params,
+                    files={'animation': ('clip.mp4' if animation[:4] != b'GIF8'
+                                         else 'clip.gif', animation)})
             if not (r or {}).get('ok'):
                 print('animation rejected:', str((r or {}).get('description'))[:100])
                 return False
@@ -1006,23 +1046,29 @@ def public_preview_run(target):
         kind, vurl = source_media(x['key'], also=x.get('preview_video'))
         vid = None
         anim = None
-        if kind == 'video':
-            if vurl:
+        if kind in ('video', 'animation'):
+            # Telegram knows the real type (gif vs normal clip) and the real
+            # bytes; the web preview cannot always tell or serve them.
+            tkind, blob = tele_media(x['key'])
+            if tkind and blob:
+                if tkind == 'animation':
+                    anim = blob
+                    print('#%d: real GIF (%d bytes)' % (x['key'], len(blob)))
+                else:
+                    vid = blob
+                    print('#%d: real VIDEO (%d bytes)' % (x['key'], len(blob)))
+            elif tkind:
+                print('#%d: %s too large for the bot api -> framing it'
+                      % (x['key'], tkind))
+            elif vurl:
                 vid = dl_video(vurl)
+                print('#%d: no session, web preview VIDEO (%d bytes)'
+                      % (x['key'], len(vid or b'')))
                 if not vid:
                     print('#%d: VIDEO FAILED -> falling back to photo' % x['key'])
-            else:
-                print('#%d: video marked but no url' % x['key'])
-        elif kind == 'animation':
-            # A gif (or an oversized video): telegram's web preview serves only
-            # a thumbnail, so the real bytes need a user session.
-            print('#%d: GIF/animation - web preview has no bytes' % x['key'])
-            anim = tele_animation(x['key'])
-            if anim:
-                print('#%d: got animation bytes (%d)' % (x['key'], len(anim)))
-            else:
-                print('#%d: no reader session -> animation bytes unavailable; '
-                      'posting its frame as a photo' % x['key'])
+            elif kind == 'animation':
+                print('#%d: GIF but neither telegram nor the preview gave '
+                      'bytes; framing it' % x['key'])
         else:
             print('#%d: source has no video (kind=%s)' % (x['key'], kind))
         img = None
@@ -1079,8 +1125,9 @@ def main():
         return 0
     print('reader creds present: pulling Kurdish source too (already posted=%d).' % posted)
 
-    from telethon import TelegramClient
+    # blocking client: the async one returns coroutines that nothing awaits
     from telethon.sessions import StringSession
+    from telethon.sync import TelegramClient
     from telethon.tl.functions.messages import ImportChatInviteRequest
 
     state = load_state()

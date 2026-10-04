@@ -4,7 +4,40 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§118 — GIF download proven impossible publicly; login script fixed).
+> Last updated: 2026-10-05 (§119 — session live, true GIF/video type from Telegram).
+
+## 119. Reader session live; real media type from Telegram (2026-10-05)
+
+- Owner supplied `api_id` / `api_hash` and ran the one-time login. All three
+  secrets (`TG_API_ID`, `TG_API_HASH`, `TG_SESSION`) now exist and the session
+  authorizes as **userknow11**. Secret writing was verified end to end first
+  (NaCl sealed box, HTTP 201, listed present, then a throwaway secret deleted)
+  so nothing was guessed. Leak scan before every commit: no session string or
+  api_hash anywhere in the repo.
+- **The same async-client bug was in the bridge**, not just the login script:
+  `tele_animation` called `connect()` / `get_messages()` / `download_media()`
+  on Telethon's **async** client with nothing awaited. It printed
+  `coroutine ... was never awaited` and returned nothing — so GIFs would
+  have silently stayed broken in production. Switched to `telethon.sync`
+  everywhere (the Kurdish path in `main()` had it too).
+- **What the media actually is**, read from MTProto document attributes
+  (`DocumentAttributeAnimated` vs `DocumentAttributeVideo`):
+
+  | msg | true type | size | note |
+  |---|---|---|---|
+  | 375832 | **ANIMATION (gif)** | 1.3 MB | web preview served it; we posted it as **video** — mislabelled |
+  | 375818 | VIDEO | 15.8 MB | preview refused it ("Media is too big"); we posted the **frame** |
+  | 375812 | VIDEO | **74.8 MB** | over the bot api's 50MB cap — no bot can ever send it; frame it |
+
+  So "not supported" in the web preview means *too big for the preview*, not
+  *it's a gif*. A real gif is a different animal and must go out via
+  `sendAnimation` to earn the gif badge.
+- New `tele_media(mid)` returns `(true_kind, bytes)`; the loop prefers it and
+  only falls back to the web preview when there is no session. Real gifs →
+  `sendAnimation`, videos → `sendVideo`, over-50MB → its frame, with the
+  reason printed every time.
+- Verified live: `tele_media` 4/4 against the real source (animation 1.3MB,
+  video 15.8MB, oversize refused, photo has no document); 17 suites green.
 
 ## 118. GIFs cannot be fetched without a login — and why (2026-10-04)
 
