@@ -238,6 +238,25 @@ def dl_photo(url, timeout=25, limit=8000000):
         return None
 
 
+_LOGO = None
+
+
+def logo_bytes():
+    """Our channel logo (scripts/channel_logo.png). Cached, capped 2MB.
+    Every post carries it; source photos are never forwarded (owner order)."""
+    global _LOGO
+    if _LOGO is None:
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   'channel_logo.png'), 'rb') as f:
+                _LOGO = f.read()
+            if not _LOGO or len(_LOGO) > 2000000 or _LOGO[:8] != b'\x89PNG\r\n\x1a\n':
+                _LOGO = False
+        except Exception:
+            _LOGO = False
+    return _LOGO or None
+
+
 def public_preview_run(target):
     """One run over the public preview. Returns posts made. Bot-only."""
     state = load_state()
@@ -258,9 +277,14 @@ def public_preview_run(target):
             continue
         body = txt + '\n\n\U0001f4f0 via @Offsideahdaff'
         try:
-            if x['photo']:
-                # Telegram cannot fetch this CDN itself (HTTP URL content
-                # fails), so download here (works with a Referer) and upload.
+            logo = logo_bytes()
+            if logo:
+                r = bot('sendPhoto', {'chat_id': target,
+                                      'caption': body[:1024]},
+                        files={'photo': ('logo.png', logo)})
+            elif x['photo']:
+                # No logo on disk: fall back to the source photo (downloaded
+                # first -- Telegram cannot fetch that CDN itself).
                 img = dl_photo(x['photo'])
                 if img:
                     r = bot('sendPhoto', {'chat_id': target,
@@ -348,7 +372,10 @@ def main():
                     body = txt + '\n\n📰 via @kooraadz'
                     photo_bytes = None
                     try:
-                        if getattr(m, 'photo', None):
+                        _logo = logo_bytes()
+                        if _logo:
+                            photo_bytes = _logo
+                        elif getattr(m, 'photo', None):
                             photo_bytes = client.download_media(m.photo, bytes)
                     except Exception:
                         photo_bytes = None

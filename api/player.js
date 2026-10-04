@@ -311,7 +311,14 @@ const resolveYacine = async (home, away, startIso) => {
     ['لوس أنجلوس', ['los', 'angeles']], ['نيويورك', ['new', 'york']],
     ['فانكوفر', ['vancouver']], ['وايت كابس', ['whitecaps']], ['غالاكسي', ['galaxy']],
     ['اتحاد العاصمة', ['usm', 'alger']], ['شبيبة الأبيار', ['el', 'biar']],
+    ['الولايات المتحدة', ['united', 'states']], ['أمريكا', ['united', 'states']],
+    ['المكسيك', ['mexico']],
+    ['أذربيجان', ['azerbaijan']],
+    ['ليتوانيا', ['lithuania']],
   ];
+  // Latin abbreviations the sources actually use ('USA' devowels to nothing,
+  // so without this the US can never match anything). Exact keys only.
+  const EN_ABBR = { usa: ['united', 'states'] };
   const applyAlias = (toks, rawNorm) => {
     let out = [...toks];
     const flat = ' ' + rawNorm.replace(/[.\-_/]/g, ' ') + ' ';
@@ -330,7 +337,8 @@ const resolveYacine = async (home, away, startIso) => {
   const arToksOf = (s) => applyAlias(
     trAr(s).split(' ').map(noVow).filter(t => t.length >= 2), normAr(s));
   const enToksOf = (name) => normLat(name || '')
-    .replace(/v/g, 'f').replace(/p/g, 'b').split(' ').map(noVow).filter(t => t && t.length >= 2 && !EN_STOP.has(t));
+    .replace(/v/g, 'f').replace(/p/g, 'b').split(' ')
+    .flatMap(t => EN_ABBR[t] || [t]).map(noVow).filter(t => t && t.length >= 2 && !EN_STOP.has(t));
   const sideDist = (arToks, enToks) => {
     if (!arToks.length || !enToks.length) return 99;
     let tot = 0;
@@ -355,15 +363,17 @@ const resolveYacine = async (home, away, startIso) => {
     const enH = enToksOf(t1), enA = enToksOf(t2);
     return Math.min(orderScore(arH, arA, enH, enA), orderScore(arH, arA, enA, enH));
   };
-  // ── ad-free policy (2026-10-04, owner: "we said no ads") ──
-  // Measured: the Streamed shells carry window.open/onbeforeunload x4 + an
-  // injected /ad.html frame; VIPBox loads llvpn/nearlyfunnel/GTM behind an
-  // ad-gated player. Yassir/Yacine/Kora are the only ad-free players we have,
-  // so the mirrors are opt-in only: ALLOW_AD_MIRRORS=1 in the Vercel env.
-  const ADS_MIRRORS = /^(1|true|yes|on)$/i.test(
-    String((typeof process !== 'undefined' && process.env && process.env.ALLOW_AD_MIRRORS) || ''));
-  // With mirrors OFF their phase-1 probe is only the adsBlocked hint, so it
-  // gets a short budget; with them ON it must be able to find a real fixture.
+  // ── mirror policy (2026-10-04, owner: VIPBox "was working", fix it) ──
+  // Measured live: Streamed backend serves (USA-Mexico playlist HTTP 200 x2,
+  // 235 viewers) and the VIPBox player backend answers HTTP 200 framed (the
+  // dervlin 504 was transient). The Argentina 404 was a per-game drop, not a
+  // dead backend. So mirrors are ON unless explicitly disabled with
+  // ALLOW_AD_MIRRORS=0. Arabic sources still run first and win; buttons stay
+  // numbered with zero brand leakage.
+  const ADS_MIRRORS = !/^(0|false|no|off)$/i.test(
+    String((typeof process !== 'undefined' && process.env && process.env.ALLOW_AD_MIRRORS) || '').trim());
+  // With mirrors explicitly OFF their phase-1 probe is only the adsBlocked
+  // hint, so it gets a short budget; normally it must find a real fixture.
   const mirrorCap = () => (ADS_MIRRORS ? 4000 : 2000);
   const STHOSTS = ['https://streamed.pk', 'https://streamed.st'];
   const stFetch = async (host, path, ms) => {

@@ -4,7 +4,42 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§89 — photo posts fixed: download-then-upload; channel is live).
+> Last updated: 2026-10-04 (§90 — mirrors back ON, USA/Mexico/Azerbaijan/Lithuania aliases, our logo on every post).
+
+## 90. Mirrors restored (measured alive), name aliases, our logo only (2026-10-04)
+
+- **Owner:** "Fix the VIP BOX stream, it was working" + "post our logo, don't
+  post theirs" + "don't get us hacked or download anything". All three honored.
+- **Streams, measured live in-browser (no guessing).** Streamed backend alive:
+  USA-Mexico playlist → HTTP 200 twice, 235 viewers on the delta embed
+  (Argentina's 404 was a per-game drop of a 5-0 dead rubber, not a dead
+  backend). VIPBox player backend alive: lonpapil.eu/sd0embed → HTTP 200 in
+  the framed context (the dervlin 504 was transient; direct loads 403 only for
+  lack of Referer, as designed). So the \u00a784 default-OFF gate was hiding
+  working streams: mirrors are ON again unless `ALLOW_AD_MIRRORS=0`.
+  Arabic-first order, numbered buttons, zero brand leakage unchanged.
+- **Name gaps closed (the real reason USA-Mexico resolved nothing).**
+  `enToksOf('USA')` devoweled to zero tokens → score 99, unmatchable. Added
+  exact-name aliases in the existing table pattern (zero fuzzy risk):
+  USA↔united/states (both sides, incl. `EN_ABBR`), Mexico, Azerbaijan,
+  Lithuania (+ أمريكا). Measured locally: USA-Mexico 99 →
+  0.000, Azerbaijan-Lithuania 0.600 → 0.000, Argentina unchanged 0.429.
+- **Security posture untouched.** No `safeSrc`/`BLOCK_RE`/popup-defense code
+  changed; sandbox stays as the owner ordered (\u00a781); no new third-party
+  script, embed host, or dependency added anywhere. All verification from here
+  was stubbed-fetch unit tests (zero network) plus syntax checks.
+- **Our logo only.** `scripts/channel_logo.png` = the M10 shield from
+  messistat.com itself (`/img/logo.png`, 512\u00d7512 PNG, sha256
+  `36D5DC34\u2026`), verified pixel-identical to the owner's attachment. Every
+  bridge post now attaches these bytes; source photos are never forwarded
+  (kept as fallback only if the logo file is missing). Proven zero-network
+  (their URL never transmitted) and live (upload ok, msg 8, deleted after).
+- **Hygiene.** Removed a committed `scripts/__pycache__/*.pyc` that slipped
+  into \u00a787; `.gitignore` now excludes `__pycache__/` + `*.pyc`. Deleted
+  every remote-fetched analysis file from temp (bundles, ad scripts, shells).
+- Verified: `player.js` ESM import OK, `tg_news.py` AST OK, allstub (decoy
+  still unreachable with mirrors ON) + adsreg (opt-out path) + hlreg green,
+  mirrors content-identical, i18n parity intact.
 
 ## 89. Photo posts were silently failing; fixed by uploading bytes (2026-10-04)
 
