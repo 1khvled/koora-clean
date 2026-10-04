@@ -217,6 +217,27 @@ def bot_preflight(target):
     return True, '@%s -> %s (%s)' % (who, title, (ch.get('result') or {}).get('type')), False
 
 
+def dl_photo(url, timeout=25, limit=8000000):
+    """Fetch photo bytes for re-upload. Capped, Referer set (CDN blocks
+    referer-less + Telegram-side fetches). Returns bytes or None."""
+    try:
+        req = urllib.request.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://t.me/s/Offsideahdaff', 'Accept': 'image/*,*/*'})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            if (r.status or 200) != 200:
+                return None
+            ct = (r.headers.get('Content-Type') or '').lower()
+            if ct and 'image' not in ct:
+                return None
+            out = r.read(limit + 1)
+            if not out or len(out) > limit:
+                return None
+            return out
+    except Exception:
+        return None
+
+
 def public_preview_run(target):
     """One run over the public preview. Returns posts made. Bot-only."""
     state = load_state()
@@ -238,8 +259,16 @@ def public_preview_run(target):
         body = txt + '\n\n\U0001f4f0 via @Offsideahdaff'
         try:
             if x['photo']:
-                r = bot('sendPhoto', {'chat_id': target, 'photo': x['photo'],
-                                      'caption': body[:1024]})
+                # Telegram cannot fetch this CDN itself (HTTP URL content
+                # fails), so download here (works with a Referer) and upload.
+                img = dl_photo(x['photo'])
+                if img:
+                    r = bot('sendPhoto', {'chat_id': target,
+                                          'caption': body[:1024]},
+                            files={'photo': ('news.jpg', img)})
+                else:
+                    r = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
+                                            'disable_web_page_preview': False})
             else:
                 r = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
                                         'disable_web_page_preview': False})

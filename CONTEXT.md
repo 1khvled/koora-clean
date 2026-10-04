@@ -4,7 +4,21 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§88 — news every 5 min: workflow cron + cron-job.org backup).
+> Last updated: 2026-10-04 (§89 — photo posts fixed: download-then-upload; channel is live).
+
+## 89. Photo posts were silently failing; fixed by uploading bytes (2026-10-04)
+
+- **Owner:** "nothing is posted in the channel tho". Runs were green but the
+  channel was empty. Root cause from run `37168698880`'s log:
+  `post rejected: Bad Request: failed to get HTTP URL content` — Telegram's
+  servers cannot fetch the telesco.pe photo CDN, so every photo post died while
+  text-only logic looked fine. State still advanced, hiding the failure.
+- **Fix:** new `dl_photo()` downloads the image ourselves (works with a
+  Referer, capped 8MB, content-type checked) and `sendPhoto` uploads the bytes
+  via multipart instead of passing the URL. Proved live: `preview: 2 new,
+  posted=2` — the two missed items are in the channel now with photos.
+- Lesson: a post that advances state without confirmed `ok` is a silent drop;
+  the bridge now only counts confirmed deliveries.
 
 ## 88. News every 5 minutes (2026-10-04)
 
