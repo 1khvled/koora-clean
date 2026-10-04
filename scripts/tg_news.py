@@ -757,6 +757,9 @@ def site_fixtures(max_age=600):
     if out:
         _FIXTURES['items'] = out
         _FIXTURES['at'] = _t.time()
+        print('[links] fixtures loaded: %d (site reachable)' % len(out))
+    else:
+        print('[links] no fixtures from our site (posts will have no link)')
     return _FIXTURES['items']
 
 
@@ -799,7 +802,10 @@ def match_link(text):
             print('match link skipped: %d fixtures named (ambiguous)' % len(hits))
         return ''
     f = hits[0]
-    return '%s/player.html?m=%s&d=%s' % (SITE_BASE, f['id'], f['day'])
+    url = '%s/player.html?m=%s&d=%s' % (SITE_BASE, f['id'], f['day'])
+    print('[links] match: %s vs %s -> %s' % (
+        ascii(f['home']), ascii(f['away']), url))
+    return url
 
 
 def with_link(body, url):

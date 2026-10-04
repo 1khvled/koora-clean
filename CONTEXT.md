@@ -4,7 +4,26 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§115 — match links from kooraadz; video truth proven).
+> Last updated: 2026-10-04 (§116 — link observability + ascii-safe logs).
+
+## 116. Link observability + ascii-safe logs (2026-10-04)
+
+- The first production runs after §115 posted nothing linkable (the source
+  had gone quiet — matches finished), so the feature had no visible effect
+  and no way to tell "no link" from "site unreachable". Added
+  `[links] fixtures loaded: N (site reachable)` once per run, `[links] no
+  fixtures from our site`, and `[links] match: <home> vs <away> -> <url>` per
+  match. Now every link decision is in the run log.
+- **Bug found while doing that:** logging the Arabic team names raised
+  `UnicodeEncodeError` on a cp1252 stdout, and that print sits *outside* the
+  per-post `try`, so it would have taken the entire run down. Team names are
+  now `ascii()`-escaped in logs. `asciitest` drives every logging path through
+  a stdout that rejects non-ascii — the real regression guard, not a regex.
+- Verified with live fixtures and only the Telegram API stubbed (`linkwire`):
+  the caption actually sent is
+  `MATCH START: Portugal vs Norway\n\n🎦 Watch live:
+  https://kooraadz.vercel.app/player.html?m=4856703&d=today`
+  and the photo caption carries it too. 16 suites green.
 
 ## 115. Match links + why videos looked random (2026-10-04)
 
