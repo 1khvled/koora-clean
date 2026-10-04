@@ -4,7 +4,36 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§85 — every commit now authored **khvled**; bot target chat verified reachable; Vercel deployed the new build).
+> Last updated: 2026-10-04 (§86 — news bridge works bot-only, zero extra secrets; Argentina gap explained).
+
+## 86. News bridge goes bot-only (no login needed); Argentina has no ad-free stream (2026-10-04)
+
+- **Owner:** "why do u need these [TG creds]? u have a telegram bot, everything
+  is setup?" — fair. The honest split: a bot can *send* anywhere but can only
+  *read* channels it can see. The old design read both sources with a logged-in
+  account (MTProto); that login is only unavoidable for the *private* Kurdish
+  channel, which has no public preview. The public `@Offsideahdaff` has a
+  login-free preview (`t.me/s/Offsideahdaff`, verified 20 messages, no auth).
+- **Fix:** `tg_news.py` now runs **bot-only by default** — scrape the public
+  preview (text + real photo URL, Bot API accepts a URL so nothing is
+  downloaded), post new items, dedupe in `tg_state.json`. The MTProto/Kurdish
+  path only activates if the three reader secrets ever appear. Two scraper bugs
+  caught by live testing: a double-escaped `\\d` regex (matched nothing) and
+  emoji backgrounds mistaken for photos (now requires a telesco.pe `<img>`).
+  HTML entities unescaped (`&#39;` → `'`). **Proven live:** preview scraped
+  20 items, newest (`#375662`, Argentina 6-0 goal news) delivered to
+  `1759675108` with photo + Arabic text intact; full script run exits 0 with
+  `preview: 0 new, posted=0`. `TG_SETUP.md` rewritten: 2-minute setup, reader
+  creds documented as an optional upgrade only.
+- **Owner:** "yeah no stream is showing on the argentina thingy?" — correct,
+  and it is the ad-free policy working as designed, not a bug. At check time
+  the match was second half, 6-0: Yassir answers "Match ended" for that id,
+  Yacine does not list the fixture, so **no ad-free player exists** for this
+  friendly. The only coverage anywhere is the two ad-carrying mirrors (Streamed
+  shell: playlist 404, proven in-browser "0 seconds of 0 seconds"; VIPBox:
+  player domain 504) — both dead *and* ad-loaded, so the page shows the
+  honest Arabic notice instead of dead buttons. Nothing to fix code-side; when
+  an ad-free source carries a match, its button appears as before.
 
 ## 85. Commit identity is khvled everywhere; bot target now reachable (2026-10-04)
 

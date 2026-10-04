@@ -1,16 +1,19 @@
-"""Telegram news bridge: reads two source channels (MTProto user session),
-translates the Kurdish one to Arabic (free APIs, no LLM needed),
-posts text+photo to the owner's channel via Bot API. Dedupes via state file.
+"""Telegram news bridge (bot-only by default -- no login needed).
 
-Env (GitHub Secrets, never committed):
-  TG_API_ID, TG_API_HASH      from https://my.telegram.org
-  TG_SESSION                  StringSession, generated once via tg_login.py
-  TELEGRAM_BOT_TOKEN          bot token (bot must be ADMIN in target channel)
-  TARGET_CHAT                 @channelusername or -100... id
-  MYMEMORY_KEY                optional, free key = higher translate quota
+Reads the PUBLIC source @Offsideahdaff through its login-free web preview
+(https://t.me/s/Offsideahdaff) and posts new items to the target via Bot API.
+Dedupes via state file.
+
+Optional upgrade (only for the PRIVATE Kurdish channel, which has no public
+preview): set TG_API_ID / TG_API_HASH / TG_SESSION (my.telegram.org + phone
+login via tg_login.py) and the bridge also pulls + translates that source.
+MYMEMORY_KEY is optional (bigger free-translate quota).
+
+Secrets needed for the default path: TELEGRAM_BOT_TOKEN + TARGET_CHAT only.
 """
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -140,6 +143,44 @@ def save_state(d):
         json.dump(d, f, ensure_ascii=False, indent=1)
 
 
+def http_get_text(url, timeout=25):
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode('utf-8', 'replace')
+
+
+def scrape_offside_preview(limit=25):
+    """Login-free reader for the PUBLIC channel: parse t.me/s/Offsideahdaff.
+    Returns [{key, text, photo}] newest-last. Photo = direct https URL (Bot API
+    accepts a URL, so no download needed)."""
+    html = http_get_text('https://t.me/s/Offsideahdaff')
+    blocks = re.split(r'tgme_widget_message_wrap', html)[1:]
+    out = []
+    for b in blocks:
+        m = re.search(r'data-post="Offsideahdaff/(\d+)"', b)
+        if not m:
+            continue
+        mid = int(m.group(1))
+        tm = re.search(r'tgme_widget_message_text[^>]*>([\s\S]{0,4000}?)</div>', b)
+        txt = ''
+        if tm:
+            txt = re.sub(r'<br\s*/?>', '\n', tm.group(1))
+            txt = re.sub(r'<[^>]+>', '', txt)
+            import html as _html
+            txt = _html.unescape(txt)
+            txt = re.sub(r'[ \t\xa0]+', ' ', txt).strip()
+        # Real attached photo (telesco.pe CDN). Emoji backgrounds live in the
+        # text div, so require an <img> tag -- never matches emoji.
+        photo = ''
+        pm = re.search(r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"', b)
+        if pm:
+            photo = pm.group(1)
+        out.append({'key': mid, 'text': txt, 'photo': photo})
+    # numeric order, newest last, cap
+    out.sort(key=lambda x: x['key'])
+    return out[-limit:]
+
+
 def usable_text(t):
     t = (t or '').strip()
     if len(t) < 20:
@@ -176,6 +217,45 @@ def bot_preflight(target):
     return True, '@%s -> %s (%s)' % (who, title, (ch.get('result') or {}).get('type')), False
 
 
+def public_preview_run(target):
+    """One run over the public preview. Returns posts made. Bot-only."""
+    state = load_state()
+    try:
+        items = scrape_offside_preview()
+    except Exception as e:
+        print('preview fetch failed:', type(e).__name__, str(e)[:100])
+        return 0
+    last = int(state.get('offside', 0) or 0)
+    fresh = [x for x in items if x['key'] > last]
+    posted = 0
+    for x in fresh:
+        if posted >= MAX_POSTS_PER_RUN:
+            break
+        txt = usable_text(x['text'])
+        if not txt:
+            state['offside'] = x['key']
+            continue
+        body = txt + '\n\n\U0001f4f0 via @Offsideahdaff'
+        try:
+            if x['photo']:
+                r = bot('sendPhoto', {'chat_id': target, 'photo': x['photo'],
+                                      'caption': body[:1024]})
+            else:
+                r = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
+                                        'disable_web_page_preview': False})
+            if (r or {}).get('ok'):
+                posted += 1
+            else:
+                print('post rejected:', str((r or {}).get('description'))[:100])
+        except Exception as e:
+            print('post failed:', str(e)[:120])
+        state['offside'] = x['key']
+        time.sleep(2)
+    save_state(state)
+    print('preview: %d new, posted=%d' % (len(fresh), posted))
+    return posted
+
+
 def main():
     target = env_or_cfg('TARGET_CHAT', 'target_chat')
     if not target:
@@ -189,15 +269,16 @@ def main():
         # Skip instead of failing every 20 minutes; nothing to post until then.
         print('SKIP: %s' % msg)
         return 0
+    # Default path: public preview, zero extra secrets.
+    posted = public_preview_run(target)
+    # Upgrade path: private Kurdish source joins in when reader creds exist.
     api_id = int(os.environ.get('TG_API_ID', '0') or 0)
     api_hash = os.environ.get('TG_API_HASH', '').strip()
     session = os.environ.get('TG_SESSION', '').strip()
     if not (api_id and api_hash and session):
-        # Owner has not done the my.telegram.org phone login yet. Skip with a
-        # clear log line instead of a red X every 20 minutes (scripts/TG_SETUP.md).
-        print('SKIP: TG_API_ID / TG_API_HASH / TG_SESSION not set yet - '
-              'see scripts/TG_SETUP.md (bot side is verified working).')
+        print('reader creds absent: Kurdish source skipped (public source done, posted=%d).' % posted)
         return 0
+    print('reader creds present: pulling Kurdish source too (already posted=%d).' % posted)
 
     from telethon import TelegramClient
     from telethon.sessions import StringSession
@@ -208,9 +289,9 @@ def main():
     client.connect()
     if not client.is_user_authorized():
         raise RuntimeError('TG_SESSION expired — regenerate via tg_login.py')
-    posted = 0
     try:
-        for src in SOURCES:
+        ksrc = [s for s in SOURCES if s['key'] == 'k2']
+        for src in ksrc:
             if posted >= MAX_POSTS_PER_RUN:
                 break
             try:
@@ -263,7 +344,7 @@ def main():
         except Exception:
             pass
     save_state(state)
-    print('posted=%d' % posted)
+    print('posted=%d (total incl. public preview)' % posted)
 
 
 if __name__ == '__main__':
