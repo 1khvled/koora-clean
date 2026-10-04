@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§103 — store ads blocked + deleted).
+> Last updated: 2026-10-04 (§104 — photo quality proven lossless).
+
+## 104. Photo quality proven lossless end-to-end (2026-10-04)
+
+- **Owner:** quality still ass, pull photos as they are. Investigated with
+  vision on all 13 channel photos: all full-size (61-158KB, up to 800px).
+- **Proof.** Street photo: channel bytes SHA-identical to source original
+  (softness is in their file). Lineup card: 158KB vs 168KB source, visually
+  identical (Telegram's standard ~6% recompress on upload, invisible).
+  Mixed sizes left over are source-side; no upscaling by policy.
+- **Remaining blur is client-side:** undownloaded previews (arrow badge),
+  cached thumbs, or Data Saver — tap to load full, or clear Telegram cache.
+  Nothing further code-side can improve this. No code changed.
 
 ## 103. Store ads blocked and deleted (2026-10-04)
 
