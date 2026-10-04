@@ -200,18 +200,38 @@ _GAM_MONEY = r'جنيه|درهم|دينار|دولار|ريال|جائزة|جو�
 _GAM_CONTEST = r'توقع|اربح|فائز|فائزين|مسابقة|سحب'
 _GAM_HARD = (r'قمار|مراهن|كازينو|1xbet|melbet|betway|linebet|megapari|stake|'
              r'برومو\s?كود|promo\s?code|بونص|انضم.*قناة')
+_AD_STORE = (r'كود\s*خصم|كوبون|قسيمة|للطلب|اطلب\s+الآن|اشتر|متجر|ستور|'
+             r'تخفيضات|خصومات|شحن')
+_AD_PRICE = r'سعر|أسعار|ثمن|تكلفة'
+_AD_PRODUCT = r'نسخة|تحميل|لعبة|ألعاب|جهاز|بلايستيشن|اكس\s?بوكس|حساب|اشتراك'
 
 
-def is_gambling(t):
-    """Betting/prize-promo filter (owner: no gambling ads). Hard signals
-    (brands, casino, promo codes, channel-recruiting) match alone; money and
-    contest words must co-occur so punditry ("توقع") and salary news pass."""
+def is_promo(t):
+    """Betting + store-ad filter (owner: no gambling ads, no ads period).
+    Hard signals (brands, casino, promo/discount codes, stores, ordering,
+    channel-recruiting) match alone; money+contest and price+product pairs
+    must co-occur. Ticket posts stay exempt; punditry ("توقع") and salary /
+    transfer figures pass."""
     t = t or ''
     if re.search(_GAM_HARD, t, re.I):
         return True
+    if re.search(_AD_STORE, t, re.I):
+        return True
+    if re.search(r'تذكرة|تذاكر', t):
+        return False
     has_money = bool(re.search(_GAM_MONEY, t))
     has_contest = bool(re.search(_GAM_CONTEST, t, re.I))
-    return bool(has_money and has_contest)
+    if has_money and has_contest:
+        return True
+    has_price = bool(re.search(_AD_PRICE, t, re.I))
+    has_product = bool(re.search(_AD_PRODUCT, t, re.I))
+    return bool((has_price and has_money) or (has_money and has_product) or
+                (has_price and has_product))
+
+
+def is_gambling(t):
+    """Kept alias (old name)."""
+    return is_promo(t)
 
 
 def usable_text(t):
@@ -567,8 +587,8 @@ def public_preview_run(target):
             if img:
                 kind, got = brand_photo(img)
                 out = got if kind == 'photo' else None  # branding: text only
-            if is_gambling(body):
-                print('skipped gambling/promo post #%d' % x['key'])
+            if is_promo(body):
+                print('skipped promo post #%d' % x['key'])
             elif send_post(target, body, out) is True:
                 posted += 1
         except Exception as e:
@@ -653,8 +673,8 @@ def main():
                         if raw:
                             kind, got = brand_photo(raw)
                             out = got if kind == 'photo' else None
-                        if is_gambling(body):
-                            print('skipped gambling/promo post (kurdish)')
+                        if is_promo(body):
+                            print('skipped promo post (kurdish)')
                         elif send_post(target, body, out) is True:
                             posted += 1
                     except Exception as e:

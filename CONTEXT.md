@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§102 — biggest original wins, thumbs backfilled).
+> Last updated: 2026-10-04 (§103 — store ads blocked + deleted).
+
+## 103. Store ads blocked and deleted (2026-10-04)
+
+- **Owner:** no ads (an FC27 game-store promo with their discount code reached
+  the channel). Deleted channel post #40 on sight.
+- **Filter grown** (`is_gambling` -> `is_promo`, both paths): discount/coupon
+  codes, stores, ordering, sales + price+money / money+product / price+product
+  pairs. Ticket posts explicitly exempt; punditry, salaries, transfers pass.
+  Audited on 20 source texts: exactly 2 hits (both real ads), zero false
+  positives.
+- Verified: promo suite (6 block / 6 pass) + older suites green. Committed +
+  pushed.
 
 ## 102. Biggest original wins; older thumbs backfilled (2026-10-04)
 
