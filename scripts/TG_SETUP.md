@@ -64,6 +64,7 @@ whole step and everything else keeps working.
 | `TG_API_HASH` | only for the optional Kurdish source (step 2) |
 | `TG_SESSION` | only for the optional Kurdish source (step 2) |
 | `MYMEMORY_KEY` | optional, free key = bigger translate quota |
+| `GROQ_API_KEY` | free Groq key: LLM fixes typos/slips, keeps source layout. Secret-only, never committed. Models tried in order: `qwen/qwen3.8-27b` → `openai/gpt-oss-20b` (`GROQ_MODEL` overrides). Any failure posts the original text. |
 
 ## 4. Run it
 

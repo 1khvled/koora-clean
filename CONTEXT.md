@@ -4,7 +4,27 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§95 — posts formatted as lists, avatar never posted).
+> Last updated: 2026-10-04 (§96 — free Groq LLM fixes text, source layout kept; score proven 7-0).
+
+## 96. Free Groq LLM fixes text; source layout kept verbatim (2026-10-04)
+
+- **Owner:** pasted a Groq key, ordered an LLM (free) to fix + reformat text;
+  then: don't invent our format, copy theirs. Done both: `reformat_news()`
+  DELETED, new `llm_fix()` keeps the source's layout/emojis/order and only
+  corrects typos and clear slips (temperature 0, bloat + mention guards,
+  fail-open to original on any error).
+- **Key safety.** `GROQ_API_KEY` stored as an Actions secret only (HTTP 201);
+  the repo contains no key bytes (asserted: only the env-var name). Models
+  resolved live: the old llama IDs are retired, code now tries
+  `qwen/qwen3.8-27b` → `openai/gpt-oss-20b` (both answered PONG). Cloudflare
+  1010 on bare-Python calls fixed with a browser UA.
+- **Score verdict (measured, not argued).** Source bytes, our caption, and the
+  LLM output all read `7-0`; no bidi controls present. If a screen shows
+  `0-7`, that is client-side RTL rendering, not our data — and with "copy
+  theirs" in force, reformatting around it is off the table.
+- Verified: 7-case Groq suite + full-text/avatar/watermark suites green;
+  live dry-run with the real key changed nothing (nothing to fix).
+  `reformtest.py` retired (tested the deleted formatter).
 
 ## 95. Posts formatted as lists; avatar can never post (2026-10-04)
 

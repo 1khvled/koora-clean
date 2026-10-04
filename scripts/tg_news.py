@@ -358,24 +358,66 @@ def full_text(mid, fallback):
         return fallback
 
 
-def reformat_news(t):
-    """Presentation-only line breaks (words untouched): one thought per line
-    so posts read as a list instead of one crammed paragraph. Splits after
-    single sentence periods; never inside ellipsis or numbers; keeps existing
-    breaks; collapses excess blanks."""
-    t = (t or '').replace('\r', '')
-    t = re.sub(r'(?<!\.)\.(?!\.)\s+', '.\n', t)
-    t = re.sub(r'\n{3,}', '\n\n', t)
-    lines = [l.strip(' ') for l in t.split('\n')]
-    while lines and not lines[0]:
-        lines.pop(0)
-    while lines and not lines[-1]:
-        lines.pop()
-    slim = []
-    for l in lines:
-        if l or not slim or slim[-1]:
-            slim.append(l)
-    return '\n'.join(slim)
+def groq_chat(key, model, system, user, timeout=30):
+    """One OpenAI-compatible chat call. Returns text or raises."""
+    import urllib.error
+    payload = {'model': model,
+               'messages': [{'role': 'system', 'content': system},
+                            {'role': 'user', 'content': user}],
+               'temperature': 0,
+               'max_tokens': 1500}
+    req = urllib.request.Request(
+        'https://api.groq.com/openai/v1/chat/completions',
+        data=json.dumps(payload).encode('utf-8'),
+        headers={'Content-Type': 'application/json',
+                 'Authorization': 'Bearer ' + key,
+                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            d = json.loads(r.read().decode('utf-8', 'replace'))
+    except urllib.error.HTTPError as e:
+        raise RuntimeError('groq HTTP %s' % e.code)
+    try:
+        return ((((d.get('choices') or [{}])[0].get('message') or {}).get('content')) or '').strip()
+    except Exception:
+        raise RuntimeError('groq bad response')
+
+
+def llm_fix(text):
+    """Fix the post with the free Groq LLM, keeping the SOURCE's own layout
+    (owner: copy theirs, never invent ours). Fixes typos and obvious slips
+    like a scoreline reversed against its own goal list; keeps language,
+    emojis, order, and line breaks; adds nothing (no mentions/tags/links).
+    Fail-open: any problem returns the original text untouched. The key lives
+    only in the GROQ_API_KEY secret -- never in this repo."""
+    text = (text or '').strip()
+    if not text:
+        return text
+    key = os.environ.get('GROQ_API_KEY', '').strip()
+    if not key:
+        return text
+    models = [os.environ.get('GROQ_MODEL', '').strip() or 'qwen/qwen3.8-27b',
+              'openai/gpt-oss-20b']
+    system = ('You are a careful Arabic football-news copy editor. Fix the post: '
+              'correct typos and obvious factual slips (for example a scoreline '
+              'written backwards against its own listed goals). Keep everything '
+              'else exactly: same language, same emojis in the same places, same '
+              'line breaks and order. Add nothing -- no headers, footers, mentions, '
+              'tags, links, hashtags, or commentary. Output ONLY the corrected post.')
+    for model in models:
+        try:
+            out = groq_chat(key, model, system, text[:3500])
+        except Exception:
+            continue
+        if not out or len(out) < 20 or len(out) > 3900:
+            continue
+        if len(out) > len(text) * 1.5 + 200:
+            continue  # bloat guard: never let it ramble
+        import re as _re
+        if _re.search(r'@\w', out):
+            continue  # a mention/tag slipped in: reject, keep original
+        return out
+    return text
 
 
 def send_post(target, body, out):
@@ -436,7 +478,7 @@ def public_preview_run(target):
         if not txt and not x['photo']:
             state['offside'] = x['key']
             continue
-        body = reformat_news(full_text(x['key'], txt))  # never mention/tag source
+        body = llm_fix(full_text(x['key'], txt))  # never mention/tag source
         img = None
         if x['photo']:
             try:
@@ -523,7 +565,7 @@ def main():
                         continue
                     if src['translate'] and txt:
                         txt = translate_ku_ar(txt)
-                    body = reformat_news(txt)  # never mention/tag anyone
+                    body = llm_fix(txt)  # never mention/tag anyone
                     raw = None
                     try:
                         if getattr(m, 'photo', None):
