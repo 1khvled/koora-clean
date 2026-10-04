@@ -1123,6 +1123,12 @@ def main():
     if not (api_id and api_hash and session):
         print('reader creds absent: Kurdish source skipped (public source done, posted=%d).' % posted)
         return 0
+    # The session exists for GIF/video fetching. The private Kurdish source is a
+    # separate, never-requested feed, so it stays off unless explicitly enabled.
+    if os.environ.get('ENABLE_KURDISH_SOURCE', '').strip() not in ('1', 'true', 'yes'):
+        print('Kurdish source disabled by default (set ENABLE_KURDISH_SOURCE=1 to '
+              'turn it on). posted=%d' % posted)
+        return 0
     print('reader creds present: pulling Kurdish source too (already posted=%d).' % posted)
 
     # blocking client: the async one returns coroutines that nothing awaits

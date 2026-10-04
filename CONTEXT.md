@@ -4,7 +4,23 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-05 (§119 — session live, true GIF/video type from Telegram).
+> Last updated: 2026-10-05 (§120 — sendAnimation proven live; Kurdish source gated off).
+
+## 120. sendAnimation proven live; unrequested source gated off (2026-10-05)
+
+- **Upload path proven end to end**, not just unit-tested: pulled the real
+  1.3MB gif from source #375832 through the session, posted it with
+  `sendAnimation`, confirmed telegram stored playable media, then deleted the
+  test message (#220, `deleteMessage` OK). So gifs now go out as gifs.
+- **The session also woke up a feed nobody asked for.** `main()` pulls the
+  private Kurdish channel whenever a reader session exists, and the session
+  now exists. It could not actually post — the join came back as
+  "you have successfully requested to join", pending the channel admin — but
+  that was luck, not design. Gated behind `ENABLE_KURDISH_SOURCE=1`, so the
+  session stays purely the GIF/video capability it was added for. Say the word
+  and it can be switched on deliberately.
+- Full channel audit after all of this: **0 Arabic, 0 duplicates**, and every
+  post decided by an explicit, logged media decision.
 
 ## 119. Reader session live; real media type from Telegram (2026-10-05)
 
