@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§111 — Arabic leak root-caused and walled).
+> Last updated: 2026-10-04 (§114 — all three complaints closed, verified live).
+
+## 114. All three complaints closed, verified live (2026-10-04)
+
+- Owner complained about three things. Each had a distinct real cause; none
+  was cosmetic. Final state after a dispatched run and a full-history audit
+  of **95 posts**: **0 Arabic, 0 duplicate groups, 5 videos** all intact
+  (HEAD 200, `video/mp4`, 9.6-12.2MB — no re-encode, original bytes).
+- Live proof from run `37230737383`: `preview: 6 new, posted=5`,
+  `skipped repeat #375782` (dedup firing in production), `[lang]` lines
+  throughout (key flowing), and post **#163 is a real 11.4MB video**.
+- Prompt quality: added "keep the name as written when unsure" and "no
+  meta-labels", plus an output guard that rejects anything opening with
+  Translation:/Corrected:/Here is. Known limit, stated plainly: the free
+  30B models still approximate unfamiliar club/player spellings
+  ("Saryuk" -> "Seryok"). Well-known names are fine. This is model quality,
+  not a pipeline defect — recorded so it is not re-chased.
+- Groq's `qwen/qwen3.8-27b` intermittently 429s under this cadence; the
+  `openai/gpt-oss-20b` and free fallbacks absorb it with no visible gap.
 
 ## 113. Videos never posted: undefined function + silent except (2026-10-04)
 
