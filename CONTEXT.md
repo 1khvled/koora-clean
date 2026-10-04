@@ -4,7 +4,30 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§90 — mirrors back ON, USA/Mexico/Azerbaijan/Lithuania aliases, our logo on every post).
+> Last updated: 2026-10-04 (§91 — brand-aware photos, fully autonomous, source never named).
+
+## 91. Brand-aware photos, autonomous posting, zero source attribution (2026-10-04)
+
+- **Owner orders:** (1) their photo with branding \u2192 replace with ours;
+  player/team/any real photo \u2192 post normally + our logo small; (2) make
+  posting truly autonomous; (3) NEVER mention/tag their channel.
+- **Brand policy (`brand_photo()`, Pillow, all local).** Flat
+  graphics/caption cards (top-2 colors own >80% of a 64px thumb, or file
+  <200px) \u2192 replaced by our M10 shield. Real photos \u2192 posted with our
+  logo watermarked small, bottom-right, center pixels untouched. Anything
+  undecodable \u2192 safe replace; logo missing \u2192 text-only. Their pixels
+  never go out bare. Needs Pillow: added to the workflow (`telethon requests
+  pillow`).
+- **Autonomous.** `usable_text` now posts everything \u22653 chars (was \u226520:
+  one-liners were silently dropped); photo-only items post imageless-caption;
+  only truly-empty and `/commands` skip. Fixed two counters along the way:
+  intentional skips no longer count as posts and no longer log fake
+  "rejected" lines (that noise hid the real \u00a789 failure pattern).
+- **Zero attribution.** Both footers (`via @Offsideahdaff`, `via @kooraadz`)
+  deleted; cosmetic source naming scrubbed from docs/code; Kurdish path counts
+  only confirmed deliveries now (it used to count attempts).
+- Verified zero-network: 6-case suite green (replace/watermark/safe/logo-less/
+  autonomy/no-@/via). Cron + schedule firing every 5 min, all success.
 
 ## 90. Mirrors restored (measured alive), name aliases, our logo only (2026-10-04)
 

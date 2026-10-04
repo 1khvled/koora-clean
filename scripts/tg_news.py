@@ -1,7 +1,8 @@
 """Telegram news bridge (bot-only by default -- no login needed).
 
-Reads the PUBLIC source @Offsideahdaff through its login-free web preview
-(https://t.me/s/Offsideahdaff) and posts new items to the target via Bot API.
+Reads the public source channel through its login-free web preview
+and posts new items to the target via Bot API. Never names, mentions, tags,
+or links the source in any post (owner order).
 Dedupes via state file.
 
 Optional upgrade (only for the PRIVATE Kurdish channel, which has no public
@@ -11,6 +12,7 @@ MYMEMORY_KEY is optional (bigger free-translate quota).
 
 Secrets needed for the default path: TELEGRAM_BOT_TOKEN + TARGET_CHAT only.
 """
+import io
 import json
 import os
 import re
@@ -45,8 +47,9 @@ def env_or_cfg(env_key, cfg_key):
         return str(FILE_CFG.get(cfg_key, '') or '').strip()
     except Exception:
         return ''
+# Only the optional MTProto upgrade reads this (public path scrapes the web
+# preview instead). The public entry was removed: nothing may name the source.
 SOURCES = [
-    {'key': 'offside', 'ref': 'Offsideahdaff', 'name': 'Offside', 'translate': False},
     {'key': 'k2', 'ref': '+X4KcXCUFXPIxN2Q6', 'name': 'Kurdish source', 'translate': True},
 ]
 MAX_POSTS_PER_RUN = 10
@@ -150,7 +153,7 @@ def http_get_text(url, timeout=25):
 
 
 def scrape_offside_preview(limit=25):
-    """Login-free reader for the PUBLIC channel: parse t.me/s/Offsideahdaff.
+    """Login-free reader for the public source channel (web preview).
     Returns [{key, text, photo}] newest-last. Photo = direct https URL (Bot API
     accepts a URL, so no download needed)."""
     html = http_get_text('https://t.me/s/Offsideahdaff')
@@ -182,8 +185,10 @@ def scrape_offside_preview(limit=25):
 
 
 def usable_text(t):
+    # Autonomous posting: everything goes out, even one-liners and photo-only
+    # items. Only truly empty texts and bot commands are skipped.
     t = (t or '').strip()
-    if len(t) < 20:
+    if len(t) < 3:
         return ''
     if t.startswith('/'):
         return ''
@@ -257,6 +262,51 @@ def logo_bytes():
     return _LOGO or None
 
 
+def brand_photo(img_bytes, logo):
+    """Owner photo policy, decided locally with Pillow (no uploads, no APIs).
+    Their branding/flat graphics -> ('ours', logo). Real photos (players,
+    teams, anything else) -> ('watermarked', photo + our logo small,
+    bottom-right). Anything undecodable or logo-less -> ('none', None) and the
+    caller falls back to a text post -- their pixels never go out bare."""
+    if not img_bytes or not logo:
+        return ('none', None)
+    try:
+        from PIL import Image
+    except Exception:
+        return ('ours', logo)
+    try:
+        base = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+    except Exception:
+        return ('ours', logo)
+    W, H = base.size
+    try:
+        small = base.resize((64, 64))
+        colors = small.getcolors(64 * 64) or []
+        total = sum(c for c, _ in colors) or 1
+        top2 = sum(c for c, _ in sorted(colors, reverse=True)[:2]) / total
+        # Flat vector graphics/caption cards: 2 colors own ~everything.
+        # Photos never do. Tiny files are logos/thumbs, not match photos.
+        is_brand = top2 > 0.80 or max(W, H) < 200
+    except Exception:
+        is_brand = False
+    if is_brand:
+        return ('ours', logo)
+    try:
+        mark = Image.open(io.BytesIO(logo)).convert('RGBA')
+        lw = max(64, W // 4)
+        lh = max(1, round(lw * mark.height / mark.width))
+        mark = mark.resize((lw, lh))
+        if mark.height > H // 3:
+            sc = (H // 3) / mark.height
+            mark = mark.resize((max(1, round(mark.width * sc)), H // 3))
+        base.paste(mark, (W - mark.width - 12, H - mark.height - 12), mark)
+        buf = io.BytesIO()
+        base.save(buf, 'JPEG', quality=82)
+        return ('watermarked', buf.getvalue())
+    except Exception:
+        return ('ours', logo)
+
+
 def public_preview_run(target):
     """One run over the public preview. Returns posts made. Bot-only."""
     state = load_state()
@@ -272,33 +322,34 @@ def public_preview_run(target):
         if posted >= MAX_POSTS_PER_RUN:
             break
         txt = usable_text(x['text'])
-        if not txt:
-            state['offside'] = x['key']
-            continue
-        body = txt + '\n\n\U0001f4f0 via @Offsideahdaff'
+        body = txt  # never mention or tag the source (owner order)
+        img = None
+        if x['photo']:
+            try:
+                img = dl_photo(x['photo'])
+            except Exception:
+                img = None
         try:
             logo = logo_bytes()
-            if logo:
-                r = bot('sendPhoto', {'chat_id': target,
-                                      'caption': body[:1024]},
-                        files={'photo': ('logo.png', logo)})
-            elif x['photo']:
-                # No logo on disk: fall back to the source photo (downloaded
-                # first -- Telegram cannot fetch that CDN itself).
-                img = dl_photo(x['photo'])
-                if img:
-                    r = bot('sendPhoto', {'chat_id': target,
-                                          'caption': body[:1024]},
-                            files={'photo': ('news.jpg', img)})
-                else:
-                    r = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
-                                            'disable_web_page_preview': False})
+            if img:
+                _kind, out = brand_photo(img, logo)
+            elif body and logo:
+                _kind, out = ('ours', logo)
             else:
+                _kind, out = ('none', None)
+            if out:
+                params = {'chat_id': target}
+                if body:
+                    params['caption'] = body[:1024]
+                r = bot('sendPhoto', params, files={'photo': ('news.png', out)})
+            elif body:
                 r = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
                                         'disable_web_page_preview': False})
-            if (r or {}).get('ok'):
-                posted += 1
             else:
+                r = {'ok': True, 'skipped': True}  # nothing to send
+            if (r or {}).get('ok') and not (r or {}).get('skipped'):
+                posted += 1
+            elif not (r or {}).get('skipped'):
                 print('post rejected:', str((r or {}).get('description'))[:100])
         except Exception as e:
             print('post failed:', str(e)[:120])
@@ -369,25 +420,36 @@ def main():
                         continue
                     if src['translate']:
                         txt = translate_ku_ar(txt)
-                    body = txt + '\n\n📰 via @kooraadz'
-                    photo_bytes = None
+                    body = txt  # never mention or tag anyone (owner order)
+                    raw = None
+                    try:
+                        if getattr(m, 'photo', None):
+                            raw = client.download_media(m.photo, bytes)
+                    except Exception:
+                        raw = None
                     try:
                         _logo = logo_bytes()
-                        if _logo:
-                            photo_bytes = _logo
-                        elif getattr(m, 'photo', None):
-                            photo_bytes = client.download_media(m.photo, bytes)
-                    except Exception:
-                        photo_bytes = None
-                    try:
-                        if photo_bytes:
-                            bot('sendPhoto', {'chat_id': target, 'caption': body[:1024],
-                                              'parse_mode': 'HTML'},
-                                files={'photo': ('news.jpg', photo_bytes)})
+                        if raw:
+                            _kind, out = brand_photo(raw, _logo)
+                        elif body and _logo:
+                            _kind, out = ('ours', _logo)
                         else:
-                            bot('sendMessage', {'chat_id': target, 'text': body,
-                                                'disable_web_page_preview': False})
-                        posted += 1
+                            _kind, out = ('none', None)
+                        if out:
+                            params = {'chat_id': target}
+                            if body:
+                                params['caption'] = body[:1024]
+                            r = bot('sendPhoto', params,
+                                    files={'photo': ('news.png', out)})
+                        elif body:
+                            r = bot('sendMessage', {'chat_id': target, 'text': body,
+                                                    'disable_web_page_preview': False})
+                        else:
+                            r = {'ok': True, 'skipped': True}
+                        if (r or {}).get('ok') and not (r or {}).get('skipped'):
+                            posted += 1
+                        elif not (r or {}).get('skipped'):
+                            print('post rejected:', str((r or {}).get('description'))[:100])
                     except Exception as e:
                         print('post failed:', str(e)[:120])
                     state[src['key']] = m.id

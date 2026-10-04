@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install deps
-        run: pip install telethon requests
+        run: pip install telethon requests pillow
       - name: Run news bridge
         env:
           TG_API_ID: ${{ secrets.TG_API_ID }}
