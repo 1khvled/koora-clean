@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§107 — English always, old posts translated).
+> Last updated: 2026-10-04 (§108 — translation can't silently fail anymore).
+
+## 108. Translation fail-open was silent; now logged + free fallback (2026-10-04)
+
+- **Owner:** it keeps posting Arabic. New posts arrived Arabic because the
+  Groq call fails inside GitHub runners while the fail-open hides it (works
+  from home). Prime suspect: Cloudflare IP block on runner IPs.
+- **Fix.** Every engine outcome is now logged (`[lang] groq fail: <model>
+  <err>`, never the key). New chain: Groq models -> MyMemory ar|en ->
+  Google gtx ar->en -> original. Plain translation without bullets beats
+  Arabic. Verified: 4-case suite green.
+- Next: read one live run log to name the real failure, then backfill the
+  Arabic backlog to English.
 
 ## 107. English always: prompt back + all old posts translated (2026-10-04)
 

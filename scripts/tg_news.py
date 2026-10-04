@@ -490,7 +490,9 @@ def llm_fix(text):
     for model in models:
         try:
             out = groq_chat(key, model, system, text[:3500])
-        except Exception:
+            print('[lang] groq ok: %s (%d chars)' % (model, len(out)))
+        except Exception as e:
+            print('[lang] groq fail: %s %s' % (model, str(e)[:80] or type(e).__name__))
             continue
         if not out or len(out) < 20 or len(out) > 3900:
             continue
@@ -498,8 +500,14 @@ def llm_fix(text):
             continue  # bloat guard: never let it ramble
         import re as _re
         if _re.search(r'@\w', out):
+            print('[lang] groq output rejected (mention)')
             continue  # a mention/tag slipped in: reject, keep original
         return out
+    fb = translate_free_ar_en(text)
+    if fb and fb != text:
+        print('[lang] free fallback used')
+        return fb
+    print('[lang] all engines failed: posting original')
     return text
 
 
@@ -511,6 +519,37 @@ def photo_name(b):
     except Exception:
         pass
     return 'news.jpg'
+
+
+def translate_free_ar_en(text):
+    """Free no-key Arabic->English (MyMemory -> Google gtx). Plain translation,
+    no bullets. Used only when Groq is unreachable. Never raises."""
+    text = (text or '').strip()
+    if not text:
+        return text
+    if len(text) > 2500:
+        text = text[:2500]
+    mm_key = os.environ.get('MYMEMORY_KEY', '').strip()
+    try:
+        q = {'q': text, 'langpair': 'ar|en'}
+        if mm_key:
+            q['key'] = mm_key
+        d = http_get_json('https://api.mymemory.translated.net/get?' + urllib.parse.urlencode(q))
+        out = ((d.get('responseData') or {}).get('translatedText') or '').strip()
+        if out and out.lower() != text.lower():
+            return out
+    except Exception as e:
+        print('[lang] mymemory fail: %s' % (str(e)[:70] or type(e).__name__))
+    try:
+        u = ('https://translate.googleapis.com/translate_a/single?client=gtx'
+             '&sl=ar&tl=en&dt=t&q=' + urllib.parse.urlencode({'x': text})[2:])
+        d = http_get_json(u)
+        out = ''.join(seg[0] for seg in (d[0] or []) if seg and seg[0]).strip()
+        if out and out != text:
+            return out
+    except Exception as e:
+        print('[lang] google fail: %s' % (str(e)[:70] or type(e).__name__))
+    return text
 
 
 def send_post(target, body, out):
