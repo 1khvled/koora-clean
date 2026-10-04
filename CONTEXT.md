@@ -4,7 +4,21 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§91 — brand-aware photos, fully autonomous, source never named).
+> Last updated: 2026-10-04 (§92 — strict brand rule; bridge never stopped).
+
+## 92. Strict brand rule; "why did it stop" investigated (2026-10-04)
+
+- **Owner:** post their photos normally, only their logo gets replaced; why did
+  posting stop (+ blurred image in channel).
+- **Findings.** Nothing stopped: runs green every 5 min (08:15 saw `0 new`
+  because the 8 newer items dropped after it; state advanced normally through
+  every run). The blurred image is Telegram's not-yet-downloaded thumbnail
+  (download-arrow badge) — tap it. The full-time post's photo was replaced per
+  the then-loose rule; policy tightened below.
+- **Strict rule from measured data** (local calibration, no downloads):
+  graphics top2~0.93/unique~40 vs photos top2~0.19/unique~3000. Replace ONLY
+  on `(top2 > 0.85 and unique < 60) or max-dim < 200`; everything else keeps
+  the small watermark. 7-case suite green incl. a new caption-card case.
 
 ## 91. Brand-aware photos, autonomous posting, zero source attribution (2026-10-04)
 

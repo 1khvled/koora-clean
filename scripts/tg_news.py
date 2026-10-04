@@ -284,9 +284,10 @@ def brand_photo(img_bytes, logo):
         colors = small.getcolors(64 * 64) or []
         total = sum(c for c, _ in colors) or 1
         top2 = sum(c for c, _ in sorted(colors, reverse=True)[:2]) / total
-        # Flat vector graphics/caption cards: 2 colors own ~everything.
-        # Photos never do. Tiny files are logos/thumbs, not match photos.
-        is_brand = top2 > 0.80 or max(W, H) < 200
+        # Strict (measured: graphics top2~0.93/unique~40, photos top2~0.19/
+        # unique~3000). Replace ONLY when certain; real photos always pass
+        # through with the small watermark. Tiny files are logos, not photos.
+        is_brand = (top2 > 0.85 and len(colors) < 60) or max(W, H) < 200
     except Exception:
         is_brand = False
     if is_brand:
