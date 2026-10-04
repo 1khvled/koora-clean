@@ -4,7 +4,23 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§101 — gambling promos blocked + deleted).
+> Last updated: 2026-10-04 (§102 — biggest original wins, thumbs backfilled).
+
+## 102. Biggest original wins; older thumbs backfilled (2026-10-04)
+
+- **Owner:** logo remove; some photos low quality. The preview only carries
+  90px thumbs (measured 90x51, 1477 bytes) while full originals (640-800px)
+  sit on the single-post page. The picker took the first URL (the thumb).
+- **Fix.** Region candidates ranked by HEAD content-length; biggest wins,
+  first-candidate fallback, avatar excluded throughout (biggest-wins also
+  demotes it naturally). Originals post untouched (format-kept filename).
+  Watermark/logo stamping removed entirely — photos go out exactly as the
+  source published them.
+- **Backfill.** #28-33 + #37 + newer thumb-era posts swapped to originals
+  via editMessageMedia (captions identical); "not modified" replies confirmed
+  the rest already carried originals from the fixed automation.
+- Verified: pipeline suite + full battery + dispatched workflow green.
+  Committed + pushed.
 
 ## 101. Gambling promos blocked and deleted (2026-10-04)
 

@@ -332,6 +332,30 @@ def fetch_single(mid):
     return _SINGLE[mid]
 
 
+def head_length(url, timeout=12):
+    """Content-Length via HEAD (headers only). -1 when unknown."""
+    try:
+        req = urllib.request.Request(url, method='HEAD', headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://t.me/s/Offsideahdaff'})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            if (r.status or 200) != 200:
+                return -1
+            return int(r.headers.get('Content-Length') or -1)
+    except Exception:
+        return -1
+
+
+def biggest(cands):
+    """Pick the largest file by HEAD size; first candidate on any doubt."""
+    best, bestn = '', -1
+    for u in cands:
+        n = head_length(u)
+        if n > bestn:
+            best, bestn = u, n
+    return best or (cands[0] if cands else '')
+
+
 def extract_post(html, mid):
     """(text, photo) from one message region. Photo = first telesco image
     that is not the channel avatar. Never raises."""
@@ -341,16 +365,14 @@ def extract_post(html, mid):
             return '', ''
         nxt = html.find('data-post="Offsideahdaff/', i + 20)
         seg = html[i:i + 30000] if nxt < 0 else html[i:nxt]
-        photo = ''
+        cands = []
         for pat in (r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"',
                     r"background-image:url\('([^']+)'"):
             for m in re.finditer(pat, seg):
                 u = m.group(1)
-                if 'telesco.pe' in u and u != AVATAR_URL:
-                    photo = u
-                    break
-            if photo:
-                break
+                if 'telesco.pe' in u and u != AVATAR_URL and u not in cands:
+                    cands.append(u)
+        photo = biggest(cands)
         j = seg.find('tgme_widget_message_text')
         if j < 0:
             return '', photo
