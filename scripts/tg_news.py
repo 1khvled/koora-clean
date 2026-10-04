@@ -293,7 +293,41 @@ def dl_photo(url, timeout=25, limit=8000000):
         return None
 
 
-_LOGO = None
+def dl_video(url, timeout=120, limit=48000000):
+    """Fetch video bytes (Bot API caps at 50MB; we stop at 48MB).
+    Returns bytes or None (oversize counts as None -> photo fallback)."""
+    try:
+        req = urllib.request.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://t.me/s/Offsideahdaff', 'Accept': 'video/*,*/*'})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            if (r.status or 200) != 200:
+                return None
+            ct = (r.headers.get('Content-Type') or '').lower()
+            if ct and 'video' not in ct and 'octet-stream' not in ct:
+                return None
+            out = r.read(limit + 1)
+            if not out or len(out) > limit:
+                return None
+            return out
+    except Exception:
+        return None
+
+
+def post_video(mid):
+    """Direct mp4 URL for one message (single-page region). Tokens expire,
+    so this is used immediately, never stored. Returns '' when none."""
+    try:
+        seg = single_region(fetch_single(mid), mid)
+        if not seg:
+            return ''
+        for m in re.finditer(r'<video[^>]+src="([^"]+)"', seg):
+            u = m.group(1)
+            if '.mp4' in u and u != AVATAR_URL:
+                return u
+    except Exception:
+        pass
+    return ''
 
 
 def logo_bytes():
@@ -552,12 +586,34 @@ def translate_free_ar_en(text):
     return text
 
 
-def send_post(target, body, out):
-    """Deliver one post. Photo posts carry watermarked bytes; captions over
-    1024 chars split into photo + full-text follow-up. Returns True when the
-    content was delivered, None when there was nothing to send, False on
-    failure. Never mentions or tags anyone."""
+def send_post(target, body, out, video=None):
+    """Deliver one post. Video first (streamable upload, same caption rules),
+    then photo, then text-only. Long captions (>1024) split into media +
+    full-text follow-up. Returns True on delivery, None when nothing to send,
+    False on failure. Never mentions or tags anyone."""
     try:
+        if video:
+            if body and len(body) > 1024:
+                r1 = bot('sendVideo', {'chat_id': target, 'caption': body[:950] + '\n\u2026',
+                                      'supports_streaming': True},
+                         files={'video': ('news.mp4', video)})
+                if not (r1 or {}).get('ok'):
+                    print('video rejected:', str((r1 or {}).get('description'))[:100])
+                    return False
+                r2 = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
+                                        'disable_web_page_preview': False})
+                if not (r2 or {}).get('ok'):
+                    print('text rejected:', str((r2 or {}).get('description'))[:100])
+                    return False
+                return True
+            params = {'chat_id': target, 'supports_streaming': True}
+            if body:
+                params['caption'] = body[:1024]
+            r = bot('sendVideo', params, files={'video': ('news.mp4', video)})
+            if not (r or {}).get('ok'):
+                print('video rejected:', str((r or {}).get('description'))[:100])
+                return False
+            return True
         if out:
             if body and len(body) > 1024:
                 r1 = bot('sendPhoto', {'chat_id': target, 'caption': body[:950] + '\n\u2026'},
@@ -612,21 +668,31 @@ def public_preview_run(target):
             state['offside'] = x['key']
             continue
         body = llm_fix(full_text(x['key'], txt))  # never mention/tag source
-        img = None
-        url = post_photo(x['key'], x.get('photo') or '')
-        if url:
+        if is_promo(body):
+            print('skipped promo post #%d' % x['key'])
+            state['offside'] = x['key']
+            continue
+        vid = None
+        vurl = post_video(x['key'])
+        if vurl:
             try:
-                img = dl_photo(url)
+                vid = dl_video(vurl)
             except Exception:
-                img = None
+                vid = None
+        img = None
+        if not vid:
+            url = post_photo(x['key'], x.get('photo') or '')
+            if url:
+                try:
+                    img = dl_photo(url)
+                except Exception:
+                    img = None
         try:
             out = None
             if img:
                 kind, got = brand_photo(img)
                 out = got if kind == 'photo' else None  # branding: text only
-            if is_promo(body):
-                print('skipped promo post #%d' % x['key'])
-            elif send_post(target, body, out) is True:
+            if send_post(target, body, out, vid) is True:
                 posted += 1
         except Exception as e:
             print('post failed:', str(e)[:120])
@@ -705,14 +771,22 @@ def main():
                             raw = client.download_media(m.photo, bytes)
                     except Exception:
                         raw = None
+                    kvid = None
+                    try:
+                        if getattr(m, 'video', None):
+                            kvid = client.download_media(m.video, bytes)
+                            if kvid and len(kvid) > 48000000:
+                                kvid = None
+                    except Exception:
+                        kvid = None
                     try:
                         out = None
-                        if raw:
+                        if raw and not kvid:
                             kind, got = brand_photo(raw)
                             out = got if kind == 'photo' else None
                         if is_promo(body):
                             print('skipped promo post (kurdish)')
-                        elif send_post(target, body, out) is True:
+                        elif send_post(target, body, out, kvid) is True:
                             posted += 1
                     except Exception as e:
                         print('post failed:', str(e)[:120])

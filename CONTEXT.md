@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§108 — fallback chain + Arabic backlog translated; posts predated the switch).
+> Last updated: 2026-10-04 (§109 — videos post, same quality).
+
+## 109. Videos post at full quality (2026-10-04)
+
+- **Owner:** not posting videos, just screenshots of them; post videos too,
+  same quality. Edit old posts. Preview carries direct mp4 URLs (measured
+  9-11MB, video/mp4, HEAD 200) -- the bridge simply never read them.
+- **Code.** `dl_video` (48MB cap, Bot API limit is 50MB), `post_video()`
+  per-message mp4, `send_post(..., video)` streamable upload with the same
+  caption/split rules, video-first with photo fallback in both paths, promo
+  filter still gates everything. Oversize/unfetchable degrades to photo.
+- Verified: 4-case video suite + all prior suites + dispatched workflow
+  green. Old-post video backfill in progress (t.me flapping from here;
+  retries queued). Committed + pushed.
 
 ## 108. Translation fallback chain; Arabic posts predated the switch (2026-10-04, corrected)
 
