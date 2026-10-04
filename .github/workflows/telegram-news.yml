@@ -2,8 +2,8 @@ name: telegram-news-bridge
 
 on:
   schedule:
-    # every 20 minutes
-    - cron: '*/20 * * * *'
+    # every 5 minutes (cron-job.org also dispatches as backup -- see TG_SETUP.md)
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 concurrency:
