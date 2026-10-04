@@ -358,6 +358,26 @@ def full_text(mid, fallback):
         return fallback
 
 
+def reformat_news(t):
+    """Presentation-only line breaks (words untouched): one thought per line
+    so posts read as a list instead of one crammed paragraph. Splits after
+    single sentence periods; never inside ellipsis or numbers; keeps existing
+    breaks; collapses excess blanks."""
+    t = (t or '').replace('\r', '')
+    t = re.sub(r'(?<!\.)\.(?!\.)\s+', '.\n', t)
+    t = re.sub(r'\n{3,}', '\n\n', t)
+    lines = [l.strip(' ') for l in t.split('\n')]
+    while lines and not lines[0]:
+        lines.pop(0)
+    while lines and not lines[-1]:
+        lines.pop()
+    slim = []
+    for l in lines:
+        if l or not slim or slim[-1]:
+            slim.append(l)
+    return '\n'.join(slim)
+
+
 def send_post(target, body, out):
     """Deliver one post. Photo posts carry watermarked bytes; captions over
     1024 chars split into photo + full-text follow-up. Returns True when the
@@ -416,7 +436,7 @@ def public_preview_run(target):
         if not txt and not x['photo']:
             state['offside'] = x['key']
             continue
-        body = full_text(x['key'], txt)  # never mention or tag the source
+        body = reformat_news(full_text(x['key'], txt))  # never mention/tag source
         img = None
         if x['photo']:
             try:
@@ -503,7 +523,7 @@ def main():
                         continue
                     if src['translate'] and txt:
                         txt = translate_ku_ar(txt)
-                    body = txt  # never mention or tag anyone (owner order)
+                    body = reformat_news(txt)  # never mention/tag anyone
                     raw = None
                     try:
                         if getattr(m, 'photo', None):

@@ -4,7 +4,21 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§94 — avatar bug killed, slop deleted, text proven verbatim).
+> Last updated: 2026-10-04 (§95 — posts formatted as lists, avatar never posted).
+
+## 95. Posts formatted as lists; avatar can never post (2026-10-04)
+
+- **Owner:** text crammed, not bulleted like the original.
+- **Cause.** The source markup carries zero line breaks (br=0/div=0 in the
+  message div) — one 257-char run. Nothing was lost in transit; there were
+  simply no breaks to keep. New `reformat_news()`: presentation-only splits
+  after single sentence periods (ellipsis/decimals/paragraphs safe) — words
+  byte-identical, proven by multiset assert incl. `7-0` never becoming `0-7`.
+- **Avatar lockdown.** The avatar-drop stands, plus the size-only rule is
+  gone: a repeat image can never post again (measured: the "photo" was the
+  same 160px file on all 20 messages). Old crammed TEST deleted; formatted
+  retest posted (6 lines, text-only, zero attribution).
+- Verified: 4-case reformat suite + all prior suites green. Committed + pushed.
 
 ## 94. The "photos" were the channel avatar; slop deleted; text is verbatim (2026-10-04)
 
