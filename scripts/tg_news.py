@@ -428,22 +428,52 @@ def single_region(html, mid):
         return ''
 
 
+def _kind_of(seg):
+    """What is this message's media? 'video' = a playable mp4 we can re-upload.
+    'animation' = a gif (or an oversized video): telegram's web preview serves
+    NO bytes for it, only a thumbnail plus 'Media is too big / VIEW IN
+    TELEGRAM'. 'photo' = a still. 'none' = text only."""
+    if re.search(r'<video[^>]+src="https?://[^"]+"', seg or ''):
+        return 'video'
+    if 'tgme_widget_message_video_player' in (seg or ''):
+        return 'animation'
+    if 'tgme_widget_message_photo_wrap' in (seg or ''):
+        return 'photo'
+    return 'none'
+
+
+def source_media(mid, also=None):
+    """(kind, playable_mp4_url) from one fetch of the message page."""
+    try:
+        seg = single_region(fetch_single(mid), mid)
+    except Exception as e:
+        print('media probe failed #%s: %s' % (mid, str(e)[:70]))
+        seg = ''
+    if not seg:
+        return 'none', ''
+    kind = _kind_of(seg)
+    url = ''
+    if kind == 'video':
+        for src in (seg, also or ''):
+            for m in re.finditer(r'<video[^>]+src="([^"]+)"', src):
+                if '.mp4' in m.group(1) and m.group(1) != AVATAR_URL:
+                    url = m.group(1)
+                    break
+            if url:
+                break
+    return kind, url
+
+
+def media_kind(mid):
+    return source_media(mid)[0]
+
+
 def post_video(mid, also=None):
     """Direct mp4 URL for one message, from the single-message page. Tokens
     expire, so it is used immediately and never stored. `also` is an mp4 seen
     in the preview page, used only if the single page has none. '' when the
     message genuinely has no video."""
-    try:
-        seg = single_region(fetch_single(mid), mid)
-    except Exception as e:
-        print('video probe failed #%s: %s' % (mid, str(e)[:70]))
-        seg = ''
-    for src in (seg, also or ''):
-        for m in re.finditer(r'<video[^>]+src="([^"]+)"', src):
-            u = m.group(1)
-            if '.mp4' in u and u != AVATAR_URL:
-                return u
-    return ''
+    return source_media(mid, also=also)[1]
 
 
 def logo_bytes():
@@ -821,7 +851,50 @@ def with_link(body, url):
     return body[:room].rstrip() + line
 
 
-def send_post(target, body, out, video=None):
+_TELE = {'client': None, 'tried': False}
+
+
+def tele_animation(mid, limit=48000000):
+    """The animation's real bytes via a user session. Returns None when no
+    reader session is configured or the media cannot be fetched -- the web
+    preview genuinely does not expose it."""
+    import os as _os
+    api_id = int(_os.environ.get('TG_API_ID', '0') or 0)
+    api_hash = _os.environ.get('TG_API_HASH', '').strip()
+    session = _os.environ.get('TG_SESSION', '').strip()
+    if not (api_id and api_hash and session):
+        return None
+    try:
+        if not _TELE['tried']:
+            from telethon import TelegramClient
+            from telethon.sessions import StringSession
+            _TELE['client'] = TelegramClient(
+                StringSession(session), api_id, api_hash,
+                device_model='koora-news', system_version='1.0',
+                app_version='1.0', lang_code='en')
+            _TELE['client'].connect()
+            _TELE['tried'] = True
+        cl = _TELE['client']
+        if not cl.is_connected():
+            cl.connect()
+        msg = cl.get_messages('Offsideahdaff', ids=int(mid))
+        if msg is None:
+            return None
+        for attr in ('animation', 'video'):
+            media = getattr(msg, attr, None)
+            if media is not None:
+                out = cl.download_media(media, bytes)
+                if out and len(out) <= limit:
+                    return out
+                print('animation: %s bytes unavailable or oversize' % attr)
+                return None
+        return None
+    except Exception as e:
+        print('animation fetch failed #%s: %s' % (mid, str(e)[:80]))
+        return None
+
+
+def send_post(target, body, out, video=None, animation=None):
     """Deliver one post. Video first (streamable upload, same caption rules),
     then photo, then text-only. Long captions (>1024) split into media +
     full-text follow-up. Returns True on delivery, None when nothing to send,
@@ -830,10 +903,19 @@ def send_post(target, body, out, video=None):
     # media is still delivered, the Arabic caption is dropped.
     if body and has_arabic(body):
         print('blocked: arabic caption refused by send_post')
-        if not (video or out):
+        if not (video or animation or out):
             return None
         body = ''
     try:
+        if animation:
+            params = {'chat_id': target}
+            if body:
+                params['caption'] = body[:1024]
+            r = bot('sendAnimation', params, files={'animation': ('clip.mp4', animation)})
+            if not (r or {}).get('ok'):
+                print('animation rejected:', str((r or {}).get('description'))[:100])
+                return False
+            return True
         if video:
             if body and len(body) > 1024:
                 r1 = bot('sendVideo', {'chat_id': target, 'caption': body[:950] + '\n\u2026',
@@ -921,16 +1003,30 @@ def public_preview_run(target):
             state['offside'] = x['key']
             continue
         body = with_link(body, match_link(src_txt))
+        kind, vurl = source_media(x['key'], also=x.get('preview_video'))
         vid = None
-        vurl = post_video(x['key'], also=x.get('preview_video'))
-        if vurl:
-            vid = dl_video(vurl)
+        anim = None
+        if kind == 'video':
+            if vurl:
+                vid = dl_video(vurl)
+                if not vid:
+                    print('#%d: VIDEO FAILED -> falling back to photo' % x['key'])
+            else:
+                print('#%d: video marked but no url' % x['key'])
+        elif kind == 'animation':
+            # A gif (or an oversized video): telegram's web preview serves only
+            # a thumbnail, so the real bytes need a user session.
+            print('#%d: GIF/animation - web preview has no bytes' % x['key'])
+            anim = tele_animation(x['key'])
+            if anim:
+                print('#%d: got animation bytes (%d)' % (x['key'], len(anim)))
+            else:
+                print('#%d: no reader session -> animation bytes unavailable; '
+                      'posting its frame as a photo' % x['key'])
         else:
-            print('#%d: source has no video' % x['key'])
+            print('#%d: source has no video (kind=%s)' % (x['key'], kind))
         img = None
-        if not vid and vurl:
-            print('#%d: VIDEO FAILED -> falling back to photo' % x['key'])
-        if not vid:
+        if not vid and not anim:
             url = post_photo(x['key'], x.get('photo') or '')
             if url:
                 try:
@@ -942,10 +1038,11 @@ def public_preview_run(target):
             if img:
                 kind, got = brand_photo(img)
                 out = got if kind == 'photo' else None  # branding: text only
-            if send_post(target, body, out, vid) is True:
+            if send_post(target, body, out, vid, anim) is True:
                 posted += 1
                 print('#%d: posted %s' % (
-                    x['key'], 'VIDEO' if vid else ('PHOTO' if out else 'TEXT')))
+                    x['key'], 'GIF' if anim else ('VIDEO' if vid else
+                        ('PHOTO' if out else 'TEXT'))))
                 fp = fingerprint(src_txt)
                 if fp:
                     state.setdefault('seen', []).append(fp)
@@ -1026,6 +1123,7 @@ def main():
                         continue
                     body = llm_fix(txt)  # never mention/tag anyone
                     raw = None
+                    kanim = None
                     try:
                         if getattr(m, 'photo', None):
                             raw = client.download_media(m.photo, bytes)
@@ -1033,12 +1131,17 @@ def main():
                         raw = None
                     kvid = None
                     try:
-                        if getattr(m, 'video', None):
+                        if getattr(m, 'animation', None):
+                            kanim = client.download_media(m.animation, bytes)
+                            if kanim and len(kanim) > 48000000:
+                                kanim = None
+                        elif getattr(m, 'video', None):
                             kvid = client.download_media(m.video, bytes)
                             if kvid and len(kvid) > 48000000:
                                 kvid = None
                     except Exception:
                         kvid = None
+                        kanim = None
                     try:
                         out = None
                         if raw and not kvid:
@@ -1046,7 +1149,7 @@ def main():
                             out = got if kind == 'photo' else None
                         if is_promo(txt) or is_promo(body):
                             print('skipped promo post (kurdish)')
-                        elif send_post(target, body, out, kvid) is True:
+                        elif send_post(target, body, out, kvid, kanim) is True:
                             posted += 1
                             fp = fingerprint(txt)
                             if fp:

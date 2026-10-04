@@ -4,7 +4,42 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§116 — link observability + ascii-safe logs).
+> Last updated: 2026-10-04 (§117 — GIFs classified; animation path ready).
+
+## 117. GIFs: what the source posts vs what the web preview gives (2026-10-04)
+
+- **Owner** was right again: the source posts **GIFs** too, and we were
+  putting them up as static photos. Measured over 99 source posts:
+  **9 real videos, 32 photos, 10 GIFs, 48 text** — so ~10% of posts were
+  GIFs we could not deliver.
+- **Root cause of the miss.** `post_video` only accepted a `<video>` src whose
+  URL contained `.mp4`. A GIF's page has **no `<video>` element at all**:
+  ```
+  <a class="tgme_widget_message_video_player not_supported ...">
+    <i class="tgme_widget_message_video_thumb" style="background-image:url(...thumb.jpg)">
+    <div class="tgme_widget_message_video_wrap"></div>          <!-- empty -->
+    <div class="message_media_not_supported_label">Media is too big</div>
+    <span class="message_media_view_in_telegram">VIEW IN TELEGRAM</span>
+  ```
+  Telegram **serves no bytes** for it — only the poster frame. So the GIF fell
+  through to `post_photo` and went out as a still. Nothing was wrong with the
+  source; the public preview simply does not expose animations.
+- **Fixed and made honest.** `source_media(mid)` now classifies each message as
+  `video` / `animation` / `photo` / `none` from one fetch, and returns the
+  playable mp4 only for real videos. `send_post` gained a `sendAnimation`
+  branch (original bytes, no re-encode). The loop logs the decision every time:
+  `GIF/animation - web preview has no bytes`, then either
+  `got animation bytes (N)` or
+  `no reader session -> animation bytes unavailable; posting its frame`.
+- **Animation bytes need a user session.** `tele_animation(mid)` fetches the
+  real file over MTProto with `TG_API_ID` / `TG_API_HASH` / `TG_SESSION` (all
+  three already wired into the workflow env, Telethon already installed). With
+  no session it returns None and we post the frame instead — a visible,
+  labelled degradation rather than a silent one. **Owner must add those three
+  secrets for true GIFs.**
+- Verified: `giftest` (8 cases incl. real captured markup), `media_kind` 6/6
+  correct against the live pages (#375812/#375818 → animation, #375832 →
+  video, photos → photo), 17 suites green.
 
 ## 116. Link observability + ascii-safe logs (2026-10-04)
 
