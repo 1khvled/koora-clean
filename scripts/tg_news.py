@@ -13,6 +13,7 @@ import json
 import os
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -109,8 +110,20 @@ def bot(method, payload=None, files=None, timeout=60):
     else:
         req = urllib.request.Request(url, data=json.dumps(payload or {}).encode('utf-8'),
                                      headers={'Content-Type': 'application/json'})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode('utf-8', 'replace'))
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode('utf-8', 'replace'))
+    except urllib.error.HTTPError as e:
+        # Telegram answers 4xx with a JSON body; surface it instead of raising so
+        # one rejected post cannot abort the run (bot() callers check .ok).
+        try:
+            body = json.loads(e.read().decode('utf-8', 'replace'))
+            if isinstance(body, dict):
+                body.setdefault('description', 'HTTP %s' % e.code)
+                return body
+        except Exception:
+            pass
+        return {'ok': False, 'description': 'HTTP %s' % e.code}
 
 
 def load_state():
@@ -136,19 +149,59 @@ def usable_text(t):
     return t[:3900]
 
 
-def main():
-    from telethon import TelegramClient
-    from telethon.sessions import StringSession
-    from telethon.tl.functions.messages import ImportChatInviteRequest
+def bot_preflight(target):
+    """Prove the bot token + target chat BEFORE spending MTProto work.
+    Returns (ok, message, hard). hard=True only when the TOKEN itself is
+    rejected (a real breakage); everything else is owner-setup pending.
+    Never prints the token."""
+    tok = env_or_cfg('TELEGRAM_BOT_TOKEN', 'bot_token')
+    if not tok:
+        return False, 'TELEGRAM_BOT_TOKEN missing (secret + tg_config.json)', True
+    try:
+        me = bot('getMe')
+    except Exception as e:
+        return False, 'Telegram API unreachable: %s' % (str(e)[:70] or type(e).__name__), False
+    if not me.get('ok'):
+        return False, 'bot token rejected by Telegram: %s' % me.get('description'), True
+    who = (me.get('result') or {}).get('username') or 'id%s' % (me.get('result') or {}).get('id')
+    try:
+        ch = bot('getChat', {'chat_id': target})
+    except Exception as e:
+        return False, 'Telegram API unreachable: %s' % (str(e)[:70] or type(e).__name__), False
+    if not ch.get('ok'):
+        return False, ('@%s cannot reach chat %s: %s -- add the bot to that '
+                       'channel/group as an ADMIN (channels use -100... ids); '
+                       'see scripts/TG_SETUP.md' % (who, target, ch.get('description'))), False
+    title = (ch.get('result') or {}).get('title') or target
+    return True, '@%s -> %s (%s)' % (who, title, (ch.get('result') or {}).get('type')), False
 
+
+def main():
     target = env_or_cfg('TARGET_CHAT', 'target_chat')
     if not target:
         raise RuntimeError('TARGET_CHAT missing')
+    ok, msg, hard = bot_preflight(target)
+    print('[preflight] %s' % msg)
+    if not ok:
+        if hard:
+            raise RuntimeError(msg)
+        # Owner setup still pending (bot not in the channel yet / no phone login).
+        # Skip instead of failing every 20 minutes; nothing to post until then.
+        print('SKIP: %s' % msg)
+        return 0
     api_id = int(os.environ.get('TG_API_ID', '0') or 0)
     api_hash = os.environ.get('TG_API_HASH', '').strip()
     session = os.environ.get('TG_SESSION', '').strip()
     if not (api_id and api_hash and session):
-        raise RuntimeError('TG_API_ID / TG_API_HASH / TG_SESSION missing')
+        # Owner has not done the my.telegram.org phone login yet. Skip with a
+        # clear log line instead of a red X every 20 minutes (scripts/TG_SETUP.md).
+        print('SKIP: TG_API_ID / TG_API_HASH / TG_SESSION not set yet - '
+              'see scripts/TG_SETUP.md (bot side is verified working).')
+        return 0
+
+    from telethon import TelegramClient
+    from telethon.sessions import StringSession
+    from telethon.tl.functions.messages import ImportChatInviteRequest
 
     state = load_state()
     client = TelegramClient(StringSession(session), api_id, api_hash)

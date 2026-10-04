@@ -5,17 +5,31 @@ Kurdish channel (auto-translated to Arabic, **no LLM needed** — free
 translation APIs with fallbacks), posts text + photo to **your** channel
 via your bot, every 20 minutes. Dedupes so nothing posts twice.
 
-## 0. URGENT: revoke the exposed token
+## Where it stands (verified 2026-10-04)
 
-You pasted the bot token in chat. Anyone who saw it can control your bot.
-In BotFather: `/revoke` → pick the bot → use the **new** token below.
+| Piece | State |
+|---|---|
+| Bot token | **works** — `@messistatBOT`, verified with `getMe` |
+| Repo | private; `TELEGRAM_BOT_TOKEN` + `TARGET_CHAT` already set as Actions secrets |
+| Target chat `1759675108` | **not reachable by the bot** (`chat not found`) — see step 1 |
+| Reader credentials | still missing (`TG_API_ID` / `TG_API_HASH` / `TG_SESSION`) — step 2 |
 
-## 1. Bot admin in YOUR channel
+Until both rows below are done the cron **skips** (green, no posts) instead of
+failing every 20 minutes. The token is committed in `scripts/tg_config.json` on
+purpose (your call); if GitHub secret-scanning ever revokes it, replace it in
+`tg_config.json` + the Actions secret and the bridge picks it up again.
 
-1. Create/open your channel (public `@name` or private).
-2. Add the bot as **administrator** (post messages permission).
-3. Note the destination: `@channelname`, or the numeric id (`-100...` —
-   get it by forwarding any channel post to `@userinfobot`).
+## 1. Bot admin in YOUR channel ← the one blocker
+
+`1759675108` is not a channel the bot can see. Two ways to fix:
+
+- **If it is your personal id:** open `@messistatBOT`, press **Start** once
+  (a bot may only message a user who started it). Then the id works.
+- **If the news belongs in a channel:** create/open the channel, add
+  `@messistatBOT` as **administrator with "post messages"**, then get the real
+  id — forward any channel post to `@userinfobot`, which replies
+  `id: -100xxxxxxxxxx`. Put that value in `TARGET_CHAT`
+  (Actions secret + `scripts/tg_config.json`).
 
 ## 2. Telegram API credentials (reader account)
 
@@ -53,4 +67,7 @@ Check your channel. The schedule takes over (every 20 min).
   → original text. Short news blurbs translate reliably; no LLM, no cost.
 - Only text + first photo repost; videos/albums are skipped, state in
   `scripts/tg_state.json` (auto-committed, max 10 posts/run).
-- Nothing secret is ever committed — the workflow reads Secrets only.
+- Secrets win over the repo config, so a leaked/rotated token is fixed by
+  editing the secret alone.
+- Preflight runs every time: bad token = red run (fix it), bot not in the chat
+  yet = clean skip with the exact fix printed in the log.
