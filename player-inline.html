@@ -1666,6 +1666,39 @@ function applySnap(o){
   } catch {}
   return true;
 }
+/* Fill-only merge (CONTEXT 83): a link that already carries home/away still
+   needs status + score from our feed, otherwise a finished match reads as
+   "not started" and the highlights block never unlocks. Values that are already
+   set are never overwritten. */
+function applySnapSoft(o){
+  if (!o || typeof o !== 'object') return false;
+  const g = k => (o[k] == null ? '' : String(o[k]));
+  const pick = (cur, val) => (cur ? cur : (val || ''));
+  const view = () => [href, home, away, homeLogo, awayLogo, leagueP, timeP,
+                      startP, offP, gtP, shP, saP, geP].join('|');
+  const before = view();
+  href = pick(href, g('href'));
+  home = pick(home, g('home'));
+  away = pick(away, g('away'));
+  homeLogo = pick(homeLogo, g('hl') || g('home_logo'));
+  awayLogo = pick(awayLogo, g('al') || g('away_logo'));
+  leagueP = pick(leagueP, g('lg') || g('league_text') || g('league'));
+  timeP = pick(timeP, g('tm') || g('time_text') || g('game_time'));
+  startP = pick(startP, g('st') || g('start'));
+  offP = pick(offP, g('so') || g('official_status') || g('status'));
+  gtP = pick(gtP, g('gt') || g('game_time'));
+  shP = pick(shP, g('sh') || (o.score_home != null ? String(o.score_home) : ''));
+  saP = pick(saP, g('sa') || (o.score_away != null ? String(o.score_away) : ''));
+  geP = pick(geP, g('ge') || g('gameends'));
+  if (!home && !away) return false;
+  if (view() === before) return false;
+  try {
+    sessionStorage.setItem('koora:m:' + id, JSON.stringify({ id: String(id),
+      href, home, away, hl: homeLogo, al: awayLogo, lg: leagueP, tm: timeP,
+      st: startP, so: offP, gt: gtP, sh: shP, sa: saP, ge: geP, _at: Date.now() }));
+  } catch {}
+  return true;
+}
 const iframe = document.getElementById('player');
 const shield = document.getElementById('shield');
 const clickShield = document.getElementById('clickShield');
@@ -3094,16 +3127,21 @@ try {
   tickHeader();
   try{statusEl.textContent=t('blocked')+': '+blocked;}catch{}
   try{clickShield.setAttribute('aria-label',t('playBtn'));}catch{}
-  // Background enrich: snapshot fetch (if still missing) + ESPN
-  if (id && !href && !home && !away && !snap0) {
+  // Background enrich: our feed snapshot + ESPN. Runs even when the URL already
+  // carries the names — the score/status it adds is what unlocks the post-match
+  // highlights (CONTEXT 83).
+  if (id && !snap0) {
     fetchSnap(id, bootDay).then(s => {
-      if (s && applySnap(s)) {
+      if (!s) return;
+      const applied = (!href && !home && !away) ? applySnap(s) : applySnapSoft(s);
+      if (applied) {
         paintTitle(); stampUpstream(); paintMatch(home, away, homeLogo, awayLogo, leagueP);
         paintStars(); tickHeader(); try { bellArm(); } catch {}
+        try { loadHl(); } catch {}
       }
     }).catch(()=>{});
   }
-  refreshEspnOne().then(ok => { if (ok) tickHeader(); }).catch(()=>{});
+  refreshEspnOne().then(ok => { if (ok) { tickHeader(); try { loadHl(); } catch {} } }).catch(()=>{});
   sbTrackMatch();
   loadRealPlayer();
   loadOdds();

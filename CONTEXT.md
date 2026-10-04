@@ -4,7 +4,86 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-03 (frozen-page hotfix — see §82 bullet).
+> Last updated: 2026-10-04 (§83 — header/ads cleanup, VIPBox fallback, highlights unlock, GitHub private + Actions green).
+
+## 83. Header/ads cleanup, VIPBox fallback, highlights actually unlock, GitHub private + Actions green (2026-10-04)
+
+- **Owner ask (UI).** "bring back old design and remove it [the language
+  control], make those buttons a bit smaller, optimize the whole header for
+  mobile, remove this" (the ad banner). Done: the sliding-pill language control
+  is gone (CSS + script removed from all four pages, `seg-thumb`/`segMove` zero
+  hits), plain pills return, controls shrink to 38px / 11.5px, and a
+  `max-width:480px` block tightens topbar/brand/promo row/back button. The
+  MessiStats banner + `Ads: ON/OFF` toggle are gone, and so is every trace of
+  them: `.ad-wrap/.ad/.ad:hover` CSS, `body.ads-off`, `adsOn()/paintAds()`,
+  the `koora_ads` localStorage key and the `ad`/`adsOn`/`adsOff` i18n keys in all
+  three dictionaries. Support copy is donations-only in all 3 languages.
+- **Owner ask (streams).** "fetch for other sources free for streams". Added
+  **VIPBox** as a *last* resort resolver in `api/player.js` (`vipMatch` +
+  `vipDetail`). Phase 1 fetches `/football-schedule`, parses the `/onair/<slug>`
+  rows, keeps only rows within ±150min of our kickoff and scores them with
+  the same MAX-of-sides gate (≤0.55). Phase 2 reads the `data-uri="/live/..."`
+  players from the onair page; those `/live` pages send **no** X-Frame-Options
+  and no CSP, so they embed directly — no token reversal needed. It runs
+  *behind* the Streamed fallback and only when every other source returns zero,
+  so it can never outrank a better source or steal another match.
+  Verified live: `Loudoun United vs Indy Eleven` and `Brooklyn FC vs Rhode Island
+  FC` resolved in 1.0-1.3s with vipbox live players; stubbed suite proves the
+  four gates (VIPBox only when Streamed misses; decoy `Israel/Kosovo` never
+  reachable for `Uzbekistan vs Syria`; absent fixture → `found:false`;
+  junk names → nothing). Live suite builds kickoffs with the same ±12h roll
+  the resolver uses (an earlier test build did not, and produced a false
+  failure — test bug, not code bug).
+- **Owner ask (highlights) — REAL BUG, fixed.** Highlights were unreachable
+  for any link that already carried `home`/`away`: the boot gate read
+  `if (id && !href && !home && !away && !snap0)`, so opening a finished match
+  from the list never learned its status → `hlOver()` stayed false → no
+  video. Croatia 0-7 England rendered "لم تبدأ" + no
+  highlights. Fix: new `applySnapSoft()` fills **only empty** fields (status,
+  score, kickoff, logos) from our own feed — never overwrites URL values —
+  and the enrich now runs whenever we have an id and no cached snapshot;
+  `loadHl()` is re-run once the status lands and once ESPN answers. Proven
+  end-to-end against a local API-mounting dev server: same URL now shows
+  `انتهت`, `0 - 7`, and the Dailymotion card
+  "England 7-0 Croatia Highlights & Goals" (`xbhdd4a`); a live match
+  (Argentina vs Burkina Faso) still shows `مباشر` 25' with
+  2 servers and **no** highlights. 5-case regression harness included.
+- **GitHub (owner: "set everything up, made the repo private").** Done through
+  the credential git already uses for push (token never printed):
+  `PATCH /repos/1khvled/koora-clean {private:true}` → **private**; Actions
+  secrets `TELEGRAM_BOT_TOKEN` + `TARGET_CHAT` created (libsodium sealed box,
+  base64 padding needed); both workflows dispatched by API and watched to
+  **green** (`keepalive` Heartbeat success, `telegram-news-bridge` all 6 steps
+  success). Also fixed the workflow commit step: `git diff --cached --quiet ||
+  git commit && git push` is left-associative, so it pushed even with nothing
+  staged — now an explicit `if`.
+- **Telegram bridge hardening.** `bot()` now turns Telegram's HTTP 4xx into
+  `{'ok': false, description}` instead of raising (one rejected post can no
+  longer kill a run). New `bot_preflight()` runs first: token rejected = **hard
+  fail** (something broke); bot-not-in-chat / API blip = **clean SKIP, exit 0**
+  with the exact fix in the log, so the 20-min cron is green while the owner
+  finishes setup. `TG_SETUP.md` rewritten (stale "revoke the token" advice
+  dropped per owner order) with the verified state table.
+- **Verified bot facts.** Token works: `getMe` → `@messistatBOT` (8914137191).
+  `getChat 1759675108` → **chat not found**: that id is not a chat the bot is
+  in. Either press **Start** on `@messistatBOT` once (if it is the owner's own
+  id) or add the bot as channel admin and use the real `-100...` id. Still
+  missing and only the owner can supply: `TG_API_ID` / `TG_API_HASH` /
+  `TG_SESSION` (my.telegram.org phone login).
+- **BLOCKER for the owner: Vercel is not auto-deploying.** `kooraadz.vercel.app`
+  still serves the 23:39 UTC build (`Last-Modified 03 Oct 23:39:30`,
+  `X-Vercel-Cache: HIT`) — 6 minutes of polling after the push changed
+  nothing. Repo, workflows and secrets are fine; the Vercel → Git integration
+  needs a nudge (dashboard → Project → Deployments → Redeploy, or
+  Settings → Git → "Deploy on Push"). No Vercel token/CLI on this machine,
+  so I cannot trigger it. Everything is committed + pushed.
+- **Verification.** `node --check` on every inline block of all four pages +
+  both mirror copies; `cssbal` braces balanced (index 310/310, player 378/378);
+  i18n key parity 3/3 (`allver`, `par2`); mirrors re-synced and **content-diff
+  verified** (residual 0, §79 — never a hash check); headless Chromium at
+  390px: no ad node, support card = Ko-fi + BEP20 only, no horizontal overflow,
+  lang buttons 38px, EN/FR/AR switch + RTL flip correct, zero console errors.
+- Commits `9b6c479`, `a44c14d` and this one, all pushed to `origin main`.
 
 ## 82. Yassir becomes the Arabic source; wrong-stream bug fixed; latency unblocked (2026-10-01)
 
