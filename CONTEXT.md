@@ -4,7 +4,17 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§104 — photo quality proven lossless).
+> Last updated: 2026-10-04 (§105 — channel is English-only via Groq).
+
+## 105. Channel is English-only (2026-10-04)
+
+- **Owner:** translate, turn the channel English-only. The Groq prompt now
+  translates (Arabic in, natural English out) and fixes in one call:
+  transliterated names, kept emojis/scores/order, clean bullets, zero
+  Arabic leftovers (verified: 0 Arabic chars in both dry-runs), no mentions.
+  Fail-open + guards unchanged; photos untouched.
+- Verified: Groq suite green with the new prompt; two live dry-runs with the
+  real key. Committed + pushed.
 
 ## 104. Photo quality proven lossless end-to-end (2026-10-04)
 

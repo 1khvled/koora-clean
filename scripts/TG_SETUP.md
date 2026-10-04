@@ -2,7 +2,7 @@
 
 Automated poster: reads the public source channel (Arabic, as-is) through
 its login-free preview and posts it to **you** via `@messistatBOT`, every
-5 minutes. Dedupes so nothing posts twice. Every post carries **our M10
+5 minutes. Posts are English-only (Groq translates + fixes; Arabic in, English out). Dedupes so nothing posts twice. Every post carries **our M10
 logo**: source branding is swapped out, real photos keep our small watermark,
 and the source is never named, mentioned, tagged, or linked.
 **No login, no extra secrets needed** — the bot token + target you already

@@ -467,12 +467,7 @@ def groq_chat(key, model, system, user, timeout=30):
 
 
 def llm_fix(text):
-    """Fix the post with the free Groq LLM, keeping the SOURCE's own layout
-    (owner: copy theirs, never invent ours). Fixes typos and obvious slips
-    like a scoreline reversed against its own goal list; keeps language,
-    emojis, order, and line breaks; adds nothing (no mentions/tags/links).
-    Fail-open: any problem returns the original text untouched. The key lives
-    only in the GROQ_API_KEY secret -- never in this repo."""
+    """Fix (and translate to English) with the free Groq LLM. Channel is English-only: Arabic in, natural English out, clean bullet list. Fail-open to original. Key in GROQ_API_KEY secret only."""
     text = (text or '').strip()
     if not text:
         return text
@@ -481,14 +476,17 @@ def llm_fix(text):
         return text
     models = [os.environ.get('GROQ_MODEL', '').strip() or 'qwen/qwen3.8-27b',
               'openai/gpt-oss-20b']
-    system = ('You are a careful Arabic football-news copy editor. Fix the post: '
-              'correct typos and obvious factual slips (for example a scoreline '
-              'written backwards against its own listed goals). Then format it '
-              'as a clean readable list: header line first, then one bullet per '
-              'item, each on its own line starting with the bullet char. Keep '
-              'the language, the emojis, and the item order. Add nothing else -- '
-              'no headers, footers, mentions, tags, links, hashtags, bold, or '
-              'commentary. Output ONLY the corrected post.')
+    system = ('You are a football-news translator and copy editor. Translate '
+              'the Arabic post to natural ENGLISH and fix it: correct typos and '
+              'obvious factual slips (for example a scoreline written backwards '
+              'against its own listed goals). Transliterate player and team names '
+              'to their standard Latin spelling. Then format it as a clean '
+              'readable list: header line first, then one bullet per item, each '
+              'on its own line starting with the bullet char. Keep the emojis '
+              'and the item order; keep scores, numbers, and minute marks '
+              'exactly. The whole output must be English only. Add nothing '
+              'else -- no headers, footers, mentions, tags, links, hashtags, '
+              'bold, Arabic leftovers, or commentary. Output ONLY the corrected post.')
     for model in models:
         try:
             out = groq_chat(key, model, system, text[:3500])
