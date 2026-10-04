@@ -25,8 +25,8 @@ jobs:
       - name: Heartbeat
         run: |
           date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/heartbeat.txt
-          git config user.name "keepalive"
-          git config user.email "keepalive@users.noreply.github.com"
+          git config user.name "khvled"
+          git config user.email "khvled2004@gmail.com"
           git add .github/heartbeat.txt
           if ! git diff --cached --quiet; then
             git commit -m "keepalive ping [skip ci]"

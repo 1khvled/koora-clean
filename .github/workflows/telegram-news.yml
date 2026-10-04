@@ -35,8 +35,8 @@ jobs:
         run: python scripts/tg_news.py
       - name: Save dedup state
         run: |
-          git config user.name "news-bridge"
-          git config user.email "news-bridge@users.noreply.github.com"
+          git config user.name "khvled"
+          git config user.email "khvled2004@gmail.com"
           git add scripts/tg_state.json
           if ! git diff --cached --quiet; then
             git commit -m "news bridge state [skip ci]"

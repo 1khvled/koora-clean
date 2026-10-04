@@ -11,7 +11,7 @@ via your bot, every 20 minutes. Dedupes so nothing posts twice.
 |---|---|
 | Bot token | **works** — `@messistatBOT`, verified with `getMe` |
 | Repo | private; `TELEGRAM_BOT_TOKEN` + `TARGET_CHAT` already set as Actions secrets |
-| Target chat `1759675108` | **not reachable by the bot** (`chat not found`) — see step 1 |
+| Target chat `1759675108` | **works** — `getChat` OK, type `private` (you pressed Start) |
 | Reader credentials | still missing (`TG_API_ID` / `TG_API_HASH` / `TG_SESSION`) — step 2 |
 
 Until both rows below are done the cron **skips** (green, no posts) instead of
@@ -19,17 +19,16 @@ failing every 20 minutes. The token is committed in `scripts/tg_config.json` on
 purpose (your call); if GitHub secret-scanning ever revokes it, replace it in
 `tg_config.json` + the Actions secret and the bridge picks it up again.
 
-## 1. Bot admin in YOUR channel ← the one blocker
+## 1. Bot → destination (done, verified)
 
-`1759675108` is not a channel the bot can see. Two ways to fix:
+`@messistatBOT` now reaches `1759675108`, which is a **private chat** (your own
+account), so news is delivered to you directly — no admin step needed.
 
-- **If it is your personal id:** open `@messistatBOT`, press **Start** once
-  (a bot may only message a user who started it). Then the id works.
-- **If the news belongs in a channel:** create/open the channel, add
-  `@messistatBOT` as **administrator with "post messages"**, then get the real
-  id — forward any channel post to `@userinfobot`, which replies
-  `id: -100xxxxxxxxxx`. Put that value in `TARGET_CHAT`
-  (Actions secret + `scripts/tg_config.json`).
+If you would rather have it post in a channel: create/open the channel, add
+`@messistatBOT` as **administrator with "post messages"**, then get the real id
+(forward any channel post to `@userinfobot` → `id: -100xxxxxxxxxx`) and put it in
+`TARGET_CHAT` (Actions secret + `scripts/tg_config.json`). The bridge posts
+wherever `TARGET_CHAT` points, so nothing else changes.
 
 ## 2. Telegram API credentials (reader account)
 
