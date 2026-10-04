@@ -4,7 +4,7 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§85 — every commit now authored **khvled**; bot target chat verified reachable).
+> Last updated: 2026-10-04 (§85 — every commit now authored **khvled**; bot target chat verified reachable; Vercel deployed the new build).
 
 ## 85. Commit identity is khvled everywhere; bot target now reachable (2026-10-04)
 
@@ -85,9 +85,11 @@
   show no stream instead of an ad-filled one. That is the correct trade for this
   site (the whole pitch is بث نظيف), but it means gaps on
   obscure fixtures. Flip `ALLOW_AD_MIRRORS=1` if you ever want them back.
-- **Still open (unchanged from §83).** Vercel is not auto-deploying — the
-  live site serves the 23:39 UTC build; one **Redeploy** in the dashboard is
-  needed, or give me a Vercel token and I will trigger it.
+- **Update 01:22 UTC: Vercel deployed by itself.** `kooraadz.vercel.app`
+  now serves the new build (`Last-Modified 01:20:48`, `bytes=135676`,
+  `compact-hdr-css=True`, `ad-wrap=False`); all four pages return
+  `ALL OK` on the deploy check, `/api/highlights` still resolves. No dashboard
+  action needed anymore.
 
 ## 83. Header/ads cleanup, VIPBox fallback, highlights actually unlock, GitHub private + Actions green (2026-10-04)
 
