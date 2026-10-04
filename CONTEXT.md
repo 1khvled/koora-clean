@@ -4,7 +4,15 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§105 — channel is English-only via Groq).
+> Last updated: 2026-10-04 (§106 — Arabic restored, English was my misread).
+
+## 106. Arabic restored (2026-10-04)
+
+- **Owner correction:** "arabic i meant". The English switch (§105) was my
+  misread — reverted the Groq prompt to Arabic fix+bullets the same hour.
+- Channel audit: all 15 posts Arabic, zero English (the stray English post is
+  already gone). Groq suite green with the Arabic prompt; dry-run keeps
+  Arabic. Committed + pushed.
 
 ## 105. Channel is English-only (2026-10-04)
 
