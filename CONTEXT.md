@@ -4,7 +4,21 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§99 — text-only posts backfilled with their photos).
+> Last updated: 2026-10-04 (§100 — logo off photos, full-size originals, posted untouched).
+
+## 100. Logo off photos; full-size originals posted untouched (2026-10-04)
+
+- **Owner:** logo remove; some photos low quality. Done both.
+- **Logo removed.** `brand_photo` classifies only now (flat `brand` /
+  real `photo` / undecodable `none`); originals post byte-identical, never
+  re-encoded, never upscaled, never stamped. No logo attached anywhere.
+- **Quality.** The preview carries 90px thumbs (measured 90x51, 1477 bytes)
+  while per-message originals go to 800px. New `post_photo()` prefers the
+  single-page original (same fetch already used for text, shared cache),
+  preview fallback, avatar excluded everywhere. Verified live: same-bytes
+  where single has nothing bigger; mixed sizes left over are source-side.
+- Verified: pipeline/classify/avatar/wrap/groq/stub suites + highlights
+  regression green; dispatched workflow green. Committed + pushed.
 
 ## 99. Backfilled photos onto text-only posts (2026-10-04)
 

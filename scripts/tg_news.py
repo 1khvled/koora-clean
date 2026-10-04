@@ -152,10 +152,11 @@ def http_get_text(url, timeout=25):
         return r.read().decode('utf-8', 'replace')
 
 
+AVATAR_URL = ''
+
+
 def scrape_offside_preview(limit=25):
-    """Login-free reader for the public source channel (web preview).
-    Returns [{key, text, photo}] newest-last. Photo = direct https URL (Bot API
-    accepts a URL, so no download needed)."""
+    global AVATAR_URL
     html = http_get_text('https://t.me/s/Offsideahdaff')
     blocks = re.split(r'tgme_widget_message_wrap', html)[1:]
     out = []
@@ -172,9 +173,6 @@ def scrape_offside_preview(limit=25):
             import html as _html
             txt = _html.unescape(txt)
             txt = re.sub(r'[ \t\xa0]+', ' ', txt).strip()
-        # ALL telesco <img> in this block. The channel avatar repeats on
-        # every message (NOT post content); real attachments are unique.
-        # Emoji backgrounds live in the text div, so <img> never matches emoji.
         pm = re.findall(r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"', b)
         pm += re.findall(r"background-image:url\('([^']+)'", b)
         pm = [u for u in pm if 'telesco.pe' in u]
@@ -183,14 +181,17 @@ def scrape_offside_preview(limit=25):
     for x in out:
         for u in set(x['photos']):
             seen[u] = seen.get(u, 0) + 1
-    # Avatar check: stamped on ~every message. A genuine repost repeats only
-    # a few times, so drop solely majority-or-5+ sightings -- never a few.
     total = len(out) or 1
+    avatar = ''
+    for u, n in seen.items():
+        if n >= 5 or n * 2 > total:
+            avatar = u
+            break
+    AVATAR_URL = avatar
     for x in out:
-        uniq = [u for u in x['photos'] if not (seen.get(u, 0) >= 5 or seen.get(u, 0) * 2 > total)]
+        uniq = [u for u in x['photos'] if u != avatar]
         x['photo'] = uniq[0] if uniq else ''
         del x['photos']
-    # numeric order, newest last, cap
     out.sort(key=lambda x: x['key'])
     return out[-limit:]
 
@@ -273,76 +274,76 @@ def logo_bytes():
     return _LOGO or None
 
 
-def brand_photo(img_bytes, logo):
-    """Owner photo policy, decided locally with Pillow (no uploads, no APIs).
-    Their branding/flat graphics -> ('ours', logo). Real photos (players,
-    teams, anything else) -> ('watermarked', photo + our logo small,
-    bottom-right). Anything undecodable or logo-less -> ('none', None) and the
-    caller falls back to a text post -- their pixels never go out bare."""
-    if not img_bytes or not logo:
+def brand_photo(img_bytes, logo=None):
+    """Classify only: flat branding graphics -> 'brand', real photos ->
+    'photo', undecodable -> 'none'. Originals always post untouched now
+    (owner: logo removed, no re-encode, no upscaling)."""
+    if not img_bytes:
         return ('none', None)
     try:
         from PIL import Image
-    except Exception:
-        return ('ours', logo)
-    try:
         base = Image.open(io.BytesIO(img_bytes)).convert('RGB')
-    except Exception:
-        return ('ours', logo)
-    W, H = base.size
-    try:
         small = base.resize((64, 64))
         colors = small.getcolors(64 * 64) or []
         total = sum(c for c, _ in colors) or 1
         top2 = sum(c for c, _ in sorted(colors, reverse=True)[:2]) / total
-        # Strict (measured: graphics top2~0.93/unique~40, photos top2~0.19/
-        # unique~3000). Replace ONLY on flatness; size alone proves nothing
-        # (a 160px textured photo scored top2=0.07). Real photos always pass
-        # through with the small watermark.
-        is_brand = top2 > 0.85 and len(colors) < 60
+        if top2 > 0.85 and len(colors) < 60:
+            return ('brand', None)
+        return ('photo', img_bytes)
     except Exception:
-        is_brand = False
-    if is_brand:
-        return ('ours', logo)
-    try:
-        mark = Image.open(io.BytesIO(logo)).convert('RGBA')
-        lw = max(32, W // 4)
-        lh = max(1, round(lw * mark.height / mark.width))
-        mark = mark.resize((lw, lh))
-        if mark.height > H // 3:
-            sc = (H // 3) / mark.height
-            mark = mark.resize((max(1, round(mark.width * sc)), H // 3))
-        base.paste(mark, (W - mark.width - 12, H - mark.height - 12), mark)
-        buf = io.BytesIO()
-        base.save(buf, 'JPEG', quality=82)
-        return ('watermarked', buf.getvalue())
-    except Exception:
-        return ('ours', logo)
+        try:
+            from PIL import Image
+            Image.open(io.BytesIO(img_bytes))
+            return ('photo', img_bytes)
+        except Exception:
+            return ('none', None)
 
 
-def full_text(mid, fallback):
-    """Complete post text via the single-post preview page. The channel view
-    truncates long posts (stray trailing …); the single page carries the whole
-    thing. Falls back to the preview text on any failure. Never raises."""
+_SINGLE = {}
+
+
+def fetch_single(mid):
+    """Single-post preview page (full text + full-size photo live here)."""
+    mid = int(mid)
+    if mid in _SINGLE:
+        return _SINGLE[mid]
     try:
-        html = http_get_text('https://t.me/s/Offsideahdaff/%d' % int(mid))
+        _SINGLE[mid] = http_get_text('https://t.me/s/Offsideahdaff/%d' % mid)
     except Exception:
-        return fallback
+        _SINGLE[mid] = ''
+    return _SINGLE[mid]
+
+
+def extract_post(html, mid):
+    """(text, photo) from one message region. Photo = first telesco image
+    that is not the channel avatar. Never raises."""
     try:
         i = html.find('data-post="Offsideahdaff/%d"' % int(mid))
         if i < 0:
-            return fallback
-        j = html.find('tgme_widget_message_text', i)
+            return '', ''
+        nxt = html.find('data-post="Offsideahdaff/', i + 20)
+        seg = html[i:i + 30000] if nxt < 0 else html[i:nxt]
+        photo = ''
+        for pat in (r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"',
+                    r"background-image:url\('([^']+)'"):
+            for m in re.finditer(pat, seg):
+                u = m.group(1)
+                if 'telesco.pe' in u and u != AVATAR_URL:
+                    photo = u
+                    break
+            if photo:
+                break
+        j = seg.find('tgme_widget_message_text')
         if j < 0:
-            return fallback
-        k = html.find('>', j)
+            return '', photo
+        k = seg.find('>', j)
         depth, p = 1, k + 1
-        end = len(html)
-        while p < len(html) and depth:
-            if html.startswith('<div', p):
+        end = len(seg)
+        while p < len(seg) and depth:
+            if seg.startswith('<div', p):
                 depth += 1
                 p += 4
-            elif html.startswith('</div>', p):
+            elif seg.startswith('</div>', p):
                 depth -= 1
                 if not depth:
                     end = p
@@ -350,17 +351,34 @@ def full_text(mid, fallback):
                 p += 6
             else:
                 p += 1
-        t = re.sub(r'<br\s*/?>', '\n', html[k + 1:end])
+        t = re.sub(r'<br\s*/?>', '\n', seg[k + 1:end])
         t = re.sub(r'<[^>]+>', '', t)
         import html as _html
         t = _html.unescape(t)
         t = re.sub(r'[ \t\xa0]+', ' ', t).strip()
-        t = usable_text(t)
-        if len(t) >= len(fallback or ''):
-            return t
-        return fallback
+        return usable_text(t), photo
     except Exception:
-        return fallback
+        return '', ''
+
+
+def full_text(mid, fallback):
+    """Complete post text: single page wins when longer, else the preview
+    text. Falls back on any failure. Never raises."""
+    t, _photo = extract_post(fetch_single(mid), mid)
+    if len(t) >= len(fallback or ''):
+        return t
+    return fallback
+
+
+def post_photo(mid, preview_url):
+    """Best photo URL: single-page original first, preview fallback.
+    Never the avatar. Returns '' when the post has no real photo."""
+    _t, single = extract_post(fetch_single(mid), mid)
+    if single:
+        return single
+    if preview_url and preview_url != AVATAR_URL:
+        return preview_url
+    return ''
 
 
 def groq_chat(key, model, system, user, timeout=30):
@@ -427,6 +445,16 @@ def llm_fix(text):
     return text
 
 
+def photo_name(b):
+    """news.png for PNG originals, news.jpg otherwise (bytes untouched)."""
+    try:
+        if (b or b'')[:8] == b'\x89PNG\r\n\x1a\n':
+            return 'news.png'
+    except Exception:
+        pass
+    return 'news.jpg'
+
+
 def send_post(target, body, out):
     """Deliver one post. Photo posts carry watermarked bytes; captions over
     1024 chars split into photo + full-text follow-up. Returns True when the
@@ -436,7 +464,7 @@ def send_post(target, body, out):
         if out:
             if body and len(body) > 1024:
                 r1 = bot('sendPhoto', {'chat_id': target, 'caption': body[:950] + '\n\u2026'},
-                         files={'photo': ('news.png', out)})
+                         files={'photo': (photo_name(out), out)})
                 if not (r1 or {}).get('ok'):
                     print('photo rejected:', str((r1 or {}).get('description'))[:100])
                     return False
@@ -449,7 +477,7 @@ def send_post(target, body, out):
             params = {'chat_id': target}
             if body:
                 params['caption'] = body[:1024]
-            r = bot('sendPhoto', params, files={'photo': ('news.png', out)})
+            r = bot('sendPhoto', params, files={'photo': (photo_name(out), out)})
             if not (r or {}).get('ok'):
                 print('post rejected:', str((r or {}).get('description'))[:100])
                 return False
@@ -470,6 +498,7 @@ def send_post(target, body, out):
 def public_preview_run(target):
     """One run over the public preview. Returns posts made. Bot-only."""
     state = load_state()
+    _SINGLE.clear()
     try:
         items = scrape_offside_preview()
     except Exception as e:
@@ -487,19 +516,17 @@ def public_preview_run(target):
             continue
         body = llm_fix(full_text(x['key'], txt))  # never mention/tag source
         img = None
-        if x['photo']:
+        url = post_photo(x['key'], x.get('photo') or '')
+        if url:
             try:
-                img = dl_photo(x['photo'])
+                img = dl_photo(url)
             except Exception:
                 img = None
         try:
-            logo = logo_bytes()
+            out = None
             if img:
-                _kind, out = brand_photo(img, logo)
-                if _kind == 'ours':
-                    out = None  # their branding: text only, no image at all
-            else:
-                _kind, out = ('none', None)
+                kind, got = brand_photo(img)
+                out = got if kind == 'photo' else None  # branding: text only
             if send_post(target, body, out) is True:
                 posted += 1
         except Exception as e:
@@ -580,13 +607,10 @@ def main():
                     except Exception:
                         raw = None
                     try:
-                        _logo = logo_bytes()
+                        out = None
                         if raw:
-                            _kind, out = brand_photo(raw, _logo)
-                            if _kind == 'ours':
-                                out = None  # their branding: text only
-                        else:
-                            _kind, out = ('none', None)
+                            kind, got = brand_photo(raw)
+                            out = got if kind == 'photo' else None
                         if send_post(target, body, out) is True:
                             posted += 1
                     except Exception as e:
