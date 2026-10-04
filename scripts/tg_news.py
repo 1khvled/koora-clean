@@ -172,13 +172,19 @@ def scrape_offside_preview(limit=25):
             import html as _html
             txt = _html.unescape(txt)
             txt = re.sub(r'[ \t\xa0]+', ' ', txt).strip()
-        # Real attached photo (telesco.pe CDN). Emoji backgrounds live in the
-        # text div, so require an <img> tag -- never matches emoji.
-        photo = ''
-        pm = re.search(r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"', b)
-        if pm:
-            photo = pm.group(1)
-        out.append({'key': mid, 'text': txt, 'photo': photo})
+        # ALL telesco <img> in this block. The channel avatar repeats on
+        # every message (NOT post content); real attachments are unique.
+        # Emoji backgrounds live in the text div, so <img> never matches emoji.
+        pm = re.findall(r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"', b)
+        out.append({'key': mid, 'text': txt, 'photos': pm})
+    seen = {}
+    for x in out:
+        for u in x['photos']:
+            seen[u] = seen.get(u, 0) + 1
+    for x in out:
+        uniq = [u for u in x['photos'] if seen.get(u, 0) < 2]
+        x['photo'] = uniq[0] if uniq else ''
+        del x['photos']
     # numeric order, newest last, cap
     out.sort(key=lambda x: x['key'])
     return out[-limit:]

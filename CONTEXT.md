@@ -4,7 +4,27 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§93 — photos post normally, branding goes text-only, full text, no standalone logo).
+> Last updated: 2026-10-04 (§94 — avatar bug killed, slop deleted, text proven verbatim).
+
+## 94. The "photos" were the channel avatar; slop deleted; text is verbatim (2026-10-04)
+
+- **Owner:** "where is their photo" + "fix the text format", repeat test.
+- **Root cause (measured).** All 20 preview items carried the IDENTICAL 160px
+  image: the scraper took the first `<img>` per block, which is the channel
+  avatar — never post content. No post in the window has a real photo (single
+  pages confirm: avatar only). Every "photo post" so far was that avatar.
+- **Fix.** Scraper collects ALL telesco `<img>` per block and drops any URL
+  seen on 2+ messages (avatar repeats; real attachments are unique). Proven:
+  20/20 drop to text-only, unique attachments still kept. With no photo from
+  them, posts are text-only — our standalone logo is never attached anymore.
+- **Text.** Proven byte-path: posted caption == source text (whitespace
+  cleanup only; numbers/emoji untouched). The `0-7` order and the trailing
+  `…` are the source's own bytes (identical reposts) — nothing on our side
+  cuts or reorders. Full text via balanced-div single-page fetch.
+- **Cleanup.** Deleted all 18 bridge posts (#4-7,9-20,22,23 incl. both TESTs);
+  kept #1-#2 (owner's channel messages). Repeat test posted text-only, full
+  257 chars, no prefix, zero attribution.
+- Verified: avatar-drop + all previous suites green. Committed + pushed.
 
 ## 93. Photos post normally; full text; branding goes text-only (2026-10-04)
 
