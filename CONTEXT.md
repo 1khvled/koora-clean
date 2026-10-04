@@ -6,6 +6,13 @@
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
 > Last updated: 2026-10-04 (§97 — Groq bullets lists, nothing lost).
 
+## 97b. Site Telegram button linked to the channel (2026-10-04)
+
+- **Owner:** link the existing Telegram button. SITE_TG was ''\ (button
+  hidden) on all four pages; set to \https://t.me/messistatdotcom\.
+  Verified headless: visible, correct href, localized label. Mirrors re-synced
+  (drift 4 each, residual 0).
+
 ## 97. Groq formats clean bullet lists (2026-10-04)
 
 - **Owner:** horrible format, no bullets. The LLM prompt now asks for a clean

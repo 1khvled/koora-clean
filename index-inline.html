@@ -737,7 +737,7 @@ if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@gr
 { '@type': 'WebSite', '@id': 'https://kooraadz.vercel.app/#site', url: 'https://kooraadz.vercel.app/', name: 'Koora Live', inLanguage: ['en', 'fr', 'ar'], publisher: { '@id': 'https://kooraadz.vercel.app/#org' } }
 ]});
 }
-const SITE_TG = ''; // <-- paste the site Telegram channel URL here to activate
+const SITE_TG = 'https://t.me/messistatdotcom';
 function siteTgPaint(){ try { const u = (typeof SITE_TG === 'string' ? SITE_TG.trim() : ''); document.querySelectorAll('[data-sitetg]').forEach(a => { if (u){ a.href = u; a.hidden = false; } else { a.hidden = true; } }); } catch (e) {} }
 function dealsPaint(){ try {
   const g = (document.documentElement.getAttribute('data-dealsgeo') || '').toLowerCase();

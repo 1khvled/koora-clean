@@ -442,7 +442,7 @@ const can = document.querySelector('link[rel="canonical"]'); if (can) can.setAtt
 const ogU = document.querySelector('meta[property="og:url"]'); if (ogU) ogU.setAttribute('content', base);
 } catch (e) {}
 }
-const SITE_TG = ''; // <-- paste the site Telegram channel URL here to activate
+const SITE_TG = 'https://t.me/messistatdotcom';
 function siteTgPaint(){ try { const u = (typeof SITE_TG === 'string' ? SITE_TG.trim() : ''); document.querySelectorAll('[data-sitetg]').forEach(a => { if (u){ a.href = u; a.hidden = false; } else { a.hidden = true; } }); } catch (e) {} }
 function dealsPaint(){ try {
   const g = (document.documentElement.getAttribute('data-dealsgeo') || '').toLowerCase();
