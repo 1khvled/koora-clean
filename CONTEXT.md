@@ -6,6 +6,22 @@
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
 > Last updated: 2026-10-04 (§111 — Arabic leak root-caused and walled).
 
+## 112. Content dedup + live-verified key (2026-10-04)
+
+- **Owner** also saw the same item 3-4 times. The source itself reposts
+  identical content under fresh ids (measured: ids 375746 and 375753, same
+  text), so id-based dedup could never catch it. Added `fingerprint()` — a
+  sha1 over text with case, punctuation, digits-as-separators and emoji
+  stripped — and a bounded 300-entry `seen` window in the state, checked in
+  both loops. `save_state` trims it; the workflow's merge-max step now
+  **unions** lists (it previously took the local list, which would have
+  dropped a concurrent run's entries and re-posted them). Merge proven with a
+  real git fixture: ids take max, `seen` = union of both windows.
+- Live proof: the 19:25 run still showed zero `[lang]` lines because GitHub had
+  resolved the pre-push workflow; re-dispatched afterwards and confirmed the
+  key reaches the script.
+- Verified: 10 suites green (new `deduptest`), YAML parses.
+
 ## 111. Arabic leak root-caused and walled (2026-10-04)
 
 - **Owner:** "still posting arabic and old are arabic and u are not posting

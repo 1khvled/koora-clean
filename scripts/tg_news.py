@@ -54,6 +54,8 @@ SOURCES = [
 ]
 MAX_POSTS_PER_RUN = 10
 FETCH_LIMIT = 25
+# how many recently-posted content fingerprints to remember
+SEEN_KEEP = 300
 
 
 def http_get_json(url, timeout=20):
@@ -142,8 +144,32 @@ def load_state():
 
 
 def save_state(d):
+    seen = d.get('seen')
+    if isinstance(seen, list) and len(seen) > SEEN_KEEP:
+        d['seen'] = seen[-SEEN_KEEP:]  # bounded: oldest hashes fall off
     with open(STATE_PATH, 'w', encoding='utf-8') as f:
         json.dump(d, f, ensure_ascii=False, indent=1)
+
+
+def fingerprint(text):
+    """Stable short id for a post's meaning: digits, emoji and punctuation
+    dropped so 'GOOOL 34\' [1-0]' and 'goool 34 [1-0]' collide as they should.
+    The source reposts the same item under fresh ids, so id dedup is not
+    enough."""
+    import hashlib
+    import re as _re
+    t = _re.sub(r'[^\w\u0600-\u06FF]+', '', (text or '').lower())
+    if len(t) < 8:
+        return ''
+    return hashlib.sha1(t.encode('utf-8')).hexdigest()[:12]
+
+
+def already_posted(state, text):
+    """True when this exact content already went out (within the window)."""
+    fp = fingerprint(text)
+    if not fp:
+        return False
+    return fp in (state.get('seen') or [])
 
 
 def http_get_text(url, timeout=25):
@@ -710,6 +736,10 @@ def public_preview_run(target):
             state['offside'] = x['key']
             continue
         src_txt = full_text(x['key'], txt)  # never mention/tag source
+        if already_posted(state, src_txt):
+            print('skipped repeat #%d' % x['key'])
+            state['offside'] = x['key']
+            continue
         body = llm_fix(src_txt)
         if is_promo(src_txt) or is_promo(body):
             print('skipped promo post #%d' % x['key'])
@@ -737,6 +767,9 @@ def public_preview_run(target):
                 out = got if kind == 'photo' else None  # branding: text only
             if send_post(target, body, out, vid) is True:
                 posted += 1
+                fp = fingerprint(src_txt)
+                if fp:
+                    state.setdefault('seen', []).append(fp)
         except Exception as e:
             print('post failed:', str(e)[:120])
         state['offside'] = x['key']
@@ -807,6 +840,11 @@ def main():
                         continue
                     if src['translate'] and txt:
                         txt = translate_ku_ar(txt)
+                    if already_posted(state, txt):
+                        print('skipped repeat (kurdish)')
+                        state[src['key']] = m.id
+                        time.sleep(2)
+                        continue
                     body = llm_fix(txt)  # never mention/tag anyone
                     raw = None
                     try:
@@ -831,6 +869,9 @@ def main():
                             print('skipped promo post (kurdish)')
                         elif send_post(target, body, out, kvid) is True:
                             posted += 1
+                            fp = fingerprint(txt)
+                            if fp:
+                                state.setdefault('seen', []).append(fp)
                     except Exception as e:
                         print('post failed:', str(e)[:120])
                     state[src['key']] = m.id

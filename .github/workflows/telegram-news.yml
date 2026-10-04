@@ -52,11 +52,21 @@ jobs:
           remote = load(['git', 'show', 'origin/main:scripts/tg_state.json'])
           merged = dict(remote)
           for k, v in local.items():
-              try:
-                  if int(v or 0) > int(merged.get(k) or 0):
+              if isinstance(v, list) or isinstance(merged.get(k), list):
+                  # lists (the 'seen' fingerprints) union, newest wins
+                  a = merged.get(k) or []
+                  b = v or []
+                  seen = []
+                  for x in list(a) + list(b):
+                      if x not in seen:
+                          seen.append(x)
+                  merged[k] = seen[-300:]
+              else:
+                  try:
+                      if int(v or 0) > int(merged.get(k) or 0):
+                          merged[k] = v
+                  except Exception:
                       merged[k] = v
-              except Exception:
-                  merged[k] = v
           with open('scripts/tg_state.json', 'w', encoding='utf-8') as f:
               json.dump(merged, f, ensure_ascii=False, indent=1)
           EOF
