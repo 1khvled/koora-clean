@@ -16,8 +16,8 @@
   caption/split rules, video-first with photo fallback in both paths, promo
   filter still gates everything. Oversize/unfetchable degrades to photo.
 - Verified: 4-case video suite + all prior suites + dispatched workflow
-  green. Old-post video backfill in progress (t.me flapping from here;
-  retries queued). Committed + pushed.
+  green. Old-post backfill DONE: #57-61 carry 9-12MB videos each
+  (bounded re-check; #54-56 VIDEO flags were window bleed). Committed + pushed.
 
 ## 108. Translation fallback chain; Arabic posts predated the switch (2026-10-04, corrected)
 
