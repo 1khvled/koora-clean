@@ -285,16 +285,17 @@ def brand_photo(img_bytes, logo):
         total = sum(c for c, _ in colors) or 1
         top2 = sum(c for c, _ in sorted(colors, reverse=True)[:2]) / total
         # Strict (measured: graphics top2~0.93/unique~40, photos top2~0.19/
-        # unique~3000). Replace ONLY when certain; real photos always pass
-        # through with the small watermark. Tiny files are logos, not photos.
-        is_brand = (top2 > 0.85 and len(colors) < 60) or max(W, H) < 200
+        # unique~3000). Replace ONLY on flatness; size alone proves nothing
+        # (a 160px textured photo scored top2=0.07). Real photos always pass
+        # through with the small watermark.
+        is_brand = top2 > 0.85 and len(colors) < 60
     except Exception:
         is_brand = False
     if is_brand:
         return ('ours', logo)
     try:
         mark = Image.open(io.BytesIO(logo)).convert('RGBA')
-        lw = max(64, W // 4)
+        lw = max(32, W // 4)
         lh = max(1, round(lw * mark.height / mark.width))
         mark = mark.resize((lw, lh))
         if mark.height > H // 3:
@@ -306,6 +307,89 @@ def brand_photo(img_bytes, logo):
         return ('watermarked', buf.getvalue())
     except Exception:
         return ('ours', logo)
+
+
+def full_text(mid, fallback):
+    """Complete post text via the single-post preview page. The channel view
+    truncates long posts (stray trailing …); the single page carries the whole
+    thing. Falls back to the preview text on any failure. Never raises."""
+    try:
+        html = http_get_text('https://t.me/s/Offsideahdaff/%d' % int(mid))
+    except Exception:
+        return fallback
+    try:
+        i = html.find('data-post="Offsideahdaff/%d"' % int(mid))
+        if i < 0:
+            return fallback
+        j = html.find('tgme_widget_message_text', i)
+        if j < 0:
+            return fallback
+        k = html.find('>', j)
+        depth, p = 1, k + 1
+        end = len(html)
+        while p < len(html) and depth:
+            if html.startswith('<div', p):
+                depth += 1
+                p += 4
+            elif html.startswith('</div>', p):
+                depth -= 1
+                if not depth:
+                    end = p
+                    break
+                p += 6
+            else:
+                p += 1
+        t = re.sub(r'<br\s*/?>', '\n', html[k + 1:end])
+        t = re.sub(r'<[^>]+>', '', t)
+        import html as _html
+        t = _html.unescape(t)
+        t = re.sub(r'[ \t\xa0]+', ' ', t).strip()
+        t = usable_text(t)
+        if len(t) >= len(fallback or ''):
+            return t
+        return fallback
+    except Exception:
+        return fallback
+
+
+def send_post(target, body, out):
+    """Deliver one post. Photo posts carry watermarked bytes; captions over
+    1024 chars split into photo + full-text follow-up. Returns True when the
+    content was delivered, None when there was nothing to send, False on
+    failure. Never mentions or tags anyone."""
+    try:
+        if out:
+            if body and len(body) > 1024:
+                r1 = bot('sendPhoto', {'chat_id': target, 'caption': body[:950] + '\n\u2026'},
+                         files={'photo': ('news.png', out)})
+                if not (r1 or {}).get('ok'):
+                    print('photo rejected:', str((r1 or {}).get('description'))[:100])
+                    return False
+                r2 = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
+                                        'disable_web_page_preview': False})
+                if not (r2 or {}).get('ok'):
+                    print('text rejected:', str((r2 or {}).get('description'))[:100])
+                    return False
+                return True
+            params = {'chat_id': target}
+            if body:
+                params['caption'] = body[:1024]
+            r = bot('sendPhoto', params, files={'photo': ('news.png', out)})
+            if not (r or {}).get('ok'):
+                print('post rejected:', str((r or {}).get('description'))[:100])
+                return False
+            return True
+        if body:
+            r = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
+                                    'disable_web_page_preview': False})
+            if not (r or {}).get('ok'):
+                print('post rejected:', str((r or {}).get('description'))[:100])
+                return False
+            return True
+        return None
+    except Exception as e:
+        print('post failed:', str(e)[:120])
+        return False
 
 
 def public_preview_run(target):
@@ -323,7 +407,10 @@ def public_preview_run(target):
         if posted >= MAX_POSTS_PER_RUN:
             break
         txt = usable_text(x['text'])
-        body = txt  # never mention or tag the source (owner order)
+        if not txt and not x['photo']:
+            state['offside'] = x['key']
+            continue
+        body = full_text(x['key'], txt)  # never mention or tag the source
         img = None
         if x['photo']:
             try:
@@ -334,24 +421,12 @@ def public_preview_run(target):
             logo = logo_bytes()
             if img:
                 _kind, out = brand_photo(img, logo)
-            elif body and logo:
-                _kind, out = ('ours', logo)
+                if _kind == 'ours':
+                    out = None  # their branding: text only, no image at all
             else:
                 _kind, out = ('none', None)
-            if out:
-                params = {'chat_id': target}
-                if body:
-                    params['caption'] = body[:1024]
-                r = bot('sendPhoto', params, files={'photo': ('news.png', out)})
-            elif body:
-                r = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
-                                        'disable_web_page_preview': False})
-            else:
-                r = {'ok': True, 'skipped': True}  # nothing to send
-            if (r or {}).get('ok') and not (r or {}).get('skipped'):
+            if send_post(target, body, out) is True:
                 posted += 1
-            elif not (r or {}).get('skipped'):
-                print('post rejected:', str((r or {}).get('description'))[:100])
         except Exception as e:
             print('post failed:', str(e)[:120])
         state['offside'] = x['key']
@@ -416,10 +491,11 @@ def main():
                     if posted >= MAX_POSTS_PER_RUN:
                         break
                     txt = usable_text(getattr(m, 'message', '') or getattr(m, 'text', ''))
-                    if not txt:
+                    has_photo = bool(getattr(m, 'photo', None))
+                    if not txt and not has_photo:
                         state[src['key']] = m.id
                         continue
-                    if src['translate']:
+                    if src['translate'] and txt:
                         txt = translate_ku_ar(txt)
                     body = txt  # never mention or tag anyone (owner order)
                     raw = None
@@ -432,25 +508,12 @@ def main():
                         _logo = logo_bytes()
                         if raw:
                             _kind, out = brand_photo(raw, _logo)
-                        elif body and _logo:
-                            _kind, out = ('ours', _logo)
+                            if _kind == 'ours':
+                                out = None  # their branding: text only
                         else:
                             _kind, out = ('none', None)
-                        if out:
-                            params = {'chat_id': target}
-                            if body:
-                                params['caption'] = body[:1024]
-                            r = bot('sendPhoto', params,
-                                    files={'photo': ('news.png', out)})
-                        elif body:
-                            r = bot('sendMessage', {'chat_id': target, 'text': body,
-                                                    'disable_web_page_preview': False})
-                        else:
-                            r = {'ok': True, 'skipped': True}
-                        if (r or {}).get('ok') and not (r or {}).get('skipped'):
+                        if send_post(target, body, out) is True:
                             posted += 1
-                        elif not (r or {}).get('skipped'):
-                            print('post rejected:', str((r or {}).get('description'))[:100])
                     except Exception as e:
                         print('post failed:', str(e)[:120])
                     state[src['key']] = m.id

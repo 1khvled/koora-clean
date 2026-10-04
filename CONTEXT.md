@@ -4,7 +4,29 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§92 — strict brand rule; bridge never stopped).
+> Last updated: 2026-10-04 (§93 — photos post normally, branding goes text-only, full text, no standalone logo).
+
+## 93. Photos post normally; full text; branding goes text-only (2026-10-04)
+
+- **Owner:** post their photos normally, never their logo; if no photo from
+  them then no photo; fix the text format. Repeat test.
+- **What the test post taught.** Item #375681's photo is 160x160 with
+  photo-texture stats (unique=2229, top2=0.07) — the old <200px size rule
+  replaced it on size alone. Rule dropped: replace ONLY on flatness
+  (top2>0.85 + unique<60). Small real photos watermark proportionally now
+  (logo floor 32px, was 64).
+- **New policy.** Real photo \u2192 watermark + caption. Their branding \u2192
+  text only (no image at all — neither ours nor theirs). No photo from them
+  \u2192 text only. Our standalone logo is never attached anymore.
+- **Text.** The preview truncates (`…`); the single-post page carries the
+  complete text — new `full_text()` with balanced-div extraction (nested
+  markup can't cut it) + longer-wins fallback. Captions >1024 split into
+  photo + full-text follow-up via shared `send_post()`. Verified the `…` on
+  #375681 is the source's own ending (identical reposts), so our text is now
+  byte-exact.
+- Verified zero-network (new 7-case suite incl. balanced-div) + all old
+  suites still green. Repeat test posted under the new policy; old TEST
+  message deleted.
 
 ## 92. Strict brand rule; "why did it stop" investigated (2026-10-04)
 
