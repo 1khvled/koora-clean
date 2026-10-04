@@ -6,6 +6,26 @@
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
 > Last updated: 2026-10-04 (§111 — Arabic leak root-caused and walled).
 
+## 113. Videos never posted: undefined function + silent except (2026-10-04)
+
+- **Owner:** "u are not posting videos". They were right, and §109 was wrong.
+  `post_video()` called `single_region()`, which was **never written to the
+  file** — a `swap()` helper aborted on a failed assertion before its write,
+  so the function never landed. A bare `except Exception: pass` swallowed the
+  `NameError`, so `post_video` returned `''` every time and every video
+  silently degraded to a photo with **no error anywhere**. §109's "verified"
+  was only the stubbed test path, which never exercised the real lookup.
+- Fixed: `single_region()` defined, the blanket `except` replaced with a
+  logged failure. Live probe: source item 375768 now resolves a 10.6MB mp4
+  (`post_video` -> YES).
+- **Lesson recorded:** every helper a function calls must exist; a bare
+  `except` around a lookup is how a total feature failure stayed invisible for
+  hours. New `vidprobe` suite exercises the real `fetch_single` path.
+- Also in this batch: all 22 remaining Arabic posts translated in place (media
+  bytes unchanged, caption only) and 46 redundant reposts deleted — keeping
+  the richest copy of each (video > photo > text, oldest on ties). Channel
+  audit now: **0 Arabic, 0 duplicates**.
+
 ## 112. Content dedup + live-verified key (2026-10-04)
 
 - **Owner** also saw the same item 3-4 times. The source itself reposts

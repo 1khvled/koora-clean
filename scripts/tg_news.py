@@ -398,19 +398,34 @@ def dl_video(url, timeout=120, limit=48000000):
         return None
 
 
+def single_region(html, mid):
+    """The slice of one message's html (its marker to the next one). '' when
+    the message is not on this page."""
+    try:
+        tag = 'data-post="Offsideahdaff/%s"' % int(mid)
+        i = (html or '').find(tag)
+        if i < 0:
+            return ''
+        nxt = (html or '').find('data-post="Offsideahdaff/', i + len(tag))
+        return html[i:nxt] if nxt > 0 else html[i:i + 30000]
+    except Exception:
+        return ''
+
+
 def post_video(mid):
-    """Direct mp4 URL for one message (single-page region). Tokens expire,
-    so this is used immediately, never stored. Returns '' when none."""
+    """Direct mp4 URL for one message. Tokens expire, so this is used
+    immediately and never stored. '' when the message has no video."""
     try:
         seg = single_region(fetch_single(mid), mid)
-        if not seg:
-            return ''
-        for m in re.finditer(r'<video[^>]+src="([^"]+)"', seg):
-            u = m.group(1)
-            if '.mp4' in u and u != AVATAR_URL:
-                return u
-    except Exception:
-        pass
+    except Exception as e:
+        print('video probe failed #%s: %s' % (mid, str(e)[:70]))
+        return ''
+    if not seg:
+        return ''
+    for m in re.finditer(r'<video[^>]+src="([^"]+)"', seg):
+        u = m.group(1)
+        if '.mp4' in u and u != AVATAR_URL:
+            return u
     return ''
 
 
