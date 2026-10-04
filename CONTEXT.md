@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§100 — logo off photos, full-size originals, posted untouched).
+> Last updated: 2026-10-04 (§101 — gambling promos blocked + deleted).
+
+## 101. Gambling promos blocked and deleted (2026-10-04)
+
+- **Owner:** no gambling ads (a 2000-EGP prediction-contest promo reached the
+  channel) + fix the older post. Deleted channel post #36 on sight.
+- **Filter** (`is_gambling`, both paths): betting brands/casino/promo-codes/
+  channel-recruiting match alone; money + contest words must co-occur so
+  punditry ("توقع") and salary/transfer figures pass. Audited on 20 recent
+  source texts: exactly 1 hit (the promo itself), zero false positives.
+  Skipped posts log and advance state (never reposted, never sent).
+- Verified: 3-case filter suite + pipeline + groq suites green. Committed +
+  pushed.
 
 ## 100. Logo off photos; full-size originals posted untouched (2026-10-04)
 

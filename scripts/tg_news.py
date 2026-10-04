@@ -196,6 +196,24 @@ def scrape_offside_preview(limit=25):
     return out[-limit:]
 
 
+_GAM_MONEY = r'جنيه|درهم|دينار|دولار|ريال|جائزة|جوائز|هدية|كاش|مكافأة'
+_GAM_CONTEST = r'توقع|اربح|فائز|فائزين|مسابقة|سحب'
+_GAM_HARD = (r'قمار|مراهن|كازينو|1xbet|melbet|betway|linebet|megapari|stake|'
+             r'برومو\s?كود|promo\s?code|بونص|انضم.*قناة')
+
+
+def is_gambling(t):
+    """Betting/prize-promo filter (owner: no gambling ads). Hard signals
+    (brands, casino, promo codes, channel-recruiting) match alone; money and
+    contest words must co-occur so punditry ("توقع") and salary news pass."""
+    t = t or ''
+    if re.search(_GAM_HARD, t, re.I):
+        return True
+    has_money = bool(re.search(_GAM_MONEY, t))
+    has_contest = bool(re.search(_GAM_CONTEST, t, re.I))
+    return bool(has_money and has_contest)
+
+
 def usable_text(t):
     # Autonomous posting: everything goes out, even one-liners and photo-only
     # items. Only truly empty texts and bot commands are skipped.
@@ -527,7 +545,9 @@ def public_preview_run(target):
             if img:
                 kind, got = brand_photo(img)
                 out = got if kind == 'photo' else None  # branding: text only
-            if send_post(target, body, out) is True:
+            if is_gambling(body):
+                print('skipped gambling/promo post #%d' % x['key'])
+            elif send_post(target, body, out) is True:
                 posted += 1
         except Exception as e:
             print('post failed:', str(e)[:120])
@@ -611,7 +631,9 @@ def main():
                         if raw:
                             kind, got = brand_photo(raw)
                             out = got if kind == 'photo' else None
-                        if send_post(target, body, out) is True:
+                        if is_gambling(body):
+                            print('skipped gambling/promo post (kurdish)')
+                        elif send_post(target, body, out) is True:
                             posted += 1
                     except Exception as e:
                         print('post failed:', str(e)[:120])
