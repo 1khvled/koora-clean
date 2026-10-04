@@ -4,7 +4,57 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§83 — header/ads cleanup, VIPBox fallback, highlights unlock, GitHub private + Actions green).
+> Last updated: 2026-10-04 (§84 — ad-carrying mirrors switched OFF by default; owner: "we said no ads btw ur stream has ads").
+
+## 84. Ad-carrying mirrors off by default; the Argentina stream, dissected (2026-10-04)
+
+- **Owner report.** "for the current argentina match the player is not working"
+  then "we said no ads btw ur stream has ads". Both were true, and the second
+  one is the root cause. Everything below is measured, not guessed.
+- **What the Argentina–Burkina Faso match actually had.** Yassir (our only
+  Arabic source with a player) returns the 2366-byte **"Match ended"**
+  placeholder for that id — i.e. no stream. Yacine's today page does not list
+  the fixture at all. So there is **no ad-free player** for that friendly.
+  What we were serving came from the hidden EN mirror, and both entries are
+  ad-infra shells: a 636KB page with `window.open`/`onbeforeunload` x4 plus an
+  injected `/ad.html` frame on a 10-minute timer, loading
+  `capitalhospitals.org` ad JS. In-browser proof of death: the JW shell renders
+  **"0 seconds of 0 seconds"** and its runtime playlist
+  `lb29.strmd.st/secure/<wasm-token>/foxtrot/stream/argentina-vs-burkina-faso/1/
+  playlist.m3u8` answers **404** (the token is minted client-side by
+  `strmd.b-cdn.net/js/wasm/lock.wasm`, so this cannot be pre-verified from the
+  server). The second mirror, VIPBox, loads `llvpn.com` + `nearlyfunnel.com` +
+  googletagmanager and hides its player behind a rotating ad domain
+  (`dervlin.me` / `fallafar.me`) that answered **504**.
+- **Decision (owner rule: "only if they work, don't put them there" + "no ads").
+** Ad-carrying mirrors are now **off by default**: `ADS_MIRRORS` in
+  `api/player.js` reads `ALLOW_AD_MIRRORS` and defaults to OFF. Set it to `1` in
+  the Vercel env to bring the mirrors back (every server they return is then
+  tagged `ads: 1`). Phase 1 of both resolvers still runs with mirrors off — it
+  only answers "did an ad mirror even have this fixture?" — which is what
+  powers `adsBlocked` in the response; phase 2 (the embed URLs) is what is gated.
+- **Honest empty state.** `found:false + adsBlocked:true` now renders
+  "Only ad-carrying sources had this match. We keep streams ad-free."
+  (EN/FR/AR, new `adsOnly` key x3 + `.srvnote` style) and it **skips the retry
+  loop** — previously the page burned 3 attempts and then looked broken.
+  Measured after the fix: 1 API call, 2.3s, 0 server buttons, empty iframe.
+- **Latency kept safe.** With mirrors off the phase-1 probe is capped at 2s
+  (`mirrorCap()`), because the first cut measured **8.1s** — too close to
+  Vercel's 10s `maxDuration`. After the cap: 2.3s off / 2.4s on.
+- **Verified.** `adsreg.mjs` (new, 3 cases): ad-free Yassir wins and no ad URL
+  appears; a fixture only an ad mirror has → `found:false`, `adsBlocked:true`,
+  zero URLs; junk → nothing and `adsBlocked` falsy. `adgate.py` runs the real
+  Argentina query both ways: OFF → `found:false/adsBlocked:true/0 servers`;
+  ON → 2 servers all tagged `ads:1`. `allstub.mjs` (4 gates) still passes with
+  the opt-in flag set. Live browser: Argentina page shows the honest Arabic
+  notice, no iframe, correct score (`مباشر 55’`).
+- **Trade-off, stated plainly.** Matches whose only coverage is an ad mirror now
+  show no stream instead of an ad-filled one. That is the correct trade for this
+  site (the whole pitch is بث نظيف), but it means gaps on
+  obscure fixtures. Flip `ALLOW_AD_MIRRORS=1` if you ever want them back.
+- **Still open (unchanged from §83).** Vercel is not auto-deploying — the
+  live site serves the 23:39 UTC build; one **Redeploy** in the dashboard is
+  needed, or give me a Vercel token and I will trigger it.
 
 ## 83. Header/ads cleanup, VIPBox fallback, highlights actually unlock, GitHub private + Actions green (2026-10-04)
 

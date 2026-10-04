@@ -355,6 +355,16 @@ const resolveYacine = async (home, away, startIso) => {
     const enH = enToksOf(t1), enA = enToksOf(t2);
     return Math.min(orderScore(arH, arA, enH, enA), orderScore(arH, arA, enA, enH));
   };
+  // ── ad-free policy (2026-10-04, owner: "we said no ads") ──
+  // Measured: the Streamed shells carry window.open/onbeforeunload x4 + an
+  // injected /ad.html frame; VIPBox loads llvpn/nearlyfunnel/GTM behind an
+  // ad-gated player. Yassir/Yacine/Kora are the only ad-free players we have,
+  // so the mirrors are opt-in only: ALLOW_AD_MIRRORS=1 in the Vercel env.
+  const ADS_MIRRORS = /^(1|true|yes|on)$/i.test(
+    String((typeof process !== 'undefined' && process.env && process.env.ALLOW_AD_MIRRORS) || ''));
+  // With mirrors OFF their phase-1 probe is only the adsBlocked hint, so it
+  // gets a short budget; with them ON it must be able to find a real fixture.
+  const mirrorCap = () => (ADS_MIRRORS ? 4000 : 2000);
   const STHOSTS = ['https://streamed.pk', 'https://streamed.st'];
   const stFetch = async (host, path, ms) => {
     const ctrl = new AbortController();
@@ -678,14 +688,17 @@ const resolveYacine = async (home, away, startIso) => {
       resolveYacine(matchHome, matchAway, kickoff).catch(() => null),
       new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
     ]),
+    // Phase 1 still runs with mirrors OFF: it only answers "does an ad-carrying
+    // mirror have this fixture?", costs one parallel list fetch, and feeds
+    // adsBlocked. Phase 2 (the actual embed URLs) is what stays gated.
     canEn ? Promise.race([
         streamedMatch(matchHome, matchAway, kickoff).catch(() => null),
-        new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
+        new Promise(r => setTimeout(() => r(null), Math.min(mirrorCap(), Math.max(0, left() - 900)))),
       ]).catch(() => null)
           : Promise.resolve(null),
     canEn ? Promise.race([
         vipMatch(matchHome, matchAway, kickoff).catch(() => null),
-        new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
+        new Promise(r => setTimeout(() => r(null), Math.min(mirrorCap(), Math.max(0, left() - 900)))),
       ]).catch(() => null)
           : Promise.resolve(null),
   ]);
@@ -807,27 +820,30 @@ const resolveYacine = async (home, away, startIso) => {
     }
     // Hidden EN fallback (owner-authorized): phase 2, ONLY when Yassir +
     // Yacine + Kora all yield zero servers.
-    if (!servers.length && enHit && !outOfTime(800)) {
+    if (ADS_MIRRORS && !servers.length && enHit && !outOfTime(800)) {
       try {
         const en = await Promise.race([
           streamedDetail(enHit).catch(() => null),
           new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 300)))),
         ]);
-        if (en && en.servers) en.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live' }));
+        if (en && en.servers) en.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live', ads: 1 }));
       } catch {}
     }
     // VIPBox niche fallback (verified 2026-10-04): ONLY when every other
     // source yields zero. Same strict gates; never surfaces a wrong match.
-    if (!servers.length && vipHit && !outOfTime(800)) {
+    if (ADS_MIRRORS && !servers.length && vipHit && !outOfTime(800)) {
       try {
         const vb = await Promise.race([
           vipDetail(vipHit).catch(() => null),
           new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 300)))),
         ]);
-        if (vb && vb.servers) vb.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live' }));
+        if (vb && vb.servers) vb.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live', ads: 1 }));
       } catch {}
     }
 
+    // No ad-free source had this fixture while an ad-carrying mirror did.
+    // Report that, so the UI can say it plainly instead of looking broken.
+    const adsBlocked = !ADS_MIRRORS && !servers.length && !!(enHit || vipHit);
     // found = a real playable embed exists (post-filter, not the raw inputs —
     // a dropped javascript: URL must not report found:true).
     const hasPlayable = servers.length > 0;
@@ -864,7 +880,9 @@ const resolveYacine = async (home, away, startIso) => {
         found: false,
         count: servers.length,
         servers,
-        message: 'No playable stream found'
+        adsBlocked,
+        message: adsBlocked ? 'Only ad-carrying sources had this match'
+                            : 'No playable stream found'
       });
     }
   } catch (e) {

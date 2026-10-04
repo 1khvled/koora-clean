@@ -343,6 +343,9 @@ button{touch-action:manipulation}
 
 .lang button.on{background:var(--grass);color:#04120c;border-color:var(--grass)}
 
+.srvnote{grid-column:1/-1;font-size:13px;line-height:1.6;color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+
 /* support card: donations */
 .support{max-width:728px;margin:12px auto 0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
 .sup-msg{font-size:13px;font-weight:700;margin:0 0 8px}
@@ -723,6 +726,7 @@ updating: 'Updating stream…', proxyBad: 'Saved proxy link invalid', demoServer
 fromCache: 'Saved stream — retrying…', cacheShown: 'Update failed — showing saved stream',
 loadFailT: 'Load failed', retryCta: 'Tap to retry', checkConn: 'Check your connection and retry',
 streamFail: 'Stream failed to load — check your connection',
+  adsOnly: 'Only ad-carrying sources had this match. We keep streams ad-free.',
 autoRetry: (s) => 'Auto-retry in ⁦' + s + '⁩s…',
 loadingStream: 'Loading stream…', retryN: (n) => 'Retrying ⁦' + n + '⁩…',
 mainPlayer: 'Main player', altServers: 'Backup servers', cacheUpdating: 'Saved stream — updating',
@@ -780,6 +784,7 @@ updating: 'Actualisation du stream…', proxyBad: 'Lien proxy enregistré invali
 fromCache: 'Stream sauvegardé — nouvel essai…', cacheShown: 'Échec de mise à jour — stream sauvegardé affiché',
 loadFailT: 'Échec du chargement', retryCta: 'Touchez pour réessayer', checkConn: 'Vérifiez la connexion puis réessayez',
 streamFail: 'Stream non chargé — vérifiez la connexion',
+  adsOnly: 'Seules les sources pubs avaient ce match. On garde les flux sans publicité.',
 autoRetry: (s) => 'Nouvel essai auto dans ⁦' + s + '⁩s…',
 loadingStream: 'Chargement du stream…', retryN: (n) => 'Nouvel essai ⁦' + n + '⁩…',
 mainPlayer: 'Lecteur principal', altServers: 'Serveurs de secours', cacheUpdating: 'Stream sauvegardé — actualisation',
@@ -831,6 +836,7 @@ updating: 'جاري تحديث البث…', proxyBad: 'رابط البروكس�
 fromCache: 'البث من الذاكرة — إعادة المحاولة…', cacheShown: 'تعذّر التحديث — عرض البث المحفوظ',
 loadFailT: 'تعذّر التحميل', retryCta: 'اضغط لإعادة المحاولة', checkConn: 'تحقق من الاتصال ثم أعد المحاولة',
 streamFail: 'تعذّر تحميل البث — تحقق من الاتصال',
+  adsOnly: 'المصادر التي تحتوي على إعلانات هذه المباراة، ونبقي البث خاليًا من الإعلانات.',
 autoRetry: (s) => 'إعادة المحاولة تلقائياً خلال ⁦' + s + '⁩ ث…',
 loadingStream: 'جاري تحميل البث…', retryN: (n) => 'إعادة المحاولة ⁦' + n + '⁩…',
 mainPlayer: 'المشغّل الرئيسي', altServers: 'سيرفرات بديلة', cacheUpdating: 'البث من الذاكرة — جاري التحديث',
@@ -2448,6 +2454,10 @@ async function loadRealPlayer(){
         const r = await fetch('/api/player?' + q.toString() + (attempt > 1 ? '&retry=' + attempt : ''), { cache: 'no-store', signal: ctrl.signal });
         if (!r.ok) throw new Error('http ' + r.status);
         const j = await r.json();
+        // Ad-carrying mirrors are disabled (ad-free policy). If one of them was
+        // the only source with this fixture, retrying cannot help -- stop here
+        // and say so instead of looping into the generic failure state.
+        if (!j.found && j.adsBlocked) return j;
         // Treat found:false with 0 servers as retryable for 1 more attempt (upstream flake)
         if (!j.found && (!j.servers || !j.servers.length) && attempt < 3) throw new Error('no servers yet');
         return j;
@@ -2480,6 +2490,16 @@ async function loadRealPlayer(){
     } catch {}
     showServersFromList(list);
     if (serverList.length){ _autoRetries = 0; const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); try { srvCacheSet(serverList); } catch {} }
+    else if (data && data.adsBlocked){
+      // Nothing ad-free exists for this fixture. Say so; do not spin retries.
+      loadRealPlayer._busy = false;
+      serversEl.innerHTML = `<div class="srvnote">${esc(t('adsOnly'))}</div>`;
+      srvCount.hidden = true;
+      if (srcNote) srcNote.hidden = true;
+      srvNow.textContent = '';
+      toast(t('adsOnly'));
+      return;
+    }
     else {
       const fb = srvCacheGet();
       if (fb && fb.length) { showServersFromList(fb); const ri2 = srvRecall(serverList); goServer(ri2 >= 0 ? ri2 : 0, false); toast(t('cacheUpdating')); }
