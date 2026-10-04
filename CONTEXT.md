@@ -4,7 +4,40 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§84 — ad-carrying mirrors switched OFF by default; owner: "we said no ads btw ur stream has ads").
+> Last updated: 2026-10-04 (§85 — every commit now authored **khvled**; bot target chat verified reachable).
+
+## 85. Commit identity is khvled everywhere; bot target now reachable (2026-10-04)
+
+- **Owner:** "commit as khvled bro khvled2004@gmail.com wtf?" — correct, the
+  history was authored by a leftover identity. Fixed at three levels:
+  1. **Repo config** (`.git/config`, this repo only — your other projects are
+     untouched): `user.name=khvled`, `user.email=khvled2004@gmail.com`.
+  2. **Workflows**: `keepalive.yml` and `telegram-news.yml` were committing as
+     `keepalive@users.noreply.github.com` / `news-bridge@...`; both now use
+     khvled, so cron commits are yours too.
+  3. **History**: all **174** commits rewritten with
+     `git filter-branch --env-filter` (author *and* committer). Verified before
+     force-pushing: the **tree hash is byte-identical**
+     (`262af092…` before and after) — only authorship changed, no code did.
+     Force-pushed `main`, then confirmed via the GitHub API that all 174 remote
+     commits report `khvled <khvled2004@gmail.com>` with **zero** other
+     identities. Backup branch and `refs/original` removed afterwards.
+     **If you have another clone of this repo, re-clone or `git fetch && git
+     reset --hard origin/main`** — the old SHAs are gone by design.
+- **Bot: owner pressed Start, so the target is live.** `getChat 1759675108`
+  now returns OK, type **private** — that id is the owner's own account, so the
+  bridge delivers news by DM (no channel/admin step needed). `tg_news.py`
+  preflight now reads `[preflight] @messistatBOT -> 1759675108 (private)` and
+  exits 0. `TG_SETUP.md` updated to match (the "chat not found" blocker is gone).
+  **Remaining and unavoidable:** the reader side needs
+  `TG_API_ID` / `TG_API_HASH` / `TG_SESSION` — that is a my.telegram.org signup
+  plus a phone login, which only the owner can perform:
+  ```
+  pip install telethon
+  python scripts/tg_login.py        # asks api_id, api_hash, phone, then the code
+  ```
+  Paste the printed session string plus api_id/api_hash into the three Actions
+  secrets, and the next 20-minute run starts posting.
 
 ## 84. Ad-carrying mirrors off by default; the Argentina stream, dissected (2026-10-04)
 
