@@ -196,14 +196,29 @@ def scrape_offside_preview(limit=25):
     return out[-limit:]
 
 
-_GAM_MONEY = r'جنيه|درهم|دينار|دولار|ريال|جائزة|جوائز|هدية|كاش|مكافأة'
-_GAM_CONTEST = r'توقع|اربح|فائز|فائزين|مسابقة|سحب'
+_GAM_MONEY = (r'جنيه|درهم|دينار|دولار|ريال|جائزة|جوائز|هدية|كاش|مكافأة'
+              r'|\b(?:egp|gbp|eur|usd|cash|prize|bonus|reward|wallet)\b')
+_GAM_CONTEST = (r'توقع|اربح|فائز|فائزين|مسابقة|سحب'
+                r'|\b(?:predict(?:ion|ions)?|guess|giveaway|raffle|contest)\b')
 _GAM_HARD = (r'قمار|مراهن|كازينو|1xbet|melbet|betway|linebet|megapari|stake|'
-             r'برومو\s?كود|promo\s?code|بونص|انضم.*قناة')
+             r'برومو\s?كود|promo\s?code|بونص|انضم.*قناة|'
+             # english (posts are translated before this filter runs)
+             r'\b(?:betting|sportsbook|bookmaker|casino|jackpot)\b'
+             r'|\b(?:1xbet|betway|linebet|megapari|bet365|betfair|stake\.com)\b'
+             r'|\bwager(?:ing|ed)?\b|\bfree\s?bet\b|\bbet\s?now\b'
+             r'|\bbetting\s?tips?\b|\b(?:join|subscribe)\s+(?:our|us|now)\b'
+             r'|\bpromo(?:tion)?\s?code\b|\bbonus\s?code\b'
+             r'|\bwin\s+(?:cash|money|usd|egp|gbp|eur|\d{3,})\b')
 _AD_STORE = (r'كود\s*خصم|كوبون|قسيمة|للطلب|اطلب\s+الآن|اشتر|متجر|ستور|'
-             r'تخفيضات|خصومات|شحن')
-_AD_PRICE = r'سعر|أسعار|ثمن|تكلفة'
-_AD_PRODUCT = r'نسخة|تحميل|لعبة|ألعاب|جهاز|بلايستيشن|اكس\s?بوكس|حساب|اشتراك'
+             r'تخفيضات|خصومات|شحن|'
+             # english
+             r'\b(?:shop|order|buy|subscribe|install)\s?now\b'
+             r'|\b(?:discount\s?code|coupon|voucher|free\s+shipping)\b'
+             r'|\b(?:play\s?store|app\s?store|in-app)\b')
+_AD_PRICE = r'سعر|أسعار|ثمن|تكلفة|\b(?:price|prices|discount|off)\s?\d+%?'
+_AD_PRODUCT = (r'نسخة|تحميل|لعبة|ألعاب|جهاز|بلايستيشن|اكس\s?بوكس|حساب|اشتراك'
+                r'|\b(?:download|install|premium|subscription)\b'
+                r'|\bplaystation\b|\bxbox\b|\bsteam\b')
 
 
 def is_promo(t):
@@ -500,6 +515,16 @@ def groq_chat(key, model, system, user, timeout=30):
         raise RuntimeError('groq bad response')
 
 
+ARABIC = re.compile(r'[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]')
+
+
+def has_arabic(text):
+    """True when the text still carries any Arabic letter or Arabic
+    presentation form. The channel is English-only, so this is the single
+    definition used by both the translator and the send path."""
+    return bool(ARABIC.search(text or ''))
+
+
 def llm_fix(text):
     """Fix (and translate to English) with the free Groq LLM. Channel is English-only: Arabic in, natural English out, clean bullet list. Fail-open to original. Key in GROQ_API_KEY secret only."""
     text = (text or '').strip()
@@ -507,9 +532,12 @@ def llm_fix(text):
         return text
     key = os.environ.get('GROQ_API_KEY', '').strip()
     if not key:
-        return text
-    models = [os.environ.get('GROQ_MODEL', '').strip() or 'qwen/qwen3.8-27b',
-              'openai/gpt-oss-20b']
+        # No key: skip the loop entirely rather than burn a 401 per post.
+        print('[lang] no groq key, free fallback only')
+        models = []
+    else:
+        models = [os.environ.get('GROQ_MODEL', '').strip() or 'qwen/qwen3.8-27b',
+                  'openai/gpt-oss-20b']
     system = ('You are a football-news translator and copy editor. Translate '
               'the Arabic post to natural ENGLISH and fix it: correct typos and '
               'obvious factual slips (for example a scoreline written backwards '
@@ -536,11 +564,18 @@ def llm_fix(text):
         if _re.search(r'@\w', out):
             print('[lang] groq output rejected (mention)')
             continue  # a mention/tag slipped in: reject, keep original
+        if has_arabic(out):
+            print('[lang] groq output rejected (still arabic)')
+            continue  # untranslated output: never let it out
         return out
     fb = translate_free_ar_en(text)
-    if fb and fb != text:
+    if fb and fb != text and not has_arabic(fb):
         print('[lang] free fallback used')
         return fb
+    if has_arabic(text):
+        # Channel is English-only. Rather than post Arabic, drop the post.
+        print('[lang] UNTRANSLATABLE arabic -> skip post')
+        return ''
     print('[lang] all engines failed: posting original')
     return text
 
@@ -591,6 +626,13 @@ def send_post(target, body, out, video=None):
     then photo, then text-only. Long captions (>1024) split into media +
     full-text follow-up. Returns True on delivery, None when nothing to send,
     False on failure. Never mentions or tags anyone."""
+    # English-only channel, enforced here so no code path can leak Arabic:
+    # media is still delivered, the Arabic caption is dropped.
+    if body and has_arabic(body):
+        print('blocked: arabic caption refused by send_post')
+        if not (video or out):
+            return None
+        body = ''
     try:
         if video:
             if body and len(body) > 1024:
@@ -667,8 +709,9 @@ def public_preview_run(target):
         if not txt and not x['photo']:
             state['offside'] = x['key']
             continue
-        body = llm_fix(full_text(x['key'], txt))  # never mention/tag source
-        if is_promo(body):
+        src_txt = full_text(x['key'], txt)  # never mention/tag source
+        body = llm_fix(src_txt)
+        if is_promo(src_txt) or is_promo(body):
             print('skipped promo post #%d' % x['key'])
             state['offside'] = x['key']
             continue
@@ -784,7 +827,7 @@ def main():
                         if raw and not kvid:
                             kind, got = brand_photo(raw)
                             out = got if kind == 'photo' else None
-                        if is_promo(body):
+                        if is_promo(txt) or is_promo(body):
                             print('skipped promo post (kurdish)')
                         elif send_post(target, body, out, kvid) is True:
                             posted += 1

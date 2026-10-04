@@ -4,7 +4,30 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§110 — state race fixed, dupes deleted).
+> Last updated: 2026-10-04 (§111 — Arabic leak root-caused and walled).
+
+## 111. Arabic leak root-caused and walled (2026-10-04)
+
+- **Owner:** "still posting arabic and old are arabic and u are not posting
+  videos". Both complaints had one root cause each, neither cosmetic.
+- **Arabic.** `GROQ_API_KEY` was in the repo secrets but **never wired into
+  the workflow `env:`**, so `llm_fix` hit `if not key: return text` and
+  shipped raw Arabic — silently, with no log line, which is why every run
+  log showed zero `[lang]` lines and the backlog looked "already fixed".
+  Three layers now: (1) key wired into env; (2) no key still reaches the free
+  fallback, Groq output still containing Arabic is rejected, and an
+  untranslatable Arabic post is **skipped, not posted**; (3) `send_post`
+  refuses any Arabic caption outright (`has_arabic`, Arabic + presentation
+  forms) and drops the caption while still delivering media.
+- **Bug the fix exposed:** the ad/gambling patterns were Arabic-only, but the
+  filter runs on the *translated* body — so a working translator would have
+  let English ads through. Added English signals to every list and now filter
+  the Arabic source **and** the English body. Also killed a `||` empty
+  alternation in `_GAM_HARD` that matched every string (caught by a
+  no-empty-match assertion).
+- Verified: 9 suites green (new `arabtest`, `engadtest`); real Groq key
+  translates 3/3 Arabic samples to clean English; 18 existing Arabic posts
+  repaired in place (media bytes unchanged, caption only).
 
 ## 110. State-push race fixed; duplicate reposts deleted (2026-10-04)
 
