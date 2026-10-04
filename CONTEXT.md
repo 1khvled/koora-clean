@@ -4,7 +4,18 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-04 (§96 — free Groq LLM fixes text, source layout kept; score proven 7-0).
+> Last updated: 2026-10-04 (§97 — Groq bullets lists, nothing lost).
+
+## 97. Groq formats clean bullet lists (2026-10-04)
+
+- **Owner:** horrible format, no bullets. The LLM prompt now asks for a clean
+  list (header + one `\u2022` bullet per item) instead of keeping the
+  single-run layout. Dry-run + live test on #375681: 8 lines, header intact,
+  `7-0` + `[OG]` + emojis kept, zero words lost (diff: only flag/ball emoji
+  spacing from the bullets), no @ anywhere. Old single-run test (#26)
+  deleted; bulleted test (#27) posted.
+- Verified: Groq suite green with the new prompt; fail-open + guards
+  unchanged. Committed + pushed.
 
 ## 96. Free Groq LLM fixes text; source layout kept verbatim (2026-10-04)
 

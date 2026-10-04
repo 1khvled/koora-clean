@@ -400,10 +400,12 @@ def llm_fix(text):
               'openai/gpt-oss-20b']
     system = ('You are a careful Arabic football-news copy editor. Fix the post: '
               'correct typos and obvious factual slips (for example a scoreline '
-              'written backwards against its own listed goals). Keep everything '
-              'else exactly: same language, same emojis in the same places, same '
-              'line breaks and order. Add nothing -- no headers, footers, mentions, '
-              'tags, links, hashtags, or commentary. Output ONLY the corrected post.')
+              'written backwards against its own listed goals). Then format it '
+              'as a clean readable list: header line first, then one bullet per '
+              'item, each on its own line starting with the bullet char. Keep '
+              'the language, the emojis, and the item order. Add nothing else -- '
+              'no headers, footers, mentions, tags, links, hashtags, bold, or '
+              'commentary. Output ONLY the corrected post.')
     for model in models:
         try:
             out = groq_chat(key, model, system, text[:3500])
