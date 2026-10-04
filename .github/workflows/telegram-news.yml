@@ -48,7 +48,16 @@ jobs:
                   return d if isinstance(d, dict) else {}
               except Exception:
                   return {}
-          local = load(['git', 'show', ':scripts/tg_state.json'])
+          # local = the working-tree file the bridge just wrote (NOT the index:
+          # git add has not run yet, so ':file' is still the stale checkout)
+          local = {}
+          try:
+              with open('scripts/tg_state.json', encoding='utf-8') as f:
+                  local = json.load(f)
+              if not isinstance(local, dict):
+                  local = {}
+          except Exception:
+              local = {}
           remote = load(['git', 'show', 'origin/main:scripts/tg_state.json'])
           merged = dict(remote)
           for k, v in local.items():

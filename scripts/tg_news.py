@@ -164,6 +164,49 @@ def fingerprint(text):
     return hashlib.sha1(t.encode('utf-8')).hexdigest()[:12]
 
 
+def seed_seen(state, target):
+    """Fold our own recent captions into the seen window. Belt and braces:
+    if the state file is ever lost or rolled back, the channel itself still
+    remembers what went out. Never raises, never sends anything."""
+    try:
+        html = http_get_text('https://t.me/s/messistatdotcom')
+        if not html:
+            return
+        marks = list(re.finditer(r'data-post="messistatdotcom/(\d+)"', html))
+        seen = state.setdefault('seen', [])
+        for i, m in enumerate(marks):
+            end = marks[i + 1].start() if i + 1 < len(marks) else len(html)
+            seg = html[m.start():end]
+            j = seg.find('tgme_widget_message_text')
+            if j < 0:
+                continue
+            k = seg.find('>', j)
+            depth, p, stop = 1, k + 1, len(seg)
+            while p < len(seg) and depth:
+                if seg.startswith('<div', p):
+                    depth += 1
+                    p += 4
+                elif seg.startswith('</div>', p):
+                    depth -= 1
+                    if not depth:
+                        stop = p
+                        break
+                    p += 6
+                else:
+                    p += 1
+            t = re.sub(r'<br\s*/?>', '\n', seg[k + 1:stop])
+            t = re.sub(r'<[^>]+>', '', t)
+            import html as _h
+            fp = fingerprint(re.sub(r'[ \t\xa0]+', ' ', _h.unescape(t)).strip())
+            if fp and fp not in seen:
+                seen.append(fp)
+        if len(seen) > SEEN_KEEP:
+            state['seen'] = seen[-SEEN_KEEP:]
+        print('seen window seeded from channel: %d entries' % len(seen))
+    except Exception as e:
+        print('seed_seen skipped:', str(e)[:80] or type(e).__name__)
+
+
 def already_posted(state, text):
     """True when this exact content already went out (within the window)."""
     fp = fingerprint(text)
@@ -725,6 +768,7 @@ def public_preview_run(target):
     except Exception as e:
         print('preview fetch failed:', type(e).__name__, str(e)[:100])
         return 0
+    seed_seen(state, target)
     last = int(state.get('offside', 0) or 0)
     fresh = [x for x in items if x['key'] > last]
     posted = 0
