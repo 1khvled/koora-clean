@@ -20,12 +20,14 @@ import tg_news as tg
 ABOUT = (
     "⚽ Live football & soccer: live matches, scores, goals and highlights. "
     "Premier League, La Liga, Serie A, Champions League, Bundesliga, Ligue 1, "
-    "Europa League, World Cup, AFCON, Nations League. No ads. messistat.com"
+    "Europa League, World Cup, AFCON, Nations League. No ads. "
+    "Watch live: https://kooraadz.vercel.app/"
 )
 
 # --- 2. pinned post: the long-tail league and competition list
 PINNED = (
     "\U0001f4fa MESSISTAT — live football & soccer, no ads\n"
+    "\U0001f3a6 Watch live streams: https://kooraadz.vercel.app/\n"
     "\n"
     "\U0001f3df Leagues: Premier League · La Liga · Serie A · Champions League · "
     "Europa League · Conference League · Bundesliga · Ligue 1 · Saudi Pro League · "
