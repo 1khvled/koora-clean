@@ -4,7 +4,23 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-05 (§122 — mangled names fixed).
+> Last updated: 2026-10-05 (§123 — ffmpeg compression proven on runner).
+
+## 123. Oversized clips now fit: ffmpeg proven on the runner (2026-10-05)
+
+- Owner approved `apt-get install -y ffmpeg` in the news workflow (their
+  standing "download nothing" rule explicitly waived for this one package).
+  Installed as its own step before deps; the check `ffmpeg_path()` still
+  declines cleanly if it is ever missing.
+- **Proven on the real runner** (verify-compress run 37305872738, success):
+  ffmpeg 6.1.1 installed, the real 74.8MB source clip (1920x1080, 83.6s,
+  7159 kbps) compressed to **38.4MB at CRF 30, full 1920x1080 kept, same
+  duration, 3672 kbps, 51.3% of original, UNDER_CAP True**. No scaling was
+  needed; the CRF ladder (24 -> 27 -> 30) only steps quality down as far as it
+  must. Anything already under 50MB is still never re-encoded.
+- The TEMP verify-compress workflow was deleted after proving it. Nothing
+  under the cap is ever touched; oversized clips post as real videos now
+  instead of still frames.
 
 ## 122. Mangled names fixed - twice the guard (2026-10-05)
 
