@@ -107,12 +107,12 @@ def bot(method, payload=None, files=None, timeout=60):
         boundary = uuid.uuid4().hex
         body = b''
         for k, v in (payload or {}).items():
-            body += ('--' + boundary + '\r\nContent-Disposition: form-data; name="%s"\r\n\r\n%s\r\n'
+            body += ('--' + boundary + '\r\r\nContent-Disposition: form-data; name="%s"\r\r\n\r\r\n%s\r\r\n'
                      % (k, v)).encode('utf-8')
         for k, (fname, data) in files.items():
-            body += ('--' + boundary + '\r\nContent-Disposition: form-data; name="%s"; filename="%s"\r\n'
-                     'Content-Type: application/octet-stream\r\n\r\n' % (k, fname)).encode('utf-8') + data + b'\r\n'
-        body += ('--' + boundary + '--\r\n').encode('utf-8')
+            body += ('--' + boundary + '\r\r\nContent-Disposition: form-data; name="%s"; filename="%s"\r\r\n'
+                     'Content-Type: application/octet-stream\r\r\n\r\r\n' % (k, fname)).encode('utf-8') + data + b'\r\r\n'
+        body += ('--' + boundary + '--\r\r\n').encode('utf-8')
         req = urllib.request.Request(url, data=body,
                                      headers={'Content-Type': 'multipart/form-data; boundary=' + boundary})
     else:
@@ -196,7 +196,7 @@ def seed_seen(state, target):
                     p += 6
                 else:
                     p += 1
-            t = re.sub(r'<br\s*/?>', '\n', seg[k + 1:stop])
+            t = re.sub(r'<br\s*/?>', '\r\n', seg[k + 1:stop])
             t = re.sub(r'<[^>]+>', '', t)
             import html as _h
             fp = fingerprint(re.sub(r'[ \t\xa0]+', ' ', _h.unescape(t)).strip())
@@ -239,7 +239,7 @@ def scrape_offside_preview(limit=25):
         tm = re.search(r'tgme_widget_message_text[^>]*>([\s\S]{0,4000}?)</div>', b)
         txt = ''
         if tm:
-            txt = re.sub(r'<br\s*/?>', '\n', tm.group(1))
+            txt = re.sub(r'<br\s*/?>', '\r\n', tm.group(1))
             txt = re.sub(r'<[^>]+>', '', txt)
             import html as _html
             txt = _html.unescape(txt)
@@ -485,7 +485,7 @@ def logo_bytes():
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    'channel_logo.png'), 'rb') as f:
                 _LOGO = f.read()
-            if not _LOGO or len(_LOGO) > 2000000 or _LOGO[:8] != b'\x89PNG\r\n\x1a\n':
+            if not _LOGO or len(_LOGO) > 2000000 or _LOGO[:8] != b'\x89PNG\r\r\n\x1a\r\n':
                 _LOGO = False
         except Exception:
             _LOGO = False
@@ -591,7 +591,7 @@ def extract_post(html, mid):
                 p += 6
             else:
                 p += 1
-        t = re.sub(r'<br\s*/?>', '\n', seg[k + 1:end])
+        t = re.sub(r'<br\s*/?>', '\r\n', seg[k + 1:end])
         t = re.sub(r'<[^>]+>', '', t)
         import html as _html
         t = _html.unescape(t)
@@ -649,6 +649,28 @@ def groq_chat(key, model, system, user, timeout=30):
 ARABIC = re.compile(r'[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]')
 
 
+# Curated name repairs for slips already observed, applied after translation
+# so the same wrong token can never reach the channel again. Case-insensitive,
+# tolerant of the spacing/hyphenation variants of a transliteration.
+_NAME_FIXES = [
+    # any "tibo kort..." variant is Thibaut Courtois
+    (re.compile(r'(?i)\btibo[\s-]*kort\w*\b'), 'Thibaut Courtois'),
+    (re.compile(r'(?i)\bfabriyo[\s-]*romano\b|\bfabrizo[\s-]*romano\b'),
+     'Fabrizio Romano'),
+    (re.compile(r'(?i)\bfabriyo\b'), 'Fabrizio'),
+    (re.compile(r'(?i)\barling[\s-]*haaland\b|\berleen[\s-]*g\b'),
+     'Erling Haaland'),
+    (re.compile(r'(?i)\bkylian[\s-]*mbapp\b'), 'Kylian Mbappé'),
+]
+
+
+def repair_names(text):
+    t = text or ''
+    for rx, good in _NAME_FIXES:
+        t = rx.sub(good, t)
+    return t
+
+
 def has_arabic(text):
     """True when the text still carries any Arabic letter or Arabic
     presentation form. The channel is English-only, so this is the single
@@ -673,10 +695,11 @@ def llm_fix(text):
               'the Arabic post to natural ENGLISH and fix it: correct typos and '
               'obvious factual slips (for example a scoreline written backwards '
               'against its own listed goals). Transliterate player and team '
-              'names to their standard Latin spelling, but if you are not '
-              'confident of the real Latin spelling of a name, keep that name '
-              'EXACTLY as the source wrote it -- never invent a spelling and '
-              'never mangle a name into a different word. Then format it as a clean '
+              'names to their standard Latin spelling. A name in the source that is '
+              'an Arabic transliteration of a famous player or journalist must become '
+              "that real person's actual sport name -- e.g. \"Thibaut Courtois\" (never "
+              '"Tibo Kortuwa"), "Fabrizio Romano", "Kylian Mbappé", "Erling Haaland". '
+              'Never invent a spelling. Then format it as a clean '
               'readable list: header line first, then one bullet per item, each '
               'on its own line starting with the bullet char. Keep the emojis '
               'and the item order; keep scores, numbers, and minute marks '
@@ -708,11 +731,11 @@ def llm_fix(text):
                      out):
             print('[lang] groq output rejected (meta-label)')
             continue  # it narrated the job instead of doing it
-        return out
+        return repair_names(out)
     fb = translate_free_ar_en(text)
     if fb and fb != text and not has_arabic(fb):
         print('[lang] free fallback used')
-        return fb
+        return repair_names(fb)
     if has_arabic(text):
         # Channel is English-only. Rather than post Arabic, drop the post.
         print('[lang] UNTRANSLATABLE arabic -> skip post')
@@ -724,7 +747,7 @@ def llm_fix(text):
 def photo_name(b):
     """news.png for PNG originals, news.jpg otherwise (bytes untouched)."""
     try:
-        if (b or b'')[:8] == b'\x89PNG\r\n\x1a\n':
+        if (b or b'')[:8] == b'\x89PNG\r\r\n\x1a\r\n':
             return 'news.png'
     except Exception:
         pass
@@ -842,7 +865,7 @@ def with_link(body, url):
     """Append the watch link, staying inside the 1024-char caption budget."""
     if not url or not body or url in body:
         return body
-    line = '\n\n\U0001f3a6 Watch live: %s' % url
+    line = '\r\n\r\n\U0001f3a6 Watch live: %s' % url
     if len(body) + len(line) <= 1024:
         return body + line
     room = 1024 - len(line)
@@ -1035,7 +1058,7 @@ def send_post(target, body, out, video=None, animation=None):
             return True
         if video:
             if body and len(body) > 1024:
-                r1 = bot('sendVideo', {'chat_id': target, 'caption': body[:950] + '\n\u2026',
+                r1 = bot('sendVideo', {'chat_id': target, 'caption': body[:950] + '\r\n\u2026',
                                       'supports_streaming': True},
                          files={'video': ('news.mp4', video)})
                 if not (r1 or {}).get('ok'):
@@ -1057,7 +1080,7 @@ def send_post(target, body, out, video=None, animation=None):
             return True
         if out:
             if body and len(body) > 1024:
-                r1 = bot('sendPhoto', {'chat_id': target, 'caption': body[:950] + '\n\u2026'},
+                r1 = bot('sendPhoto', {'chat_id': target, 'caption': body[:950] + '\r\n\u2026'},
                          files={'photo': (photo_name(out), out)})
                 if not (r1 or {}).get('ok'):
                     print('photo rejected:', str((r1 or {}).get('description'))[:100])

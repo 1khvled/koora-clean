@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-05 (§121 — 10 old photo-posts upgraded to real clips).
+> Last updated: 2026-10-05 (§122 — mangled names fixed).
+
+## 122. Mangled names fixed - twice the guard (2026-10-05)
+
+- **Owner caught the channel publishing**
+  `- Tibo Kortuwa will stay with Real Madrid...` (and a `Fabriyo Romano`
+  header). The LLM had transliterated the Arabic name phonetically instead of
+  recovering the real footballer. Post #233 was corrected in place.
+- Two layers now prevent any repeat:
+  1. the translation prompt explicitly says to recover the real athlete's
+     actual sport name ("Thibaut Courtois", never "Tibo Kortuwa"; also
+     Fabrizio Romano, Kylian Mbappé, Erling Haaland);
+  2. a deterministic `repair_names()` post-processor corrects the visible
+     mangling variants before any text reaches the send path.
+- Verified: `namestest` 8 cases, and the integration case drives the real
+  `llm_fix` path to assert no mangling survives.
 
 ## 121. Ten old posts upgraded; my own cleanup bug and the ffmpeg truth (2026-10-05)
 
