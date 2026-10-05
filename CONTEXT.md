@@ -4,7 +4,21 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-05 (§124 — streaming link in bio + pinned post).
+> Last updated: 2026-10-05 (§125 — automatic kooradz ads).
+
+## 125. Automatic kooradz ads: kickoffs + heartbeat (2026-10-05)
+
+- Owner: run ads for kooradz "always, from time to time, when matches start".
+  New `scripts/tg_promo.py` runs in the workflow after the bridge: a fixture
+  that kicked off in the last 15 min gets one post with its exact player
+  link (several at once become a single combined post, never a burst, max 4
+  links); otherwise a general heartbeat at most once per 6h and only on days
+  our site lists matches. Both tracked in tg_state.json, so nothing reposts.
+- Copy is English-only with no team names (fixtures are Arabic-only and
+  translating names is how manglings happen); the exact link carries the
+  match. No gambling/store wording, source never named.
+- Verified live: first run saw 36 fixtures and posted heartbeat #236 with the
+  site link (plus the site's own preview card). `promotest` 9 cases green.
 
 ## 124. Streaming link posted in bio and pinned post (2026-10-05)
 
