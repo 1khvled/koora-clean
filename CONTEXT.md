@@ -11,9 +11,14 @@
 - **Owner: "bot stopped posting the news".** It had not stopped — runs were
   green and the source had simply gone quiet (state 375877 = source newest).
   But digging found one real loss: the 13:25 run saw 1 new item (#375877,
-  Mahrez-to-Qatar + a valid 47KB JPEG) and Telegram answered `HTTP 400` with
-  an empty body — a transient hiccup, not a bad file. The loop then ran
-  `state['offside'] = key` unconditionally, burying the post forever.
+  Mahrez-to-Qatar + a valid 47KB JPEG) and Telegram answered `HTTP 400`
+  with an empty body. First blamed on a transient hiccup — wrong: the same
+  bytes failed twice, and a hand-built request with correct framing posted
+  fine. Root cause is in our own `bot()`: its multipart used `\r\r\n`
+  instead of CRLF, which telegram tolerates for most files but rejects with
+  an empty 400 for some. Fixed to spec-correct framing plus a real mime per
+  file type. The loop also ran `state['offside'] = key` unconditionally,
+  burying the post forever.
 - Fix: `state['post_retry']` remembers failed keys (3 attempts, then it gives
   up loudly). Each run processes queued retries first, then fresh items;
   retries that scrolled out of the 25-item preview window are dropped, and

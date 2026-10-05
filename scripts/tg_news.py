@@ -104,15 +104,30 @@ def bot(method, payload=None, files=None, timeout=60):
     url = 'https://api.telegram.org/bot' + token + '/' + method
     if files:
         import uuid
+        # Spec-correct multipart: every line ends CRLF (\\r\\n). The old code
+        # emitted \\r\\r\\n, which telegram tolerates for most files but
+        # rejects with an empty HTTP 400 for some (proven live: the same bytes
+        # failed via bot() and posted fine with correct framing).
         boundary = uuid.uuid4().hex
         body = b''
         for k, v in (payload or {}).items():
-            body += ('--' + boundary + '\r\r\nContent-Disposition: form-data; name="%s"\r\r\n\r\r\n%s\r\r\n'
+            body += ('--' + boundary + '\r\nContent-Disposition: form-data; name="%s"\r\n\r\n%s\r\n'
                      % (k, v)).encode('utf-8')
         for k, (fname, data) in files.items():
-            body += ('--' + boundary + '\r\r\nContent-Disposition: form-data; name="%s"; filename="%s"\r\r\n'
-                     'Content-Type: application/octet-stream\r\r\n\r\r\n' % (k, fname)).encode('utf-8') + data + b'\r\r\n'
-        body += ('--' + boundary + '--\r\r\n').encode('utf-8')
+            low = (fname or '').lower()
+            if low.endswith('.png'):
+                mime = 'image/png'
+            elif low.endswith(('.jpg', '.jpeg')):
+                mime = 'image/jpeg'
+            elif low.endswith('.mp4'):
+                mime = 'video/mp4'
+            elif low.endswith('.gif'):
+                mime = 'image/gif'
+            else:
+                mime = 'application/octet-stream'
+            body += ('--' + boundary + '\r\nContent-Disposition: form-data; name="%s"; filename="%s"\r\n'
+                     'Content-Type: %s\r\n\r\n' % (k, fname, mime)).encode('utf-8') + data + b'\r\n'
+        body += ('--' + boundary + '--\r\n').encode('utf-8')
         req = urllib.request.Request(url, data=body,
                                      headers={'Content-Type': 'multipart/form-data; boundary=' + boundary})
     else:
