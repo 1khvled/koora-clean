@@ -854,6 +854,74 @@ def with_link(body, url):
 _TELE = {'client': None, 'tried': False}
 
 
+def ffmpeg_path():
+    """ffmpeg is preinstalled on github-hosted ubuntu runners. Nothing is
+    installed or downloaded; we only use what is already there."""
+    import shutil
+    return shutil.which('ffmpeg')
+
+
+def compress_video(data, limit=48000000, timeout=600):
+    """Shrink an oversized clip just enough to fit the bot api cap.
+
+    Never touches anything already under the cap. Tries a CRF ladder and only
+    steps down in quality as far as it must; audio is re-encoded small because
+    it is a tiny share of the file. Returns (bytes, crf) or (None, 0)."""
+    if not data or len(data) <= limit:
+        return data, 0
+    exe = ffmpeg_path()
+    if not exe:
+        print('compress: no ffmpeg on this runner, leaving it oversized')
+        return None, 0
+    import subprocess
+    import tempfile
+    tmp = tempfile.mkdtemp(prefix='tgvid')
+    src = os.path.join(tmp, 'in.mp4')
+    dst = os.path.join(tmp, 'out.mp4')
+    with open(src, 'wb') as f:
+        f.write(data)
+    # CRF first, no scaling: usually enough and barely touches the picture.
+    ladder = [(24, None), (27, None), (30, None),
+              (30, '1280:-2'), (32, '854:-2')]
+    try:
+        for crf, scale in ladder:
+            vf = ['-vf', 'scale=%s' % scale] if scale else []
+            cmd = [exe, '-y', '-loglevel', 'error', '-i', src,
+                   '-c:v', 'libx264', '-crf', str(crf), '-preset', 'medium',
+                   '-profile:v', 'high', '-pix_fmt', 'yuv420p'] + vf + [
+                   '-c:a', 'aac', '-b:a', '128k', '-ac', '2',
+                   '-movflags', '+faststart', dst]
+            try:
+                subprocess.run(cmd, timeout=timeout,
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL, check=False)
+            except Exception as e:
+                print('compress: ffmpeg failed (%s)' % type(e).__name__)
+                return None, 0
+            try:
+                with open(dst, 'rb') as f:
+                    out = f.read()
+            except OSError:
+                out = b''
+            if out and len(out) <= limit:
+                print('compress: %d -> %d bytes (crf %s%s)'
+                      % (len(data), len(out), crf,
+                         ', %sp' % scale if scale else ''))
+                return out, crf
+    finally:
+        for p in (src, dst):
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
+        try:
+            os.rmdir(tmp)
+        except OSError:
+            pass
+    print('compress: could not reach the cap without hurting quality')
+    return None, 0
+
+
 def _tele_client():
     """The blocking telethon client for the reader session, or None when no
     session is configured."""
@@ -916,7 +984,16 @@ def tele_media(mid, limit=48000000):
             pass
         size = int(getattr(doc, 'size', 0) or 0)
         if size > limit:
-            print('animation: #%d %s is %d bytes - over the bot api cap, '
+            # too big for the bot api. Take it once, shrink it just enough,
+            # and only frame it if that cannot be done.
+            raw = cl.download_media(msg, bytes)
+            if raw and len(raw) > limit:
+                print('animation: #%d %s is %d bytes - over the cap, '
+                      'compressing to fit' % (mid, kind, size))
+                small, _crf = compress_video(raw, limit)
+                if small:
+                    return kind, small
+            print('animation: #%d %s is %d bytes and will not fit - '
                   'posting its frame' % (mid, kind, size))
             return kind, None
         out = cl.download_media(msg, bytes)
