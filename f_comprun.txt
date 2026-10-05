@@ -1,0 +1,10 @@
+2026-10-05T00:26:55.9048514[36;1mprint('SOURCE size=%d mime=%s' % (m.document.size, m.document.mime_type))[0m
+2026-10-05T00:26:55.9049317[36;1mprint('DOWNLOADED %d bytes' % len(raw))[0m
+2026-10-05T00:26:55.9055505[36;1mprint('ORIGINAL probe=%s' % probe('/tmp/orig.mp4'))[0m
+2026-10-05T00:26:55.9056343[36;1mprint('RESULT crf=%s bytes=%s' % (crf, len(out) if out else None))[0m
+2026-10-05T00:26:55.9057384[36;1m    print('COMPRESSED probe=%s' % probe('/tmp/small.mp4'))[0m
+2026-10-05T00:26:55.9057840[36;1m    print('RATIO %.1f%% of original' % (100.0 * len(out) / len(raw)))[0m
+2026-10-05T00:26:55.9058265[36;1m    print('UNDER_CAP %s' % (len(out) <= 48000000))[0m
+2026-10-05T00:26:55.9058877[36;1m    print('UNDER_CAP False (would fall back to the frame)')[0m
+2026-10-05T00:29:31.0452801SOURCE size=74798594 mime=video/mp4
+2026-10-05T00:29:31.0462166DOWNLOADED 74798594 bytes
