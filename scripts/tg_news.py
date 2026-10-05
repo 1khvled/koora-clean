@@ -747,7 +747,7 @@ def llm_fix(text):
 def photo_name(b):
     """news.png for PNG originals, news.jpg otherwise (bytes untouched)."""
     try:
-        if (b or b'')[:8] == b'\x89PNG\r\r\n\x1a\r\n':
+        if (b or b'')[:8] == b'\x89PNG\r\n\x1a\n':
             return 'news.png'
     except Exception:
         pass
@@ -865,7 +865,7 @@ def with_link(body, url):
     """Append the watch link, staying inside the 1024-char caption budget."""
     if not url or not body or url in body:
         return body
-    line = '\r\n\r\n\U0001f3a6 Watch live: %s' % url
+    line = '\n\n\U0001f3a6 Watch live: %s' % url
     if len(body) + len(line) <= 1024:
         return body + line
     room = 1024 - len(line)
@@ -1123,9 +1123,32 @@ def public_preview_run(target):
         return 0
     seed_seen(state, target)
     last = int(state.get('offside', 0) or 0)
-    fresh = [x for x in items if x['key'] > last]
+    # Retry queue: keys whose send failed on an earlier run. A transient
+    # Telegram rejection used to bury the post forever because offside
+    # advanced past it. Now failures are remembered and retried; each key
+    # gets 3 attempts before we give up loudly.
+    tries = state.get('post_retry')
+    if not isinstance(tries, dict):
+        tries = {}
+        state['post_retry'] = tries
+    for k in list(tries):
+        try:
+            tries[int(k)] = int(tries.pop(k))
+        except Exception:
+            tries.pop(k, None)
+    by_key = {x['key']: x for x in items}
+    work = []
+    for k in sorted(tries):
+        if k in by_key:
+            work.append(by_key[k])
+        else:
+            print('dropping retry #%d: left the preview window' % k)
+            tries.pop(k, None)
+    queued = {x['key'] for x in work}
+    fresh = [x for x in items if x['key'] > last and x['key'] not in queued]
+    work.extend(fresh)
     posted = 0
-    for x in fresh:
+    for x in work:
         if posted >= MAX_POSTS_PER_RUN:
             break
         txt = usable_text(x['text'])
@@ -1184,20 +1207,33 @@ def public_preview_run(target):
             if img:
                 kind, got = brand_photo(img)
                 out = got if kind == 'photo' else None  # branding: text only
-            if send_post(target, body, out, vid, anim) is True:
+            result = send_post(target, body, out, vid, anim)
+            if result is True:
                 posted += 1
+                tries.pop(x['key'], None)
                 print('#%d: posted %s' % (
                     x['key'], 'GIF' if anim else ('VIDEO' if vid else
                         ('PHOTO' if out else 'TEXT'))))
                 fp = fingerprint(src_txt)
                 if fp:
                     state.setdefault('seen', []).append(fp)
+            elif result is False:
+                n = int(tries.get(x['key'], 0) or 0) + 1
+                if n > 3:
+                    print('#%d: SEND FAILED %d times, giving up (post lost)'
+                          % (x['key'], n))
+                    tries.pop(x['key'], None)
+                else:
+                    print('#%d: SEND FAILED (attempt %d/3), will retry next run'
+                          % (x['key'], n))
+                    tries[x['key']] = n
         except Exception as e:
             print('post failed:', str(e)[:120])
         state['offside'] = x['key']
         time.sleep(2)
     save_state(state)
-    print('preview: %d new, posted=%d' % (len(fresh), posted))
+    print('preview: %d new (%d queued retries), posted=%d'
+          % (len(fresh), len(work) - len(fresh), posted))
     return posted
 
 

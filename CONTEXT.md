@@ -4,7 +4,24 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-05 (§125 — automatic kooradz ads).
+> Last updated: 2026-10-05 (§126 — failed posts retry instead of vanishing).
+
+## 126. Failed posts retry instead of vanishing (2026-10-05)
+
+- **Owner: "bot stopped posting the news".** It had not stopped — runs were
+  green and the source had simply gone quiet (state 375877 = source newest).
+  But digging found one real loss: the 13:25 run saw 1 new item (#375877,
+  Mahrez-to-Qatar + a valid 47KB JPEG) and Telegram answered `HTTP 400` with
+  an empty body — a transient hiccup, not a bad file. The loop then ran
+  `state['offside'] = key` unconditionally, burying the post forever.
+- Fix: `state['post_retry']` remembers failed keys (3 attempts, then it gives
+  up loudly). Each run processes queued retries first, then fresh items;
+  retries that scrolled out of the 25-item preview window are dropped, and
+  successes clear the queue. Every send outcome is now logged with its key.
+- Two pre-existing bugs surfaced by the full suite while verifying (both
+  failed on HEAD too): `with_link` joined with `\r\n` instead of `\n`, and
+  `photo_name` tested PNG magic `\r\r\n` which no real PNG has. Both fixed;
+  all 20 suites green.
 
 ## 125. Automatic kooradz ads: kickoffs + heartbeat (2026-10-05)
 
