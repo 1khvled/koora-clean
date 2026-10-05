@@ -4,7 +4,35 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-05 (§120 — sendAnimation proven live; Kurdish source gated off).
+> Last updated: 2026-10-05 (§121 — 10 old photo-posts upgraded to real clips).
+
+## 121. Ten old posts upgraded; my own cleanup bug and the ffmpeg truth (2026-10-05)
+
+- **A mistake of mine, caught by the owner.** The `sendAnimation` test cleanup
+  deleted the **wrong message**: it searched a 20KB slice per post, which bled
+  into the next message and matched a false id, so it deleted **#220 (a real
+  news post)** and left the test **#223** in place. Fixed both: #223 deleted,
+  and the lost post identified by walking the source timeline around the gap
+  (source **#375855**, a Pedro Proenca quote distinct from #219's) and
+  re-posted as **#225**. Verified it is not a duplicate. Lesson: every region
+  must be bounded to the next marker, never a fixed slice.
+- **Old posts that were really clips.** Timestamp matching was tried first and
+  **rejected** — it happily paired a Jorge Jesus caption with the Haaland
+  animation, which would have put the wrong clip on a post. Replaced with a
+  *provable* method: re-run the same deterministic translation of each source
+  post and require the caption to reproduce exactly. A match proves identity; a
+  miss proves nothing, so misses are left alone rather than guessed. **10
+  posts** qualified and were converted in place with `editMessageMedia`,
+  captions and original bytes kept (10.6-39.0MB). Verified 10/10 now carry
+  real media.
+- **ffmpeg is NOT on the GitHub runner.** I assumed it was and said so; a
+  throwaway workflow proved otherwise (`FileNotFoundError: 'ffmpeg'`, and
+  `ffprobe` is missing too). So `compress_video` is written and unit-tested
+  (CRF ladder 24→27→30, then a mild 1280px scale; nothing under the cap is
+  ever re-encoded; ffmpeg errors degrade cleanly) but **it cannot run in
+  production yet** — oversized clips still fall back to their frame. Enabling
+  it means installing a package in the workflow, which is the owner's call
+  given the standing "download nothing" rule. Temp workflow deleted.
 
 ## 120. sendAnimation proven live; unrequested source gated off (2026-10-05)
 
