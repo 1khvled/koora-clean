@@ -4,7 +4,15 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-05 (§123 — ffmpeg compression proven on runner).
+> Last updated: 2026-10-05 (§124 — streaming link in bio + pinned post).
+
+## 124. Streaming link posted in bio and pinned post (2026-10-05)
+
+- Owner asked for the https://kooraadz.vercel.app/ link to appear: it now
+  sits in the channel About (240/255 chars, verified live via getChat) and as
+  the second line of the pinned keyword post (#234, edited in place, link
+  confirmed in the public preview). Every match post already carries its exact
+  `player.html?m=<id>&d=<day>` link when it names exactly one fixture.
 
 ## 123. Oversized clips now fit: ffmpeg proven on the runner (2026-10-05)
 
