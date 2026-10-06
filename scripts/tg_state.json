@@ -1,9 +1,7 @@
 {
- "offside": 376313,
+ "offside": 376315,
  "k2": 0,
  "seen": [
-  "450a76bc7483",
-  "5a9fb98aaa42",
   "14f0ac07a72f",
   "2634ca842447",
   "2721fc491c33",
@@ -301,9 +299,11 @@
   "489ce45aba55",
   "dcdf6f97d0eb",
   "1db7e7d2eb58",
-  "672d4bf2660e"
+  "672d4bf2660e",
+  "8dcc663ce2a4",
+  "b3562dbfa96c"
  ],
- "seo_msg": 612,
+ "seo_msg": 634,
  "last_promo": 1791312128.769015,
  "post_retry": {}
 }
