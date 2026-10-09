@@ -94,7 +94,8 @@ Check your channel. The 5-minute schedule takes over (GitHub cron + cron-job.org
 - Translation chain: MyMemory (if key) → Google unofficial (ckb/ku/auto)
   → original text. Short news blurbs translate reliably; no LLM, no cost.
 - Only text + first photo repost; videos/albums are skipped, state in
-  `scripts/tg_state.json` (auto-committed, max 10 posts/run).
+  `scripts/tg_state.json` on the `state` branch (auto-committed, max 10
+  posts/run) — never on `main`, so Vercel never redeploys for it.
 - Secrets win over the repo config, so a leaked/rotated token is fixed by
   editing the secret alone.
 - Preflight runs every time: bad token = red run (fix it), bot not in the chat
