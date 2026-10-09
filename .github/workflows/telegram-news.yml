@@ -118,3 +118,30 @@ jobs:
             git push origin "$COMMIT:refs/heads/state" && break
             sleep 15
           done
+      - name: Alert owner on failure (Telegram DM)
+        if: failure()
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          CHAT_ID="5625295907"
+          UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          # Best-effort failed-step lookup; never fails this step.
+          FAILED="unknown (open run URL, failed step is highlighted)"
+          if command -v gh >/dev/null 2>&1; then
+            LOOKUP="$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" --paginate -q '[.jobs[] | select(.conclusion == "failure") | "\(.name): " + ([.steps[] | select(.conclusion == "failure") | .name] | join(", "))] | join(" | ")' 2>/dev/null || true)"
+            if [ -n "${LOOKUP:-}" ]; then
+              FAILED="$(printf '%s' "$LOOKUP" | head -c 800)"
+            fi
+          fi
+          TEXT="$(printf 'Workflow FAILED: %s\nRun #%s (id %s)\nJob: %s | conclusion: %s\nFailed step(s): %s\nTime (UTC): %s\n%s' \
+            "${{ github.workflow }}" "${{ github.run_number }}" "${{ github.run_id }}" \
+            "${{ github.job }}" "${{ job.status }}" "$FAILED" "$UTC_NOW" "$RUN_URL")"
+          PAYLOAD="$(CHAT="$CHAT_ID" printf '%s' "$TEXT" | python3 -c 'import json,sys,os; print(json.dumps({"chat_id": os.environ["CHAT"], "text": sys.stdin.read(), "disable_web_page_preview": True}))')"
+          # Single send, silent, never fails the workflow, token stays in env (masked by GitHub, never echoed).
+          curl -sS --max-time 20 -H 'Content-Type: application/json' -d "$PAYLOAD" \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" > /dev/null || true
+          exit 0
