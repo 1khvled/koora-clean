@@ -224,12 +224,31 @@ def seed_seen(state, target):
         print('seed_seen skipped:', str(e)[:80] or type(e).__name__)
 
 
-def already_posted(state, text):
-    """True when this exact content already went out (within the window)."""
-    fp = fingerprint(text)
-    if not fp:
-        return False
-    return fp in (state.get('seen') or [])
+def already_posted(state, *texts):
+    """True when any of these contents already went out (within the window).
+
+    Callers pass BOTH the source text and the translated body: the
+    channel-seeded window holds English captions while live state holds
+    source-language fingerprints, and only checking both covers a rerun
+    whose state was lost or rolled back."""
+    seen = state.get('seen') or []
+    for t in texts:
+        fp = fingerprint(t)
+        if fp and fp in seen:
+            return True
+    return False
+
+
+def record_seen(state, *texts):
+    """Remember content fingerprint(s) after a successful post. Both the
+    source text and the posted (English) body go in: the channel-seeded
+    window holds English captions, so the English fp is what protects a
+    rerun with lost/rolled-back state. Never stores '' or duplicates."""
+    seen = state.setdefault('seen', [])
+    for t in texts:
+        fp = fingerprint(t)
+        if fp and fp not in seen:
+            seen.append(fp)
 
 
 def http_get_text(url, timeout=25):
@@ -1171,11 +1190,14 @@ def public_preview_run(target):
             state['offside'] = x['key']
             continue
         src_txt = full_text(x['key'], txt)  # never mention/tag source
-        if already_posted(state, src_txt):
+        # Translate BEFORE the repeat check: the seeded window holds the
+        # English captions actually posted, so only the English fingerprint
+        # can match them when state was lost or rolled back.
+        body = llm_fix(src_txt)
+        if already_posted(state, src_txt, body):
             print('skipped repeat #%d' % x['key'])
             state['offside'] = x['key']
             continue
-        body = llm_fix(src_txt)
         if is_promo(src_txt) or is_promo(body):
             print('skipped promo post #%d' % x['key'])
             state['offside'] = x['key']
@@ -1229,9 +1251,7 @@ def public_preview_run(target):
                 print('#%d: posted %s' % (
                     x['key'], 'GIF' if anim else ('VIDEO' if vid else
                         ('PHOTO' if out else 'TEXT'))))
-                fp = fingerprint(src_txt)
-                if fp:
-                    state.setdefault('seen', []).append(fp)
+                record_seen(state, src_txt, body)
             elif result is False:
                 n = int(tries.get(x['key'], 0) or 0) + 1
                 if n > 3:
@@ -1320,12 +1340,12 @@ def main():
                         continue
                     if src['translate'] and txt:
                         txt = translate_ku_ar(txt)
-                    if already_posted(state, txt):
+                    body = llm_fix(txt)  # never mention/tag anyone
+                    if already_posted(state, txt, body):
                         print('skipped repeat (kurdish)')
                         state[src['key']] = m.id
                         time.sleep(2)
                         continue
-                    body = llm_fix(txt)  # never mention/tag anyone
                     raw = None
                     kanim = None
                     try:
@@ -1355,9 +1375,7 @@ def main():
                             print('skipped promo post (kurdish)')
                         elif send_post(target, body, out, kvid, kanim) is True:
                             posted += 1
-                            fp = fingerprint(txt)
-                            if fp:
-                                state.setdefault('seen', []).append(fp)
+                            record_seen(state, txt, body)
                     except Exception as e:
                         print('post failed:', str(e)[:120])
                     state[src['key']] = m.id

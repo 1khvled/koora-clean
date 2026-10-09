@@ -4,7 +4,36 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-09 (§127 — state commits off main, Vercel quiet).
+> Last updated: 2026-10-09 (§128 — dupes fixed, player sandboxed, failure alerts by bot).
+
+## 128. Dupes fixed, player sandboxed, failure alerts by bot (2026-10-09)
+
+- **Owner: triple duplicate (#1117/#1118/#1119, identical Dortmund post).**
+  Cause: two runs with the broken Save step posted but never persisted state,
+  so each rerun reposted from stale state. Deleted #1118/#1119 (kept #1117).
+  Structural fix in `tg_news.py`: success now records BOTH the source and the
+  English-body fingerprint, and translation runs BEFORE the repeat check, so
+  the channel-seeded English window actually matches on reruns with lost
+  state. Proven by a new test (empty state + English caption in channel =
+  skipped, 0 sends; fails on old code).
+- **Owner: redirect ad on the site player.** The `#player` iframe had no
+  `sandbox` (full privileges; old guards only covered the first click and
+  our own page's JS). Added
+  `sandbox="allow-scripts allow-same-origin allow-presentation"` to
+  player.html + player-inline.html (mirrors verified identical) — kills
+  popups and top-navigation from inside the frame, keeps scripts/playback/
+  fullscreen. No new hosts or scripts.
+- **Owner: stop failure emails + send errors via the bot.** Repo subscription
+  set to ignored via API (verified: subscribed=false, ignored=true — GitHub
+  sends no more mail for this repo). New `Alert owner on failure` step
+  (`if: failure()`, `continue-on-error`) DMs run name/number/failed steps/URL
+  to the owner; DM path proven working today. keepalive intentionally has no
+  alert (weekly, silent).
+- Process note: 4 parallel subagents did the workstreams (dupes, player ads,
+  notifications, error forensics); all output re-verified locally before
+  commit. A temp-dir wipe had deleted 15 /tmp test suites mid-task; suites
+  covering the changed code were rebuilt and green, plus a permanent
+  `wfcheck.py` guard and a `guardprobe.py` for translator/caption behavior.
 
 ## 127. State commits off main: Vercel stops redeploying (2026-10-09)
 
