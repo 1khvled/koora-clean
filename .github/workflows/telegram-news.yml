@@ -97,7 +97,7 @@ jobs:
                         merged[k] = v
             with open('scripts/tg_state.json', 'w', encoding='utf-8') as f:
                 json.dump(merged, f, ensure_ascii=False, indent=1)
-            EOF
+          EOF
             # Carry the heartbeat file forward too so this push never drops it.
             git show origin/state:.github/heartbeat.txt > .github/heartbeat.txt.tmp 2>/dev/null && mv .github/heartbeat.txt.tmp .github/heartbeat.txt || rm -f .github/heartbeat.txt.tmp
             git add scripts/tg_state.json
