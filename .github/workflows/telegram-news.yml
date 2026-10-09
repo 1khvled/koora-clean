@@ -26,6 +26,15 @@ jobs:
         run: sudo apt-get install -y ffmpeg
       - name: Install deps
         run: pip install telethon requests pillow
+      - name: Load dedup state (state branch keeps Vercel quiet)
+        run: |
+          git fetch origin state:refs/remotes/origin/state 2>/dev/null || true
+          if git rev-parse --verify origin/state >/dev/null 2>&1; then
+            git show origin/state:scripts/tg_state.json > scripts/tg_state.json
+            echo "state seeded from origin/state"
+          else
+            echo "no state branch yet, using main checkout copy"
+          fi
       - name: Run news bridge
         env:
           TG_API_ID: ${{ secrets.TG_API_ID }}
@@ -43,56 +52,69 @@ jobs:
         run: python scripts/tg_promo.py
       - name: Channel SEO (about text + pinned keywords)
         run: python scripts/tg_seo.py
-      - name: Save dedup state
+      - name: Save dedup state (state branch only — main pushes redeploy Vercel)
         run: |
           git config user.name "khvled"
           git config user.email "khvled2004@gmail.com"
-          git fetch --depth=20 origin main || true
-          python3 - <<'EOF'
-          import json, subprocess
-          def load(cmd):
-              try:
-                  out = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-                  d = json.loads(out.stdout)
-                  return d if isinstance(d, dict) else {}
-              except Exception:
-                  return {}
-          # local = the working-tree file the bridge just wrote (NOT the index:
-          # git add has not run yet, so ':file' is still the stale checkout)
-          local = {}
-          try:
-              with open('scripts/tg_state.json', encoding='utf-8') as f:
-                  local = json.load(f)
-              if not isinstance(local, dict):
-                  local = {}
-          except Exception:
-              local = {}
-          remote = load(['git', 'show', 'origin/main:scripts/tg_state.json'])
-          merged = dict(remote)
-          for k, v in local.items():
-              if isinstance(v, list) or isinstance(merged.get(k), list):
-                  # lists (the 'seen' fingerprints) union, newest wins
-                  a = merged.get(k) or []
-                  b = v or []
-                  seen = []
-                  for x in list(a) + list(b):
-                      if x not in seen:
-                          seen.append(x)
-                  merged[k] = seen[-300:]
-              else:
-                  try:
-                      if int(v or 0) > int(merged.get(k) or 0):
-                          merged[k] = v
-                  except Exception:
-                      merged[k] = v
-          with open('scripts/tg_state.json', 'w', encoding='utf-8') as f:
-              json.dump(merged, f, ensure_ascii=False, indent=1)
-          EOF
-          git add scripts/tg_state.json
-          if ! git diff --cached --quiet; then
-            git commit -m "news bridge state [skip ci]"
-            for i in 1 2 3 4 5; do
-              git rebase origin/main && git push && break
-              sleep 15
-            done
-          fi
+          for i in 1 2 3 4 5; do
+            git fetch origin state:refs/remotes/origin/state 2>/dev/null || true
+            python3 - <<'EOF'
+            import json, subprocess
+            def load(cmd):
+                try:
+                    out = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                    d = json.loads(out.stdout)
+                    return d if isinstance(d, dict) else {}
+                except Exception:
+                    return {}
+            # local = the working-tree file the bridge just wrote (NOT the index:
+            # git add has not run yet, so ':file' is still the stale checkout)
+            local = {}
+            try:
+                with open('scripts/tg_state.json', encoding='utf-8') as f:
+                    local = json.load(f)
+                if not isinstance(local, dict):
+                    local = {}
+            except Exception:
+                local = {}
+            remote = load(['git', 'show', 'origin/state:scripts/tg_state.json'])
+            merged = dict(remote)
+            for k, v in local.items():
+                if isinstance(v, list) or isinstance(merged.get(k), list):
+                    # lists (the 'seen' fingerprints) union, newest wins
+                    a = merged.get(k) or []
+                    b = v or []
+                    seen = []
+                    for x in list(a) + list(b):
+                        if x not in seen:
+                            seen.append(x)
+                    merged[k] = seen[-300:]
+                else:
+                    try:
+                        if int(v or 0) > int(merged.get(k) or 0):
+                            merged[k] = v
+                    except Exception:
+                        merged[k] = v
+            with open('scripts/tg_state.json', 'w', encoding='utf-8') as f:
+                json.dump(merged, f, ensure_ascii=False, indent=1)
+            EOF
+            # Carry the heartbeat file forward too so this push never drops it.
+            git show origin/state:.github/heartbeat.txt > .github/heartbeat.txt.tmp 2>/dev/null && mv .github/heartbeat.txt.tmp .github/heartbeat.txt || rm -f .github/heartbeat.txt.tmp
+            git add scripts/tg_state.json
+            [ -f .github/heartbeat.txt ] && git add .github/heartbeat.txt
+            if git diff --cached --quiet; then
+              echo "state unchanged, nothing to push"
+              exit 0
+            fi
+            if git rev-parse --verify origin/state >/dev/null 2>&1; then
+              PARENT=origin/state
+            else
+              PARENT=HEAD
+            fi
+            TREE=$(git write-tree) || { sleep 15; continue; }
+            COMMIT=$(git commit-tree "$TREE" -p "$PARENT" -m "news bridge state [skip ci]") || { sleep 15; continue; }
+            # Fully-qualified ref: pushing a raw SHA to a not-yet-existing
+            # branch is rejected without it.
+            git push origin "$COMMIT:refs/heads/state" && break
+            sleep 15
+          done

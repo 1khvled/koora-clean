@@ -1,5 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "state": false
+    }
+  },
   "redirects": [
     {
       "source": "/index.html",

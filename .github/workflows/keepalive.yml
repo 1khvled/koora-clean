@@ -27,33 +27,24 @@ jobs:
           date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/heartbeat.txt
           git config user.name "khvled"
           git config user.email "khvled2004@gmail.com"
-          git fetch --depth=20 origin main || true
-          python3 - <<'EOF'
-          import json, subprocess
-          def load(cmd):
-              try:
-                  out = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-                  d = json.loads(out.stdout)
-                  return d if isinstance(d, dict) else {}
-              except Exception:
-                  return {}
-          local = load(['git', 'show', ':scripts/tg_state.json'])
-          remote = load(['git', 'show', 'origin/main:scripts/tg_state.json'])
-          merged = dict(remote)
-          for k, v in local.items():
-              try:
-                  if int(v or 0) > int(merged.get(k) or 0):
-                      merged[k] = v
-              except Exception:
-                  merged[k] = v
-          with open('scripts/tg_state.json', 'w', encoding='utf-8') as f:
-              json.dump(merged, f, ensure_ascii=False, indent=1)
-          EOF
-          git add .github/heartbeat.txt
-          if ! git diff --cached --quiet; then
-            git commit -m "keepalive ping [skip ci]"
-            for i in 1 2 3 4 5; do
-              git rebase origin/main && git push && break
-              sleep 15
-            done
-          fi
+          for i in 1 2 3 4 5; do
+            git fetch origin state:refs/remotes/origin/state 2>/dev/null || true
+            # Carry the live state file forward: this flow never modifies it,
+            # and must not drop it from the branch.
+            git show origin/state:scripts/tg_state.json > scripts/tg_state.json.tmp 2>/dev/null && mv scripts/tg_state.json.tmp scripts/tg_state.json || rm -f scripts/tg_state.json.tmp
+            git add .github/heartbeat.txt
+            [ -f scripts/tg_state.json ] && git add scripts/tg_state.json
+            if git diff --cached --quiet; then
+              echo "heartbeat unchanged"
+              exit 0
+            fi
+            if git rev-parse --verify origin/state >/dev/null 2>&1; then
+              PARENT=origin/state
+            else
+              PARENT=HEAD
+            fi
+            TREE=$(git write-tree) || { sleep 15; continue; }
+            COMMIT=$(git commit-tree "$TREE" -p "$PARENT" -m "keepalive ping [skip ci]") || { sleep 15; continue; }
+            git push origin "$COMMIT:refs/heads/state" && break
+            sleep 15
+          done
