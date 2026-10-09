@@ -1,8 +1,6 @@
 {
- "offside": 376797,
+ "offside": 376800,
  "seen": [
-  "fb681cc90ca9",
-  "24e2e05c6c14",
   "a89469215bae",
   "a6683eedc657",
   "3a0d809d9e3d",
@@ -300,7 +298,9 @@
   "76de3e6eb604",
   "acf47da1b58d",
   "5c9d5cfd1b1e",
-  "be4ef722729c"
+  "be4ef722729c",
+  "d683fc803894",
+  "ee71844faafd"
  ],
  "seo_msg": 1160,
  "last_promo": 1791562244.209457
