@@ -58,45 +58,45 @@ jobs:
           git config user.email "khvled2004@gmail.com"
           for i in 1 2 3 4 5; do
             git fetch origin state:refs/remotes/origin/state 2>/dev/null || true
-            python3 - <<'EOF'
-            import json, subprocess
-            def load(cmd):
-                try:
-                    out = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-                    d = json.loads(out.stdout)
-                    return d if isinstance(d, dict) else {}
-                except Exception:
-                    return {}
-            # local = the working-tree file the bridge just wrote (NOT the index:
-            # git add has not run yet, so ':file' is still the stale checkout)
-            local = {}
-            try:
-                with open('scripts/tg_state.json', encoding='utf-8') as f:
-                    local = json.load(f)
-                if not isinstance(local, dict):
-                    local = {}
-            except Exception:
-                local = {}
-            remote = load(['git', 'show', 'origin/state:scripts/tg_state.json'])
-            merged = dict(remote)
-            for k, v in local.items():
-                if isinstance(v, list) or isinstance(merged.get(k), list):
-                    # lists (the 'seen' fingerprints) union, newest wins
-                    a = merged.get(k) or []
-                    b = v or []
-                    seen = []
-                    for x in list(a) + list(b):
-                        if x not in seen:
-                            seen.append(x)
-                    merged[k] = seen[-300:]
-                else:
-                    try:
-                        if int(v or 0) > int(merged.get(k) or 0):
-                            merged[k] = v
-                    except Exception:
-                        merged[k] = v
-            with open('scripts/tg_state.json', 'w', encoding='utf-8') as f:
-                json.dump(merged, f, ensure_ascii=False, indent=1)
+          python3 - <<'EOF'
+          import json, subprocess
+          def load(cmd):
+              try:
+                  out = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                  d = json.loads(out.stdout)
+                  return d if isinstance(d, dict) else {}
+              except Exception:
+                  return {}
+          # local = the working-tree file the bridge just wrote (NOT the index:
+          # git add has not run yet, so ':file' is still the stale checkout)
+          local = {}
+          try:
+              with open('scripts/tg_state.json', encoding='utf-8') as f:
+                  local = json.load(f)
+              if not isinstance(local, dict):
+                  local = {}
+          except Exception:
+              local = {}
+          remote = load(['git', 'show', 'origin/state:scripts/tg_state.json'])
+          merged = dict(remote)
+          for k, v in local.items():
+              if isinstance(v, list) or isinstance(merged.get(k), list):
+                  # lists (the 'seen' fingerprints) union, newest wins
+                  a = merged.get(k) or []
+                  b = v or []
+                  seen = []
+                  for x in list(a) + list(b):
+                      if x not in seen:
+                          seen.append(x)
+                  merged[k] = seen[-300:]
+              else:
+                  try:
+                      if int(v or 0) > int(merged.get(k) or 0):
+                          merged[k] = v
+                  except Exception:
+                      merged[k] = v
+          with open('scripts/tg_state.json', 'w', encoding='utf-8') as f:
+              json.dump(merged, f, ensure_ascii=False, indent=1)
           EOF
             # Carry the heartbeat file forward too so this push never drops it.
             git show origin/state:.github/heartbeat.txt > .github/heartbeat.txt.tmp 2>/dev/null && mv .github/heartbeat.txt.tmp .github/heartbeat.txt || rm -f .github/heartbeat.txt.tmp
