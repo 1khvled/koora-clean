@@ -4,7 +4,30 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-05 (§126 — failed posts retry instead of vanishing).
+> Last updated: 2026-10-09 (§127 — state commits off main, Vercel quiet).
+
+## 127. State commits off main: Vercel stops redeploying (2026-10-09)
+
+- **Owner: "stop the fucking deployments every 10 min on Vercel".** Cause: the
+  bridge pushed `tg_state.json` to `main` on nearly every 5-min run, and Vercel
+  deploys production on every `main` push — `[skip ci]` is NOT honored by
+  Vercel (verified in their docs; the mechanism is Ignored Build Step).
+- Fix, all repo-side, no dashboard action: (1) both workflows now seed state
+  from and push state to a dedicated `state` branch (content-merge max/union
+  preserved; pushes via `commit-tree` + fully-qualified ref so first creation
+  and concurrent races work — proven in a local bare-repo sim incl. a true
+  interleaved push race); (2) `vercel.json` gained
+  `"git": {"deploymentEnabled": {"state": false}}` (exact syntax from Vercel
+  docs, Aug 2026) so not even preview deployments build for it. `main` is
+  never pushed by automation again; real code pushes still deploy normally.
+- Two self-inflicted failures on the way, both fixed and guarded: the Save
+  heredoc closer sat at 12 spaces so YAML-stripping left it indented and bash
+  died (closer must sit at exactly the 10-space block indent), then the python
+  inside started at column 2 after stripping (IndentationError — heredoc body
+  must start at block base). New `wfcheck.py` validates every workflow script
+  three ways (column-0 closer, `bash -n`, heredoc python compiles).
+- Verified live: green run posted news (#376745), created `state` branch with
+  fresh `offside: 376745`, `main` untouched by the run.
 
 ## 126. Failed posts retry instead of vanishing (2026-10-05)
 
