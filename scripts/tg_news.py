@@ -704,10 +704,222 @@ _NAME_FIXES = [
     (re.compile(r'(?i)\bkylian[\s-]*mbapp\b'), 'Kylian Mbappé'),
 ]
 
+# Owner rule: no team/player-name translation guesses. Wrong-only Latin
+# spellings -> the one standard spelling. Keys are lower-case and accent-free;
+# matching is accent-insensitive in both directions and space/hyphen-blind, so
+# "Conde"/"Condé"/"Konde"/"Kondé" all become "Koundé". Reported
+# hallucination: the Arabic name "كوندي" is Jules Koundé, never an invented
+# "Condé". Only clearly wrong variants are keys, so no key ever rewrites one
+# real player onto another ("Rodrigo" is deliberately absent -- that is a
+# different player from Rodrygo), and words that are ordinary English ("son")
+# are never keys on their own.
+_NAME_CANON = {
+    # reported case: Jules Koundé, never the invented "Condé"
+    'conde': 'Koundé',
+    'konde': 'Koundé',
+    'kounde': 'Koundé',
+    'mbape': 'Mbappé',
+    'mbappe': 'Mbappé',
+    'mbapee': 'Mbappé',
+    'haland': 'Haaland',
+    'haaland': 'Haaland',
+    'vinisius': 'Vinícius',
+    'vinicius': 'Vinícius',
+    'rodrygo': 'Rodrygo',
+    'belingham': 'Bellingham',
+    'bellingam': 'Bellingham',
+    'bellinghem': 'Bellingham',
+    'bellingham': 'Bellingham',
+    'ruidiger': 'Rüdiger',
+    'rudiger': 'Rüdiger',
+    'kante': 'Kanté',
+    'kolibaly': 'Koulibaly',
+    'kulibaly': 'Koulibaly',
+    'koulibaly': 'Koulibaly',
+    'tchuameni': 'Tchouaméni',
+    'tchouameni': 'Tchouaméni',
+    'tchouameny': 'Tchouaméni',
+    'kamavinga': 'Camavinga',
+    'camavinga': 'Camavinga',
+    'gavi': 'Gavi',
+    'pedri': 'Pedri',
+    'lamin yamal': 'Lamine Yamal',
+    'lamineyamal': 'Lamine Yamal',
+    'lamine yamal': 'Lamine Yamal',
+    'yamal': 'Yamal',
+    'lewendowski': 'Lewandowski',
+    'lewandoski': 'Lewandowski',
+    'lewandowsky': 'Lewandowski',
+    'lewandowski': 'Lewandowski',
+    'salah': 'Salah',
+    'mane': 'Mané',
+    'debruyne': 'De Bruyne',
+    'de bruyne': 'De Bruyne',
+    'kane': 'Kane',
+    'son heung min': 'Son Heung-min',
+    'heung min son': 'Son Heung-min',
+    'odegaard': 'Ødegaard',
+    'havertz': 'Havertz',
+    'wirtz': 'Wirtz',
+    'mussiala': 'Musiala',
+    'musiala': 'Musiala',
+    'donarumma': 'Donnarumma',
+    'donorumma': 'Donnarumma',
+    'donnarumma': 'Donnarumma',
+    # more frequent names: accent/case only, same person every time
+    'messi': 'Messi',
+    'ronaldo': 'Ronaldo',
+    'bensema': 'Benzema',
+    'benzema': 'Benzema',
+    'modric': 'Modrić',
+    'grizmann': 'Griezmann',
+    'griezmann': 'Griezmann',
+    'foden': 'Foden',
+    'saka': 'Saka',
+    'kimmich': 'Kimmich',
+    'osimhen': 'Osimhen',
+    'nkunku': 'Nkunku',
+    'trossard': 'Trossard',
+    # teams: same rule, hallucinated spellings plus harmless case fixes
+    'barselona': 'Barcelona',
+    'barcelona': 'Barcelona',
+    'liverpol': 'Liverpool',
+    'manchester citi': 'Manchester City',
+    'manchester city': 'Manchester City',
+    'bayern munchen': 'Bayern Munich',
+    'real madrid': 'Real Madrid',
+    'manchester united': 'Manchester United',
+    # round 2: highest-risk stars (Barcelona/Real Madrid squads, EPL top-6,
+    # UCL frequent scorers). Same rule: wrong-only variants plus harmless
+    # case/accent normalisation of unambiguous names. Deliberately still
+    # absent: bare surnames shared by different real players (martinez,
+    # alvarez, diaz, torres, silva, mendy, gabriel, romero), and bare
+    # "rice"/"sane" (ordinary English words).
+    'courtois': 'Courtois',
+    'valverde': 'Valverde',
+    'militao': 'Militão',
+    'carvajal': 'Carvajal',
+    'guler': 'Güler',
+    'endrick': 'Endrick',
+    'brahim diaz': 'Brahim Díaz',
+    'luis diaz': 'Luis Díaz',
+    'rafinia': 'Raphinha',
+    'rafinha': 'Raphinha',
+    'raphinha': 'Raphinha',
+    'ronald araujo': 'Ronald Araújo',
+    'ter stegen': 'ter Stegen',
+    'fermin': 'Fermín',
+    'de jong': 'de Jong',
+    'frenkie': 'Frenkie',
+    'balde': 'Balde',
+    'olmo': 'Olmo',
+    'ferran torres': 'Ferran Torres',
+    'declan rice': 'Declan Rice',
+    'cole palmer': 'Cole Palmer',
+    'van dijk': 'van Dijk',
+    'vandijk': 'van Dijk',
+    'alisson': 'Alisson',
+    'ederson': 'Ederson',
+    'fernandes': 'Fernandes',
+    'fernandez': 'Fernández',
+    'rodri': 'Rodri',
+    'doku': 'Doku',
+    'ruben dias': 'Rúben Dias',
+    'gvardiol': 'Gvardiol',
+    'bernardo silva': 'Bernardo Silva',
+    'rashford': 'Rashford',
+    'garnacho': 'Garnacho',
+    'mainoo': 'Mainoo',
+    'onana': 'Onana',
+    'hojlund': 'Højlund',
+    'maddison': 'Maddison',
+    'kulusevski': 'Kulusevski',
+    'saliba': 'Saliba',
+    'martinelli': 'Martinelli',
+    'caicedo': 'Caicedo',
+    'cucurella': 'Cucurella',
+    'mac allister': 'Mac Allister',
+    'szoboszlai': 'Szoboszlai',
+    'isak': 'Isak',
+    'watkins': 'Watkins',
+    'olise': 'Olise',
+    'upamecano': 'Upamecano',
+    'dembele': 'Dembélé',
+    'hakimi': 'Hakimi',
+    'vitinha': 'Vitinha',
+    'marquinhos': 'Marquinhos',
+    'kvaratskhelia': 'Kvaratskhelia',
+    'gyokeres': 'Gyökeres',
+    'guirassy': 'Guirassy',
+    'lautaro': 'Lautaro',
+    'lautaro martinez': 'Lautaro Martínez',
+    'julian alvarez': 'Julián Álvarez',
+    'barella': 'Barella',
+    'marcus thuram': 'Marcus Thuram',
+    # reported 2026-10-10: "Aurelene Chuamini" for Aurelien Tchouameni --
+    # the model dropped the T (Arabic تشواميني -> "chuamini") and mangled the
+    # first name. First and last names are keyed separately so either half is
+    # caught on its own. 'aurelien' is accent-only (same person, always safe).
+    'chuamini': 'Tchouaméni',
+    'chouamini': 'Tchouaméni',
+    'tshuamini': 'Tchouaméni',
+    'aurelene': 'Aurélien',
+    'aurelien': 'Aurélien',
+}
+
+# letters that differ only by accents across the Latin spellings we accept
+_ACCENT_EQUIV = {
+    'a': 'aàáâãä',
+    'e': 'eèéêë',
+    'i': 'iìíîï',
+    'o': 'oòóôõö',
+    'u': 'uùúûü',
+    'c': 'cç',
+    'n': 'nñ',
+    'y': 'yýÿ',
+}
+
+
+def _name_variant_rx(variant):
+    """Word-boundary matcher for one curated _NAME_CANON key: case-blind,
+    accent-insensitive in both directions, spaces/hyphens interchangeable.
+    Only ever used with clearly-wrong keys. Never raises."""
+    parts = []
+    for ch in variant:
+        if ch == ' ':
+            parts.append(r'[\s\-]+')
+        elif ch == "'":
+            parts.append(r"['\u2019]?")
+        elif ch in _ACCENT_EQUIV:
+            eq = _ACCENT_EQUIV[ch]
+            parts.append('[' + eq + eq.upper() + ']')
+        else:
+            parts.append(re.escape(ch))
+    return re.compile(r'(?i)\b(?:' + ''.join(parts) + r')\b')
+
+
+# longest variant first, so "lamine yamal" always wins over its "yamal" tail
+_NAME_FIXES += [(_name_variant_rx(variant), good)
+                for variant, good in sorted(_NAME_CANON.items(),
+                                            key=lambda kv: -len(kv[0]))]
+
+# The one self-contradictory copy class seen in production: "missed a goal
+# that had been scored" -- a missed chance and a scored goal are opposites.
+# Surgical: only this exact construction, verb and case kept, no facts added.
+_CONTRADICTION_FIXES = [
+    (re.compile(r'(?i)\b(miss(?:ed|es)) a goal that '
+                r'(?:had|has|was|is) been scored\b'), r'\1 a chance'),
+]
+
 
 def repair_names(text):
+    """Deterministic post-pass on translator output (Groq path and free
+    fallback): curated name spellings, then the one known self-contradiction
+    pattern. Never raises."""
     t = text or ''
     for rx, good in _NAME_FIXES:
+        t = rx.sub(good, t)
+    for rx, good in _CONTRADICTION_FIXES:
         t = rx.sub(good, t)
     return t
 
@@ -740,8 +952,18 @@ def llm_fix(text):
               'an Arabic transliteration of a famous player or journalist must become '
               "that real person's actual sport name -- e.g. \"Thibaut Courtois\" (never "
               '"Tibo Kortuwa"), "Fabrizio Romano", "Kylian Mbappé", "Erling Haaland". '
-              'Never invent a spelling. Each distinct sentence may appear exactly '
-              'once -- never repeat the same sentence as both header and bullet. '
+              'Never invent a spelling and never coin a new variant of a real '
+              'name: a known player or team keeps its one standard Latin '
+              'spelling (Jules Koundé, never an invented "Condé"); when unsure, '
+              'keep the most standard spelling instead of guessing. Every '
+              'person and team name in the output must use its standard '
+              'Latin spelling, with no invented or altered variants. '
+              'Never write '
+              'a self-contradictory sentence -- a missed chance and a scored '
+              'goal are opposites, so state one clearly ("missed a chance", '
+              'never "missed a goal that had been scored"). Each distinct '
+              'sentence may appear exactly once -- never repeat the same '
+              'sentence as both header and bullet. '
               'Then format it as a clean '
               'readable list: header line first, then one bullet per item, each '
               'on its own line starting with the bullet char. Keep the emojis '
@@ -784,7 +1006,7 @@ def llm_fix(text):
         print('[lang] UNTRANSLATABLE arabic -> skip post')
         return ''
     print('[lang] all engines failed: posting original')
-    return text
+    return repair_names(text)
 
 
 def dedupe_lines(text):

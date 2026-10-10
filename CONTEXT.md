@@ -4,7 +4,40 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§135 — Telegram run-failure fixes + Arena fast-path bugfix).
+> Last updated: 2026-10-10 (§137 — Aurelene Chuamini fix).
+
+## 137. Aurelene Chuamini fix (2026-10-10)
+
+- Owner reported "Aurelene Chuamini" — the model dropped the T in Tchouameni
+  (Arabic تشواميني -> "chuamini") and mangled Aurelien -> "Aurelene". The
+  round-2 net only had tchuameni/tchouameni/tchouameny keys, so both halves
+  slipped through. Added wrong-only keys: chuamini/chouamini/tshuamini ->
+  Tchouameni, aurelene/aurelien -> Aurelien (first+last keyed separately, so
+  either half is caught alone). 10 new checks PASS, all existing suites still
+  PASS. Score-flip fix still in progress (worker.js/api/matches.js, separate
+  commit when proven — deliberately not swept into this one).
+
+## 136. 5min pace kept + night 30min, Arena primary, name-guard round 2 (2026-10-10)
+
+- SCHEDULE (owner: "make it 5min, only 3am-10am every 30min"): the `30` was
+  the job SAFETY TIMEOUT, never the post pace — cron was and stays `*/5`.
+  (Cutting timeout to 5 would re-cancel every ffmpeg run.) Added a `Night
+  throttle` step (Africa/Algiers clock, manual dispatches bypass): 03:00-09:59
+  only :00/:30 run the bridge/promo/SEO; quiet slots skip those steps and the
+  run goes green with state untouched. Base-10 arithmetic guards (08/09).
+- ARENA IS PRIMARY NOW (owner order): fast path merges Arena servers FIRST
+  (Yassir becomes backup) so playerSrc/embedUrl default to Arena; `via` is
+  `arena` when the default is Arena. Batch-path merge reordered the same way.
+  Verified: syntax OK, garbage-names negative still 0/0 (no live Arena game
+  at commit time for a positive check — re-verify when live).
+- NAME-GUARD ROUND 2 (Condé→Koundé class): +58 wrong-only variants
+  (Barca/Madrid squads, EPL top-6, UCL scorers; risky bare surnames still
+  excluded), prompt requires standard Latin spellings, and the all-engines-
+  failed fail-open path now also runs repair_names. nametest 70 checks PASS;
+  dedupe/lang/pyok/pipeline/reply all still PASS. No second contradiction
+  pattern exists in the wild — only the one guarded pattern.
+- Score-flip fix (Getafe/Barca card) is being debugged by a second agent in
+  worker.js/api/espn.js/index.html — lands as its own commit when proven.
 
 ## 135. Telegram run-failure fixes + Arena fast-path bugfix (2026-10-10)
 

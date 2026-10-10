@@ -2,7 +2,9 @@ name: telegram-news-bridge
 
 on:
   schedule:
-    # every 5 minutes (cron-job.org also dispatches as backup -- see TG_SETUP.md)
+    # Post pace is STILL every 5 minutes. (timeout-minutes: 30 below is only
+    # the safety cap for one run, not the posting frequency.) The Night
+    # throttle step makes 03:00-10:00 Algiers run :00/:30 only (30-min).
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
@@ -18,11 +20,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Night throttle (03-10 Algiers runs :00/:30 only)
+        id: throttle
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          H="$(TZ=Africa/Algiers date +%H)"
+          M="$(TZ=Africa/Algiers date +%M)"
+          # (10# forces base-10: 08/09 are invalid octal and would choke test.)
+          if [ "$((10#$H))" -ge 3 ] && [ "$((10#$H))" -lt 10 ]; then
+            if [ "$((10#$M % 30))" -ne 0 ]; then
+              echo "night throttle: $H:$M Algiers quiet slot, skipping posts"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        if: steps.throttle.outputs.skip != 'true'
         with:
           python-version: '3.11'
       - name: Install ffmpeg (only used to shrink >50MB clips)
+        if: steps.throttle.outputs.skip != 'true'
         # ffmpeg is preinstalled on github-hosted runners; apt only as a
         # bounded fallback so a stalled mirror download can never eat the
         # job budget again.
@@ -33,6 +55,7 @@ jobs:
             timeout 120 sudo apt-get install -y ffmpeg || echo "ffmpeg unavailable; oversized clips will be sent without compression"
           fi
       - name: Install deps
+        if: steps.throttle.outputs.skip != 'true'
         run: pip install telethon requests pillow
       - name: Load dedup state (state branch keeps Vercel quiet)
         run: |
@@ -44,6 +67,7 @@ jobs:
             echo "no state branch yet, using main checkout copy"
           fi
       - name: Run news bridge
+        if: steps.throttle.outputs.skip != 'true'
         env:
           TG_API_ID: ${{ secrets.TG_API_ID }}
           TG_API_HASH: ${{ secrets.TG_API_HASH }}
@@ -54,6 +78,7 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python scripts/tg_news.py
       - name: Kooradz promos (kickoffs + heartbeat)
+        if: steps.throttle.outputs.skip != 'true'
         # Promo failures must never block Save dedup state below.
         continue-on-error: true
         env:
@@ -61,6 +86,7 @@ jobs:
           TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
         run: python scripts/tg_promo.py
       - name: Channel SEO (about text + pinned keywords)
+        if: steps.throttle.outputs.skip != 'true'
         # SEO failures must never block Save dedup state below.
         continue-on-error: true
         env:
