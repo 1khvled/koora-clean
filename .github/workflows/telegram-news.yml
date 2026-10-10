@@ -80,7 +80,21 @@ jobs:
           remote = load(['git', 'show', 'origin/state:scripts/tg_state.json'])
           merged = dict(remote)
           for k, v in local.items():
-              if isinstance(v, list) or isinstance(merged.get(k), list):
+              if isinstance(v, dict) or isinstance(merged.get(k), dict):
+                  # dicts (source->channel id map, retry counters)
+                  # union per key, local wins ties; bound the id map.
+                  a = merged.get(k) or {}
+                  b = v or {}
+                  if not isinstance(a, dict):
+                      a = {}
+                  if not isinstance(b, dict):
+                      b = {}
+                  u = dict(a)
+                  u.update(b)
+                  if len(u) > 200:
+                      u = dict(list(u.items())[-200:])
+                  merged[k] = u
+              elif isinstance(v, list) or isinstance(merged.get(k), list):
                   # lists (the 'seen' fingerprints) union, newest wins
                   a = merged.get(k) or []
                   b = v or []
