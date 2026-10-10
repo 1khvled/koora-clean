@@ -54,6 +54,16 @@ jobs:
           else
             timeout 120 sudo apt-get install -y ffmpeg || echo "ffmpeg unavailable; oversized clips will be sent without compression"
           fi
+      - name: Cache pip wheels
+        if: steps.throttle.outputs.skip != 'true'
+        # Runners are ephemeral, so cache telethon's wheels in the Actions
+        # cache: reinstalls come from cache instead of PyPI (~1 min saved per
+        # run = ~1 min fresher posts). Standard GitHub action, no behavior
+        # change when the cache misses.
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-telethon
       - name: Install deps
         if: steps.throttle.outputs.skip != 'true'
         run: pip install telethon requests pillow
