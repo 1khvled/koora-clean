@@ -4,7 +4,27 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§132 — bot token rotated, secrets-only).
+> Last updated: 2026-10-10 (§133 — Arena source added, named arena).
+
+## 133. Arena source added, named arena (2026-10-10)
+
+- Owner supplied arena8x.live. Its match/servers JSON lives on a separate
+  host (arenaaliive22.site/api/v1/matches, same base their own page uses).
+  Servers are DIRECT m3u8/mp4 (ad-free by nature: raw segments, no page).
+- `api/player.js`: `resolveArena` (Arabic-vs-Arabic teamScore + kickoff
+  proximity, same strict gates; skips finished/hidden/disabled/non-https/
+  non-direct and embed-type servers in v1) wired as a first-wave resolver
+  with `Arena` labels, `kind: 'arena'`. Verified live against a real match
+  (1 deduped server, found:true) + negative (garbage names: zero servers).
+- `player.html` (+ identical inline mirror): native `<video>` playback for
+  .m3u8 (Safari/iOS), 9s zero-progress watchdog that skips instead of
+  staring, kind tag shows `Arena`, reload replays. hls.js deliberately NOT
+  bundled: the CDN sends no ACAO for any Origin (verified matrix), so XHR
+  playback fails cross-origin for everyone — 619KB dead weight + a
+  third-party exception for zero benefit. If the CDN ever sends ACAO, the
+  playHls branch is the documented place. CSP gained only
+  `media-src ... gamhed.online` (native <video> needs it; no connect-src
+  change since nothing XHRs). No new third-party scripts/hosts.
 
 ## 132. Bot token rotated, secrets-only (2026-10-10)
 

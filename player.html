@@ -71,6 +71,7 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);
 .stage{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;
   aspect-ratio:16/9;border:1px solid var(--line)}
 .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.stage video#hlsVideo{position:absolute;inset:0;width:100%;height:100%;background:#000}
 .shield{position:absolute;inset:0;pointer-events:none;border:2px solid transparent;
   transition:border-color .2s;z-index:5}
 .shield.hit{border-color:var(--gold)}
@@ -571,6 +572,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
   <div class="stage">
     <iframe id="player" title="player" tabindex="-1" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       sandbox="allow-scripts allow-same-origin allow-presentation" loading="eager"></iframe>
+    <video id="hlsVideo" controls playsinline preload="metadata" hidden></video>
     <div class="stage-live" id="stageLive" hidden></div>
     <div class="shield" id="shield"></div>
     <div class="click-shield" id="clickShield" role="button" tabindex="0" aria-label="Tap to watch">
@@ -2255,6 +2257,7 @@ function kindTag(s){
   if (s.kind === 'direct') return t('kindDirect');
   if (s.kind === 'live') return t('kindFull');
   if (s.kind === 'tv') return t('kindTv');
+  if (s.kind === 'arena') return 'Arena';
   return t('kindServer');
 }
 function subTag(s){
@@ -2382,6 +2385,17 @@ function goServer(i, auto, _tried){
     goServer(srvIdx + 1, auto, (_tried || 0) + 1);
     return;
   }
+  if (/\.m3u8($|[?#])/i.test(src)){
+    if (playHls(src, () => goServer(srvIdx + 1, auto, (_tried || 0) + 1))) {
+      lastCleanSrc = src;
+      if (auto) toast(t('tryingNext'));
+      return;
+    }
+    if ((_tried || 0) >= serverList.length - 1){ toast(t('noValid')); return; }
+    goServer(srvIdx + 1, auto, (_tried || 0) + 1);
+    return;
+  }
+  stopHls();
   iframe.src = src;
   lastCleanSrc = src;
   paintNow();
@@ -2391,6 +2405,63 @@ function goServer(i, auto, _tried){
 function rearmShield(){
   clickShield.classList.remove('hidden');
   try{iframe.setAttribute('tabindex','-1');}catch{}
+}
+let hlsInst = null;
+let hlsTimer = 0;
+function stopHls(){
+  try { clearTimeout(hlsTimer); hlsTimer = 0; } catch {}
+  try { if (hlsInst){ hlsInst.destroy(); hlsInst = null; } } catch {}
+  try {
+    const v = document.getElementById('hlsVideo');
+    if (v){ v.onerror = null; v.onloadeddata = null; try { v.pause(); } catch {} v.removeAttribute('src'); v.load(); v.hidden = true; }
+  } catch {}
+  try { iframe.hidden = false; } catch {}
+}
+/* Direct-stream (m3u8) servers, e.g. Arena: native HLS where supported
+   (Safari), else vendored hls.js. Returns false when unplayable here so
+   the caller skips to the next server. */
+function playHls(src, onFatal){
+  stopHls();
+  const v = document.getElementById('hlsVideo');
+  if (!v) return false;
+  let native = false;
+  try { native = !!v.canPlayType('application/vnd.apple.mpegurl'); } catch {}
+  iframe.hidden = true; v.hidden = false; hideShield();
+  const fail = () => { try { onFatal && onFatal(); } catch {} };
+  // Watchdog: a dead stream must skip, never stare. Fires only with zero
+  // progress (readyState 0); autoplay-blocked-but-loading video is safe.
+  const armWatchdog = () => {
+    try { clearTimeout(hlsTimer); } catch {}
+    hlsTimer = setTimeout(() => {
+      try {
+        const vv = document.getElementById('hlsVideo');
+        if (vv && vv.readyState > 0) return;
+      } catch {}
+      fail();
+    }, 9000);
+  };
+  const clearWatchdog = () => { try { clearTimeout(hlsTimer); hlsTimer = 0; } catch {} };
+  try {
+    if (native){
+      v.onerror = () => fail();
+      v.onloadeddata = () => clearWatchdog();
+      v.src = src;
+      armWatchdog();
+      const p = v.play(); if (p && p.catch) p.catch(() => {});
+      return true;
+    }
+    if (window.Hls && window.Hls.isSupported()){
+      const h = new window.Hls({ capLevelToPlayerSize: true, maxBufferLength: 30 });
+      hlsInst = h;
+      h.on(window.Hls.Events.ERROR, (_, data) => { if (data && data.fatal) fail(); });
+      h.on(window.Hls.Events.MANIFEST_PARSED, () => clearWatchdog());
+      h.loadSource(src); h.attachMedia(v);
+      armWatchdog();
+      const p = v.play(); if (p && p.catch) p.catch(() => {});
+      return true;
+    }
+  } catch {}
+  return false;
 }
 
 async function loadRealPlayer(){
@@ -2663,6 +2734,7 @@ document.getElementById('btnFull').onclick = () => {
 /* reload (cache-bust, hash-safe via URL API) */
 document.getElementById('btnReload').onclick = () => {
   if (!lastCleanSrc) return;
+  if (/\.m3u8($|[?#])/i.test(lastCleanSrc)){ goServer(srvIdx, false); return; }
   try {
     const u = new URL(lastCleanSrc, location.origin);
     u.searchParams.set('_', Date.now());

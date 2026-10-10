@@ -555,6 +555,62 @@ const resolveYacine = async (home, away, startIso) => {
     } catch { return null; }
   };
 
+  // Arena (arena8x.live, owner-supplied 2026-10-10): Arabic JSON API on a
+  // separate host (arenaaliive22.site — the same base their own page uses).
+  // Servers are DIRECT m3u8/mp4 streams: ad-free by nature (raw segments,
+  // no embed page, no ads). First-wave Arabic resolver like Yacine (NOT the
+  // EN-mirror fallback): team names are Arabic on both sides, matched with
+  // teamScore + kickoff proximity under the same strict gates. Embed-type
+  // servers (twitch/kick/youtube/okru) are skipped in v1: each needs
+  // per-type URL reshaping with no live example to verify against.
+  const ARENA_API = 'https://arenaaliive22.site';
+  const arenaDay = (startIso) => {
+    const ms = Date.parse(startIso || '');
+    const d = new Date(Number.isFinite(ms) ? ms : Date.now());
+    // Riyadh is UTC+3 year-round (no DST) — same calendar their day() uses.
+    return new Date(d.getTime() + 3 * 3600 * 1000).toISOString().slice(0, 10);
+  };
+  const resolveArena = async (home, away, startIso) => {
+    const nH = normAr(home), nA = normAr(away);
+    if (!nH && !nA) return null;
+    const qStartMs = Date.parse(startIso || '') || 0;
+    try {
+      const data = await stFetch(ARENA_API,
+        '/api/v1/matches?date=' + arenaDay(startIso) + '&scope=all', 4500);
+      const list = data && Array.isArray(data.matches) ? data.matches : [];
+      let best = null, bestScore = -1;
+      for (const m of list) {
+        if (!m || m.hidden) continue;
+        const st = String((m && m.state) || '').toLowerCase();
+        if (st === 'finished' || st === 'ended') continue; // dead stream
+        const t1 = (m.home_team && m.home_team.name) || '';
+        const t2 = (m.away_team && m.away_team.name) || '';
+        if (!t1 || !t2) continue;
+        const dt = Date.parse((m && m.start_at) || '') || 0;
+        if (qStartMs && dt && Math.abs(dt - qStartMs) > 90 * 60000) continue;
+        const c1 = normAr(t1), c2 = normAr(t2);
+        const straight = teamScore(nH, c1) + teamScore(nA, c2);
+        const swapped = teamScore(nH, c2) + teamScore(nA, c1);
+        const score = Math.max(straight, swapped);
+        if (score > bestScore) { bestScore = score; best = m; }
+      }
+      // Same strict gate as Yacine (>= 2.5 of max 4): a miss stays a miss,
+      // never another game's stream.
+      if (!best || bestScore < 2.5) return null;
+      const servers = [];
+      for (const sv of (best.servers || [])) {
+        if (!sv || sv.enabled === false) continue;
+        const u = String(sv.url || '').trim();
+        if (!/^https:\/\//i.test(u)) continue;
+        if (!/\.(m3u8|mp4)($|[?#])/i.test(u)) continue; // v1: direct only
+        if (servers.some(x => x.url === u)) continue;
+        servers.push({ label: 'Arena', url: u, kind: 'arena' });
+      }
+      if (!servers.length) return null;
+      return { servers, matchId: String(best.id || '') };
+    } catch { return null; }
+  };
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=30');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -698,6 +754,10 @@ const resolveYacine = async (home, away, startIso) => {
       resolveYacine(matchHome, matchAway, kickoff).catch(() => null),
       new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
     ]),
+    Promise.race([
+      resolveArena(matchHome, matchAway, kickoff).catch(() => null),
+      new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
+    ]),
     // Phase 1 still runs with mirrors OFF: it only answers "does an ad-carrying
     // mirror have this fixture?", costs one parallel list fetch, and feeds
     // adsBlocked. Phase 2 (the actual embed URLs) is what stays gated.
@@ -800,7 +860,7 @@ const resolveYacine = async (home, away, startIso) => {
     // Yassir already answered (or was tried) in the fast path above; the
     // name-matched resolvers were started before this chain and are awaited
     // here. Yassir is folded in again only if the fast path did not return.
-    const [yacine, enHit, vipHit] = await batchP;
+    const [yacine, arenaHit, enHit, vipHit] = await batchP;
     const servers = [];
     if (id && !yassirHit) {
       const y2 = await resolveYassir(id).catch(() => null);
@@ -826,6 +886,11 @@ const resolveYacine = async (home, away, startIso) => {
     if (yacine && yacine.servers) {
       yacine.servers.forEach((s, i) => pushUnique({
         label: 'سيرفر ' + (i + 1), url: s.url, kind: 'leaf',
+      }));
+    }
+    if (arenaHit && arenaHit.servers) {
+      arenaHit.servers.forEach((s) => pushUnique({
+        label: s.label || 'Arena', url: s.url, kind: 'arena',
       }));
     }
     // Hidden EN fallback (owner-authorized): phase 2, ONLY when Yassir +
