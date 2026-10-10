@@ -4,7 +4,21 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§148 — full-quality photos via reader).
+> Last updated: 2026-10-11 (§149 — old-post fixes: scrub-edit + backfill).
+
+## 149. Old-post fixes: scrub-edit + backfill (2026-10-11)
+
+- Survey of 120 channel posts: 30/31 photos <1000px (systematic web
+  downscale), 0 Arabic leftovers, 1 more leaked invite (#1728 SerieALeague1).
+- tg_cleanup.py upgraded: flagged posts with real content are scrub-EDITED
+  (editMessageCaption/editMessageText, link lines and dangling short labels
+  dropped, everything else kept) instead of deleted; link-only posts still
+  deleted. Cleanuptest 8/8.
+- New tg_backfill.py + cleanup workflow backfill job (dispatch-only):
+  upgrades small photos to reader-session originals via editMessageMedia
+  (captions kept, bigger-bytes gate, 10/run cap) plus DONOR overrides for
+  wrong-photo fixes (#1788 <- 377508's Tchouameni photo). Backfilltest 9/9.
+- Executing now: #1728 scrub-edit, #1788 donor fix, then batch upgrades.
 
 ## 148. Full-quality photos via reader (2026-10-11)
 
