@@ -2075,102 +2075,119 @@ def public_preview_run(target):
     fresh = [x for x in items if x['key'] > last and x['key'] not in queued]
     work.extend(fresh)
     posted = 0
+    def _note_fail(k, what):
+        # One counted retry entry (max 3 attempts, then loud give-up) for any
+        # per-post failure: refused send, nothing to send, or a crash in the
+        # media/link path. Without this the cursor advances and the post is
+        # silently lost.
+        try:
+            n = int(tries.get(k, 0) or 0) + 1
+        except Exception:
+            n = 4
+        if n > 3:
+            print('#%d: %s %d times, giving up (post lost)' % (k, what, n))
+            tries.pop(k, None)
+        else:
+            print('#%d: %s (attempt %d/3), will retry next run' % (k, what, n))
+            tries[k] = n
     for x in work:
         if posted >= MAX_POSTS_PER_RUN:
             break
-        txt = usable_text(x['text'])
-        if not txt and not x['photo']:
-            print('skipped empty #%d (no text, no photo)' % x['key'])
-            state['offside'] = x['key']
-            continue
-        src_txt = full_text(x['key'], txt)  # never mention/tag source
-        # Translate BEFORE the repeat check: the seeded window holds the
-        # English captions actually posted, so only the English fingerprint
-        # can match them when state was lost or rolled back.
-        body = llm_fix(src_txt)
-        if already_posted(state, src_txt, body):
-            print('skipped repeat #%d fp=%s' % (x['key'], fingerprint(src_txt)))
-            state['offside'] = x['key']
-            continue
-        if is_promo(src_txt) or is_promo(body):
-            print('skipped promo post #%d' % x['key'])
-            state['offside'] = x['key']
-            continue
-        body = with_link(body, match_link(src_txt))
-        reply_to = None
-        parent = int(x.get('reply_to') or 0)
-        if parent:
-            reply_to = (state.get('msgmap') or {}).get(str(parent))
-            if not reply_to:
-                print('#%d: parent #%d not posted here, unthreaded'
-                      % (x['key'], parent))
-        kind, vurl = source_media(x['key'], also=x.get('preview_video'))
-        vid = None
-        anim = None
-        if kind in ('video', 'animation'):
-            # Telegram knows the real type (gif vs normal clip) and the real
-            # bytes; the web preview cannot always tell or serve them.
-            tkind, blob = tele_media(x['key'])
-            if tkind and blob:
-                if tkind == 'animation':
-                    anim = blob
-                    print('#%d: real GIF (%d bytes)' % (x['key'], len(blob)))
-                else:
-                    vid = blob
-                    print('#%d: real VIDEO (%d bytes)' % (x['key'], len(blob)))
-            elif tkind:
-                print('#%d: %s too large for the bot api -> framing it'
-                      % (x['key'], tkind))
-            elif vurl:
-                vid = dl_video(vurl)
-                print('#%d: no session, web preview VIDEO (%d bytes)'
-                      % (x['key'], len(vid or b'')))
-                if not vid:
-                    print('#%d: VIDEO FAILED -> falling back to photo' % x['key'])
-            elif kind == 'animation':
-                print('#%d: GIF but neither telegram nor the preview gave '
-                      'bytes; framing it' % x['key'])
-        else:
-            print('#%d: source has no video (kind=%s)' % (x['key'], kind))
-        img = None
-        if not vid and not anim:
-            url = post_photo(x['key'], x.get('photo') or '')
-            if url:
-                try:
-                    img = dl_photo(url)
-                except Exception:
-                    img = None
         try:
-            out = None
-            if img:
-                kind, got = brand_photo(img)
-                out = got if kind == 'photo' else None  # branding: text only
-            result = send_post(target, body, out, vid, anim,
-                               reply_to=reply_to)
-            if result:
-                posted += 1
-                tries.pop(x['key'], None)
-                print('#%d: posted %s' % (
-                    x['key'], 'GIF' if anim else ('VIDEO' if vid else
-                        ('PHOTO' if out else 'TEXT'))))
-                record_seen(state, src_txt, body)
-                if isinstance(result, int):
-                    mm = state.setdefault('msgmap', {})
-                    mm[str(x['key'])] = result
-                    while len(mm) > 200:
-                        mm.pop(next(iter(mm)), None)
-            elif result is False:
-                n = int(tries.get(x['key'], 0) or 0) + 1
-                if n > 3:
-                    print('#%d: SEND FAILED %d times, giving up (post lost)'
-                          % (x['key'], n))
+            txt = usable_text(x['text'])
+            if not txt and not x['photo']:
+                print('skipped empty #%d (no text, no photo)' % x['key'])
+                state['offside'] = x['key']
+                continue
+            src_txt = full_text(x['key'], txt)  # never mention/tag source
+            # Translate BEFORE the repeat check: the seeded window holds the
+            # English captions actually posted, so only the English fingerprint
+            # can match them when state was lost or rolled back.
+            body = llm_fix(src_txt)
+            if already_posted(state, src_txt, body):
+                print('skipped repeat #%d fp=%s' % (x['key'], fingerprint(src_txt)))
+                state['offside'] = x['key']
+                continue
+            if is_promo(src_txt) or is_promo(body):
+                print('skipped promo post #%d' % x['key'])
+                state['offside'] = x['key']
+                continue
+            body = with_link(body, match_link(src_txt))
+            reply_to = None
+            parent = int(x.get('reply_to') or 0)
+            if parent:
+                reply_to = (state.get('msgmap') or {}).get(str(parent))
+                if not reply_to:
+                    print('#%d: parent #%d not posted here, unthreaded'
+                          % (x['key'], parent))
+            kind, vurl = source_media(x['key'], also=x.get('preview_video'))
+            vid = None
+            anim = None
+            if kind in ('video', 'animation'):
+                # Telegram knows the real type (gif vs normal clip) and the real
+                # bytes; the web preview cannot always tell or serve them.
+                tkind, blob = tele_media(x['key'])
+                if tkind and blob:
+                    if tkind == 'animation':
+                        anim = blob
+                        print('#%d: real GIF (%d bytes)' % (x['key'], len(blob)))
+                    else:
+                        vid = blob
+                        print('#%d: real VIDEO (%d bytes)' % (x['key'], len(blob)))
+                elif tkind:
+                    print('#%d: %s too large for the bot api -> framing it'
+                          % (x['key'], tkind))
+                elif vurl:
+                    vid = dl_video(vurl)
+                    print('#%d: no session, web preview VIDEO (%d bytes)'
+                          % (x['key'], len(vid or b'')))
+                    if not vid:
+                        print('#%d: VIDEO FAILED -> falling back to photo' % x['key'])
+                elif kind == 'animation':
+                    print('#%d: GIF but neither telegram nor the preview gave '
+                          'bytes; framing it' % x['key'])
+            else:
+                print('#%d: source has no video (kind=%s)' % (x['key'], kind))
+            img = None
+            if not vid and not anim:
+                url = post_photo(x['key'], x.get('photo') or '')
+                if url:
+                    try:
+                        img = dl_photo(url)
+                    except Exception:
+                        img = None
+            try:
+                out = None
+                if img:
+                    kind, got = brand_photo(img)
+                    out = got if kind == 'photo' else None  # branding: text only
+                result = send_post(target, body, out, vid, anim,
+                                   reply_to=reply_to)
+                if result:
+                    posted += 1
                     tries.pop(x['key'], None)
-                else:
-                    print('#%d: SEND FAILED (attempt %d/3), will retry next run'
-                          % (x['key'], n))
-                    tries[x['key']] = n
+                    print('#%d: posted %s' % (
+                        x['key'], 'GIF' if anim else ('VIDEO' if vid else
+                            ('PHOTO' if out else 'TEXT'))))
+                    record_seen(state, src_txt, body)
+                    if isinstance(result, int):
+                        mm = state.setdefault('msgmap', {})
+                        mm[str(x['key'])] = result
+                        while len(mm) > 200:
+                            mm.pop(next(iter(mm)), None)
+                elif result is False or result is None:
+                    # False = Telegram refused; None = nothing to send (no body,
+                    # no media — e.g. translation failed this run). Both are
+                    # retried: quota and downloads recover between runs.
+                    _note_fail(x['key'], 'SEND FAILED')
+            except Exception as e:
+                print('post failed:', str(e)[:120])
+                # A crash in the send path used to advance offside with no retry
+                # entry: silent loss. Count it like a failed send instead.
+                _note_fail(x['key'], 'FAILED')
         except Exception as e:
             print('post failed:', str(e)[:120])
+            _note_fail(x['key'], 'FAILED')
         state['offside'] = x['key']
         time.sleep(2)
     save_state(state)

@@ -4,7 +4,27 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§142 — OpenRouter free engines wired).
+> Last updated: 2026-10-10 (§143 — silent post-loss fixes).
+
+## 143. Silent post-loss fixes (2026-10-10)
+
+- Owner: some source posts never reach the channel. Found three silent-loss
+  paths by reading the run loop (a source-vs-channel diff agent is also
+  running; its findings land separately):
+- (1) send_post returning None (nothing to send — untranslatable body and no
+  media) fell through every branch: cursor advanced, no retry, no count.
+  Now joins the retry queue with the same 3-attempt cap.
+- (2) Any exception in the per-post path advanced offside with no retry
+  entry; worse, crashes in the media/link section (outside the send try)
+  aborted the WHOLE run before save_state — losing progress and risking
+  duplicates next run. The full per-post body is now inside an outer try
+  whose except counts a retry entry; shared _note_fail keeps the log
+  strings identical.
+- (3) Priority confirmed safe: preview items sort oldest-first, so the
+  10/run cap sheds the newest (still in-window next run), never the oldest.
+- Proof: new losstest.py (None-loss and crash-loss both retry then post,
+  entries cleared) + all 11 prior suites PASS (pipe/fix/reply/dedupe/names/
+  lang/pyok/retry/orchain/e2e/shield/compress).
 
 ## 142. OpenRouter free engines wired (2026-10-10)
 
