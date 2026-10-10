@@ -4,7 +4,24 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§147 — photo-ownership fix + liveness).
+> Last updated: 2026-10-11 (§148 — full-quality photos via reader).
+
+## 148. Full-quality photos via reader (2026-10-11)
+
+- Owner: photos look degraded. Measured live: channel 640x800 vs source
+  640x800 (same dims, bytes within ~4%%) — the pipeline itself does NOT
+  degrade (no re-encode anywhere: dl returns raw bytes, brand filter is
+  classify-only, upload is raw multipart). The ceiling is the SOURCE: the
+  web preview only serves ~800px downscales while the app shows bigger
+  originals.
+- Fix: new tele_photo() pulls the ORIGINAL bytes via the reader session
+  (same pattern as the video path) and wins over the web biggest-file;
+  web fallback, 10MB cap, brand filter, and logging all unchanged. Tests:
+  telephototest 6/6 (original preferred, session/photo/oversize/crash all
+  fall back clean) + full battery green.
+- Honest remainder: Telegram still applies its own mild photo processing on
+  upload (unavoidable short of document mode, which would kill inline
+  previews — not proposed).
 
 ## 147. Photo-ownership fix + liveness (2026-10-11)
 

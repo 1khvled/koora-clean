@@ -2025,6 +2025,35 @@ def _tele_client():
     return _TELE['client']
 
 
+def tele_photo(mid, limit=10000000):
+    """Original photo bytes straight from telegram (full quality). The web
+    preview only serves ~800px downscales (measured live: channel 640x800 vs
+    the same photo sharper in-app), so the reader session's bytes win whenever
+    present. ''/None when unavailable or over the cap (web fallback covers
+    it). Never raises, never re-encodes."""
+    try:
+        cl = _tele_client()
+        if cl is None:
+            return None
+        try:
+            if not cl.is_connected():
+                cl.connect()
+            msg = cl.get_messages('Offsideahdaff', ids=int(mid))
+            ph = getattr(msg, 'photo', None)
+            if ph is None:
+                return None
+            raw = cl.download_media(ph, bytes)
+            if not raw or len(raw) > limit:
+                return None
+            return raw
+        except Exception as e:
+            print('photo: tele fetch failed #%s (%s)'
+                  % (mid, str(e)[:70] or type(e).__name__))
+            return None
+    except Exception:
+        return None
+
+
 def tele_media(mid, limit=48000000):
     """(true_kind, bytes) straight from telegram. true_kind is 'animation' for a
     real gif, 'video' for a normal clip, '' when the message has no document.
@@ -2364,15 +2393,20 @@ def public_preview_run(target):
                 print('#%d: source has no video (kind=%s)' % (x['key'], kind))
             img = None
             if not vid and not anim:
-                url = post_photo(x['key'], x.get('photo') or '')
-                if url:
-                    # URL tail identifies the file in run logs: the next
-                    # photo mismatch is traceable to its exact source.
-                    print('#%d: photo %s' % (x['key'], url[-32:]))
-                    try:
-                        img = dl_photo(url)
-                    except Exception:
-                        img = None
+                # Full original first (reader session), web biggest fallback.
+                img = tele_photo(x['key'])
+                if img:
+                    print('#%d: real PHOTO (%d bytes)' % (x['key'], len(img)))
+                else:
+                    url = post_photo(x['key'], x.get('photo') or '')
+                    if url:
+                        # URL tail identifies the file in run logs: the next
+                        # photo mismatch is traceable to its exact source.
+                        print('#%d: photo %s' % (x['key'], url[-32:]))
+                        try:
+                            img = dl_photo(url)
+                        except Exception:
+                            img = None
             try:
                 out = None
                 if img:
