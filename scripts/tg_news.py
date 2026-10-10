@@ -740,7 +740,9 @@ def llm_fix(text):
               'an Arabic transliteration of a famous player or journalist must become '
               "that real person's actual sport name -- e.g. \"Thibaut Courtois\" (never "
               '"Tibo Kortuwa"), "Fabrizio Romano", "Kylian Mbappé", "Erling Haaland". '
-              'Never invent a spelling. Then format it as a clean '
+              'Never invent a spelling. Each distinct sentence may appear exactly '
+              'once -- never repeat the same sentence as both header and bullet. '
+              'Then format it as a clean '
               'readable list: header line first, then one bullet per item, each '
               'on its own line starting with the bullet char. Keep the emojis '
               'and the item order; keep scores, numbers, and minute marks '
@@ -772,17 +774,39 @@ def llm_fix(text):
                      out):
             print('[lang] groq output rejected (meta-label)')
             continue  # it narrated the job instead of doing it
-        return repair_names(out)
+        return repair_names(dedupe_lines(out))
     fb = translate_free_ar_en(text)
     if fb and fb != text and not has_arabic(fb):
         print('[lang] free fallback used')
-        return repair_names(fb)
+        return repair_names(dedupe_lines(fb))
     if has_arabic(text):
         # Channel is English-only. Rather than post Arabic, drop the post.
         print('[lang] UNTRANSLATABLE arabic -> skip post')
         return ''
     print('[lang] all engines failed: posting original')
     return text
+
+
+def dedupe_lines(text):
+    """Drop repeated lines (case/punctuation-insensitive, bullet-aware), keep
+    first occurrence. The translator echoes single-item posts as header +
+    identical bullet; this guarantees it never ships, whatever the model does.
+    Never raises; returns the text unchanged when nothing repeats."""
+    try:
+        import re as _re
+        lines = (text or '').split('\n')
+        seen = set()
+        keep = []
+        for ln in lines:
+            key = _re.sub(r'^[\s\u2022\-\*\u00b7\d\.\)]+', '', ln.strip())
+            key = _re.sub(r'\s+', ' ', key).strip().lower()
+            if not key or key not in seen:
+                keep.append(ln)
+                if key:
+                    seen.add(key)
+        return '\n'.join(keep).strip()
+    except Exception:
+        return text
 
 
 def photo_name(b):

@@ -4,7 +4,16 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§133 — Arena source added, named arena).
+> Last updated: 2026-10-10 (§134 — echo-post fix + Arena verify note).
+
+## 134. Echo-post fix (2026-10-10)
+
+- Owner showed posts repeating the same sentence as header + identical
+  bullet. Cause: prompt asked for "header then one bullet per item" and the
+  model duplicated single-item posts. Fixed twice: prompt now says each
+  distinct sentence appears exactly once, plus deterministic `dedupe_lines()`
+  in `llm_fix` (both Groq + fallback paths) that drops case/punctuation-
+  insensitive duplicate lines regardless of model behavior. Unit-tested.
 
 ## 133. Arena source added, named arena (2026-10-10)
 
