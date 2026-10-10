@@ -949,12 +949,14 @@ def ffmpeg_path():
     return shutil.which('ffmpeg')
 
 
-def compress_video(data, limit=48000000, timeout=600):
+def compress_video(data, limit=48000000, timeout=90):
     """Shrink an oversized clip just enough to fit the bot api cap.
 
     Never touches anything already under the cap. Tries a CRF ladder and only
     steps down in quality as far as it must; audio is re-encoded small because
-    it is a tiny share of the file. Returns (bytes, crf) or (None, 0)."""
+    it is a tiny share of the file. Returns (bytes, crf) or (None, 0).
+    Bounded on purpose: 90s per encode and at most 2 ladder steps, so one
+    oversized clip can never eat the whole workflow job budget."""
     if not data or len(data) <= limit:
         return data, 0
     exe = ffmpeg_path()
@@ -971,6 +973,7 @@ def compress_video(data, limit=48000000, timeout=600):
     # CRF first, no scaling: usually enough and barely touches the picture.
     ladder = [(24, None), (27, None), (30, None),
               (30, '1280:-2'), (32, '854:-2')]
+    failed = 0
     try:
         for crf, scale in ladder:
             vf = ['-vf', 'scale=%s' % scale] if scale else []
@@ -996,6 +999,11 @@ def compress_video(data, limit=48000000, timeout=600):
                       % (len(data), len(out), crf,
                          ', %sp' % scale if scale else ''))
                 return out, crf
+            # Two steps still over the cap: stop the ladder rather than
+            # spend more of the job budget on a clip that will not fit.
+            failed += 1
+            if failed >= 2:
+                break
     finally:
         for p in (src, dst):
             try:
@@ -1233,12 +1241,28 @@ def public_preview_run(target):
             tries.pop(k, None)
     by_key = {x['key']: x for x in items}
     work = []
+    rebuilt = 0
     for k in sorted(tries):
         if k in by_key:
             work.append(by_key[k])
-        else:
+            continue
+        # Left the ~20-post preview page: rebuild it from the single-post
+        # page so a failed send still gets its remaining attempts (up to 3
+        # runs) instead of being lost at the window edge. Only a post that
+        # cannot be rebuilt (deleted or fetch failed) is dropped for good.
+        if rebuilt >= MAX_POSTS_PER_RUN:
+            print('dropping retry #%d: retry budget spent this run' % k)
+            tries.pop(k, None)
+            continue
+        rebuilt += 1
+        rtxt, rphoto = extract_post(fetch_single(k), k)
+        if not rtxt and not rphoto:
             print('dropping retry #%d: left the preview window' % k)
             tries.pop(k, None)
+            continue
+        print('#%d: retry was outside the preview window, rebuilt it' % k)
+        work.append({'key': k, 'text': rtxt, 'photo': rphoto,
+                     'preview_video': '', 'reply_to': 0})
     queued = {x['key'] for x in work}
     fresh = [x for x in items if x['key'] > last and x['key'] not in queued]
     work.extend(fresh)
