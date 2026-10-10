@@ -1461,12 +1461,29 @@ def llm_fix(text):
     # factory). Only this protected copy is sent out; `text` below is kept
     # for the length guards.
     src = protect_names(text)
+    import time as _t
     for model in models:
-        try:
-            out = groq_chat(key, model, system, src[:3500])
-            print('[lang] groq ok: %s (%d chars)' % (model, len(out)))
-        except Exception as e:
-            print('[lang] groq fail: %s %s' % (model, str(e)[:80] or type(e).__name__))
+        out = None
+        for attempt in (1, 2):
+            try:
+                out = groq_chat(key, model, system, src[:3500])
+                print('[lang] groq ok: %s (%d chars)' % (model, len(out)))
+                break
+            except Exception as e:
+                msg = str(e)[:80] or type(e).__name__
+                print('[lang] groq fail: %s %s' % (model, msg))
+                out = None
+                # 429 (shared free quota): wait out the window and retry the
+                # SAME model once before falling through. Anything else moves
+                # on immediately; the happy path never sleeps.
+                if attempt == 1 and '429' in msg:
+                    try:
+                        _t.sleep(8)
+                    except Exception:
+                        pass
+                    continue
+                break
+        if out is None:
             continue
         if not out or len(out) < 20 or len(out) > 3900:
             continue

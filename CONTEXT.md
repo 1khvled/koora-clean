@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§140 — translator overhaul: name shield + prompt).
+> Last updated: 2026-10-10 (§141 — free-translator hunt + 429 retry).
+
+## 141. Free-translator hunt + 429 retry (2026-10-10)
+
+- Owner: find another FREE way to translate. Probed live, all keyless
+  third-party options are dead: Pollinations (500/paywalled 402), Lingva
+  (403), Bing widget (401 bot-gate, worse from runners), duck.ai (no
+  handshake), GitHub Models (non-response "OK"), SimplyTranslate (empty),
+  Apertium (dead cert). Everything working needs an account/key, which only
+  the owner can create. Verdict: NO new translator shipped — chain stays
+  Groq -> MyMemory (key already wired) -> Google gtx. Per only-working-
+  features, nothing unverifiable went in.
+- Instead fixed the real leak: Groq 429s fell straight through to 2012-feel
+  MT. llm_fix now retries the SAME model once after an 8s pause on 429
+  before moving on; non-429 errors fail fast, happy path sleeps zero.
+  groqretrytest 12/12 + all prior suites still PASS.
+- If the owner ever drops a free OpenRouter/Gemini/Mistral key into a
+  secret, wiring it as one more models entry is a 5-line change — say the
+  word.
 
 ## 140. Translator overhaul: name shield + prompt (2026-10-10)
 
