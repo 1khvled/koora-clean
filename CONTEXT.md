@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§144 — reply-400 + zombie-queue fixes).
+> Last updated: 2026-10-10 (§145 — owner error DMs).
+
+## 145. Owner error DMs (2026-10-10)
+
+- Owner: the messi bot should DM on posting errors. Gap: the workflow alert
+  only fires when the whole run crashes — per-post deaths (give-ups, blind
+  runs) stay green and silent. Fix in tg_news.py: give-ups are collected and
+  preview-fetch failure is caught, then _maybe_alert DMs owner chat
+  5625295907 via the bot (post key + reason + run link, max 8 lines).
+- Anti-spam + safety: 30-min cooldown persisted in state, skip without bot
+  token, whole sender wrapped so it can never crash a run, no secrets in the
+  message (id + link only).
+- Proof: new alerttest.py 14/14 (give-up DMs once with key+reason, cooldown
+  suppresses, no-token safe, blind run DMs) + all 10 prior suites PASS.
 
 ## 144. Reply-400 + zombie-queue fixes (2026-10-10)
 
