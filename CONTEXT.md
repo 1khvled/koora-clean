@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§131 — threaded replies like the source).
+> Last updated: 2026-10-10 (§132 — bot token rotated, secrets-only).
+
+## 132. Bot token rotated, secrets-only (2026-10-10)
+
+- **Owner revoked the bot token and pasted the new one in chat.** Verified:
+  repo is PUBLIC (not private), new token valid via getMe (@messistatBOT).
+  Repo-wide scan found exactly one token-shaped value: the old revoked token
+  in `scripts/tg_config.json`. No session/api-hash material in git.
+- `TELEGRAM_BOT_TOKEN` secret updated (HTTP 204, sealed box). `bot_token`
+  emptied in `tg_config.json` — the Actions secret is now the single source;
+  nothing live may sit in the public repo again.
+- Caught by the rotation: the SEO step had no `env:` block and lived off the
+  committed token, so it failed once (`TELEGRAM_BOT_TOKEN missing`) while the
+  bridge itself posted 6 messages fine on the new secret. Fixed by wiring the
+  secret into the SEO step; next run fully green.
+- Notes: the revoked token remains visible in git HISTORY (dead, harmless —
+  no rewrite unless asked); the new token was pasted in chat, which cannot be
+  unsent — owner may rotate once more for max hygiene. Local runs now need
+  TELEGRAM_BOT_TOKEN in env (config carries none).
 
 ## 131. Threaded replies like the source (2026-10-10)
 
