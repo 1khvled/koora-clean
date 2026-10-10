@@ -856,6 +856,15 @@ _NAME_CANON = {
     'julian alvarez': 'Julián Álvarez',
     'barella': 'Barella',
     'marcus thuram': 'Marcus Thuram',
+    # reported 2026-10-10: "Aurelene Chuamini" for Aurelien Tchouameni --
+    # the model dropped the T (Arabic تشواميني -> "chuamini") and mangled the
+    # first name. First and last names are keyed separately so either half is
+    # caught on its own. 'aurelien' is accent-only (same person, always safe).
+    'chuamini': 'Tchouaméni',
+    'chouamini': 'Tchouaméni',
+    'tshuamini': 'Tchouaméni',
+    'aurelene': 'Aurélien',
+    'aurelien': 'Aurélien',
 }
 
 # letters that differ only by accents across the Latin spellings we accept

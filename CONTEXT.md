@@ -4,7 +4,18 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§136 — 5min pace kept + night 30min, Arena primary, name-guard round 2).
+> Last updated: 2026-10-10 (§137 — Aurelene Chuamini fix).
+
+## 137. Aurelene Chuamini fix (2026-10-10)
+
+- Owner reported "Aurelene Chuamini" — the model dropped the T in Tchouameni
+  (Arabic تشواميني -> "chuamini") and mangled Aurelien -> "Aurelene". The
+  round-2 net only had tchuameni/tchouameni/tchouameny keys, so both halves
+  slipped through. Added wrong-only keys: chuamini/chouamini/tshuamini ->
+  Tchouameni, aurelene/aurelien -> Aurelien (first+last keyed separately, so
+  either half is caught alone). 10 new checks PASS, all existing suites still
+  PASS. Score-flip fix still in progress (worker.js/api/matches.js, separate
+  commit when proven — deliberately not swept into this one).
 
 ## 136. 5min pace kept + night 30min, Arena primary, name-guard round 2 (2026-10-10)
 
