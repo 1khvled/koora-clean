@@ -687,6 +687,72 @@ def groq_chat(key, model, system, user, timeout=30):
         raise RuntimeError('groq bad response')
 
 
+# Free OpenRouter engines, benchmarked live 2026-10-10 on a real post with
+# the production prompt (quality + speed): super 0.7s flawless, lightning
+# 0.9s flawless, apodex 1.1s clean. Gemma free = 429 quota-dead, inkling =
+# 403, the rest burn the budget narrating or return empty. Re-benchmark if
+# the free list changes.
+OR_MODELS = ['nvidia/nemotron-3-super-120b-a12b:free',
+             'nvidia/nemotron-3.5-lightning:free',
+             'apodex/apodex-1.1-mini:free']
+
+
+def openrouter_chat(key, model, system, user, timeout=25):
+    """OpenRouter OpenAI-compatible call. Reasoning is forced OFF: the free
+    thinking models otherwise burn the whole token budget narrating ("Here's
+    a thinking process...") and return empty content (verified live).
+    Key in OPENROUTER_API_KEY secret only. Returns text or raises."""
+    import urllib.error
+    payload = {'model': model,
+               'messages': [{'role': 'system', 'content': system},
+                            {'role': 'user', 'content': user}],
+               'temperature': 0,
+               'max_tokens': 1200,
+               'reasoning': {'enabled': False}}
+    req = urllib.request.Request(
+        'https://openrouter.ai/api/v1/chat/completions',
+        data=json.dumps(payload).encode('utf-8'),
+        headers={'Content-Type': 'application/json',
+                 'Authorization': 'Bearer ' + key,
+                 'HTTP-Referer': 'https://kooraadz.vercel.app',
+                 'X-Title': 'Koora Live news bridge',
+                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            d = json.loads(r.read().decode('utf-8', 'replace'))
+    except urllib.error.HTTPError as e:
+        raise RuntimeError('openrouter HTTP %s' % e.code)
+    try:
+        return ((((d.get('choices') or [{}])[0].get('message') or {}).get('content')) or '').strip()
+    except Exception:
+        raise RuntimeError('openrouter bad response')
+
+
+def _llm_accept(out, text, tag):
+    """Shared output gate for the LLM engines (Groq + OpenRouter): length,
+    bloat, mention, arabic-leftover, meta-label. Returns the repaired post
+    or None. Never raises."""
+    try:
+        if not out or len(out) < 20 or len(out) > 3900:
+            return None
+        if len(out) > len(text) * 1.5 + 200:
+            return None  # bloat guard: never let it ramble
+        import re as _re
+        if _re.search(r'@\w', out):
+            print('[lang] %s output rejected (mention)' % tag)
+            return None
+        if has_arabic(out):
+            print('[lang] %s output rejected (still arabic)' % tag)
+            return None
+        if _re.match(r'(?i)\s*(translation|translated|corrected|here is|output)\b',
+                     out):
+            print('[lang] %s output rejected (meta-label)' % tag)
+            return None
+        return repair_names(dedupe_lines(out))
+    except Exception:
+        return None
+
+
 ARABIC = re.compile(r'[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]')
 
 
@@ -1485,22 +1551,38 @@ def llm_fix(text):
                 break
         if out is None:
             continue
-        if not out or len(out) < 20 or len(out) > 3900:
-            continue
-        if len(out) > len(text) * 1.5 + 200:
-            continue  # bloat guard: never let it ramble
-        import re as _re
-        if _re.search(r'@\w', out):
-            print('[lang] groq output rejected (mention)')
-            continue  # a mention/tag slipped in: reject, keep original
-        if has_arabic(out):
-            print('[lang] groq output rejected (still arabic)')
-            continue  # untranslated output: never let it out
-        if _re.match(r'(?i)\s*(translation|translated|corrected|here is|output)\b',
-                     out):
-            print('[lang] groq output rejected (meta-label)')
-            continue  # it narrated the job instead of doing it
-        return repair_names(dedupe_lines(out))
+        got = _llm_accept(out, text, 'groq')
+        if got:
+            return got
+    # OpenRouter free engines (OPENROUTER_API_KEY secret only): a second LLM
+    # chance after Groq and before the machine-translation fallbacks. Same
+    # guards, same 429 mercy. Free-tier quotas are small, so this stays a
+    # fallback, never the primary.
+    or_key = os.environ.get('OPENROUTER_API_KEY', '').strip()
+    if or_key:
+        for model in OR_MODELS:
+            out = None
+            for attempt in (1, 2):
+                try:
+                    out = openrouter_chat(or_key, model, system, src[:3500])
+                    print('[lang] openrouter ok: %s (%d chars)' % (model, len(out)))
+                    break
+                except Exception as e:
+                    msg = str(e)[:80] or type(e).__name__
+                    print('[lang] openrouter fail: %s %s' % (model, msg))
+                    out = None
+                    if attempt == 1 and '429' in msg:
+                        try:
+                            _t.sleep(8)
+                        except Exception:
+                            pass
+                        continue
+                    break
+            if out is None:
+                continue
+            got = _llm_accept(out, text, 'openrouter')
+            if got:
+                return got
     fb = translate_free_ar_en(src)
     if fb and fb != src and not has_arabic(fb):
         print('[lang] free fallback used')

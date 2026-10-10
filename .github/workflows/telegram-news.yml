@@ -76,6 +76,7 @@ jobs:
           TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
           MYMEMORY_KEY: ${{ secrets.MYMEMORY_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python scripts/tg_news.py
       - name: Kooradz promos (kickoffs + heartbeat)
         if: steps.throttle.outputs.skip != 'true'
