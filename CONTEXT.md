@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§130 — blatant-only ad filter).
+> Last updated: 2026-10-10 (§131 — threaded replies like the source).
+
+## 131. Threaded replies like the source (2026-10-10)
+
+- **Owner: "why cant it do reply like this"** (source video replying to its
+  text post; ours posted both flat). The bridge never preserved threading.
+  Now: scraper records each item's reply parent, state keeps a bounded
+  source->channel id map (200), and sends carry `reply_parameters`, so
+  follow-ups render quoted under their parent exactly like the source.
+- `send_post` now returns the sent message_id (True fallback when Telegram
+  gives no id); all callers/tests updated to truthiness. A reply whose parent
+  is gone (deleted) retries once unthreaded instead of dying into the retry
+  queue. Unknown parents (too old, skipped) post unthreaded with a log line.
+- Verified: new `replytest` 11/11 (threading on all media paths, orphan,
+  gone-parent fallback, split parts, mapping + JSON round trip); workflow
+  merge unions the id map; all surviving suites green.
 
 ## 130. Blatant-only ad filter (2026-10-10)
 

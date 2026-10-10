@@ -285,8 +285,10 @@ def scrape_offside_preview(limit=25):
         pm = [u for u in pm if 'telesco.pe' in u]
         pv = [u for u in re.findall(r'<video[^>]+src="([^"]+)"', b)
               if '.mp4' in u]
+        rm = re.search(r'tgme_widget_message_reply[^>]*href="[^"]*/(\d+)"', b)
         out.append({'key': mid, 'text': txt, 'photos': pm,
-                    'preview_video': pv[0] if pv else ''})
+                    'preview_video': pv[0] if pv else '',
+                    'reply_to': int(rm.group(1)) if rm else 0})
     seen = {}
     for x in out:
         for u in set(x['photos']):
@@ -1071,11 +1073,13 @@ def tele_animation(mid, limit=48000000):
     return tele_media(mid, limit)[1]
 
 
-def send_post(target, body, out, video=None, animation=None):
+def send_post(target, body, out, video=None, animation=None, reply_to=None):
     """Deliver one post. Video first (streamable upload, same caption rules),
     then photo, then text-only. Long captions (>1024) split into media +
-    full-text follow-up. Returns True on delivery, None when nothing to send,
-    False on failure. Never mentions or tags anyone."""
+    full-text follow-up. reply_to threads the post under another channel
+    message when the source was a reply. Returns the sent message_id int on
+    delivery (True when Telegram answered ok but gave no id), None when
+    nothing to send, False on failure. Never mentions or tags anyone."""
     # English-only channel, enforced here so no code path can leak Arabic:
     # media is still delivered, the Arabic caption is dropped.
     if body and has_arabic(body):
@@ -1083,68 +1087,96 @@ def send_post(target, body, out, video=None, animation=None):
         if not (video or animation or out):
             return None
         body = ''
+
+    def _call(method, payload, files=None):
+        """One Bot API send with reply threading. Returns (message_id, '')
+        on success, (True, '') when ok but no id came back, (None, desc) on
+        failure. A reply whose parent is gone is retried once unthreaded
+        instead of losing the post to the retry queue."""
+        if reply_to:
+            try:
+                payload = dict(payload,
+                               reply_parameters={'message_id': int(reply_to)})
+            except (TypeError, ValueError):
+                pass
+        r = bot(method, payload, files)
+        if (r or {}).get('ok'):
+            m = ((r or {}).get('result') or {}).get('message_id')
+            return (m if isinstance(m, int) else True), ''
+        desc = str((r or {}).get('description') or '')
+        if reply_to and 'repl' in desc.lower() and 'not found' in desc.lower():
+            print('reply target gone, posting unthreaded')
+            p2 = dict(payload)
+            p2.pop('reply_parameters', None)
+            r2 = bot(method, p2, files)
+            if (r2 or {}).get('ok'):
+                m2 = ((r2 or {}).get('result') or {}).get('message_id')
+                return (m2 if isinstance(m2, int) else True), ''
+            return None, str((r2 or {}).get('description') or '')
+        return None, desc
+
     try:
         if animation:
             params = {'chat_id': target}
             if body:
                 params['caption'] = body[:1024]
-            r = bot('sendAnimation', params,
-                    files={'animation': ('clip.mp4' if animation[:4] != b'GIF8'
-                                         else 'clip.gif', animation)})
-            if not (r or {}).get('ok'):
-                print('animation rejected:', str((r or {}).get('description'))[:100])
+            mid, desc = _call('sendAnimation', params,
+                                  files={'animation': ('clip.mp4' if animation[:4] != b'GIF8'
+                                                       else 'clip.gif', animation)})
+            if not mid:
+                print('animation rejected:', str(desc)[:100])
                 return False
-            return True
+            return mid
         if video:
             if body and len(body) > 1024:
-                r1 = bot('sendVideo', {'chat_id': target, 'caption': body[:950] + '\r\n\u2026',
+                mid1, desc1 = _call('sendVideo', {'chat_id': target, 'caption': body[:950] + '\r\n\u2026',
                                       'supports_streaming': True},
                          files={'video': ('news.mp4', video)})
-                if not (r1 or {}).get('ok'):
-                    print('video rejected:', str((r1 or {}).get('description'))[:100])
+                if not mid1:
+                    print('video rejected:', str(desc1)[:100])
                     return False
-                r2 = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
-                                        'disable_web_page_preview': False})
-                if not (r2 or {}).get('ok'):
-                    print('text rejected:', str((r2 or {}).get('description'))[:100])
+                mid2, desc2 = _call('sendMessage', {'chat_id': target, 'text': body[:3900],
+                                                   'disable_web_page_preview': False})
+                if not mid2:
+                    print('text rejected:', str(desc2)[:100])
                     return False
-                return True
+                return mid1
             params = {'chat_id': target, 'supports_streaming': True}
             if body:
                 params['caption'] = body[:1024]
-            r = bot('sendVideo', params, files={'video': ('news.mp4', video)})
-            if not (r or {}).get('ok'):
-                print('video rejected:', str((r or {}).get('description'))[:100])
+            mid, desc = _call('sendVideo', params, files={'video': ('news.mp4', video)})
+            if not mid:
+                print('video rejected:', str(desc)[:100])
                 return False
-            return True
+            return mid
         if out:
             if body and len(body) > 1024:
-                r1 = bot('sendPhoto', {'chat_id': target, 'caption': body[:950] + '\r\n\u2026'},
+                mid1, desc1 = _call('sendPhoto', {'chat_id': target, 'caption': body[:950] + '\r\n\u2026'},
                          files={'photo': (photo_name(out), out)})
-                if not (r1 or {}).get('ok'):
-                    print('photo rejected:', str((r1 or {}).get('description'))[:100])
+                if not mid1:
+                    print('photo rejected:', str(desc1)[:100])
                     return False
-                r2 = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
-                                        'disable_web_page_preview': False})
-                if not (r2 or {}).get('ok'):
-                    print('text rejected:', str((r2 or {}).get('description'))[:100])
+                mid2, desc2 = _call('sendMessage', {'chat_id': target, 'text': body[:3900],
+                                                   'disable_web_page_preview': False})
+                if not mid2:
+                    print('text rejected:', str(desc2)[:100])
                     return False
-                return True
+                return mid1
             params = {'chat_id': target}
             if body:
                 params['caption'] = body[:1024]
-            r = bot('sendPhoto', params, files={'photo': (photo_name(out), out)})
-            if not (r or {}).get('ok'):
-                print('post rejected:', str((r or {}).get('description'))[:100])
+            mid, desc = _call('sendPhoto', params, files={'photo': (photo_name(out), out)})
+            if not mid:
+                print('post rejected:', str(desc)[:100])
                 return False
-            return True
+            return mid
         if body:
-            r = bot('sendMessage', {'chat_id': target, 'text': body[:3900],
-                                    'disable_web_page_preview': False})
-            if not (r or {}).get('ok'):
-                print('post rejected:', str((r or {}).get('description'))[:100])
+            mid, desc = _call('sendMessage', {'chat_id': target, 'text': body[:3900],
+                                               'disable_web_page_preview': False})
+            if not mid:
+                print('post rejected:', str(desc)[:100])
                 return False
-            return True
+            return mid
         return None
     except Exception as e:
         print('post failed:', str(e)[:120])
@@ -1209,6 +1241,13 @@ def public_preview_run(target):
             state['offside'] = x['key']
             continue
         body = with_link(body, match_link(src_txt))
+        reply_to = None
+        parent = int(x.get('reply_to') or 0)
+        if parent:
+            reply_to = (state.get('msgmap') or {}).get(str(parent))
+            if not reply_to:
+                print('#%d: parent #%d not posted here, unthreaded'
+                      % (x['key'], parent))
         kind, vurl = source_media(x['key'], also=x.get('preview_video'))
         vid = None
         anim = None
@@ -1250,14 +1289,20 @@ def public_preview_run(target):
             if img:
                 kind, got = brand_photo(img)
                 out = got if kind == 'photo' else None  # branding: text only
-            result = send_post(target, body, out, vid, anim)
-            if result is True:
+            result = send_post(target, body, out, vid, anim,
+                               reply_to=reply_to)
+            if result:
                 posted += 1
                 tries.pop(x['key'], None)
                 print('#%d: posted %s' % (
                     x['key'], 'GIF' if anim else ('VIDEO' if vid else
                         ('PHOTO' if out else 'TEXT'))))
                 record_seen(state, src_txt, body)
+                if isinstance(result, int):
+                    mm = state.setdefault('msgmap', {})
+                    mm[str(x['key'])] = result
+                    while len(mm) > 200:
+                        mm.pop(next(iter(mm)), None)
             elif result is False:
                 n = int(tries.get(x['key'], 0) or 0) + 1
                 if n > 3:
@@ -1379,9 +1424,20 @@ def main():
                             out = got if kind == 'photo' else None
                         if is_promo(txt) or is_promo(body):
                             print('skipped promo post (kurdish)')
-                        elif send_post(target, body, out, kvid, kanim) is True:
+                        kreply = None
+                        kparent = getattr(m, 'reply_to_msg_id', None)
+                        if kparent:
+                            kreply = (state.get('msgmap') or {}).get(str(kparent))
+                        result = send_post(target, body, out, kvid, kanim,
+                                           reply_to=kreply)
+                        if result:
                             posted += 1
                             record_seen(state, txt, body)
+                            if isinstance(result, int):
+                                kmm = state.setdefault('msgmap', {})
+                                kmm[str(m.id)] = result
+                                while len(kmm) > 200:
+                                    kmm.pop(next(iter(kmm)), None)
                     except Exception as e:
                         print('post failed:', str(e)[:120])
                     state[src['key']] = m.id
