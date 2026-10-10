@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§129 — skip audit: Madrid filter fixed, short-post dedup).
+> Last updated: 2026-10-10 (§130 — blatant-only ad filter).
+
+## 130. Blatant-only ad filter (2026-10-10)
+
+- **Owner: "skip blatant gambling/store ads ONLY, nothing else".** Token audit
+  of every filter list found three live false-positive classes beyond Madrid:
+  bare `stake` (substring!) killed everyday English like "points at stake";
+  bare `اشتر` (buy) prefix-matched `اشترك` (subscribe), so any post ending in
+  "subscribe to the channel" died as a store ad; bare join/subscribe-channel
+  rules killed standard footers. All narrowed: `stake\.com` only (Arabic
+  stake mentions travel with casino/betting words that fire independently),
+  `اشتر` with negative lookahead for `ك`, join-channel rules dropped (real
+  lures still die on brands, money-pairs, or tips).
+- Other direction fixed too: natural "20% off" and "order today" slipped
+  through (the old price pattern needed digits AFTER the word). Now caught,
+  while "kicked/sent off" can never match (percent context required).
+- Proof: new `blatanttest` 32/32 — 14 real ads blocked (ar+en), 18 legit
+  phrasings pass (footers, punditry, at-stake, kickoff, tickets, transfers).
+  All surviving suites green.
 
 ## 129. Skip audit: Madrid filter fixed, short-post dedup (2026-10-10)
 
