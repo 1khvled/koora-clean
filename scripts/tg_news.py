@@ -111,6 +111,12 @@ def bot(method, payload=None, files=None, timeout=60):
         boundary = uuid.uuid4().hex
         body = b''
         for k, v in (payload or {}).items():
+            # Structured values (reply_parameters etc.) must go out as JSON:
+            # Python str() uses single quotes, which Telegram's parser rejects
+            # with 400 "can't parse ... JSON object" (proven live: photo replies
+            # failed 9/9 while the JSON text path worked).
+            if isinstance(v, (dict, list)):
+                v = json.dumps(v, separators=(',', ':'))
             body += ('--' + boundary + '\r\nContent-Disposition: form-data; name="%s"\r\n\r\n%s\r\n'
                      % (k, v)).encode('utf-8')
         for k, (fname, data) in files.items():
@@ -2107,10 +2113,15 @@ def public_preview_run(target):
             if already_posted(state, src_txt, body):
                 print('skipped repeat #%d fp=%s' % (x['key'], fingerprint(src_txt)))
                 state['offside'] = x['key']
+                # Terminal: already posted, so any retry entry for this key
+                # is stale — drop it instead of re-translating every run.
+                tries.pop(x['key'], None)
                 continue
             if is_promo(src_txt) or is_promo(body):
                 print('skipped promo post #%d' % x['key'])
                 state['offside'] = x['key']
+                # Terminal: never postable by policy — same, drop the entry.
+                tries.pop(x['key'], None)
                 continue
             body = with_link(body, match_link(src_txt))
             reply_to = None
