@@ -123,7 +123,14 @@ jobs:
           remote = load(['git', 'show', 'origin/state:scripts/tg_state.json'])
           merged = dict(remote)
           for k, v in local.items():
-              if isinstance(v, dict) or isinstance(merged.get(k), dict):
+              if k == 'post_retry':
+                  # Retry queue: local wins WHOLESALE (replace, never union).
+                  # Union resurrected popped and given-up keys, so dead posts
+                  # (and their translation cycles) retried forever. Runs are
+                  # serialized by the tg-news concurrency group, so replacing
+                  # cannot drop a concurrent run's retries.
+                  merged[k] = dict(v or {}) if isinstance(v, dict) else {}
+              elif isinstance(v, dict) or isinstance(merged.get(k), dict):
                   # dicts (source->channel id map, retry counters)
                   # union per key, local wins ties; bound the id map.
                   a = merged.get(k) or {}

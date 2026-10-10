@@ -4,7 +4,29 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§143 — silent post-loss fixes).
+> Last updated: 2026-10-10 (§144 — reply-400 + zombie-queue fixes).
+
+## 144. Reply-400 + zombie-queue fixes (2026-10-10)
+
+- Source-vs-channel diff (live state + preview + 20 runs of logs): ZERO gaps
+  in-window — 12 unposted keys all legit repeat-skips, 1 pending. The misses
+  were two deeper bugs:
+- (1) #377509 LOST to Telegram 400 on every send: photo replies go through
+  bot()'s multipart branch, which stringified reply_parameters Python-style
+  ({'message_id':...}, single quotes — invalid JSON). Text replies use the
+  JSON path, so only photo/video replies died. Fix: json.dumps dict/list
+  values in the multipart encoder (multiparttest 6/6).
+- (2) Zombie retry queue: the save-state merge UNIONED post_retry dicts, so
+  popped/given-up keys resurrected every run — 10 already-posted keys burned
+  ~10 full translation cycles EVERY run (quota burn feeding the 429s).
+  Fix: post_retry takes local wholesale (runs are serialized by the tg-news
+  concurrency group). Repeat/promo skips also pop their entries now.
+- State surgery (state branch only, as khvled): post_retry.377509 reset 3->2
+  so the fixed encoder gets one last attempt (at 3 it would give up
+  untried). Lesson: state surgery must use a temp GIT_INDEX_FILE —
+  update-index dirtied main's index and had to be reset out.
+- Proof: multipart/wfmerge/loss/pipe/fix/retry/orchain/names/reply/dedupe
+  all PASS. Watch next runs: #377509 should post, zombies clear in one run.
 
 ## 143. Silent post-loss fixes (2026-10-10)
 
