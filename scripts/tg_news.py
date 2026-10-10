@@ -274,6 +274,123 @@ def http_get_text(url, timeout=25):
 AVATAR_URL = ''
 
 
+def _tag_span(seg, ds, tag):
+    """(start, end) of the balanced <tag>...</tag> opening at ds, else None.
+    Shared by the quote cut and the photo-region finder. Never raises."""
+    try:
+        depth, p = 0, ds
+        open_t, close_t = '<' + tag, '</' + tag + '>'
+        while p < len(seg or ''):
+            if seg.startswith(open_t, p) and (len(seg) == p + len(open_t) or not seg[p + len(open_t)].isalnum()):
+                depth += 1
+                p += len(open_t)
+            elif seg.startswith(close_t, p):
+                depth -= 1
+                p += len(close_t)
+                if not depth:
+                    return (ds, p)
+            else:
+                p += 1
+    except Exception:
+        pass
+    return None
+
+
+def _in_tag(seg, pos):
+    """True when pos sits inside an HTML tag (not text/CSS content)."""
+    try:
+        s = seg or ''
+        return s.rfind('<', 0, pos) > s.rfind('>', 0, pos)
+    except Exception:
+        return False
+
+
+def _msg_span(html, mid):
+    """One message's own region: enclosing tgme_widget_message_wrap to the
+    next one. data-post markers are sparse on single pages (neighbors carry
+    only href links), so marker-to-marker scoping balloons to ~30KB spanning
+    many posts — and biggest() then attaches a NEIGHBOR's photo/video.
+    Fail-open: falls back to the marker with a length cap. Never raises."""
+    try:
+        tag = 'data-post="Offsideahdaff/%s"' % int(mid)
+        h = html or ''
+        i = h.find(tag)
+        if i < 0:
+            return ''
+        ws = h.rfind('tgme_widget_message_wrap', 0, i)
+        if ws >= 0:
+            ds = h.rfind('<div', 0, ws)
+            start = ds if ds >= 0 else ws
+        else:
+            start = i
+        wn = h.find('tgme_widget_message_wrap', i + len(tag))
+        end = wn if wn > 0 else i + 30000
+        return h[start:end]
+    except Exception:
+        return ''
+
+
+def _cut_quote(seg):
+    """Remove the reply-quote element (it carries the PARENT post's thumbnail:
+    without this, biggest() can attach another post's photo). The element is
+    an <a> or a <div>. Fail-open: returns seg unchanged when the shape is
+    unexpected. Never raises."""
+    try:
+        import re as _re
+        i = (seg or '').find('tgme_widget_message_reply')
+        if i < 0 or not _in_tag(seg, i):
+            return seg
+        m = _re.search(r'<(a|div)\b[^>]*$', (seg or '')[:i])
+        if not m:
+            return seg
+        span = _tag_span(seg, m.start(), m.group(1))
+        if not span:
+            return seg
+        return seg[:span[0]] + seg[span[1]:]
+    except Exception:
+        return seg
+
+
+def _photo_regions(seg):
+    """(start, end) spans of message-photo elements (the post's OWN photos).
+    The class may sit on a wrapper with the URL in a nested tag, so spans are
+    used instead of same-tag matching. Never raises."""
+    import re as _re
+    regs = []
+    try:
+        for m in _re.finditer(r'tgme_widget_message_photo', seg or ''):
+            if not _in_tag(seg, m.start()):
+                continue
+            subm = _re.search(r'<(a|div)\b[^>]*$', (seg or '')[:m.start()])
+            if not subm:
+                continue
+            span = _tag_span(seg, subm.start(), subm.group(1))
+            if span and span not in regs:
+                regs.append(span)
+    except Exception:
+        pass
+    return regs
+
+
+def _own_photos(seg):
+    """Photo URLs living inside the post's own message-photo elements, in
+    page order, avatar excluded. Never raises."""
+    try:
+        regs = _photo_regions(seg)
+        out = []
+        for pat in (r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"',
+                    r"background-image:url\('([^']+)'"):
+            for m in re.finditer(pat, seg or ''):
+                u = m.group(1)
+                if 'telesco.pe' not in u or u == AVATAR_URL or u in out:
+                    continue
+                if any(a <= m.start() < b for a, b in regs):
+                    out.append(u)
+        return out
+    except Exception:
+        return []
+
+
 def scrape_offside_preview(limit=25):
     global AVATAR_URL
     html = http_get_text('https://t.me/s/Offsideahdaff')
@@ -292,8 +409,15 @@ def scrape_offside_preview(limit=25):
             import html as _html
             txt = _html.unescape(txt)
             txt = re.sub(r'[ \t\xa0]+', ' ', txt).strip()
-        pm = re.findall(r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"', b)
-        pm += re.findall(r"background-image:url\('([^']+)'", b)
+        rm = re.search(r'tgme_widget_message_reply[^>]*href="[^"]*/(\d+)"', b)
+        # Quote carries the parent post's thumbnail: cut it before collecting
+        # this post's photos (else biggest() can attach another post's photo).
+        bq = _cut_quote(b)
+        pm = _own_photos(bq)
+        pm += [u for u in re.findall(r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"', bq)
+               if u not in pm]
+        pm += [u for u in re.findall(r"background-image:url\('([^']+)'", bq)
+               if 'telesco.pe' in u and u not in pm]
         pm = [u for u in pm if 'telesco.pe' in u]
         pv = [u for u in re.findall(r'<video[^>]+src="([^"]+)"', b)
               if '.mp4' in u]
@@ -471,12 +595,10 @@ def single_region(html, mid):
     """The slice of one message's html (its marker to the next one). '' when
     the message is not on this page."""
     try:
-        tag = 'data-post="Offsideahdaff/%s"' % int(mid)
-        i = (html or '').find(tag)
-        if i < 0:
+        seg = _cut_quote(_msg_span(html, mid))
+        if not seg:
             return ''
-        nxt = (html or '').find('data-post="Offsideahdaff/', i + len(tag))
-        return html[i:nxt] if nxt > 0 else html[i:i + 30000]
+        return seg
     except Exception:
         return ''
 
@@ -616,16 +738,19 @@ def extract_post(html, mid):
         i = html.find('data-post="Offsideahdaff/%d"' % int(mid))
         if i < 0:
             return '', ''
-        nxt = html.find('data-post="Offsideahdaff/', i + 20)
-        seg = html[i:i + 30000] if nxt < 0 else html[i:nxt]
-        cands = []
+        seg = _cut_quote(_msg_span(html, mid))
+        own = _own_photos(seg)
+        cands = list(own)
         for pat in (r'<img[^>]+src="(https://cdn\d*\.telesco\.pe/[^"]+)"',
                     r"background-image:url\('([^']+)'"):
             for m in re.finditer(pat, seg):
                 u = m.group(1)
                 if 'telesco.pe' in u and u != AVATAR_URL and u not in cands:
                     cands.append(u)
-        photo = biggest(cands)
+        # Own message-photo first: biggest() must choose among THIS post's
+        # photos, never a quote/chrome leftover. No own-container photo ->
+        # legacy behavior (biggest of everything).
+        photo = biggest(own) if own else biggest(cands)
         j = seg.find('tgme_widget_message_text')
         if j < 0:
             return '', photo
@@ -1504,6 +1629,16 @@ def scrub_links(text):
         return text
 
 
+def was_link_only(text):
+    """True when the text is nothing but channel-invite links (a bare promo).
+    Distinguishes terminal ad-skips from transient empty bodies (failed
+    translation), which must join the retry queue instead. Never raises."""
+    try:
+        return bool((text or '').strip()) and scrub_links(text) == ''
+    except Exception:
+        return False
+
+
 def has_arabic(text):
     """True when the text still carries any Arabic letter or Arabic
     presentation form. The channel is English-only, so this is the single
@@ -2169,10 +2304,10 @@ def public_preview_run(target):
                 print('skipped empty #%d (no text, no photo)' % x['key'])
                 state['offside'] = x['key']
                 continue
-            src_txt = full_text(x['key'], txt)  # never mention/tag source
+            src_raw = full_text(x['key'], txt)  # never mention/tag source
             # Scrub channel-invite links BEFORE translating: a reposted promo
             # would otherwise leak someone else's t.me channel into ours.
-            src_txt = scrub_links(src_txt)
+            src_txt = scrub_links(src_raw)
             # Translate BEFORE the repeat check: the seeded window holds the
             # English captions actually posted, so only the English fingerprint
             # can match them when state was lost or rolled back.
@@ -2231,6 +2366,9 @@ def public_preview_run(target):
             if not vid and not anim:
                 url = post_photo(x['key'], x.get('photo') or '')
                 if url:
+                    # URL tail identifies the file in run logs: the next
+                    # photo mismatch is traceable to its exact source.
+                    print('#%d: photo %s' % (x['key'], url[-32:]))
                     try:
                         img = dl_photo(url)
                     except Exception:
@@ -2239,10 +2377,14 @@ def public_preview_run(target):
                 out = None
                 if img:
                     kind, got = brand_photo(img)
+                    if kind != 'photo':
+                        print('#%d: photo dropped by brand filter' % x['key'])
                     out = got if kind == 'photo' else None  # branding: text only
-                if not body and not out and not vid and not anim:
-                    # Link-only post: scrubbing took its whole text (a bare
-                    # channel invite). Terminal like a promo skip, not a loss.
+                if not body and not out and not vid and not anim and was_link_only(src_raw):
+                    # Bare channel invite: scrubbing took its whole text.
+                    # Terminal like a promo skip, not a loss. An empty body
+                    # from failed translation is NOT link-only and falls
+                    # through to send_post (None -> retry queue).
                     print('skipped link-only post #%d' % x['key'])
                     tries.pop(x['key'], None)
                     state['offside'] = x['key']

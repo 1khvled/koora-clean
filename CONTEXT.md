@@ -4,7 +4,28 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§146 — channel-promo leak fix).
+> Last updated: 2026-10-11 (§147 — photo-ownership fix + liveness).
+
+## 147. Photo-ownership fix + liveness (2026-10-11)
+
+- Owner: a Tchouameni post carried another player's photo. Proven live:
+  single pages carry ~20 posts with href-only (not data-post) markers, so
+  marker-to-marker scoping ballooned to ~30KB spanning many posts and
+  biggest() ran a cross-post lottery (6 candidates on #377509's page).
+- Fix: new _msg_span scopes to the post's own message-wrap; _cut_quote drops
+  the reply-quote (parent thumbnail); _own_photos prefers the post's own
+  message-photo elements with legacy biggest() fallback; single_region
+  scoped too (same lottery existed for videos). Every photo choice now logs
+  its URL tail; brand-drop also logged. Tests: phototest 10/10, scopetest
+  live-verified (own-post confinement, texts intact).
+- Caught by the battery, fixed before commit: the single_region rewrite
+  dropped its final `return seg` (all regions empty, videos undetected) —
+  replytest caught it. Never skip the full battery.
+- Liveness ("post as live as possible"): floor is trigger gap + run
+  overhead; added Actions pip-wheel cache (~1 min saved/run). GitHub cron
+  floor is 5 min and runs serialize, so dual 5-min triggers already
+  saturate — cadence can't go lower usefully. Night 30-min throttle kept
+  per owner order.
 
 ## 146. Channel-promo leak fix (2026-10-10)
 
