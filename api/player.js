@@ -681,8 +681,22 @@ const resolveYacine = async (home, away, startIso) => {
   // it first means one small request answers the whole request, well inside
   // the client's abort window. Live -> ~19.7KB page with data-path tabs;
   // finished/not started -> 2366-byte "Match ended" page with zero tabs.
+  // Arena raced WITH the Yassir fast path (fix 2026-10-10): this path returns
+  // before batchP is even built, so leaving Arena to batchP meant it never ran
+  // for id-keyed requests — which is every call the player UI makes (the
+  // "where is arena" report). Same promise is reused by batchP below.
+  let arenaFast = null;
   if (id && !outOfTime(500)) {
-    const y = await resolveYassir(id);
+    // Only when the query actually carried team names — a nameless fast-path
+    // promise would resolve null and (via reuse below) poison batchP, which
+    // gets better names from the self-lookup.
+    if (qHome && qAway) {
+      arenaFast = Promise.race([
+        resolveArena(qHome, qAway, qStart).catch(() => null),
+        new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
+      ]);
+    }
+    const [y, arenaHit] = await Promise.all([resolveYassir(id), arenaFast || Promise.resolve(null)]);
     if (y && y.servers && y.servers.length) {
       const servers = [];
       for (const s of y.servers) {
@@ -690,6 +704,14 @@ const resolveYacine = async (home, away, startIso) => {
         if (!s || !/^https:\/\//i.test(String(s.url || ''))) continue;
         if (servers.some(x => x.url === s.url)) continue;
         servers.push({ label: 'سيرفر ' + (servers.length + 1), url: s.url, kind: 'live' });
+      }
+      if (arenaHit && arenaHit.servers) {
+        for (const s of arenaHit.servers) {
+          const u = String(s && s.url || '');
+          if (!/^https:\/\//i.test(u)) continue;
+          if (servers.some(x => x.url === u)) continue;
+          servers.push({ label: s.label || 'Arena', url: u, kind: 'arena' });
+        }
       }
       if (servers.length) {
         res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
@@ -725,7 +747,20 @@ const resolveYacine = async (home, away, startIso) => {
     // (host-header-influenced URL is safe: any href it yields still passes
     // the kooralive allowlist below before being fetched).
     try {
-      const matchesRes = await fetchT(selfOrigin(req) + '/api/matches?day=today', {}, 7000);
+      // Derive day from the fixture kickoff (the UI opens tomorrow's games
+      // too; a hardcoded day=today 404'd those before any resolver ran).
+      let mDay = 'today';
+      try {
+        const kMs = Date.parse(targetStart || '');
+        if (kMs) {
+          const now = new Date();
+          const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+          const diff = Math.floor((kMs - today0) / 86400000);
+          if (diff < 0) mDay = 'yesterday';
+          else if (diff > 0) mDay = 'tomorrow';
+        }
+      } catch {}
+      const matchesRes = await fetchT(selfOrigin(req) + '/api/matches?day=' + mDay, {}, 7000);
       if (!matchesRes.ok) throw 0;
       const matches = JSON.parse(await readCapped(matchesRes, 1500000));
       if (!Array.isArray(matches)) throw 0;
@@ -754,7 +789,7 @@ const resolveYacine = async (home, away, startIso) => {
       resolveYacine(matchHome, matchAway, kickoff).catch(() => null),
       new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
     ]),
-    Promise.race([
+    arenaFast || Promise.race([
       resolveArena(matchHome, matchAway, kickoff).catch(() => null),
       new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
     ]),

@@ -16,14 +16,22 @@ permissions:
 jobs:
   post:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Install ffmpeg (only used to shrink >50MB clips)
-        run: sudo apt-get install -y ffmpeg
+        # ffmpeg is preinstalled on github-hosted runners; apt only as a
+        # bounded fallback so a stalled mirror download can never eat the
+        # job budget again.
+        run: |
+          if command -v ffmpeg >/dev/null 2>&1; then
+            echo "ffmpeg already present: $(ffmpeg -version 2>/dev/null | head -n1)"
+          else
+            timeout 120 sudo apt-get install -y ffmpeg || echo "ffmpeg unavailable; oversized clips will be sent without compression"
+          fi
       - name: Install deps
         run: pip install telethon requests pillow
       - name: Load dedup state (state branch keeps Vercel quiet)
@@ -46,11 +54,15 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python scripts/tg_news.py
       - name: Kooradz promos (kickoffs + heartbeat)
+        # Promo failures must never block Save dedup state below.
+        continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
         run: python scripts/tg_promo.py
       - name: Channel SEO (about text + pinned keywords)
+        # SEO failures must never block Save dedup state below.
+        continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
@@ -59,6 +71,7 @@ jobs:
         run: |
           git config user.name "khvled"
           git config user.email "khvled2004@gmail.com"
+          SAVED=0
           for i in 1 2 3 4 5; do
             git fetch origin state:refs/remotes/origin/state 2>/dev/null || true
           python3 - <<'EOF'
@@ -132,9 +145,18 @@ jobs:
             COMMIT=$(git commit-tree "$TREE" -p "$PARENT" -m "news bridge state [skip ci]") || { sleep 15; continue; }
             # Fully-qualified ref: pushing a raw SHA to a not-yet-existing
             # branch is rejected without it.
-            git push origin "$COMMIT:refs/heads/state" && break
+            if git push origin "$COMMIT:refs/heads/state"; then
+              SAVED=1
+              break
+            fi
             sleep 15
           done
+          # A green run must mean the state was persisted (or there was
+          # nothing to persist -- that path exits 0 inside the loop).
+          if [ "$SAVED" -ne 1 ]; then
+            echo "dedup state push failed after 5 attempts"
+            exit 1
+          fi
       - name: Alert owner on failure (Telegram DM)
         if: failure()
         continue-on-error: true
@@ -144,6 +166,9 @@ jobs:
         run: |
           set -euo pipefail
           CHAT_ID="5625295907"
+          # Exported so the payload builder below can read it from the
+          # environment (an inline CHAT=... prefix only reaches printf).
+          export CHAT="$CHAT_ID"
           UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           # Best-effort failed-step lookup; never fails this step.
@@ -157,7 +182,7 @@ jobs:
           TEXT="$(printf 'Workflow FAILED: %s\nRun #%s (id %s)\nJob: %s | conclusion: %s\nFailed step(s): %s\nTime (UTC): %s\n%s' \
             "${{ github.workflow }}" "${{ github.run_number }}" "${{ github.run_id }}" \
             "${{ github.job }}" "${{ job.status }}" "$FAILED" "$UTC_NOW" "$RUN_URL")"
-          PAYLOAD="$(CHAT="$CHAT_ID" printf '%s' "$TEXT" | python3 -c 'import json,sys,os; print(json.dumps({"chat_id": os.environ["CHAT"], "text": sys.stdin.read(), "disable_web_page_preview": True}))')"
+          PAYLOAD="$(printf '%s' "$TEXT" | python3 -c 'import json,sys,os; print(json.dumps({"chat_id": os.environ["CHAT"], "text": sys.stdin.read(), "disable_web_page_preview": True}))')"
           # Single send, silent, never fails the workflow, token stays in env (masked by GitHub, never echoed).
           curl -sS --max-time 20 -H 'Content-Type: application/json' -d "$PAYLOAD" \
             "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" > /dev/null || true

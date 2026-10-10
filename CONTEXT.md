@@ -4,7 +4,43 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§134 — echo-post fix + Arena verify note).
+> Last updated: 2026-10-10 (§135 — Telegram run-failure fixes + Arena fast-path bugfix).
+
+## 135. Telegram run-failure fixes + Arena fast-path bugfix (2026-10-10)
+
+- Debugged "telegram sometimes errors and doesn't post" via GitHub API only
+  (370 success / 9 failure / 22 cancelled over 48h). Ranked causes:
+  (1) 10-min job timeout vs unbounded ffmpeg work — 10 cancelled runs, apt
+  ffmpeg stall (94MB) + compress running past 10 min; (2) save-state heredoc
+  bug — 5 runs (fixed Oct 9); (3) token-rotation desync — 4 runs (fixed
+  Oct 10). Bonus: alert step itself crashed (KeyError CHAT) so owner DM
+  never fired; Groq 429s are fail-open (harmless); "SEND FAILED ... dropping
+  retry: left the preview window" silently LOST posts.
+- Fixes (workflow + script): timeout 10→30; ffmpeg install checks
+  preinstalled first, apt fallback bounded to 120s, non-fatal; SEO/promo
+  steps continue-on-error so Save dedup state always runs; SAVED flag makes
+  an all-retries-failed state push exit 1 (real failures no longer green);
+  alert step exports CHAT properly (owner DM now actually sends); compress
+  timeout 600s→90s and CRF ladder stops after 2 failed steps; out-of-window
+  retries are rebuilt from the single-post page (up to MAX_POSTS_PER_RUN)
+  instead of being dropped — dedup semantics unchanged (still sent at most
+  once). All suites green (fix/compresstest new, pyok/pipeline/reply/dedupe/
+  lang pass), YAML + bash blocks parse.
+- ARENA BUG (owner: "where is arena lol"): the Yassir fast path returned
+  BEFORE batchP was constructed, and batchP was resolveArena's only call
+  site — so Arena never ran for id-keyed requests, i.e. every UI request.
+  Fixed: resolveArena is now raced WITH resolveYassir and its servers merged
+  into the fast-path response; batchP reuses the same promise (no double
+  fetch), and only when the query carried team names (a nameless promise
+  would poison batchP's better self-lookup names). Bonus fix: the id
+  self-lookup hardcoded /api/matches?day=today — now derives yesterday/
+  today/tomorrow from the fixture kickoff (the UI opens tomorrow's games).
+  Verified: id+names request returns Arena m3u8 (was 0), garbage names still
+  0 (no false match).
+- HONEST CAVEAT (unchanged from §133): Arena streams are direct m3u8 with no
+  ACAO, so Chrome/Firefox cannot play them (Safari/iOS can, natively). The
+  button appears and auto-skips there. Making Chrome work needs either the
+  CDN sending CORS headers or an owner-approved hls.js + same-origin proxy.
 
 ## 134. Echo-post fix (2026-10-10)
 
