@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§141 — free-translator hunt + 429 retry).
+> Last updated: 2026-10-10 (§142 — OpenRouter free engines wired).
+
+## 142. OpenRouter free engines wired (2026-10-10)
+
+- Owner supplied an OpenRouter key (in chat only — sealed into the
+  OPENROUTER_API_KEY Actions secret via API, never written to any file;
+  secret list verified. Owner note: the key is visible in chat history, so
+  rotating it after this session is prudent).
+- Benchmarked 9 free models live with the production prompt: Gemma 26B/31B =
+  429 quota-dead, inkling = 403, lightning/thinking/apodex/ling/super first
+  returned EMPTY content (thinking models burn the budget narrating). With
+  reasoning disabled: nemotron-3-super 0.7s flawless, lightning 0.9s
+  flawless, apodex 1.1s clean — these three wired as OR_MODELS in that
+  order (reasoning forced off in code; output verified byte-clean).
+- Chain is now Groq x2 -> OpenRouter x3 -> MyMemory -> Google, all under the
+  same guards via shared _llm_accept (mention/arabic/meta/bloat). OR is a
+  fallback, never primary (free quotas ~200/day can't carry full volume).
+  orchaintest 9/9 + all prior suites PASS. Workflow bridge env gained the
+  secret name only.
 
 ## 141. Free-translator hunt + 429 retry (2026-10-10)
 
