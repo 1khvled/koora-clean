@@ -25,6 +25,11 @@
   playHls branch is the documented place. CSP gained only
   `media-src ... gamhed.online` (native <video> needs it; no connect-src
   change since nothing XHRs). No new third-party scripts/hosts.
+- Deploy note: the first push's Vercel build FAILED while the parent was
+  green; an empty-commit rebuild of identical content went green, so it was
+  transient Vercel flake, not the change. Diagnose via per-commit status
+  before bisecting. Production verified: player.html serves arena code,
+  /api/player returns the Arena m3u8 for a live fixture.
 
 ## 132. Bot token rotated, secrets-only (2026-10-10)
 
