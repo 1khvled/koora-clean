@@ -310,22 +310,22 @@ _GAM_MONEY = (r'جنيه|درهم|دينار|دولار|ريال(?!\s*مدريد
               r'|\b(?:egp|gbp|eur|usd|cash|prize|bonus|reward|wallet)\b')
 _GAM_CONTEST = (r'توقع|اربح|فائز|فائزين|مسابقة|سحب'
                 r'|\b(?:predict(?:ion|ions)?|guess|giveaway|raffle|contest)\b')
-_GAM_HARD = (r'قمار|مراهن|كازينو|1xbet|melbet|betway|linebet|megapari|stake|'
-             r'برومو\s?كود|promo\s?code|بونص|انضم.*قناة|'
+_GAM_HARD = (r'قمار|مراهن|كازينو|1xbet|melbet|betway|linebet|megapari|stake\.com|'
+             r'برومو\s?كود|promo\s?code|بونص|'
              # english (posts are translated before this filter runs)
              r'\b(?:betting|sportsbook|bookmaker|casino|jackpot)\b'
              r'|\b(?:1xbet|betway|linebet|megapari|bet365|betfair|stake\.com)\b'
              r'|\bwager(?:ing|ed)?\b|\bfree\s?bet\b|\bbet\s?now\b'
-             r'|\bbetting\s?tips?\b|\b(?:join|subscribe)\s+(?:our|us|now)\b'
+             r'|\bbetting\s?tips?\b'
              r'|\bpromo(?:tion)?\s?code\b|\bbonus\s?code\b'
              r'|\bwin\s+(?:cash|money|usd|egp|gbp|eur|\d{3,})\b')
-_AD_STORE = (r'كود\s*خصم|كوبون|قسيمة|للطلب|اطلب\s+الآن|اشتر|متجر|ستور|'
+_AD_STORE = (r'كود\s*خصم|كوبون|قسيمة|للطلب|اطلب\s+الآن|اشتر(?!ك)|متجر|ستور|'
              r'تخفيضات|خصومات|شحن|'
              # english
-             r'\b(?:shop|order|buy|subscribe|install)\s?now\b'
+             r'\b(?:shop|order|buy|subscribe|install)\s?(?:now|today)\b'
              r'|\b(?:discount\s?code|coupon|voucher|free\s+shipping)\b'
-             r'|\b(?:play\s?store|app\s?store|in-app)\b')
-_AD_PRICE = r'سعر|أسعار|ثمن|تكلفة|\b(?:price|prices|discount|off)\s?\d+%?'
+             r'|\b(?:play\s?store|app\s?store|in-app)\b|\b\d+\s?%\s*off\b')
+_AD_PRICE = r'سعر|أسعار|ثمن|تكلفة|\b(?:prices?|discount)\s?\d*%?|\b\d+\s?%\s*off\b'
 _AD_PRODUCT = (r'نسخة|تحميل|لعبة|ألعاب|جهاز|بلايستيشن|اكس\s?بوكس|حساب|اشتراك'
                 r'|\b(?:download|install|premium|subscription)\b'
                 r'|\bplaystation\b|\bxbox\b|\bsteam\b')
@@ -333,9 +333,11 @@ _AD_PRODUCT = (r'نسخة|تحميل|لعبة|ألعاب|جهاز|بلايستي
 
 def is_promo(t):
     """Betting + store-ad filter (owner: no gambling ads, no ads period).
-    Hard signals (brands, casino, promo/discount codes, stores, ordering,
-    channel-recruiting) match alone; money+contest and price+product pairs
-    must co-occur. Ticket posts stay exempt; punditry ("توقع") and salary /
+    BLATANT ONLY: hard brands, casino words, promo codes, explicit buy /
+    order / discount CTAs, and percent-off lines match alone; money+contest
+    and price+product pairs must co-occur. Everyday football language
+    ("at stake", "kicked off", subscribe footers, punditry, team names)
+    never matches. Ticket posts stay exempt; punditry ("توقع") and salary /
     transfer figures pass. The riyal-money signal explicitly excludes
     "ريال مدريد" (Real Madrid) via lookahead."""
     t = t or ''
