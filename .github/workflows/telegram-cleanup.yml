@@ -1,0 +1,40 @@
+name: telegram-cleanup
+
+# One-off channel cleaner (foreign t.me links). NEVER runs on its own:
+# dispatch only, dry-run by default. Leaves main, state branch, and Vercel
+# alone (no pushes at all).
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'dry-run lists, delete removes'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - delete
+      max:
+        description: 'how many recent posts to scan back'
+        required: true
+        default: '40'
+
+permissions:
+  contents: read
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Scan (and optionally delete) leaked channel promos
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
+          MODE: ${{ inputs.mode }}
+          MAX: ${{ inputs.max }}
+        run: python scripts/tg_cleanup.py
