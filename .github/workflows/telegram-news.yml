@@ -51,6 +51,9 @@ jobs:
           TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
         run: python scripts/tg_promo.py
       - name: Channel SEO (about text + pinned keywords)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
         run: python scripts/tg_seo.py
       - name: Save dedup state (state branch only — main pushes redeploy Vercel)
         run: |
