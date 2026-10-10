@@ -4,7 +4,24 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§137 — Aurelene Chuamini fix).
+> Last updated: 2026-10-10 (§138 — score-flip fix).
+
+## 138. Score-flip fix (2026-10-10)
+
+- Owner's card showed Getafe 3-0 Barcelona with Barca scorers under Barcelona.
+  Root cause: Kora's Arabic RTL page prints STING-web-Result in visual order
+  (left team first = away-home); both Kora scrapers copied that string into
+  result_text, whose contract everywhere else is home-away. Any card rendering
+  teams from home/away with the score from result_text flipped the winner.
+- Fix (api/matches.js:336 + worker.js:208, same idiom as the Yacine branch):
+  result_text is now derived from the oriented data-score-home/away
+  attributes; the raw Result-div read is removed. index.html needed no change
+  (rowCard uses oriented score_home/score_away). Yacine/ESPN/FotMob ruled out
+  with live data.
+- Proof: harness replaying old vs new extraction against live Kora HTML +
+  ESPN + FotMob + koora-l.live — full sweep had 28/28 asymmetric rows
+  inverted under OLD, 0 mismatches under NEW (independently re-run at commit
+  time). node --check clean on both files.
 
 ## 137. Aurelene Chuamini fix (2026-10-10)
 
