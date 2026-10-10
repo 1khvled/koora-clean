@@ -4,7 +4,27 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§138 — score-flip fix).
+> Last updated: 2026-10-10 (§139 — Arabic-only render flip fix).
+
+## 139. Arabic-only render flip fix (2026-10-10)
+
+- Owner: flip STILL there, but ONLY in Arabic (Sunderland 0-2 Brighton card).
+  Verified the DATA is correct on all sides: FotMob list + matchDetails +
+  lineup ids agree Sunderland home 0-2 Brighton; our /api/fotmob returns
+  home=Sunderland 0, away=Brighton 2 with all 4 events correctly flagged
+  away (De Cuyper 53', Hadjam 90+3', Struijk red 57' all isHome=false).
+  §138's data fix holds — this was a second, presentational bug.
+- Root cause: under dir=rtl the fm-score flex row mirrors (home renders
+  right, away left) while the score stays an LTR "home - away" string, so
+  each team sits next to the OTHER team's number (Sunderland beside "2",
+  Brighton beside "0") and the card reads as the exact inverse. EN (LTR)
+  has no such mismatch — hence Arabic-only.
+- Fix (player.html + identical inline mirror, CSS-only, 1 rule):
+  `.fm-score .row,.fm-score .scorers,.mcard{direction:ltr}` — home stays
+  left and the score reads home-away in every language; each scorers column
+  stays under its own team. Structural test (rtltest.py) proves DOM order =
+  visual order: home/mid/away, home-first scorers, home-away score string.
+  JS untouched (node --check clean), mirrors identical.
 
 ## 138. Score-flip fix (2026-10-10)
 
