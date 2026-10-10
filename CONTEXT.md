@@ -4,7 +4,28 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-09 (§128 — dupes fixed, player sandboxed, failure alerts by bot).
+> Last updated: 2026-10-10 (§129 — skip audit: Madrid filter fixed, short-post dedup).
+
+## 129. Skip audit: Madrid filter fixed, short-post dedup (2026-10-10)
+
+- **Owner: "sometimes it skips some post".** Full audit (subagent, 76 source
+  posts vs 140 channel posts): **zero true losses** — every skip was a correct
+  duplicate collapse (13/13). But it found one loaded gun, fixed:
+- **The promo filter killed Real-Madrid punditry.** Bare riyal in the money
+  list collides with Real in Real Madrid, so any preview/prediction naming
+  Madrid died as "gambling" — the docstring even claimed punditry passes.
+  Fixed with a negative lookahead; real gambling (predict + cash/prize) and
+  store ads still blocked, verified Arabic + English. Live English captions
+  scanned: 0 flagged.
+- **Short shouts bypassed dedup entirely** (empty fp), so identical reposts
+  double-posted. Now hashed exactly: identical shorts collapse, distinct
+  shorts never do, truly-empty stays empty so empty-caption photos never
+  collapse. Two test files updated to the intended behavior.
+- **Silent drops now log**: empty skip and repeat skip (with matched fp).
+- Deliberately NOT done: kind-salting fingerprints — identical texts must
+  collide for repost-dedup yet separate for photo/text twins, contradictory
+  on text alone, and any salt breaks transition matching. Twins staying
+  skipped is correct behavior.
 
 ## 128. Dupes fixed, player sandboxed, failure alerts by bot (2026-10-09)
 

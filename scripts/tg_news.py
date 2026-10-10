@@ -176,8 +176,10 @@ def fingerprint(text):
     t = _re.sub(r'(?im)^\W*watch\s*live:?\s*https?://\S+', ' ', text or '')
     t = _re.sub(r'https?://\S+', ' ', t)   # links are not content
     t = _re.sub(r'[^\w\u0600-\u06FF]+', '', t.lower())
-    if len(t) < 8:
+    if not t:
         return ''
+    if len(t) < 8:
+        return 's:' + hashlib.sha1(t.encode('utf-8')).hexdigest()[:12]
     return hashlib.sha1(t.encode('utf-8')).hexdigest()[:12]
 
 
@@ -304,7 +306,7 @@ def scrape_offside_preview(limit=25):
     return out[-limit:]
 
 
-_GAM_MONEY = (r'جنيه|درهم|دينار|دولار|ريال|جائزة|جوائز|هدية|كاش|مكافأة'
+_GAM_MONEY = (r'جنيه|درهم|دينار|دولار|ريال(?!\s*مدريد)|جائزة|جوائز|هدية|كاش|مكافأة'
               r'|\b(?:egp|gbp|eur|usd|cash|prize|bonus|reward|wallet)\b')
 _GAM_CONTEST = (r'توقع|اربح|فائز|فائزين|مسابقة|سحب'
                 r'|\b(?:predict(?:ion|ions)?|guess|giveaway|raffle|contest)\b')
@@ -334,7 +336,8 @@ def is_promo(t):
     Hard signals (brands, casino, promo/discount codes, stores, ordering,
     channel-recruiting) match alone; money+contest and price+product pairs
     must co-occur. Ticket posts stay exempt; punditry ("توقع") and salary /
-    transfer figures pass."""
+    transfer figures pass. The riyal-money signal explicitly excludes
+    "ريال مدريد" (Real Madrid) via lookahead."""
     t = t or ''
     if re.search(_GAM_HARD, t, re.I):
         return True
@@ -1187,6 +1190,7 @@ def public_preview_run(target):
             break
         txt = usable_text(x['text'])
         if not txt and not x['photo']:
+            print('skipped empty #%d (no text, no photo)' % x['key'])
             state['offside'] = x['key']
             continue
         src_txt = full_text(x['key'], txt)  # never mention/tag source
@@ -1195,7 +1199,7 @@ def public_preview_run(target):
         # can match them when state was lost or rolled back.
         body = llm_fix(src_txt)
         if already_posted(state, src_txt, body):
-            print('skipped repeat #%d' % x['key'])
+            print('skipped repeat #%d fp=%s' % (x['key'], fingerprint(src_txt)))
             state['offside'] = x['key']
             continue
         if is_promo(src_txt) or is_promo(body):
