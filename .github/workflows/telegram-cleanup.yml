@@ -1,29 +1,46 @@
 name: telegram-cleanup
 
-# One-off channel cleaner (foreign t.me links). NEVER runs on its own:
-# dispatch only, dry-run by default. Leaves main, state branch, and Vercel
-# alone (no pushes at all).
+# Channel maintenance (leaked promos, old-photo upgrades). NEVER runs on its
+# own: dispatch only, dry-run by default. Leaves main, state branch, and
+# Vercel alone (no pushes at all).
 on:
   workflow_dispatch:
     inputs:
+      job:
+        description: 'clean (link leaks) or backfill (old photos)'
+        required: true
+        default: 'clean'
+        type: choice
+        options:
+          - clean
+          - backfill
       mode:
-        description: 'dry-run lists, delete removes'
+        description: 'dry-run lists, enforce changes'
         required: true
         default: 'dry-run'
         type: choice
         options:
           - dry-run
-          - delete
+          - enforce
       max:
         description: 'how many recent posts to scan back'
         required: true
         default: '40'
+      maxedits:
+        description: 'backfill edit cap per run'
+        required: false
+        default: '10'
+      donor:
+        description: 'backfill donor overrides channel:source,...'
+        required: false
+        default: ''
 
 permissions:
   contents: read
 
 jobs:
   clean:
+    if: inputs.job == 'clean'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -31,10 +48,33 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Scan (and optionally delete) leaked channel promos
+      - name: Scan (and optionally fix) leaked channel promos
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
           MODE: ${{ inputs.mode }}
           MAX: ${{ inputs.max }}
         run: python scripts/tg_cleanup.py
+  backfill:
+    if: inputs.job == 'backfill'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install telethon requests pillow
+      - name: Upgrade old photos (and targeted donor fixes)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_SESSION: ${{ secrets.TG_SESSION }}
+          MODE: ${{ inputs.mode }}
+          MAX: ${{ inputs.max }}
+          MAXEDITS: ${{ inputs.maxedits }}
+          DONOR: ${{ inputs.donor }}
+        run: python scripts/tg_backfill.py
