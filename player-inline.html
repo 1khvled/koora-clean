@@ -211,6 +211,12 @@ button.pdot:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .fm-score .scorers{display:flex;justify-content:space-between;gap:8px;margin-top:8px;
   font-size:11px;color:var(--muted);font-weight:700;line-height:1.8}
 .fm-score .scorers div{flex:1;min-width:0}
+/* Score headers never mirror: under dir=rtl the flex row would put
+   home on the right while the score stays an LTR "home - away"
+   string, so each team ends up next to the OTHER team's number and
+   the card reads inverted (Arabic-only flip, verified live on
+   Sunderland 0-2 Brighton). Home stays left in every language. */
+.fm-score .row,.fm-score .scorers,.mcard{direction:ltr}
 /* FotMob-style pitch */
 .pitch{position:relative;border-radius:12px;overflow:hidden;background:#1d7a44;
   background:linear-gradient(180deg,#1e8a4c 0%,#17753f 50%,#1e8a4c 100%);
