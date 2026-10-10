@@ -306,7 +306,9 @@ export default async function handler(req, res) {
       const teamImgs = imgs.filter(u => /logo/i.test(u));
       const logos = (teamImgs.length >= 2 ? teamImgs : imgs).slice(0, 2);
       const timeMatch = after.match(/<div id="STING-web-Match-Time">([^<]*)<\/div>/);
-      const resultMatch = after.match(/<div id="STING-web-Result">([^<]*)<\/div>/);
+      // Upstream STING-web-Result is printed in visual (RTL) order: left team
+      // first, i.e. away-home. Never copy it: derive home-away from the
+      // oriented data-score attributes like every other branch does.
       const leagueMatch = after.match(/<div class="STING-web-Match-Info">([^<]*)<\/div>/);
       let stableId = id;
       if (!stableId && href) {
@@ -331,7 +333,7 @@ export default async function handler(req, res) {
         home_logo: logoOk(logos[0]),
         away_logo: logoOk(logos[1]),
         time_text: decFull(timeMatch ? timeMatch[1].trim() : ''),
-        result_text: decFull(resultMatch ? resultMatch[1].trim() : ''),
+        result_text: scoreHome && scoreAway ? `${decFull(scoreHome)}-${decFull(scoreAway)}` : '',
         league_text: decFull(leagueMatch ? leagueMatch[1].trim() : league),
       });
     }
