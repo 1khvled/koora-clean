@@ -4,7 +4,31 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§139 — Arabic-only render flip fix).
+> Last updated: 2026-10-10 (§140 — translator overhaul: name shield + prompt).
+
+## 140. Translator overhaul: name shield + prompt (2026-10-10)
+
+- Owner: translations read like 2012 Google Translate and names are always
+  wrong. Root cause: the prompt ordered the (small, free) model to
+  TRANSILTERATE names itself — the hallucination factory (Conde, Chuamini).
+  Patching each invented spelling after the fact can never end.
+- Fix, two parts. (1) Source-side name shield: new `_AR_PROTECT` roster
+  (~240 Arabic->standard-Latin entries: players, coaches, journalists,
+  unambiguous clubs, national teams) applied by `protect_names()` to the
+  source BEFORE any translator sees it — Groq and the free fallback both
+  receive Latin names to copy instead of Arabic to guess. Matcher is
+  hamza/taa-normalized, longest-first, tolerates glued prepositions, and is
+  edge-guarded both sides (Cityzens/Milano/reform/Rodrygo-De-Paul traps all
+  proven safe); ambiguous bare names (Son, Kane, Martinez...) are full-name
+  only and city-words are excluded. (2) Prompt rewritten: journalist role,
+  meaning-first natural English, strict Latin-verbatim-copy rule, one
+  few-shot example that also teaches the no-echo format. Old
+  "transliterate names" instruction deleted.
+- Proof: shieldtest 14/14, e2e with stubbed model (model receives
+  "Tchouameni/Real Madrid/Barcelona", zero Arabic cores), all 9 existing
+  suites still PASS (names/lang/dedupe/pyok/pipeline/reply/fix/compress/
+  chuamini). repair_names stays as post-pass net. Model list untouched
+  (unverifiable without the key; fail-open order kept).
 
 ## 139. Arabic-only render flip fix (2026-10-10)
 

@@ -924,6 +924,490 @@ def repair_names(text):
     return t
 
 
+# Owner rule: names must NEVER be transliterated by the model. This roster
+# replaces Arabic names with their standard Latin spelling in the SOURCE text
+# before llm_fix sends it to Groq, so the model only ever copies correct names
+# (the prompt orders verbatim copying). repair_names stays as the post-pass
+# net for anything the model still invents. Only unambiguous names are keys:
+# shared bare surnames (Son, Martinez, Alvarez, Diaz, Silva, Torres, Romero,
+# Fernandez, Kane/Kean, Thuram, Rodrygo-vs-Rodrigo) use FULL names only, and
+# city-words (Porto, Lille, Lyon, Torino, Genoa) are left out entirely.
+_AR_PROTECT = [
+    # --- Real Madrid ---
+    ('تيبو كورتوا', 'Thibaut Courtois'),
+    ('داني كارفاخال', 'Dani Carvajal'),
+    ('كارفاخال', 'Carvajal'),
+    ('إيدر ميليتاو', 'Éder Militão'),
+    ('ميليتاو', 'Militão'),
+    ('أنطونيو روديغر', 'Antonio Rüdiger'),
+    ('روديغر', 'Rüdiger'),
+    ('روديجر', 'Rüdiger'),
+    ('دافيد ألابا', 'David Alaba'),
+    ('ألابا', 'Alaba'),
+    ('فيرلان ميندي', 'Ferland Mendy'),
+    ('أوريلين تشواميني', 'Aurélien Tchouaméni'),
+    ('تشواميني', 'Tchouaméni'),
+    ('إدواردو كامافينغا', 'Eduardo Camavinga'),
+    ('كامافينغا', 'Camavinga'),
+    ('كامافينجا', 'Camavinga'),
+    ('فيدي فالفيردي', 'Fede Valverde'),
+    ('فالفيردي', 'Valverde'),
+    ('جود بيلينغهام', 'Jude Bellingham'),
+    ('بيلينغهام', 'Bellingham'),
+    ('فينيسيوس جونيور', 'Vinícius Júnior'),
+    ('فينيسيوس', 'Vinícius'),
+    ('رودريغو غوس', 'Rodrygo Goes'),
+    ('رودريغو', 'Rodrygo'),
+    ('رودريجو', 'Rodrygo'),
+    ('كيليان مبابي', 'Kylian Mbappé'),
+    ('مبابي', 'Mbappé'),
+    ('أردا غولر', 'Arda Güler'),
+    ('غولر', 'Güler'),
+    ('إندريك', 'Endrick'),
+    ('براهيم دياز', 'Brahim Díaz'),
+    ('داني سيبايوس', 'Dani Ceballos'),
+    ('سيبايوس', 'Ceballos'),
+    # --- Barcelona ---
+    ('جول كوندي', 'Jules Koundé'),
+    ('كوندي', 'Koundé'),
+    ('باو كوبارسي', 'Pau Cubarsí'),
+    ('كوبارسي', 'Cubarsí'),
+    ('إينيغو مارتينيز', 'Iñigo Martínez'),
+    ('أليخاندرو بالدي', 'Alejandro Balde'),
+    ('بالدي', 'Balde'),
+    ('بيدري', 'Pedri'),
+    ('بابلو غافي', 'Pablo Gavi'),
+    ('غافي', 'Gavi'),
+    ('فرينكي دي يونغ', 'Frenkie de Jong'),
+    ('دي يونغ', 'de Jong'),
+    ('ديونغ', 'de Jong'),
+    ('داني أولمو', 'Dani Olmo'),
+    ('أولمو', 'Olmo'),
+    ('لامين يامال', 'Lamine Yamal'),
+    ('لامين جمال', 'Lamine Yamal'),
+    ('يامال', 'Yamal'),
+    ('رافينيا', 'Raphinha'),
+    ('رافينها', 'Raphinha'),
+    ('روبرت ليفاندوفسكي', 'Robert Lewandowski'),
+    ('ليفاندوفسكي', 'Lewandowski'),
+    ('فيران توريس', 'Ferran Torres'),
+    ('فيرمين لوبيز', 'Fermín López'),
+    ('فيرمين', 'Fermín'),
+    ('مارك أندريه تير شتيغن', 'Marc-André ter Stegen'),
+    ('تير شتيغن', 'ter Stegen'),
+    ('شتيغن', 'ter Stegen'),
+    ('رونالد أراوخو', 'Ronald Araújo'),
+    ('أراوخو', 'Araújo'),
+    # --- Atlético ---
+    ('يان أوبلاك', 'Jan Oblak'),
+    ('أوبلاك', 'Oblak'),
+    ('خوسيه خيمينيز', 'José Giménez'),
+    ('خيمينيز', 'Giménez'),
+    ('أنطوان غريزمان', 'Antoine Griezmann'),
+    ('غريزمان', 'Griezmann'),
+    ('خوليان ألفاريز', 'Julián Álvarez'),
+    ('رودريغو دي بول', 'Rodrigo De Paul'),
+    ('ألكسندر سورلوث', 'Alexander Sørloth'),
+    ('سورلوث', 'Sørloth'),
+    ('ماركوس يورينتي', 'Marcos Llorente'),
+    ('يورينتي', 'Llorente'),
+    ('كونور غالاغير', 'Conor Gallagher'),
+    ('غالاغير', 'Gallagher'),
+    # --- Man City ---
+    ('إيرلينغ هالاند', 'Erling Haaland'),
+    ('هالاند', 'Haaland'),
+    ('فيل فودين', 'Phil Foden'),
+    ('فودين', 'Foden'),
+    ('رودري', 'Rodri'),
+    ('برناردو سيلفا', 'Bernardo Silva'),
+    ('يوشكو غفارديول', 'Joško Gvardiol'),
+    ('غفارديول', 'Gvardiol'),
+    ('جيريمي دوكو', 'Jérémy Doku'),
+    ('دوكو', 'Doku'),
+    ('إيدرسون', 'Ederson'),
+    ('عمر مرموش', 'Omar Marmoush'),
+    ('مرموش', 'Marmoush'),
+    ('تيجاني رايندرز', 'Tijjani Reijnders'),
+    ('رايندرز', 'Reijnders'),
+    ('ريان شرقي', 'Rayan Cherki'),
+    ('شرقي', 'Cherki'),
+    ('جيانلويجي دوناروما', 'Gianluigi Donnarumma'),
+    ('دوناروما', 'Donnarumma'),
+    ('دونارومما', 'Donnarumma'),
+    # --- Arsenal ---
+    ('بوكايو ساكا', 'Bukayo Saka'),
+    ('ساكا', 'Saka'),
+    ('مارتن أوديغارد', 'Martin Ødegaard'),
+    ('أوديغارد', 'Ødegaard'),
+    ('كاي هافرتز', 'Kai Havertz'),
+    ('هافرتز', 'Havertz'),
+    ('ديكلان رايس', 'Declan Rice'),
+    ('رايس', 'Rice'),
+    ('ويليام صليبا', 'William Saliba'),
+    ('صليبا', 'Saliba'),
+    ('غابرييل مارتينيلي', 'Gabriel Martinelli'),
+    ('لياندرو تروسار', 'Leandro Trossard'),
+    ('تروسار', 'Trossard'),
+    ('دافيد رايا', 'David Raya'),
+    ('رايا', 'Raya'),
+    ('غابرييل جيسوس', 'Gabriel Jesus'),
+    ('فيكتور غيوكيريس', 'Viktor Gyökeres'),
+    ('غيوكيريس', 'Gyökeres'),
+    ('إيبيريتشي إيزي', 'Eberechi Eze'),
+    ('إيزي', 'Eze'),
+    ('مارتن زوبيميندي', 'Martín Zubimendi'),
+    ('زوبيميندي', 'Zubimendi'),
+    ('يوريان تيمبر', 'Jurriën Timber'),
+    ('تيمبر', 'Timber'),
+    # --- Liverpool ---
+    ('محمد صلاح', 'Mohamed Salah'),
+    ('صلاح', 'Salah'),
+    ('فيرجيل فان دايك', 'Virgil van Dijk'),
+    ('فان دايك', 'van Dijk'),
+    ('إبراهيما كوناتي', 'Ibrahima Konaté'),
+    ('كوناتي', 'Konaté'),
+    ('أليكسيس ماك أليستر', 'Alexis Mac Allister'),
+    ('ماك أليستر', 'Mac Allister'),
+    ('دومينيك سوبوسلاي', 'Dominik Szoboszlai'),
+    ('سوبوسلاي', 'Szoboszlai'),
+    ('كودي غاكبو', 'Cody Gakpo'),
+    ('غاكبو', 'Gakpo'),
+    ('ألكسندر إيزاك', 'Alexander Isak'),
+    ('إيزاك', 'Isak'),
+    ('فلوريان فيرتز', 'Florian Wirtz'),
+    ('فيرتز', 'Wirtz'),
+    ('أليسون بيكر', 'Alisson Becker'),
+    ('أليسون', 'Alisson'),
+    # --- Chelsea ---
+    ('كول بالمر', 'Cole Palmer'),
+    ('بالمر', 'Palmer'),
+    ('مويسيس كايسيدو', 'Moisés Caicedo'),
+    ('كايسيدو', 'Caicedo'),
+    ('إنزو فرنانديز', 'Enzo Fernández'),
+    ('مارك كوكوريا', 'Marc Cucurella'),
+    ('كوكوريا', 'Cucurella'),
+    ('أليخاندرو غارناتشو', 'Alejandro Garnacho'),
+    ('غارناتشو', 'Garnacho'),
+    ('إستيفاو', 'Estêvão'),
+    # --- Man United ---
+    ('برونو فرنانديز', 'Bruno Fernandes'),
+    ('برايان مبيومو', 'Bryan Mbeumo'),
+    ('مبيومو', 'Mbeumo'),
+    ('ماتيوس كونيا', 'Matheus Cunha'),
+    ('كونيا', 'Cunha'),
+    ('ليني يورو', 'Leny Yoro'),
+    ('كوبي ماينو', 'Kobbie Mainoo'),
+    ('ماينو', 'Mainoo'),
+    ('أندريه أونانا', 'André Onana'),
+    ('ليساندرو مارتينيز', 'Lisandro Martínez'),
+    # --- Spurs / Villa / others (EPL) ---
+    ('جيمس ماديسون', 'James Maddison'),
+    ('ماديسون', 'Maddison'),
+    ('ديان كولوسيفسكي', 'Dejan Kulusevski'),
+    ('كولوسيفسكي', 'Kulusevski'),
+    ('ميكي فان دي فين', 'Micky van de Ven'),
+    ('فان دي فين', 'van de Ven'),
+    ('كريستيان روميرو', 'Cristian Romero'),
+    ('سون هيونغ مين', 'Son Heung-min'),
+    ('أولي واتكينز', 'Ollie Watkins'),
+    ('واتكينز', 'Watkins'),
+    ('مورغان روجرز', 'Morgan Rogers'),
+    ('روجرز', 'Rogers'),
+    ('إيميليانو مارتينيز', 'Emiliano Martínez'),
+    # --- Bayern ---
+    ('هاري كين', 'Harry Kane'),
+    ('جمال موسيالا', 'Jamal Musiala'),
+    ('موسيالا', 'Musiala'),
+    ('مايكل أوليس', 'Michael Olise'),
+    ('أوليس', 'Olise'),
+    ('جوشوا كيميش', 'Joshua Kimmich'),
+    ('كيميش', 'Kimmich'),
+    ('ألفونسو ديفيز', 'Alphonso Davies'),
+    ('ديفيز', 'Davies'),
+    ('دايو أوباميكانو', 'Dayot Upamecano'),
+    ('أوباميكانو', 'Upamecano'),
+    # --- Dortmund / Leverkusen ---
+    ('سيرهو غيراسي', 'Serhou Guirassy'),
+    ('غيراسي', 'Guirassy'),
+    ('فيكتور بونيفاس', 'Victor Boniface'),
+    ('بونيفاس', 'Boniface'),
+    ('غرانيت تشاكا', 'Granit Xhaka'),
+    ('تشاكا', 'Xhaka'),
+    # --- PSG / Marseille ---
+    ('عثمان ديمبيلي', 'Ousmane Dembélé'),
+    ('ديمبيلي', 'Dembélé'),
+    ('أشرف حكيمي', 'Achraf Hakimi'),
+    ('حكيمي', 'Hakimi'),
+    ('ماركينيوس', 'Marquinhos'),
+    ('نونو مينديز', 'Nuno Mendes'),
+    ('مينديز', 'Mendes'),
+    ('خفيتشا كفاراتسخيليا', 'Khvicha Kvaratskhelia'),
+    ('كفاراتسخيليا', 'Kvaratskhelia'),
+    ('ماسون غرينوود', 'Mason Greenwood'),
+    ('غرينوود', 'Greenwood'),
+    # --- Serie A ---
+    ('لوكا مودريتش', 'Luka Modrić'),
+    ('مودريتش', 'Modrić'),
+    ('أدريان رابيو', 'Adrien Rabiot'),
+    ('رابيو', 'Rabiot'),
+    ('رافاييل لياو', 'Rafael Leão'),
+    ('لياو', 'Leão'),
+    ('كريستيان بوليسيتش', 'Christian Pulisic'),
+    ('بوليسيتش', 'Pulisic'),
+    ('لاوتارو مارتينيز', 'Lautaro Martínez'),
+    ('لاوتارو', 'Lautaro'),
+    ('ماركوس تورام', 'Marcus Thuram'),
+    ('نيكولو باريلا', 'Nicolò Barella'),
+    ('باريلا', 'Barella'),
+    ('دوشان فلاهوفيتش', 'Dušan Vlahović'),
+    ('فلاهوفيتش', 'Vlahović'),
+    ('كينان يلدز', 'Kenan Yıldız'),
+    ('يلدز', 'Yıldız'),
+    ('فرانسيسكو كونسيساو', 'Francisco Conceição'),
+    ('كونسيساو', 'Conceição'),
+    ('روميلو لوكاكو', 'Romelu Lukaku'),
+    ('لوكاكو', 'Lukaku'),
+    ('سكوت ماكتوميناي', 'Scott McTominay'),
+    ('ماكتوميناي', 'McTominay'),
+    ('باولو ديبالا', 'Paulo Dybala'),
+    ('ديبالا', 'Dybala'),
+    ('مويز كين', 'Moise Kean'),
+    ('جوناثان ديفيد', 'Jonathan David'),
+    ('ديفيد', 'David'),
+    ('فيكتور أوسيمين', 'Victor Osimhen'),
+    ('أوسيمين', 'Osimhen'),
+    # --- stars / NT ---
+    ('كريستيانو رونالدو', 'Cristiano Ronaldo'),
+    ('رونالدو', 'Ronaldo'),
+    ('ليونيل ميسي', 'Lionel Messi'),
+    ('ميسي', 'Messi'),
+    ('نيمار', 'Neymar'),
+    ('كيفين دي بروين', 'Kevin De Bruyne'),
+    ('دي بروين', 'De Bruyne'),
+    ('مايك ماينان', 'Mike Maignan'),
+    ('ماينان', 'Maignan'),
+    ('نيكو ويليامز', 'Nico Williams'),
+    ('لويس دياز', 'Luis Díaz'),
+    # --- coaches (frequent in news) ---
+    ('تشافي', 'Xavi'),
+    ('تشابي ألونسو', 'Xabi Alonso'),
+    ('ألونسو', 'Alonso'),
+    ('سيموني إنزاغي', 'Simone Inzaghi'),
+    ('إنزاغي', 'Inzaghi'),
+    ('أنطونيو كونتي', 'Antonio Conte'),
+    ('كونتي', 'Conte'),
+    ('بيب غوارديولا', 'Pep Guardiola'),
+    ('غوارديولا', 'Guardiola'),
+    ('ميكيل أرتيتا', 'Mikel Arteta'),
+    ('أرتيتا', 'Arteta'),
+    ('آرني سلوت', 'Arne Slot'),
+    ('سلوت', 'Slot'),
+    ('إنزو ماريسكا', 'Enzo Maresca'),
+    ('ماريسكا', 'Maresca'),
+    ('روبن أموريم', 'Rúben Amorim'),
+    ('أموريم', 'Amorim'),
+    ('هانز فليك', 'Hansi Flick'),
+    ('فليك', 'Flick'),
+    ('كارلو أنشيلوتي', 'Carlo Ancelotti'),
+    ('أنشيلوتي', 'Ancelotti'),
+    ('توماس توخيل', 'Thomas Tuchel'),
+    ('توخيل', 'Tuchel'),
+    ('فينسنت كومباني', 'Vincent Kompany'),
+    ('كومباني', 'Kompany'),
+    ('يورغن كلوب', 'Jürgen Klopp'),
+    ('كلوب', 'Klopp'),
+    ('جوزيه مورينيو', 'José Mourinho'),
+    ('مورينيو', 'Mourinho'),
+    ('دييغو سيميوني', 'Diego Simeone'),
+    ('سيميوني', 'Simeone'),
+    # --- journalists ---
+    ('فابريزيو رومانو', 'Fabrizio Romano'),
+    ('ديفيد أورنستين', 'David Ornstein'),
+    ('فلوريان بليتنبرغ', 'Florian Plettenberg'),
+    ('بليتينبيرغ', 'Florian Plettenberg'),
+    ('ماتيو موريتو', 'Matteo Moretto'),
+    # --- clubs (unambiguous only) ---
+    ('برشلونة', 'Barcelona'),
+    ('برشا', 'Barcelona'),
+    ('البرشا', 'Barcelona'),
+    ('ريال مدريد', 'Real Madrid'),
+    ('الريال', 'Real Madrid'),
+    ('أتلتيكو مدريد', 'Atlético Madrid'),
+    ('أتلتيكو', 'Atlético Madrid'),
+    ('إشبيلية', 'Sevilla'),
+    ('فياريال', 'Villarreal'),
+    ('ريال بيتيس', 'Real Betis'),
+    ('بيتيس', 'Real Betis'),
+    ('أتلتيك بلباو', 'Athletic Bilbao'),
+    ('بلباو', 'Athletic Bilbao'),
+    ('خيتافي', 'Getafe'),
+    ('ريال سوسيداد', 'Real Sociedad'),
+    ('سوسيداد', 'Real Sociedad'),
+    ('فالنسيا', 'Valencia'),
+    ('سلتا فيغو', 'Celta Vigo'),
+    ('سلتا', 'Celta Vigo'),
+    ('مايوركا', 'Mallorca'),
+    ('جيرونا', 'Girona'),
+    ('رايو فايكانو', 'Rayo Vallecano'),
+    ('إسبانيول', 'Espanyol'),
+    ('ديبورتيفو ألافيس', 'Deportivo Alavés'),
+    ('ألافيس', 'Alavés'),
+    ('أوساسونا', 'Osasuna'),
+    ('ليفربول', 'Liverpool'),
+    ('مانشستر سيتي', 'Manchester City'),
+    ('السيتيزنز', 'Cityzens'),
+    ('السيتيزن', 'Cityzens'),
+    ('السيتي', 'Manchester City'),
+    ('مانشستر يونايتد', 'Manchester United'),
+    ('اليونايتد', 'Manchester United'),
+    ('آرسنال', 'Arsenal'),
+    ('تشيلسي', 'Chelsea'),
+    ('البلوز', 'Chelsea'),
+    ('توتنهام هوتسبير', 'Tottenham Hotspur'),
+    ('توتنهام', 'Tottenham'),
+    ('نيوكاسل يونايتد', 'Newcastle United'),
+    ('نيوكاسل', 'Newcastle'),
+    ('أستون فيلا', 'Aston Villa'),
+    ('إيفرتون', 'Everton'),
+    ('وست هام يونايتد', 'West Ham United'),
+    ('وست هام', 'West Ham'),
+    ('وستهام', 'West Ham'),
+    ('برايتون أند هوف ألبيون', 'Brighton & Hove Albion'),
+    ('برايتون', 'Brighton'),
+    ('بورنموث', 'Bournemouth'),
+    ('فولهام', 'Fulham'),
+    ('كريستال بالاس', 'Crystal Palace'),
+    ('برينتفورد', 'Brentford'),
+    ('ولفرهامبتون', 'Wolves'),
+    ('نوتنغهام فورست', 'Nottingham Forest'),
+    ('نوتنغهام', 'Nottingham Forest'),
+    ('ليدز يونايتد', 'Leeds United'),
+    ('ليدز', 'Leeds'),
+    ('بيرنلي', 'Burnley'),
+    ('سندرلاند', 'Sunderland'),
+    ('بايرن ميونخ', 'Bayern Munich'),
+    ('البايرن', 'Bayern Munich'),
+    ('بايرن', 'Bayern'),
+    ('بوروسيا دورتموند', 'Borussia Dortmund'),
+    ('دورتموند', 'Borussia Dortmund'),
+    ('باير ليفركوزن', 'Bayer Leverkusen'),
+    ('ليفركوزن', 'Bayer Leverkusen'),
+    ('لايبزيغ', 'RB Leipzig'),
+    ('آينتراخت فرانكفورت', 'Eintracht Frankfurt'),
+    ('فرانكفورت', 'Eintracht Frankfurt'),
+    ('شتوتغارت', 'Stuttgart'),
+    ('باريس سان جيرمان', 'Paris Saint-Germain'),
+    ('مارسيليا', 'Marseille'),
+    ('موناكو', 'Monaco'),
+    ('أولمبيك ليون', 'Olympique Lyon'),
+    ('أياكس', 'Ajax'),
+    ('فينورد', 'Feyenoord'),
+    ('آيندهوفن', 'PSV'),
+    ('بنفيكا', 'Benfica'),
+    ('سبورتينغ لشبونة', 'Sporting CP'),
+    ('غلطة سراي', 'Galatasaray'),
+    ('فنربخشة', 'Fenerbahçe'),
+    ('يوفنتوس', 'Juventus'),
+    ('اليوفي', 'Juventus'),
+    ('ميلان', 'Milan'),
+    ('الميلان', 'Milan'),
+    ('إنتر ميلان', 'Inter Milan'),
+    ('الإنتر', 'Inter'),
+    ('إنتر', 'Inter'),
+    ('نابولي', 'Napoli'),
+    ('لاتسيو', 'Lazio'),
+    ('أتالانتا', 'Atalanta'),
+    # --- national teams ---
+    ('إسبانيا', 'Spain'),
+    ('فرنسا', 'France'),
+    ('إنجلترا', 'England'),
+    ('البرتغال', 'Portugal'),
+    ('ألمانيا', 'Germany'),
+    ('إيطاليا', 'Italy'),
+    ('هولندا', 'Netherlands'),
+    ('بلجيكا', 'Belgium'),
+    ('كرواتيا', 'Croatia'),
+    ('الأرجنتين', 'Argentina'),
+    ('البرازيل', 'Brazil'),
+    ('المغرب', 'Morocco'),
+    ('الجزائر', 'Algeria'),
+    ('مصر', 'Egypt'),
+    ('تونس', 'Tunisia'),
+    ('السنغال', 'Senegal'),
+    ('أوروغواي', 'Uruguay'),
+    ('كولومبيا', 'Colombia'),
+    ('اليابان', 'Japan'),
+    ('كوريا الجنوبية', 'South Korea'),
+]
+
+
+def _ar_norm1(s):
+    """Length-preserving Arabic normalization for matching: hamza/taa/marbuta
+    variants collapse to one form on BOTH keys and input. Never raises."""
+    try:
+        t = s or ''
+        t = t.replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
+        t = t.replace('ة', 'ه').replace('ى', 'ي').replace('ؤ', 'و').replace('ئ', 'ي')
+        return t
+    except Exception:
+        return s or ''
+
+
+def _build_protect():
+    """Compile the roster to one longest-first regex. Arabic morphology glues
+    prepositions/conjunctions to the front (و/ف/ب/ك/ل + name), so the LEFT edge
+    allows one such prefix char; the RIGHT edge must be a non-letter so keys
+    never match inside longer words (السيتي vs السيتيزن, ميلان vs ميلانو,
+    روما vs روماريو). Returns (regex, {norm: latin}). Never raises."""
+    import re as _re
+    mapping = {}
+    for ar, lat in _AR_PROTECT:
+        try:
+            k = _ar_norm1(ar)
+            if not k or (len(k) < 4 and ' ' not in k):
+                continue
+            mapping.setdefault(k, lat)
+        except Exception:
+            continue
+    alts = sorted(mapping.keys(), key=len, reverse=True)
+    if not alts:
+        return None, {}
+    rx = _re.compile(r'(?:(?<=[وفبكل])|(?<![^\W\d_]))(?:'
+                     + '|'.join(_re.escape(k) for k in alts)
+                     + r')(?![^\W\d_])')
+    return rx, mapping
+
+
+try:
+    _PROTECT_RX, _PROTECT_MAP = _build_protect()
+except Exception:
+    _PROTECT_RX, _PROTECT_MAP = None, {}
+
+
+def protect_names(text):
+    """Source-side name shield: swap known Arabic names for their standard
+    Latin spelling BEFORE the text reaches any translator, so models copy
+    instead of transliterating (the hallucination factory). Diacritics and
+    tatweel are stripped from the working copy (harmless for translation).
+    Longest-first, single pass, ordinary prose without roster names passes
+    through byte-identical apart from diacritics. Never raises."""
+    try:
+        import re as _re
+        t = _re.sub(r'[\u064b-\u0653\u0670\u0640]', '', text or '')
+        if not t or _PROTECT_RX is None:
+            return text
+        norm = _ar_norm1(t)
+        parts, last = [], 0
+        for m in _PROTECT_RX.finditer(norm):
+            parts.append(t[last:m.start()])
+            parts.append(_PROTECT_MAP[m.group(0)])
+            last = m.end()
+        parts.append(t[last:])
+        return ''.join(parts)
+    except Exception:
+        return text
+
+
 def has_arabic(text):
     """True when the text still carries any Arabic letter or Arabic
     presentation form. The channel is English-only, so this is the single
@@ -944,39 +1428,42 @@ def llm_fix(text):
     else:
         models = [os.environ.get('GROQ_MODEL', '').strip() or 'qwen/qwen3.8-27b',
                   'openai/gpt-oss-20b']
-    system = ('You are a football-news translator and copy editor. Translate '
-              'the Arabic post to natural ENGLISH and fix it: correct typos and '
-              'obvious factual slips (for example a scoreline written backwards '
-              'against its own listed goals). Transliterate player and team '
-              'names to their standard Latin spelling. A name in the source that is '
-              'an Arabic transliteration of a famous player or journalist must become '
-              "that real person's actual sport name -- e.g. \"Thibaut Courtois\" (never "
-              '"Tibo Kortuwa"), "Fabrizio Romano", "Kylian Mbappé", "Erling Haaland". '
-              'Never invent a spelling and never coin a new variant of a real '
-              'name: a known player or team keeps its one standard Latin '
-              'spelling (Jules Koundé, never an invented "Condé"); when unsure, '
-              'keep the most standard spelling instead of guessing. Every '
-              'person and team name in the output must use its standard '
-              'Latin spelling, with no invented or altered variants. '
-              'Never write '
+    system = ('You are a professional English football journalist translating '
+              'Arabic fan-channel posts for an English audience. Translate the '
+              'MEANING into fluent, natural English -- never word-for-word, '
+              'never stiff or literal. Short punchy sports-news sentences with '
+              'normal football vocabulary. '
+              'CRITICAL name rule: any person, club, or place name already '
+              'written in Latin script MUST be copied EXACTLY, character for '
+              'character -- never transliterate, translate, re-spell, or '
+              "'correct' it. "
+              'Keep scores, minute marks, and every number exactly. Keep the '
+              'emojis and the item order. English only: a header line, then '
+              'one bullet per item starting with the bullet char. Each '
+              'distinct sentence appears exactly once -- never repeat the '
+              'same sentence as both header and bullet. '
+              'Never invent facts, scorelines, or name spellings -- when '
+              'unsure of a name, keep the source wording. Never write '
               'a self-contradictory sentence -- a missed chance and a scored '
               'goal are opposites, so state one clearly ("missed a chance", '
-              'never "missed a goal that had been scored"). Each distinct '
-              'sentence may appear exactly once -- never repeat the same '
-              'sentence as both header and bullet. '
-              'Then format it as a clean '
-              'readable list: header line first, then one bullet per item, each '
-              'on its own line starting with the bullet char. Keep the emojis '
-              'and the item order; keep scores, numbers, and minute marks '
-              'exactly. The whole output must be English only. Never output '
-              'the word "translation" or any label of your own (no '
-              '"Translation:", no "Corrected:", no "Here is"), and never restate '
-              'the post as instructions. Add nothing else -- no headers, '
-              'footers, mentions, tags, links, hashtags, bold, Arabic leftovers, '
-              'or commentary. Output ONLY the corrected post.')
+              'never "missed a goal that had been scored"). No meta text (no '
+              '"Translation:", no "Corrected:", no "Here is"), no hashtags, '
+              'mentions, links, or commentary. Output ONLY the post. '
+              'Example. Input: '
+              "'سجل Lamine Yamal هدفا عالميا في الدقيقة 73 ليقود Barcelona "
+              "لفوز صعب 2-1 على Getafe.' "
+              'Output: '
+              "'Lamine Yamal stunner seals hard-fought Barcelona win\\n"
+              "• Lamine Yamal scored a superb 73rd-minute goal as Barcelona "
+              "edged Getafe 2-1.'")
+    # Name shield: known Arabic names become Latin BEFORE the model sees the
+    # text, so it copies instead of transliterating (the hallucination
+    # factory). Only this protected copy is sent out; `text` below is kept
+    # for the length guards.
+    src = protect_names(text)
     for model in models:
         try:
-            out = groq_chat(key, model, system, text[:3500])
+            out = groq_chat(key, model, system, src[:3500])
             print('[lang] groq ok: %s (%d chars)' % (model, len(out)))
         except Exception as e:
             print('[lang] groq fail: %s %s' % (model, str(e)[:80] or type(e).__name__))
@@ -997,8 +1484,8 @@ def llm_fix(text):
             print('[lang] groq output rejected (meta-label)')
             continue  # it narrated the job instead of doing it
         return repair_names(dedupe_lines(out))
-    fb = translate_free_ar_en(text)
-    if fb and fb != text and not has_arabic(fb):
+    fb = translate_free_ar_en(src)
+    if fb and fb != src and not has_arabic(fb):
         print('[lang] free fallback used')
         return repair_names(dedupe_lines(fb))
     if has_arabic(text):
