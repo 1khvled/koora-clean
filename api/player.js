@@ -697,14 +697,10 @@ const resolveYacine = async (home, away, startIso) => {
       ]);
     }
     const [y, arenaHit] = await Promise.all([resolveYassir(id), arenaFast || Promise.resolve(null)]);
-    if (y && y.servers && y.servers.length) {
+    // Arena is the PRIMARY source (owner order): its direct ad-free streams
+    // go first and become the default playerSrc; Yassir follows as backup.
+    if ((y && y.servers && y.servers.length) || (arenaHit && arenaHit.servers && arenaHit.servers.length)) {
       const servers = [];
-      for (const s of y.servers) {
-        // SEC: only http(s) leaves the server (same choke as pushUnique).
-        if (!s || !/^https:\/\//i.test(String(s.url || ''))) continue;
-        if (servers.some(x => x.url === s.url)) continue;
-        servers.push({ label: 'سيرفر ' + (servers.length + 1), url: s.url, kind: 'live' });
-      }
       if (arenaHit && arenaHit.servers) {
         for (const s of arenaHit.servers) {
           const u = String(s && s.url || '');
@@ -712,6 +708,12 @@ const resolveYacine = async (home, away, startIso) => {
           if (servers.some(x => x.url === u)) continue;
           servers.push({ label: s.label || 'Arena', url: u, kind: 'arena' });
         }
+      }
+      for (const s of ((y && y.servers) || [])) {
+        // SEC: only http(s) leaves the server (same choke as pushUnique).
+        if (!s || !/^https:\/\//i.test(String(s.url || ''))) continue;
+        if (servers.some(x => x.url === s.url)) continue;
+        servers.push({ label: 'سيرفر ' + (servers.length + 1), url: s.url, kind: 'live' });
       }
       if (servers.length) {
         res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
@@ -722,7 +724,7 @@ const resolveYacine = async (home, away, startIso) => {
           away: qAway || undefined,
           playerSrc: servers[0].url,
           found: true,
-          via: 'live',
+          via: servers[0].kind === 'arena' ? 'arena' : 'live',
           embedUrl: servers[0].url,
           count: servers.length,
           servers,
@@ -909,6 +911,12 @@ const resolveYacine = async (home, away, startIso) => {
       if (servers.some(s => s.url === entry.url)) return;
       servers.push(entry);
     };
+    // Arena FIRST: primary source (owner order). Everything else is backup.
+    if (arenaHit && arenaHit.servers) {
+      arenaHit.servers.forEach((s) => pushUnique({
+        label: s.label || 'Arena', url: s.url, kind: 'arena',
+      }));
+    }
     if (playerSrc) {
       pushUnique({ label: 'المصدر المباشر', url: playerSrc, livePage: null, kind: 'direct', via: 'direct' });
     }
@@ -923,11 +931,7 @@ const resolveYacine = async (home, away, startIso) => {
         label: 'سيرفر ' + (i + 1), url: s.url, kind: 'leaf',
       }));
     }
-    if (arenaHit && arenaHit.servers) {
-      arenaHit.servers.forEach((s) => pushUnique({
-        label: s.label || 'Arena', url: s.url, kind: 'arena',
-      }));
-    }
+    // (Arena already merged first above.)
     // Hidden EN fallback (owner-authorized): phase 2, ONLY when Yassir +
     // Yacine + Kora all yield zero servers.
     if (ADS_MIRRORS && !servers.length && enHit && !outOfTime(800)) {
