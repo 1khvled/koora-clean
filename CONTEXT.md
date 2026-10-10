@@ -4,7 +4,22 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-10 (§145 — owner error DMs).
+> Last updated: 2026-10-10 (§146 — channel-promo leak fix).
+
+## 146. Channel-promo leak fix (2026-10-10)
+
+- Owner: a reposted "Matchday" post carried https://t.me/EPL4LEAGUE into our
+  channel (#1786) — another channel's invite leaked. Confirmed live in the
+  channel preview; our own promos only ever link kooraadz (http), never t.me.
+- Prevention (tg_news.py): new scrub_links strips t.me/telegram.me URLs
+  from source AND translated text; content is kept and posts link-free, and
+  a scrubbed-to-empty text-only post skips as promo-like (terminal, not a
+  loss). Proven on the exact #1786 source: link gone, 200+ chars kept.
+- Cleanup: new scripts/tg_cleanup.py + dispatch-only telegram-cleanup.yml
+  (dry-run default, never auto-runs, no pushes). Dry-run verified twice:
+  40 scanned, exactly #1786 flagged.
+- NOTE (pre-existing, not mine): TG_SETUP.md documents a private t.me/+hash
+  invite in the public repo — flagging, not touching unprompted.
 
 ## 145. Owner error DMs (2026-10-10)
 

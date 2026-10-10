@@ -1486,6 +1486,24 @@ def protect_names(text):
         return text
 
 
+_TLINK = re.compile(r'(?i)\b(?:https?://)?(?:t\.me|telegram\.me|telegram\.dog)/[A-Za-z0-9_+-]+/?[^\s<>"]*')
+
+
+def scrub_links(text):
+    """Remove Telegram invite/channel links from post text (a reposted channel
+    promo leaks someone else's channel into ours). Keeps everything else
+    byte-identical, collapses leftover blank lines. Ordinary http(s) links
+    (our player links) are untouched. Never raises."""
+    try:
+        import re as _re
+        t = _TLINK.sub('', text or '')
+        t = _re.sub(r'[ \t\xa0]+', ' ', t)
+        t = _re.sub(r'\n[ \t]*\n(?:[ \t]*\n)*', '\n\n', t)
+        return t.strip()
+    except Exception:
+        return text
+
+
 def has_arabic(text):
     """True when the text still carries any Arabic letter or Arabic
     presentation form. The channel is English-only, so this is the single
@@ -2152,10 +2170,14 @@ def public_preview_run(target):
                 state['offside'] = x['key']
                 continue
             src_txt = full_text(x['key'], txt)  # never mention/tag source
+            # Scrub channel-invite links BEFORE translating: a reposted promo
+            # would otherwise leak someone else's t.me channel into ours.
+            src_txt = scrub_links(src_txt)
             # Translate BEFORE the repeat check: the seeded window holds the
             # English captions actually posted, so only the English fingerprint
             # can match them when state was lost or rolled back.
             body = llm_fix(src_txt)
+            body = scrub_links(body)
             if already_posted(state, src_txt, body):
                 print('skipped repeat #%d fp=%s' % (x['key'], fingerprint(src_txt)))
                 state['offside'] = x['key']
@@ -2218,6 +2240,13 @@ def public_preview_run(target):
                 if img:
                     kind, got = brand_photo(img)
                     out = got if kind == 'photo' else None  # branding: text only
+                if not body and not out and not vid and not anim:
+                    # Link-only post: scrubbing took its whole text (a bare
+                    # channel invite). Terminal like a promo skip, not a loss.
+                    print('skipped link-only post #%d' % x['key'])
+                    tries.pop(x['key'], None)
+                    state['offside'] = x['key']
+                    continue
                 result = send_post(target, body, out, vid, anim,
                                    reply_to=reply_to)
                 if result:
