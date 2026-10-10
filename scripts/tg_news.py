@@ -53,6 +53,12 @@ SOURCES = [
     {'key': 'k2', 'ref': '+X4KcXCUFXPIxN2Q6', 'name': 'Kurdish source', 'translate': True},
 ]
 MAX_POSTS_PER_RUN = 10
+
+# Owner error DMs (via the channel bot): terminal post losses and blind runs
+# DM owner chat directly. Cooldown so a bad night can't spam. Chat id is not
+# a secret (same id the workflow failure step already uses).
+OWNER_CHAT = '5625295907'
+ALERT_COOLDOWN = 1800
 FETCH_LIMIT = 25
 # how many recently-posted content fingerprints to remember
 SEEN_KEEP = 300
@@ -2033,10 +2039,49 @@ def public_preview_run(target):
     """One run over the public preview. Returns posts made. Bot-only."""
     state = load_state()
     _SINGLE.clear()
+    lost = []
+
+    def _maybe_alert(events):
+        # DM the owner about terminal errors (posts lost for good, blind
+        # runs). One DM per cooldown window; never crashes the run, never
+        # leaks secrets (chat id and run link only).
+        try:
+            if not events:
+                return
+            now = time.time()
+            if now - float(state.get('last_err_alert') or 0) < ALERT_COOLDOWN:
+                print('owner alert skipped (cooldown)')
+                return
+            if not os.environ.get('TELEGRAM_BOT_TOKEN', '').strip():
+                print('owner alert skipped (no bot token)')
+                return
+            lines = ['Bridge errors — posts need attention:']
+            for k, what in events[:8]:
+                lines.append('#%s: %s' % (k, what))
+            if len(events) > 8:
+                lines.append('...+%d more' % (len(events) - 8))
+            repo = os.environ.get('GITHUB_REPOSITORY', '')
+            rid = os.environ.get('GITHUB_RUN_ID', '')
+            if repo and rid:
+                lines.append('https://github.com/%s/actions/runs/%s' % (repo, rid))
+            r = bot('sendMessage', {'chat_id': OWNER_CHAT,
+                                    'text': '\n'.join(lines)[:3900],
+                                    'disable_web_page_preview': True})
+            if (r or {}).get('ok'):
+                state['last_err_alert'] = now
+                print('owner alert sent (%d events)' % len(events))
+            else:
+                print('owner alert failed: %s'
+                      % str((r or {}).get('description'))[:80])
+        except Exception as e:
+            print('owner alert crashed:', str(e)[:100])
+
     try:
         items = scrape_offside_preview()
     except Exception as e:
         print('preview fetch failed:', type(e).__name__, str(e)[:100])
+        _maybe_alert([('preview', 'source preview unreachable, run blind')])
+        save_state(state)
         return 0
     seed_seen(state, target)
     last = int(state.get('offside', 0) or 0)
@@ -2093,6 +2138,7 @@ def public_preview_run(target):
         if n > 3:
             print('#%d: %s %d times, giving up (post lost)' % (k, what, n))
             tries.pop(k, None)
+            lost.append((k, '%s %d times, post lost' % (what, n)))
         else:
             print('#%d: %s (attempt %d/3), will retry next run' % (k, what, n))
             tries[k] = n
@@ -2201,6 +2247,7 @@ def public_preview_run(target):
             _note_fail(x['key'], 'FAILED')
         state['offside'] = x['key']
         time.sleep(2)
+    _maybe_alert(lost)
     save_state(state)
     print('preview: %d new (%d queued retries), posted=%d'
           % (len(fresh), len(work) - len(fresh), posted))
