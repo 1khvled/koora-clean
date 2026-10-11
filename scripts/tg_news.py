@@ -1068,6 +1068,12 @@ _NAME_CANON = {
     'tshuamini': 'Tchouaméni',
     'aurelene': 'Aurélien',
     'aurelien': 'Aurélien',
+    # reported 2026-10-11: طرد مالين ("Malen sent off") came out "Tarard
+    # Malin" -- a red-card noun used as a surname. No footballer is named
+    # Tarard, so the bare word always means the punishment.
+    'tarard': 'Red card',
+    'malin': 'Malen',
+    'donyell malen': 'Donyell Malen',
 }
 
 # letters that differ only by accents across the Latin spellings we accept
@@ -1374,6 +1380,11 @@ _AR_PROTECT = [
     ('ماكتوميناي', 'McTominay'),
     ('باولو ديبالا', 'Paulo Dybala'),
     ('ديبالا', 'Dybala'),
+    # reported 2026-10-11: طرررد مالين ("Malen sent off") came out "Tarard
+    # Malin" -- the red-card noun became a surname. Bare مالين is safe
+    # (distinctive, no common-word collision).
+    ('دونييل مالين', 'Donyell Malen'),
+    ('مالين', 'Malen'),
     ('مويز كين', 'Moise Kean'),
     ('جوناثان ديفيد', 'Jonathan David'),
     ('ديفيد', 'David'),
@@ -1587,18 +1598,81 @@ except Exception:
     _PROTECT_RX, _PROTECT_MAP = None, {}
 
 
+# Closed class: football punishments are NEVER people (observed 2026-10-11:
+# طرررد مالين came out "Tarard Malin"). Swapped for plain English BEFORE any
+# translator runs, so no engine can surname-ify them. Bare طرد is short but
+# the edge guards pin it (يطرد/سيطرد never match: leading ي/س aren't allowed
+# prefixes; مطرودين never matches: trailing letters blocked).
+_AR_TERMS = [
+    ('الطرد', 'the red card'),
+    ('مطرود', 'sent off'),
+    ('طرد', 'sent off'),
+]
+
+
+def _squeeze_ar(s):
+    """Collapse 3+ identical Arabic letters (emphasis elongation like طررررد)
+    to one. Standard words never have such runs, so this only de-shouts.
+    Length-changing: callers must use the squeezed text throughout. Never
+    raises."""
+    try:
+        import re as _re
+        return _re.sub(r'([\u0621-\u064a])\1{2,}', r'\1', s or '')
+    except Exception:
+        return s or ''
+
+
+def _build_terms():
+    import re as _re
+    mapping = {}
+    for ar, en in _AR_TERMS:
+        try:
+            k = _ar_norm1(ar)
+            if k:
+                mapping.setdefault(k, en)
+        except Exception:
+            continue
+    alts = sorted(mapping.keys(), key=len, reverse=True)
+    if not alts:
+        return None, {}
+    return (_re.compile(r'(?:(?<=[وفبكل])|(?<![^\W\d_]))(?:'
+                        + '|'.join(_re.escape(k) for k in alts)
+                        + r')(?![^\W\d_])'), mapping)
+
+
+try:
+    _TERMS_RX, _TERMS_MAP = _build_terms()
+except Exception:
+    _TERMS_RX, _TERMS_MAP = None, {}
+
+
 def protect_names(text):
     """Source-side name shield: swap known Arabic names for their standard
     Latin spelling BEFORE the text reaches any translator, so models copy
     instead of transliterating (the hallucination factory). Diacritics and
-    tatweel are stripped from the working copy (harmless for translation).
-    Longest-first, single pass, ordinary prose without roster names passes
-    through byte-identical apart from diacritics. Never raises."""
+    tatweel are stripped and 3+ Arabic emphasis runs squeezed from the
+    working copy (harmless for translation). Football-punishment terms
+    (closed class) become plain English first so no engine can surname-ify
+    them. Longest-first, single pass each; ordinary prose without roster
+    names passes through with only the above normalizations. Never raises."""
     try:
         import re as _re
         t = _re.sub(r'[\u064b-\u0653\u0670\u0640]', '', text or '')
-        if not t or _PROTECT_RX is None:
+        t = _squeeze_ar(t)
+        if not t:
             return text
+        # Punishment terms first (closed class, longest-first).
+        if _TERMS_RX is not None:
+            norm0 = _ar_norm1(t)
+            parts, last = [], 0
+            for m in _TERMS_RX.finditer(norm0):
+                parts.append(t[last:m.start()])
+                parts.append(_TERMS_MAP[m.group(0)])
+                last = m.end()
+            parts.append(t[last:])
+            t = ''.join(parts)
+        if _PROTECT_RX is None:
+            return t
         norm = _ar_norm1(t)
         parts, last = [], 0
         for m in _PROTECT_RX.finditer(norm):
@@ -1668,6 +1742,8 @@ def llm_fix(text):
               'written in Latin script MUST be copied EXACTLY, character for '
               'character -- never transliterate, translate, re-spell, or '
               "'correct' it. "
+              'Football punishments are never people: a sending-off (طرد) is '
+              '"sent off", a red card stays a red card -- never a surname. '
               'Keep scores, minute marks, and every number exactly. Keep the '
               'emojis and the item order. English only: a header line, then '
               'one bullet per item starting with the bullet char. Each '
@@ -1692,6 +1768,15 @@ def llm_fix(text):
     # factory). Only this protected copy is sent out; `text` below is kept
     # for the length guards.
     src = protect_names(text)
+    if src and not has_arabic(src):
+        # Shield covered everything (short posts can come out fully
+        # English): nothing to translate, post as-is instead of burning
+        # engine calls or dropping it as untranslatable. The mention guard
+        # still applies: an @-tag falls through to the engines like any
+        # other rejectable output.
+        import re as _re2
+        if not _re2.search(r'@\w', src):
+            return repair_names(dedupe_lines(src))
     import time as _t
     for model in models:
         out = None

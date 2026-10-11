@@ -4,7 +4,38 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§158 — VIPBox autoplay + new-tab).
+> Last updated: 2026-10-11 (§160 — first-paint speedup).
+
+## 160. First-paint speedup (2026-10-11)
+
+- Owner: homepage opens empty, needs refresh/wait, loads slowly. Measured:
+  static file answers in 0.39s while the live API takes 6.41s — and the
+  "parallel race" awaited ALL endpoints, so every open waited ~6s+ for the
+  slowest. Fix: first NON-EMPTY response paints immediately (stragglers
+  aborted); empty-agreement and bust-loop semantics from §157 preserved.
+- Instant-paint window widened: stale cache TTL 90s -> 180s (background
+  refresh still updates; live scores re-fuse on the 45s poll).
+- Proof: fetchtest 5/5 incl. timing (6s-cold + 0.1s-static resolves fast
+  with full data), index JS parses.
+
+## 159. Tarard Malin fix (2026-10-11)
+
+- Owner: "Tarard Malin" posted twice. Source truth: #377568 = طررررد مالين
+  ("Malen sent OFF" — red-card noun + name), #377569 = Gasperini quote
+  (translated fine). The model surname-ified the punishment AND the name.
+  NOT an echo/dedup bug: two separate source posts, byte-different bodies.
+- Fix, four layers: (1) roster مالين/دونييل مالين -> Malen/Donyell Malen;
+  (2) _AR_TERMS closed class (الطرد->the red card, مطرود/طرد->sent off)
+  swapped source-side so no engine ever sees the trap (conjugations and
+  plurals deliberately left to the model); (3) emphasis squeeze (3+ Arabic
+  letter runs) so طررررد matches; (4) post-guard tarard->Red card +
+  prompt clause (punishments are never people).
+- Bonus find: fully-shielded short posts came out perfect English but were
+  DROPPED as untranslatable (fb == src) — now posted as-is with zero engine
+  burn, mention guard intact.
+- Proof: malintest 30/30 (incl. trap, conservatism, roster integrity,
+  short-circuit, mention), live free-engine e2e on the exact reported
+  input. Tarard = red-card expulsion, never a person.
 
 ## 158. VIPBox autoplay + new-tab (2026-10-11)
 
