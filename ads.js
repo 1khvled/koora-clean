@@ -29,18 +29,20 @@
       'body{text-align:center}iframe{border:0;max-width:100%}img{max-width:100%;height:auto}</style>' +
       '</head><body>';
     var tail = '</body></html>';
+    /* Plain tags: this file is external, so a literal close tag in a JS
+       string is perfectly safe (no inline-parser interaction). */
     if (kind === 'side') {
       return head +
-        '<scr' + 'ipt>atOptions={' +
+        '<script>atOptions={' +
         "'key':'" + S_KEY + "'," +
         "'format':'iframe'," +
         "'height':600," +
         "'width':160," +
-        "'params':{}};</scr' + 'ipt>" +
-        '<scr' + 'ipt src="' + S_SRC + '"></scr' + 'ipt>' + tail;
+        "'params':{}};</script>" +
+        '<script src="' + S_SRC + '"></script>' + tail;
     }
     return head +
-      '<scr' + 'ipt async="async" data-cfasync="false" src="' + N_SRC + '"></scr' + 'ipt>' +
+      '<script async="async" data-cfasync="false" src="' + N_SRC + '"></script>' +
       '<div id="' + N_BOX + '"></div>' + tail;
   }
 
