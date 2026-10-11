@@ -126,8 +126,11 @@
   }
 
   /* Poll for a real creative; reveal on first sight, destroy on timeout.
-     Above-fold slots fail fast (4s): late reveals there shove the player
-     down mid-scroll. Below-fold gets the full 12s. */
+     Above-fold slots fail fast (6s): late reveals there shove content down
+     mid-scroll. Below-fold gets the full 12s. First check runs immediately
+     (no 500ms wait) so fast fills paint fast. Retries: flow bands get one
+     slow refill; rails (always on screen) retry up to 3x on a backoff --
+     the native rail otherwise sits empty for a whole visit. */
   function watch(slot, kind, fr) {
     var n = 0;
     var max = 24;
@@ -138,7 +141,8 @@
       if (r0.top < window.innerHeight && r0.bottom > 0) { max = 12; budget = 6000; }
       t0 = Date.now();
     } catch (e) { t0 = 0; }
-    var iv = setInterval(function () {
+    var iv = null;
+    function tick() {
       n++;
       var hit = false;
       try { hit = hasContent(slot, kind); } catch (e) { hit = false; }
@@ -148,25 +152,30 @@
       } else if (n >= max || (t0 && Date.now() - t0 > budget)) {
         try { clearInterval(iv); } catch (e) {}
         /* Empty: remove the frame so no blank box remains. data-filled is
-           cleared so a later re-enable retries from scratch. One slow retry
-           (provider fill-rate varies, concurrent same-key loads often lose):
-           a single refill 20s later, never a loop. */
+           cleared so a later re-enable retries from scratch. */
         try {
           slot.innerHTML = '';
           slot.removeAttribute('data-filled');
           slot.classList.remove('on');
           slot.classList.remove('loading');
-          if (!slot.getAttribute('data-retried')) {
-            slot.setAttribute('data-retried', '1');
+          var isFlow = (slot.getAttribute('data-ad') || 'native') === 'flow';
+          var delays = isFlow ? [20000] : [20000, 60000, 180000];
+          var rtry = parseInt(slot.getAttribute('data-rtry') || '0', 10) || 0;
+          if (rtry < delays.length) {
+            slot.setAttribute('data-rtry', String(rtry + 1));
             setTimeout(function () {
               try {
                 if (enabled() && !slot.getAttribute('data-filled') && !slot.classList.contains('on')) fill(slot, false);
               } catch (e) {}
-            }, 20000);
+            }, delays[rtry]);
+          } else {
+            slot.removeAttribute('data-rtry');
           }
         } catch (e) {}
       }
-    }, 500);
+    }
+    try { iv = setInterval(tick, 500); } catch (e) {}
+    try { tick(); } catch (e) {}
   }
 
   function fill(slot, now) {
@@ -259,7 +268,7 @@
     for (var i = 0; i < slots.length; i++) {
       slots[i].innerHTML = '';
       slots[i].removeAttribute('data-filled');
-      slots[i].removeAttribute('data-retried');
+      slots[i].removeAttribute('data-rtry');
       slots[i].classList.remove('on');
       slots[i].classList.remove('loading');
       slots[i].hidden = true;
