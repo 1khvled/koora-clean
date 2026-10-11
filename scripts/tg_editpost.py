@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import time
+import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
 import tg_cleanup as tc
@@ -63,7 +64,9 @@ def load_deletes():
 
 
 def fetch_msgs(wanted):
-    """id -> (text, has_photo) for every wanted id in the recent window."""
+    """id -> (text, has_photo) for every wanted id in the recent window.
+    t.me/s pages are cache-skewed (a page can miss a real message), so any
+    still-missing id gets a targeted single-message probe before giving up."""
     found, seen, before = {}, [], None
     while wanted - set(found) and len(seen) < SCAN_MAX:
         try:
@@ -82,6 +85,19 @@ def fetch_msgs(wanted):
         before = min(seen) - 1
         if len(batch) < 2:
             break
+    for mid in sorted(wanted - set(found)):
+        try:
+            url = ('https://t.me/s/messistatdotcom?before=%d&after=%d'
+                   % (mid + 1, mid - 1))
+            req = urllib.request.Request(
+                url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                page = r.read().decode('utf-8', 'replace')
+            for m2, t2, p2 in tc.parse(page):
+                if m2 == mid:
+                    found[mid] = (t2, p2)
+        except Exception as e:
+            say('#%d probe failed: %s' % (mid, str(e)[:80]))
     return found
 
 
