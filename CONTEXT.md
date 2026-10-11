@@ -4,7 +4,39 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§163 — clean /watch/<id> links).
+> Last updated: 2026-10-11 (§164 — translation moat).
+
+## 164. Translation moat (2026-10-11)
+
+- Owner report (angry, justified): "Jeremie Pino" post + "Yaremi Bino" post
+  + raw `\n` printed into the channel. Diagnosis found the ROOT CAUSE of the
+  escape leak was OUR OWN few-shot example: the prompt example string
+  contained `\\n` (two chars, from a Python escaping slip) -- the paid model
+  copies examples literally, so every header+bullet post since it went
+  primary shipped a literal backslash-n (9 posts: #1847, #1848, #1852,
+  #1856, #1857, #1858, #1860, #1863, #1864). "Yaremi Bino": the Arabic
+  source name (يريمي بينو) was not in the shield, so the model GUESSED.
+- Owner asked for a moat + GitHub research. Researched zero-dep LLM-output
+  sanitizers (llm-markdown-sanitizer, silverspeak homoglyph neutralization,
+  llm-prompt-guard normalization pipeline, ai-text-sanitizer): same three
+  defense classes. Ported the minimal core -- NO new deps (owner rule).
+- Moat layers (all deterministic, engine-agnostic):
+  1. prompt: example now contains a REAL newline + explicit "never the two
+     characters backslash+n" rule; added faithful-letter transliteration
+     rule (never swap in a different player) and zero-filler rule (every
+     sentence carries a fact; no "made a significant impact" restatements);
+  2. sanitize_output(): literal escapes decoded, Cyrillic/Greek homoglyphs
+     folded to Latin, zero-width/bidi/format chars stripped -- wired into
+     _llm_accept (ALL engines: paid/Groq/free) and every llm_fix return;
+  3. fingerprint collapses 3+ letter runs -> elongated source spam
+     ("الثااااني"/"سيتييي") collides with the normal spelling: kills the
+     near-duplicate class (#1859/#1860) at the source level;
+  4. roster+canon: Jérémie Pino source shield (existing squeeze handles
+     elongation) + 9 post-guard variants incl. the observed "Yaremi Bino".
+- Live repair: new dispatch-only scripts/tg_editpost.py (+ 'edit' job in
+  telegram-cleanup.yml) edits/deletes named posts via Bot API (photos stay).
+- Proof: moattest 30/30, auditfix 16/16, malintest 30/30, gentest 7/7,
+  py_compile clean.
 
 ## 163. Clean /watch/<id> links (2026-10-11)
 

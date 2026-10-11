@@ -7,13 +7,14 @@ on:
   workflow_dispatch:
     inputs:
       job:
-        description: 'clean (link leaks) or backfill (old photos)'
+        description: 'clean (link leaks), backfill (old photos) or edit (targeted repair)'
         required: true
         default: 'clean'
         type: choice
         options:
           - clean
           - backfill
+          - edit
       mode:
         description: 'dry-run lists, enforce changes'
         required: true
@@ -38,6 +39,14 @@ on:
         description: 'backfill channel ids to never touch,...'
         required: false
         default: '1788'
+      edits:
+        description: 'edit job: JSON {"<msg-id>":"new text",...}'
+        required: false
+        default: ''
+      deletes:
+        description: 'edit job: message ids to delete, CSV'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -83,3 +92,20 @@ jobs:
           DONOR: ${{ inputs.donor }}
           EXCLUDE: ${{ inputs.exclude }}
         run: python scripts/tg_backfill.py
+  edit:
+    if: inputs.job == 'edit'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Edit or delete specific posts
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
+          MODE: ${{ inputs.mode }}
+          EDITS: ${{ inputs.edits }}
+          DELETES: ${{ inputs.deletes }}
+        run: python scripts/tg_editpost.py

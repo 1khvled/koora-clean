@@ -188,6 +188,7 @@ def fingerprint(text):
     t = _re.sub(r'(?im)^\W*watch\s*live:?\s*https?://\S+', ' ', text or '')
     t = _re.sub(r'https?://\S+', ' ', t)   # links are not content
     t = _re.sub(r'[^\w\u0600-\u06FF]+', '', t.lower())
+    t = _re.sub(r'(.)\1{2,}', r'\1', t)  # elongated spam collides
     if not t:
         return ''
     if len(t) < 8:
@@ -865,11 +866,60 @@ def openrouter_chat(key, model, system, user, timeout=25):
         raise RuntimeError('openrouter bad response')
 
 
+# --- output sanitizer (translation moat, 2026-10-11) ---------------------
+# Deterministic, engine-agnostic cleanup of LLM output. Zero-dep port of the
+# known pattern (GitHub: llm-markdown-sanitizer, silverspeak homoglyph
+# neutralization, llm-prompt-guard normalization). Three classes seen or
+# predictable in production:
+#   1. literal escapes printed as characters -- our own few-shot example once
+#      taught "\\n" as two characters; 9 posts shipped that way;
+#   2. homoglyphs (Cyrillic/Greek lookalikes) in names -- the classic LLM
+#      transliteration artifact ("Pin\\u043e" with Cyrillic o);
+#   3. invisible/bidi/format chars (zero-width joiners, direction marks).
+_HOMOGLYPHS = {
+    '\u0430': 'a', '\u0432': 'b', '\u0441': 'c', '\u0435': 'e', '\u0451': 'e',
+    '\u043d': 'n', '\u0456': 'i', '\u0458': 'j', '\u043a': 'k', '\u043c': 'm',
+    '\u043e': 'o', '\u0440': 'p', '\u0455': 's', '\u0442': 't', '\u0443': 'u',
+    '\u0445': 'x', '\u0410': 'A', '\u0412': 'B', '\u0415': 'E', '\u041a': 'K',
+    '\u041c': 'M', '\u041d': 'N', '\u041e': 'O', '\u0420': 'R', '\u0422': 'T',
+    '\u0423': 'Y', '\u0425': 'X', '\u0406': 'I',
+    '\u03bf': 'o', '\u03b1': 'a', '\u03c1': 'p', '\u03c4': 't', '\u03c5': 'u',
+    '\u03bd': 'v', '\u03ba': 'k', '\u03b9': 'i', '\u03c2': 's', '\u03c3': 's',
+    '\u03b5': 'e', '\u03b7': 'n', '\u039f': 'O', '\u0391': 'A', '\u03a1': 'P',
+    '\u03a4': 'T', '\u03a5': 'Y', '\u039a': 'K', '\u039c': 'M', '\u039d': 'N',
+    '\u0395': 'E', '\u0397': 'H',
+}
+_INVIS = re.compile('[\u200b\u200c\u200d\u2060\ufeff\u00ad\u200e\u200f'
+                    '\u202a-\u202e\u2066-\u2069]')
+
+
+def sanitize_output(text):
+    # Deterministic final-text sanitizer (rationale at _HOMOGLYPHS): decodes
+    # literal escapes, folds homoglyphs, strips invisibles, collapses the
+    # blank lines the unescape may leave. Ordinary text passes byte-identical
+    # apart from trailing whitespace. Never raises.
+    try:
+        t = text or ''
+        if not t:
+            return t
+        t = t.replace('\\r\\n', '\n')
+        for a, b in (('\\n', '\n'), ('\\t', ' '), ('\\r', '\n'),
+                     ('\\\"', '"'), ('\\\\', '\\')):
+            t = t.replace(a, b)
+        t = _INVIS.sub('', t)
+        t = ''.join(_HOMOGLYPHS.get(c, c) for c in t)
+        t = re.sub(r'\n[ \t]*\n(?:[ \t]*\n)*', '\n\n', t)
+        return t.strip()
+    except Exception:
+        return text
+
+
 def _llm_accept(out, text, tag):
     """Shared output gate for the LLM engines (Groq + OpenRouter): length,
     bloat, mention, arabic-leftover, meta-label. Returns the repaired post
     or None. Never raises."""
     try:
+        out = sanitize_output(out)
         if not out or len(out) < 20 or len(out) > 3900:
             return None
         if len(out) > len(text) * 1.5 + 200:
@@ -1054,6 +1104,17 @@ _NAME_CANON = {
     'desiree doe': 'Désiré Doué',
     'desire doue': 'Désiré Doué',
     'desiree doue': 'Désiré Doué',
+    # reported 2026-10-11: the paid model guessed "Yaremi Bino" for Jérémie
+    # Pino (and dropped accents as "Jeremie Pino"). Full-name keys only.
+    'jeremie pino': 'Jérémie Pino',
+    'jeremy pino': 'Jérémie Pino',
+    'yeremy pino': 'Jérémie Pino',
+    'yeremie pino': 'Jérémie Pino',
+    'yaremi pino': 'Jérémie Pino',
+    'jeremie bino': 'Jérémie Pino',
+    'jeremy bino': 'Jérémie Pino',
+    'yaremi bino': 'Jérémie Pino',
+    'yeremy bino': 'Jérémie Pino',
     'vitinha': 'Vitinha',
     'marquinhos': 'Marquinhos',
     'kvaratskhelia': 'Kvaratskhelia',
@@ -1362,6 +1423,9 @@ _AR_PROTECT = [
     ('كفاراتسخيليا', 'Kvaratskhelia'),
     ('ماسون غرينوود', 'Mason Greenwood'),
     ('غرينوود', 'Greenwood'),
+    # --- Crystal Palace ("Jeremie Pino"/"Yaremi Bino" mangles, 2026-10-11) ---
+    ('يريمي بينو', 'Jérémie Pino'),
+    ('جيريمي بينو', 'Jérémie Pino'),
     # --- Serie A ---
     ('لوكا مودريتش', 'Luka Modrić'),
     ('مودريتش', 'Modrić'),
@@ -1764,11 +1828,18 @@ def llm_fix(text):
               'never "missed a goal that had been scored"). No meta text (no '
               '"Translation:", no "Corrected:", no "Here is"), no hashtags, '
               'mentions, links, or commentary. Output ONLY the post. '
+              'Arabic person names: transliterate faithfully, letter by '
+              "letter -- never guess or swap in a DIFFERENT player's name. "
+              'Zero filler: every sentence must carry a fact (goal, minute, '
+              'score, card, transfer, quote, lineup). Never write empty '
+              'praise or restate the header ("made a significant impact", '
+              '"faces X in an exciting matchup"). '
               'Example. Input: '
               "'سجل Lamine Yamal هدفا عالميا في الدقيقة 73 ليقود Barcelona "
               "لفوز صعب 2-1 على Getafe.' "
-              'Output: '
-              "'Lamine Yamal stunner seals hard-fought Barcelona win\\n"
+              'Output (a REAL line break between header and bullet -- never '
+              'the two characters backslash+n): '
+              "'Lamine Yamal stunner seals hard-fought Barcelona win\n"
               "• Lamine Yamal scored a superb 73rd-minute goal as Barcelona "
               "edged Getafe 2-1.'")
     # Name shield: known Arabic names become Latin BEFORE the model sees the
@@ -1784,7 +1855,7 @@ def llm_fix(text):
         # other rejectable output.
         import re as _re2
         if not _re2.search(r'@\w', src):
-            return repair_names(dedupe_lines(src))
+            return repair_names(dedupe_lines(sanitize_output(src)))
     import time as _t
     or_key = os.environ.get('OPENROUTER_API_KEY', '').strip()
     # Paid primary (PAID_MODEL env, e.g. openai/gpt-4o-mini): the free
@@ -1863,13 +1934,13 @@ def llm_fix(text):
     fb = translate_free_ar_en(src)
     if fb and fb != src and not has_arabic(fb):
         print('[lang] free fallback used')
-        return repair_names(dedupe_lines(fb))
+        return repair_names(dedupe_lines(sanitize_output(fb)))
     if has_arabic(text):
         # Channel is English-only. Rather than post Arabic, drop the post.
         print('[lang] UNTRANSLATABLE arabic -> skip post')
         return ''
     print('[lang] all engines failed: posting original')
-    return repair_names(text)
+    return repair_names(sanitize_output(text))
 
 
 # Tokens whose presence in the LONGER line proves new facts (keep it).
