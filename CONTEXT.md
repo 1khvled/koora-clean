@@ -4,7 +4,29 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§168 — mobile-safe ads).
+> Last updated: 2026-10-11 (§169 — ad speed + rail retries).
+
+## 169. Ad speed + rail retries (2026-10-11)
+
+- Owner screenshot (desktop homepage): right rail serves a cheesy DATING
+  creative + reports slowness ("take time to load", dead left rail, slow
+  toggle refill). Facts: side 160x600 fills ~100% (geometry clean, no
+  overflow); native fills ~1/5 loads (provider demand, worse from
+  datacenter egress); dating CONTENT is the network's targeting, not code.
+- Shipped (all 8 pages, `ads.js` + head):
+  1. `<link rel=preconnect>` to both delivery hosts (lines 7-8, same
+     pattern as the existing fonts/espn preconnects) -- cuts 100-300ms
+     off every ad fetch;
+  2. watchdog first check runs IMMEDIATELY (no 500ms wait) -- fast fills
+     paint fast; toggle-ON refill now limited only by provider network
+     (1-3s), frames appear instantly;
+  3. rails retry up to 3x on backoff (20s/60s/180s, `data-rtry`), flows
+     keep 1x -- the native rail no longer sits empty a whole visit;
+  4. legacy `data-retried` flag removed (replaced by `data-rtry`).
+- NOT code-fixable, told straight: dating/ugly CREATIVES are his network's
+  targeting -- block Dating/Adult categories in his own dashboard.
+- Proof: adscheck green (incl. no-legacy-flag), node clean, mirrors
+  identical, preconnect x2 verified on all 8 files.
 
 ## 168. Mobile-safe ads (2026-10-11)
 
