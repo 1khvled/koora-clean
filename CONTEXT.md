@@ -4,7 +4,16 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§153 — backfill reply-thumb fix).
+> Last updated: 2026-10-11 (§154 — donor path decoupled from scan).
+
+## 154. Donor path decoupled from scan (2026-10-11)
+
+- Donor run missed #1788: the scan requires a photo URL in the block, but
+  regional preview variance can omit the photo div — donor overrides now
+  resolve regardless (caption via single-post page fallback). Batch upgrades
+  in the same run still ok (#1804/#1813 89KB->~522KB, #1772-74).
+- Also added a //comment slip-guard grep to the pre-commit habit (three
+  slips caught today across py/yml edits).
 
 ## 153. Backfill reply-thumb fix (2026-10-11)
 

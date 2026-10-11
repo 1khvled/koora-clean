@@ -105,6 +105,22 @@ def state_msgmap():
         return {}
 
 
+def single_caption(mid):
+    """Caption of one channel post via its single-post page (fallback when
+    the list scan yields no text). Never raises."""
+    try:
+        req = urllib.request.Request(
+            'https://t.me/s/messistatdotcom/%d' % int(mid), headers=UA)
+        with urllib.request.urlopen(req, timeout=30) as r:
+            html = r.read().decode('utf-8', 'replace')
+        for mid2, txt, _ in parse(html):
+            if mid2 == int(mid) and (txt or '').strip():
+                return txt
+    except Exception:
+        pass
+    return ''
+
+
 def donor_bytes(skey):
     """Full original for a source key: reader session first, web biggest
     fallback. None when unavailable. Never raises."""
@@ -160,6 +176,13 @@ def main():
                 if mid in seen:
                     continue
                 seen.append(mid)
+                if mid in donors:
+                    # Donor overrides resolve even when the block yields no
+                    # photo (regional markup variance): caption via single
+                    # page fallback at enforce time.
+                    jobs.append((mid, donors[mid], txt, 0, 'donor-override'))
+                    say('#%d DONOR -> source #%d (caption kept)' % (mid, donors[mid]))
+                    continue
                 if not curl:
                     continue
                 try:
@@ -206,6 +229,11 @@ def main():
             if why != 'donor-override' and len(nb) <= oldn:
                 print('#%d: original not bigger (%d<=%d), skipped' % (mid, len(nb), oldn))
                 continue
+            if why == 'donor-override' and not (caption or '').strip():
+                caption = single_caption(mid)
+                if not (caption or '').strip():
+                    print('#%d: no caption resolvable, skipped' % mid)
+                    continue
             import json as _j
             media = _j.dumps({'type': 'photo', 'media': 'attach://p',
                               'caption': (caption or '')[:1024]})
