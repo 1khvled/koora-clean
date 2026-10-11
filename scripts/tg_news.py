@@ -2056,7 +2056,9 @@ def match_link(text):
             print('match link skipped: %d fixtures named (ambiguous)' % len(hits))
         return ''
     f = hits[0]
-    url = '%s/player.html?m=%s&d=%s' % (SITE_BASE, f['id'], f['day'])
+    url = '%s/watch/%s' % (SITE_BASE, f['id'])
+    if f['day'] and f['day'] != 'today':
+        url += '?d=%s' % f['day']
     print('[links] match: %s vs %s -> %s' % (
         ascii(f['home']), ascii(f['away']), url))
     return url

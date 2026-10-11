@@ -4,7 +4,32 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§162 — paid translator primary).
+> Last updated: 2026-10-11 (§163 — clean /watch/<id> links).
+
+## 163. Clean /watch/<id> links (2026-10-11)
+
+- Owner asked to improve link structure. New canonical form:
+  `kooraadz.vercel.app/watch/<id>` (+ `?d=tomorrow|yesterday` ONLY when the
+  day is not today; `d=today` was always the player's default, so it was
+  pure noise). Saves ~18 chars of every Telegram caption and every share.
+- vercel.json rewrite `/watch/:id` -> `/player.html` (internal; browser URL
+  stays clean, JS reads the id from `location.pathname`). Old `?m=&d=` links
+  keep working forever -> every historical Telegram post survives untouched.
+- player.html (+byte-identical player-inline.html): id fallback from path;
+  canonical/og:url blocks now CONSOLIDATE to `/watch/<id>` (old URLs advertise
+  the new form to search engines; legacy `?id=` deep links consolidate too);
+  `./sw.js` + `./icon-*` made absolute — under the rewrite `./` would resolve
+  to `/watch/` and silently kill the ad-block SW + icons.
+- Generators all emit the clean form (today => bare path, other day =>
+  `?d=`): tg_news.match_link, tg_promo.link_for, index/messi/ronaldo
+  playerLink + their JSON-LD, api/sitemap.js, static SSR fallback hrefs
+  (14 per index file). llms.txt documented.
+- Scrubber/`with_link`/retry state are URL-agnostic (t.me-only filters) ->
+  no strip, no double-post risk. Unfurl unchanged (server serves the same
+  static meta either way).
+- Proof: linktest 17/17 (shipped JS snippets evaluated against old/new URL
+  shapes incl. slug ids and /watchlist negative), gentest 7/7, py_compile,
+  vercel.json parses, all three -inline pairs byte-identical.
 
 ## 162. Paid translator primary (2026-10-11)
 

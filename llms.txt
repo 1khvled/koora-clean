@@ -21,7 +21,7 @@
   half (1H/HT/2H) and full-time scores, refreshed every 45 seconds.
 - Live minutes fuse three sources: ESPN public API clock, FotMob exact
   status, then wall-clock estimation. Finished matches show final scores.
-- Each match links to a short player page: /player.html?m=<match-id>&d=today
+- Each match links to a short player page: /watch/<match-id> (add ?d=tomorrow when the fixture is tomorrow)
   (match snapshot loads from storage, then the day API by id).
 - Machine-readable schedule: every listed page embeds schema.org JSON-LD
   (SportsEvent with startDate, EventLive/EventCompleted status; live games

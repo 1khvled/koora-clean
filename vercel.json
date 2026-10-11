@@ -12,6 +12,12 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    {
+      "source": "/watch/:id",
+      "destination": "/player.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
