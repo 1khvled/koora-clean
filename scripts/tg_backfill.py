@@ -46,14 +46,17 @@ def parse(html):
         m = re.search(r'data-post="messistatdotcom/(\d+)"', b)
         if not m:
             continue
-        tm = re.search(r'tgme_widget_message_text[^>]*>([\s\S]*?)</div>\s*</div>', b)
+        # Cut the reply-quote first: it carries the PARENT post's thumbnail,
+        # which would otherwise be mistaken for this post's photo.
+        bq = tg._cut_quote(b)
+        tm = re.search(r'tgme_widget_message_text[^>]*>([\s\S]*?)</div>\s*</div>', bq)
         txt = ''
         if tm:
             txt = re.sub(r'<br\s*/?>', '\n', tm.group(1))
             txt = re.sub(r'<[^>]+>', '', txt)
             import html as _h
             txt = _h.unescape(txt)
-        pm = re.search(r'tgme_widget_message_photo[^>]*background-image:url\(\'([^\']+)\'', b)
+        pm = re.search(r'tgme_widget_message_photo[^>]*background-image:url\(\'([^\']+)\'', bq)
         out.append((int(m.group(1)), txt, pm.group(1) if pm else ''))
     return out
 
@@ -161,7 +164,8 @@ def main():
                     continue
                 try:
                     cb = dl(curl)
-                except Exception:
+                except Exception as e:
+                    print('#%d photo dl failed (%s), skipped' % (mid, type(e).__name__))
                     continue
                 w, h = jpeg_size(cb)
                 if max(w, h, 1) < 200:
@@ -174,6 +178,7 @@ def main():
                     continue
                 sk = (rev.get(mid) or [None])[0]
                 if sk is None:
+                    print('#%d small photo but no source mapped, skipped' % mid)
                     continue
                 jobs.append((mid, int(sk), txt, len(cb), '%dx%d' % (w, h)))
                 say('#%d UPGRADE source #%s (%dx%d %dB)' % (mid, sk, w, h, len(cb)))
