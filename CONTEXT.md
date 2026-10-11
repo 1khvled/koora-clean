@@ -63,6 +63,11 @@
   https:-open, click navigation is not fetch); only their optional
   viewability pings are rotation-sensitive. Steady state: chase high-value
   hosts per observation, never loosen script-src or form-action.
+- Watch-page verified live (/watch/4621354): stage + player iframe + strict
+  sandbox intact, pill ON, both slots filled and outside the stage. The
+  /api/player 404s there are the honest no-servers path for an upcoming
+  fixture (pre-existing), not ad-related. 4th rotation host
+  (`realizationnewestfangs`) allowlisted the same way.
 - Drive-by (pre-existing, 6 chars, zero risk): search-box magnifier is an
   inline `data:` SVG blocked by `img-src` (console error every load, icon
   missing) -- added `data:` to `img-src`. data: images cannot exfiltrate.
