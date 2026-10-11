@@ -4,7 +4,18 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§154 — donor path decoupled from scan).
+> Last updated: 2026-10-11 (§155 — old posts done).
+
+## 155. Old posts done (2026-10-11)
+
+- #1728 SerieALeague1 leak: scrub-edited (caption kept), verified in log.
+- #1788 wrong photo: donor-fixed to 377508's Tchouameni photo (0B->420633B),
+  visually verified — the post now shows the right player. Protected from
+  future generic upgrades by new EXCLUDE list (default 1788): its source now
+  carries only the channel logo, which must never replace the fix.
+- Batch upgrades: 18 posts done (89KB->523KB class improvements; full list
+  in run logs). Older-than-msgmap posts (pre-#1744) are unmappable and
+  skipped visibly; msgmap cap of 200 is the hard horizon for backfills.
 
 ## 154. Donor path decoupled from scan (2026-10-11)
 

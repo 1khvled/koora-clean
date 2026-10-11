@@ -161,6 +161,13 @@ def main():
                 donors[int(c.strip())] = int(s.strip())
             except Exception:
                 pass
+    excluded = set()
+    for x in (os.environ.get('EXCLUDE', '') or '').split(','):
+        try:
+            if x.strip():
+                excluded.add(int(x.strip()))
+        except Exception:
+            pass
     target = (os.environ.get('TARGET_CHAT', '') or '').strip()
     if not os.environ.get('TELEGRAM_BOT_TOKEN', '').strip() or not target:
         print('backfill: missing TELEGRAM_BOT_TOKEN or TARGET_CHAT, nothing to do')
@@ -176,6 +183,8 @@ def main():
                 if mid in seen:
                     continue
                 seen.append(mid)
+                if mid in excluded:
+                    continue  # donor-fixed or owner-excluded: never touch again
                 if mid in donors:
                     # Donor overrides resolve even when the block yields no
                     # photo (regional markup variance): caption via single

@@ -34,6 +34,10 @@ on:
         description: 'backfill donor overrides channel:source,...'
         required: false
         default: ''
+      exclude:
+        description: 'backfill channel ids to never touch,...'
+        required: false
+        default: '1788'
 
 permissions:
   contents: read
@@ -77,4 +81,5 @@ jobs:
           MAX: ${{ inputs.max }}
           MAXEDITS: ${{ inputs.maxedits }}
           DONOR: ${{ inputs.donor }}
+          EXCLUDE: ${{ inputs.exclude }}
         run: python scripts/tg_backfill.py
