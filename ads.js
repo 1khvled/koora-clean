@@ -133,7 +133,7 @@
     var max = 24;
     try {
       var r0 = slot.getBoundingClientRect();
-      if (r0.top < window.innerHeight && r0.bottom > 0) max = 8;
+      if (r0.top < window.innerHeight && r0.bottom > 0) max = 12;
     } catch (e) {}
     var iv = setInterval(function () {
       n++;
@@ -232,8 +232,22 @@
     /* now=true is an explicit user tap: bypasses the data-saver gate. */
     if (now !== true && eco()) return;
     var slots = document.querySelectorAll('.adslot');
+    var flows = 0;
     for (var i = 0; i < slots.length; i++) {
-      try { fill(slots[i], now === true); } catch (x) {}
+      (function (s) {
+        try {
+          /* Stagger same-key native loads: concurrent same-key requests
+             usually fill only one. First flow goes now, the rest 8s later.
+             Explicit toggle-ON fills everything immediately. */
+          var isFlow = (s.getAttribute('data-ad') || 'native') === 'flow';
+          if (now !== true && isFlow && flows > 0) {
+            setTimeout(function () { try { fill(s, false); } catch (x) {} }, 8000);
+          } else {
+            fill(s, now === true);
+          }
+          if (isFlow) flows++;
+        } catch (x) {}
+      })(slots[i]);
     }
   }
 
