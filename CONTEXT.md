@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§156 — sandbox revert + framing check).
+> Last updated: 2026-10-11 (§157 — empty-list race fix).
+
+## 157. Empty-list race fix (2026-10-11)
+
+- Owner: site sometimes shows no matches until refresh. Root cause:
+  fetchData accepted ANY array including [] — a transient empty (cold
+  worker, timed-out scrape) winning the parallel race rendered the empty
+  state AND got cached 90s. Fix: first non-empty wins in race + bust
+  loops; [] accepted only on all-source agreement (honest empty day);
+  blanks never cached nor served from loadStale.
+- Proof: fetchtest 4/4 driving the real fetchData (empty-race takes full
+  list, all-empty honest, all-fail null, single source fine), index JS
+  parses. Deploy note: tomorrow tab legitimately reads 0 fixtures right
+  now — that is upstream data, not this bug.
 
 ## 156. Sandbox revert + framing check (2026-10-11)
 
