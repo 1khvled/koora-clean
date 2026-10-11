@@ -100,6 +100,12 @@
     var slots = document.querySelectorAll('.adslot');
     for (var i = 0; i < slots.length; i++) {
       (function (s) {
+        /* Timer backstop: some environments never fire IntersectionObserver
+           (backgrounded/headless tabs); fill anyway after 3s. data-filled
+           guards double-fill. */
+        setTimeout(function () {
+          try { if (!s.getAttribute('data-filled')) fill(s); } catch (x) {}
+        }, 3000);
         if ('IntersectionObserver' in window) {
           var io = new IntersectionObserver(function (es) {
             for (var k = 0; k < es.length; k++) {
