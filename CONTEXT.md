@@ -19,6 +19,12 @@
   container ids are safe (each slot is its own srcdoc document).
 - Proof: adscheck (player pair = 4 slots incl. 2 flow + flow CSS; all other
   pairs unchanged; stage untouched), node clean, mirrors identical.
+- Live behavior: above-player flow band revealed with a real creative;
+  concurrent same-key native loads often fill only one (provider variance)
+  -- watchdog destroys empties + ONE 20s retry (data-retried guard, cleared
+  on toggle so re-enables always get a full attempt). First-tab-stale
+  lesson: a fresh tab can run cached ads.js -- reload before trusting
+  a negative.
 
 ## 166. Side rails only + refill fix (2026-10-11)
 
