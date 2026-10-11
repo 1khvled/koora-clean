@@ -50,7 +50,12 @@ def parse(html):
         bq = tg._cut_quote(b)
         has_photo = bool(re.search(
             r'tgme_widget_message_photo[^>]*background-image:url\(\'([^\']+)\'', bq))
-        out.append((int(m.group(1)), txt, has_photo))
+        # Video/gif posts carry their text as a CAPTION: editMessageText on
+        # them fails with "there is no text in the message to edit", so they
+        # must go through editMessageCaption like photo posts do.
+        has_media = has_photo or bool(re.search(
+            r'tgme_widget_message_(?:video|animation|gif)', bq))
+        out.append((int(m.group(1)), txt, has_media))
     return out
 
 
