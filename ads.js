@@ -19,6 +19,17 @@
     try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
   }
 
+  /* Side rails need room: only wide viewports fill. ?ads=force overrides
+     (preview on narrow screens). */
+  var RAIL_MIN = 1280;
+  function wideEnough() {
+    try {
+      if (String(location.search || '').indexOf('ads=force') !== -1) return true;
+      if (window.matchMedia) return window.matchMedia('(min-width:' + RAIL_MIN + 'px)').matches;
+    } catch (e) {}
+    return false;
+  }
+
   /* Full srcdoc document for one slot. The provider <script> tags run inside
      this inner document (still open at parse time), so their document.write
      calls land in the frame, never in our page. */
@@ -68,11 +79,59 @@
       if (tries < 6) setTimeout(go, 900);
     }
     try { fr.addEventListener('load', function () { setTimeout(go, 400); }); } catch (e) {}
-    setTimeout(go, 2500);
+    setTimeout(go, 1200);
   }
 
-  function fill(slot) {
+  /* True when the provider actually put a creative in the frame. Empty
+     units stay hidden -- never a big blank "Advertisement" box. */
+  function hasContent(slot, kind) {
+    try {
+      var d = slot.querySelector('iframe').contentDocument;
+      if (!d || !d.body) return false;
+      if (d.getElementsByTagName('iframe').length > 0) return true;
+      if (d.getElementsByTagName('img').length > 0) return true;
+      var box = (kind === 'side') ? d.body : d.getElementById(N_BOX);
+      if (!box) return false;
+      if (box.children.length > 0) return true;
+      var t = (box.textContent || '').replace(/\s+/g, ' ').trim();
+      if (t.length > 30) return true;
+      return false;
+    } catch (e) { return false; }
+  }
+
+  function reveal(slot, fr, kind) {
+    slot.classList.add('on');
+    slot.hidden = false;
+    slot.style.display = '';
+    fit(fr, kind);
+  }
+
+  /* Poll for a real creative; reveal on first sight, destroy on timeout. */
+  function watch(slot, kind, fr) {
+    var n = 0;
+    var iv = setInterval(function () {
+      n++;
+      var hit = false;
+      try { hit = hasContent(slot, kind); } catch (e) { hit = false; }
+      if (hit) {
+        try { clearInterval(iv); } catch (e) {}
+        try { reveal(slot, fr, kind); } catch (e) {}
+      } else if (n >= 24) {
+        try { clearInterval(iv); } catch (e) {}
+        /* Empty: remove the frame so no blank box remains. data-filled is
+           cleared so a later re-enable retries from scratch. */
+        try {
+          slot.innerHTML = '';
+          slot.removeAttribute('data-filled');
+          slot.classList.remove('on');
+        } catch (e) {}
+      }
+    }, 500);
+  }
+
+  function fill(slot, now) {
     if (!slot || slot.getAttribute('data-filled') === '1') return;
+    if (!enabled() || !wideEnough()) return;
     var kind = slot.getAttribute('data-ad') === 'side' ? 'side' : 'native';
     var lab = document.createElement('div');
     lab.className = 'adtag';
@@ -92,37 +151,39 @@
     slot.appendChild(lab);
     slot.appendChild(fr);
     slot.setAttribute('data-filled', '1');
-    slot.hidden = false;
-    slot.style.display = '';
-    fit(fr, kind);
+    /* Stays hidden until the watchdog sees a real creative (no blank boxes).
+       Toggle-ON fills NOW (explicit intent); initial load may wait for the
+       slot to near the viewport. */
+    if (now) {
+      try { watch(slot, kind, fr); } catch (x) {}
+    } else if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) {
+        for (var k = 0; k < es.length; k++) {
+          if (es[k].isIntersecting) {
+            try { watch(slot, kind, fr); } catch (x) {}
+            try { io.disconnect(); } catch (x) {}
+            break;
+          }
+        }
+      }, { rootMargin: '400px' });
+      try { io.observe(slot); } catch (x) { try { watch(slot, kind, fr); } catch (y) {} }
+      /* Timer backstop: some environments never fire IntersectionObserver
+         (backgrounded/headless tabs); still check for content after 3s. */
+      setTimeout(function () {
+        try {
+          if (slot.getAttribute('data-filled') === '1' && !slot.classList.contains('on')) watch(slot, kind, fr);
+        } catch (x) {}
+      }, 3000);
+    } else {
+      try { watch(slot, kind, fr); } catch (x) {}
+    }
   }
 
-  function fillAll() {
-    if (!enabled()) return;
+  function fillAll(now) {
+    if (!enabled() || !wideEnough()) return;
     var slots = document.querySelectorAll('.adslot');
     for (var i = 0; i < slots.length; i++) {
-      (function (s) {
-        /* Timer backstop: some environments never fire IntersectionObserver
-           (backgrounded/headless tabs); fill anyway after 3s. data-filled
-           guards double-fill. */
-        setTimeout(function () {
-          try { if (!s.getAttribute('data-filled')) fill(s); } catch (x) {}
-        }, 3000);
-        if ('IntersectionObserver' in window) {
-          var io = new IntersectionObserver(function (es) {
-            for (var k = 0; k < es.length; k++) {
-              if (es[k].isIntersecting) {
-                try { fill(s); } catch (x) {}
-                try { io.disconnect(); } catch (x) {}
-                break;
-              }
-            }
-          }, { rootMargin: '400px' });
-          try { io.observe(s); } catch (x) { try { fill(s); } catch (y) {} }
-        } else {
-          try { fill(s); } catch (x) {}
-        }
-      })(slots[i]);
+      try { fill(slots[i], now === true); } catch (x) {}
     }
   }
 
@@ -131,6 +192,7 @@
     for (var i = 0; i < slots.length; i++) {
       slots[i].innerHTML = '';
       slots[i].removeAttribute('data-filled');
+      slots[i].classList.remove('on');
       slots[i].hidden = true;
       slots[i].style.display = 'none';
     }
@@ -158,7 +220,7 @@
       var on = !enabled();
       set(on);
       clearAll();
-      if (on) fillAll();
+      if (on) fillAll(true);
       paintPill();
     });
     try { document.body.appendChild(pill); } catch (e) { return; }
@@ -167,8 +229,17 @@
 
   function init() {
     mountPill();
-    if (enabled()) fillAll();
+    if (enabled()) fillAll(false);
     else clearAll();
+    /* Growing to rail width (tablet rotate, window resize) fills slots. */
+    try {
+      var mq = window.matchMedia('(min-width:' + RAIL_MIN + 'px)');
+      var onchg = function () {
+        try { if (mq.matches && enabled()) fillAll(false); } catch (e) {}
+      };
+      if (mq.addEventListener) mq.addEventListener('change', onchg);
+      else if (mq.addListener) mq.addListener(onchg);
+    } catch (e) {}
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

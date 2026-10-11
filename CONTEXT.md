@@ -4,7 +4,27 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§165 — owner banner ads + user toggle).
+> Last updated: 2026-10-11 (§166 — side rails only + refill fix).
+
+## 166. Side rails only + refill fix (2026-10-11)
+
+- Owner: the native in-flow banner renders a giant empty white box (shot) --
+  "do smaller banners just on the sides". Second report: OFF->ON toggle does
+  not bring ads back (refill waited on observers that never fire for
+  freshly-unhidden slots; worst case 3s backstop, reads as broken).
+- New shape: NO in-flow banners anywhere. `.adslot` is `display:none` by
+  default; at `>=1280px` only, `.on` slots become fixed side rails (native
+  170px left rail, 160x600 right rail, vertically centered, z-30 under
+  pill/toast). Narrow screens (all phones/tablets): zero ad requests, zero
+  boxes -- tradeoff accepted for clean (desktop-only revenue).
+- `ads.js`: `wideEnough()` gate (matchMedia 1280 + `?ads=force` preview
+  override) in fill/fillAll + a change listener (rotate/resize across the
+  breakpoint fills). Watchdog `watch()`: reveals (`.on` + autosize) ONLY
+  when the frame holds a real creative (nested iframe/img/>30 chars of
+  text); empty after 12s is DESTROYED (no blank box ever) with data-filled
+  cleared so re-enable retries. Toggle-ON calls `fillAll(true)` = fills NOW
+  instead of waiting on observers.
+- Same 8 pages (CSS swap only, slot divs untouched), mirrors re-synced.
 
 ## 165. Owner banner ads + user toggle (2026-10-11)
 
