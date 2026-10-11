@@ -2402,6 +2402,16 @@ function goServer(i, auto, _tried){
     return;
   }
   stopHls();
+  // Sandbox per server kind: ad-carrying backup servers (VIPBox-derived,
+  // marked ads:1 by the API) need popups/modals to play at all, so they get
+  // the loose box; every clean source keeps the strict box (no popups, no
+  // top-navigation hijacks). Set every time: switching back from a backup
+  // server must re-tighten.
+  try {
+    iframe.setAttribute('sandbox', (s && s.ads)
+      ? 'allow-scripts allow-same-origin allow-presentation allow-popups allow-modals'
+      : 'allow-scripts allow-same-origin allow-presentation');
+  } catch {}
   iframe.src = src;
   lastCleanSrc = src;
   paintNow();
