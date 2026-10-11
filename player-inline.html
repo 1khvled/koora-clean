@@ -2402,15 +2402,12 @@ function goServer(i, auto, _tried){
     return;
   }
   stopHls();
-  // Sandbox per server kind: ad-carrying backup servers (VIPBox-derived,
-  // marked ads:1 by the API) need popups/modals to play at all, so they get
-  // the loose box; every clean source keeps the strict box (no popups, no
-  // top-navigation hijacks). Set every time: switching back from a backup
-  // server must re-tighten.
+  // Sandbox stays STRICT for every server (revert 2026-10-11: loosening it
+  // for backup servers is what let popup ads through — the very thing the
+  // ad-free rule forbids). Bare embeds that need popups to function don't
+  // play here; the API only surfaces embeds that passed the framing check.
   try {
-    iframe.setAttribute('sandbox', (s && s.ads)
-      ? 'allow-scripts allow-same-origin allow-presentation allow-popups allow-modals'
-      : 'allow-scripts allow-same-origin allow-presentation');
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
   } catch {}
   iframe.src = src;
   lastCleanSrc = src;

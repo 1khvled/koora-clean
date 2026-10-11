@@ -563,6 +563,24 @@ const resolveYacine = async (home, away, startIso) => {
       return out.slice(0, 2);
     } catch { return []; }
   };
+  // Framing pre-check: an embed whose host sends X-Frame-Options DENY /
+  // SAMEORIGIN (or CSP frame-ancestors without us) renders as a BLACK stage
+  // — indistinguishable from a dead stream. Drop those before serving so a
+  // blocked embed never becomes a server button. Fail-open (unreadable
+  // headers pass): a missed block is just the old behavior.
+  const vipFramingOk = async (u) => {
+    try {
+      const hr = await fetchT(u, { method: 'HEAD' }, 2500);
+      if (!hr) return true;
+      const h = (n) => { try { return String(hr.headers.get(n) || ''); } catch { return ''; } };
+      const xfo = h('x-frame-options').toLowerCase();
+      if (/(^|\s)(deny|sameorigin)($|\s|,|;)/.test(xfo)) return false;
+      const csp = h('content-security-policy').toLowerCase();
+      const fa = csp.split(';').map(p => p.trim()).find(p => p.startsWith('frame-ancestors'));
+      if (fa && /(^|\s)('none'|'self')($|\s)/.test(fa)) return false;
+      return true;
+    } catch { return true; }
+  };
   const vipDetail = async (hit) => {
     if (!hit || !hit.href) return null;
     try {
@@ -588,7 +606,10 @@ const resolveYacine = async (home, away, startIso) => {
           }, 3000);
           if (!lr || !lr.ok) return [];
           const lh = await readCapped(lr, 500000);
-          return vipPlayerOf(lh).map(p => ({ url: p }));
+          const cands = vipPlayerOf(lh);
+          const framed = await Promise.all(cands.map(async (p) => (
+            (await vipFramingOk(p)) ? { url: p } : null)));
+          return framed.filter(Boolean);
         } catch { return []; }
       }));
       const seen = new Set();

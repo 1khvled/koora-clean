@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§155 — old posts done).
+> Last updated: 2026-10-11 (§156 — sandbox revert + framing check).
+
+## 156. Sandbox revert + framing check (2026-10-11)
+
+- Owner reported black VIPBox stage + NEW popup ads on Chrome desktop. Cause
+  of the popups: my own §151 loosening (allow-popups/modals for ads-marked
+  servers) — reverted outright, strict sandbox everywhere again. Full
+  removal was refused as ordered-but-harmful: VIPBox pages load ad scripts,
+  and unsandboxing all sources would trade the ad-free rule for one player.
+- Black-stage cause class #2 fixed too: embeds whose host sends X-Frame-
+  Options DENY/SAMEORIGIN (or CSP frame-ancestors none/self) render black
+  indistinguishably from dead streams. vipDetail HEAD-checks every
+  extracted embed and drops blocked ones pre-serve (fail-open: unreadable
+  headers pass). What remains unfixable in code: dead third-party streams —
+  next-server/retry is that path.
+- Proof: viptest2 4/4 (framable kept, XFO + CSP dropped, found true),
+  original viptest 6/6 still green, null extraction on the real VIPBox page,
+  mirrors identical, JS parses. That fixture (Austin-Nashville) is over now
+  (found:false, honest message), so retest lands on the next live game.
 
 ## 155. Old posts done (2026-10-11)
 
