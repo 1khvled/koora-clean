@@ -38,6 +38,10 @@
   ONLY (img/frame already `https:`-open). No other policy loosened.
 - Refusals standing: no popup/interstitial formats ever, nothing inside the
   player, iframe sandbox never removed (§156).
+- Post-deploy finding: automation-tab IntersectionObserver never fires
+  (headless quirk, verified with a manual probe) -- added a 3s timer
+  backstop in `fillAll` so slots fill even where IO is dead (real browsers
+  still get the fast IO path; `data-filled` guards double-fill).
 
 ## 164. Translation moat (2026-10-11)
 
