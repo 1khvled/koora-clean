@@ -1070,7 +1070,7 @@ function rowCard(m, day){
   }
   const subHtml = sub ? `<div class="s ${subCls}">${esc(sub)}</div>` : '';
   const bellHtml = (c === 'up') ? `<button type="button" class="mball" data-bell="${esc(String(m.id))}" aria-pressed="false" aria-label="${esc(t('bellBtn'))}" onclick="bellToggleMatch(event,this)">🔕</button>` : '';
-  const href = 'player.html?m=' + encodeURIComponent(m.id || '') + '&d=' + encodeURIComponent(day);
+  const href = '/watch/' + encodeURIComponent(m.id || '') + ((day || 'today') !== 'today' ? '?d=' + encodeURIComponent(day) : '');
   return `<a class="m${c === 'live' ? ' is-live' : ''}" href="${href}">
     <div class="st"><div class="t">${top}</div>${subHtml}</div>
     <div class="teams">
@@ -1161,7 +1161,7 @@ function render(){
       const all = [...live, ...up, ...res].slice(0, 30);
       let sj = document.getElementById('jsonld-messi');
       if (!sj){ sj = document.createElement('script'); sj.type = 'application/ld+json'; sj.id = 'jsonld-messi'; document.head.appendChild(sj); }
-      sj.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [{ '@type': 'ItemList', name: t('brand'), numberOfItems: all.length, itemListElement: all.map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: 'https://kooraadz.vercel.app/player.html?m=' + encodeURIComponent(m.id || '') + '&d=' + encodeURIComponent(m._d || 'today'), name: dispTeam(m.home || '') + ' vs ' + dispTeam(m.away || '') })) }] });
+      sj.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [{ '@type': 'ItemList', name: t('brand'), numberOfItems: all.length, itemListElement: all.map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: 'https://kooraadz.vercel.app/watch/' + encodeURIComponent(m.id || '') + ((m._d || 'today') !== 'today' ? '?d=' + encodeURIComponent(m._d) : ''), name: dispTeam(m.home || '') + ' vs ' + dispTeam(m.away || '') })) }] });
     } catch (e) {}
   } catch (e) {}
 }

@@ -34,9 +34,9 @@
      and paste the code below (replace REPLACE_WITH_SEARCH_CONSOLE_CODE). -->
 <meta name="google-site-verification" content="REPLACE_WITH_SEARCH_CONSOLE_CODE">
 <script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"Koora Live","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebPage","@id":"https://kooraadz.vercel.app/player.html#page","url":"https://kooraadz.vercel.app/player.html","name":"Watch match live — Koora Live","inLanguage":["en","fr","ar"],"isPartOf":{"@id":"https://kooraadz.vercel.app/#site"}}]}</script>
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://site.api.espn.com">
@@ -660,6 +660,9 @@ function esc(s){
 }
 const bootDay = qs.get('d') || 'today';
 let id = qs.get('m') || qs.get('id') || '';
+/* Clean links put the match id in the path (/watch/<id>); the
+   query form (?m=&d=) stays supported so old posts keep working. */
+if (!id){ const __pm = location.pathname.match(/^\/watch\/([A-Za-z0-9_-]{1,120})/); if (__pm) id = __pm[1]; }
 let href = safeDec(qs.get('href'));
 let home = '', away = '', startP = '';
 let homeLogo = safeDec(qs.get('hl'));
@@ -897,7 +900,7 @@ try {
 const LOC = { en: 'en_US', fr: 'fr_FR', ar: 'ar_AR' };
 const ogL = document.querySelector('meta[property="og:locale"]'); if (ogL) ogL.setAttribute('content', LOC[LANG] || 'en_US');
 const __u = new URL(location.origin + location.pathname);
-try { const __q = new URLSearchParams(location.search); const __mv = __q.get('m') || __q.get('id'); if (__mv) __u.searchParams.set('m', __mv); const __dv = __q.get('d'); if (__dv) __u.searchParams.set('d', __dv); } catch {}
+try { const __q = new URLSearchParams(location.search); const __mv = __q.get('m') || __q.get('id') || (location.pathname.match(/^\/watch\/([A-Za-z0-9_-]{1,120})/) || [])[1]; const __dv = __q.get('d'); if (__mv){ __u.pathname = '/watch/' + __mv; if (__dv && __dv !== 'today') __u.searchParams.set('d', __dv); } else if (__dv) __u.searchParams.set('d', __dv); } catch {}
 const __base = __u.toString();
 const __sep = __base.includes('?') ? '&' : '?';
 const can = document.querySelector('link[rel="canonical"]'); if (can) can.setAttribute('href', __base);
@@ -1607,7 +1610,7 @@ function paintTitle(){
   try { const c = document.getElementById('crumbCur'); if (c) c.textContent = (home && away) ? `${dispTeam(home)} ${t('vs')} ${dispTeam(away)}` : t('crumbCur'); } catch {}
   try {
     const __u2 = new URL(location.origin + location.pathname);
-    try { const __q2 = new URLSearchParams(location.search); const __m2 = __q2.get('m') || __q2.get('id'); if (__m2) __u2.searchParams.set('m', __m2); const __d2 = __q2.get('d'); if (__d2) __u2.searchParams.set('d', __d2); } catch {}
+    try { const __q2 = new URLSearchParams(location.search); const __m2 = __q2.get('m') || __q2.get('id') || (location.pathname.match(/^\/watch\/([A-Za-z0-9_-]{1,120})/) || [])[1]; const __d2 = __q2.get('d'); if (__m2){ __u2.pathname = '/watch/' + __m2; if (__d2 && __d2 !== 'today') __u2.searchParams.set('d', __d2); } else if (__d2) __u2.searchParams.set('d', __d2); } catch {}
     document.querySelector('link[rel="canonical"]')?.setAttribute('href', __u2.toString());
     document.getElementById('bc-jsonld')?.remove();
     const bc = document.createElement('script'); bc.type = 'application/ld+json'; bc.id = 'bc-jsonld';
@@ -2801,7 +2804,7 @@ window.open = function(){ bumpBlocked(); return null; };
 // #4: register service worker; wire its BLOCKED reports into the counter
 if ('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data && e.data.type === 'BLOCKED') bumpBlocked();

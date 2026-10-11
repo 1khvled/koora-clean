@@ -71,7 +71,7 @@ export default async function handler(req, res) {
         const start = getAttr('data-start');
         const dm = (start || '').match(/^(\d{4}-\d{2}-\d{2})/);
         urls.push({
-          loc: base + '/player.html?m=' + encodeURIComponent(sid) + '&d=' + d,
+          loc: base + '/watch/' + encodeURIComponent(sid) + (d && d !== 'today' ? '?d=' + encodeURIComponent(d) : ''),
           changefreq: 'hourly',
           priority: '0.7',
           lastmod: dm ? dm[1] : undefined,

@@ -79,8 +79,9 @@ def kickoffs(fixtures, at, done):
 
 
 def link_for(f):
-    return '%s/player.html?m=%s&d=%s' % (
-        SITE.rstrip('/'), f['id'], f.get('day') or 'today')
+    base = '%s/watch/%s' % (SITE.rstrip('/'), f['id'])
+    day = f.get('day') or 'today'
+    return base if day == 'today' else '%s?d=%s' % (base, day)
 
 
 def send(target, text):
