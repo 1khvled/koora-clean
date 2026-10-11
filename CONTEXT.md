@@ -4,7 +4,24 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§157 — empty-list race fix).
+> Last updated: 2026-10-11 (§158 — VIPBox autoplay + new-tab).
+
+## 158. VIPBox autoplay + new-tab (2026-10-11)
+
+- VIPBox black-box on open: autoplay loaded the remembered/backup embed and
+  the 12h server cache kept dead ads URLs. Fix: autoPlay() prefers a clean
+  server (remembered-clean wins, else first clean, ads-marked only when
+  nothing clean exists); srvCacheSet never persists ads-marked servers and
+  clears the key when no clean server exists; failBox filters ads out of the
+  fallback cache too. Manual taps still load any server (user choice).
+- Stubborn ad-carrying embeds get a ↗ New tab button (target=_blank,
+  rel=noopener — unaffected by the in-page window.open guard): full browser
+  powers in a separate tab, our page stays sandboxed and ad-free. Hidden
+  for native-HLS sources. i18n in EN/FR/AR.
+- Proof: vbtest 7/7 driving the real functions, vbtext 13/13 (mirrors
+  identical, anchors, all i18n strings), player JS parses. Sandbox-revert
+  deploy verified live (no allow-popups, strict set); zero live matches at
+  the time, so player-path retest awaits the next live game.
 
 ## 157. Empty-list race fix (2026-10-11)
 
