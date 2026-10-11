@@ -56,6 +56,13 @@
   an empty labeled box until its ntv.json passed; side 160x600 renders.
   Rotation = ongoing: if a unit ever shows empty, the fix is reading the new
   host from console and appending it (no code change).
+- Post-deploy finding 4: NATIVE FULLY LIVE (auto-height 244px, 4 ad links,
+  ntv.json 200 + 4x ren.gif impression beacons 200). Side 160x600 renders
+  its creative; its backend rotated again (`kettledroopingcontinuation`,
+  allowlisted) -- creative + clicks always work (img/frame-src are
+  https:-open, click navigation is not fetch); only their optional
+  viewability pings are rotation-sensitive. Steady state: chase high-value
+  hosts per observation, never loosen script-src or form-action.
 - Drive-by (pre-existing, 6 chars, zero risk): search-box magnifier is an
   inline `data:` SVG blocked by `img-src` (console error every load, icon
   missing) -- added `data:` to `img-src`. data: images cannot exfiltrate.
