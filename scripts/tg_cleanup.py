@@ -76,7 +76,7 @@ def scrubbed(text):
 def main():
     mode = os.environ.get('MODE', 'dry-run').strip().lower()
     try:
-        maxn = max(1, min(120, int(os.environ.get('MAX', '40') or 40)))
+        maxn = max(1, min(300, int(os.environ.get('MAX', '40') or 40)))
     except Exception:
         maxn = 40
     target = (os.environ.get('TARGET_CHAT', '') or '').strip()
