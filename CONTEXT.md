@@ -4,7 +4,40 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§164 — translation moat).
+> Last updated: 2026-10-11 (§165 — owner banner ads + user toggle).
+
+## 165. Owner banner ads + user toggle (2026-10-11)
+
+- Owner: "put ads on koora vercel but users can disable and enable them,
+  auto-enable, no popups, just banners" + pasted 2 unit codes:
+  (1) native banner `pl31775792.profitableratecpmnetwork.com/.../invoke.js`
+  + `#container-be0e02...` div; (2) 160x600 `atOptions key b184c0e6...`
+  from `www.highrevenueformat.com/.../invoke.js`. Wired ONLY these two --
+  no popunder/social-bar formats (that is the no-popups line).
+- New first-party `ads.js` (no deps): renders each unit inside a sandboxed
+  `srcdoc` iframe (`sandbox="allow-scripts allow-same-origin allow-popups"`,
+  NO `allow-top-navigation`) -- provider `document.write` lands in the frame,
+  never the page; ad clicks open a new tab, page hijack impossible. Lazy
+  fill via IntersectionObserver (+400px margin). Pref `koora_ads` in
+  localStorage, default ON (`!=='0'`); pill `#adPill` fixed bottom-left
+  ("Ads: ON/OFF"), OFF destroys iframes instantly (no hidden impressions),
+  ON re-fills. "Advertisement" micro-label per slot.
+- Slots (2 per page, all outside the video player -- streams stay ad-free,
+  `.stage` untouched, player sandbox unchanged): index = native under
+  toolbar + 160x600 above support; player = native under controls + 160x600
+  above support; messi/ronaldo = native under hero + 160x600 above support.
+  Same small CSS block (`.adslot`/`.adtag`/`#adPill`, literal colors) +
+  `<script src="/ads.js" defer>` on all 8 pages; mirrors re-synced
+  (player/messi/ronaldo byte-identical; index pair differs by design in
+  fetch logic only, ad regions identical).
+- `sw.js`: `AD_ALLOW` passthrough for exactly the two delivery hosts (added
+  BEFORE the BLOCK check); every other popup/ad engine stays blocked --
+  including any creative sub-hosts, so if a unit renders empty the fix is a
+  surgical creative-CDN exemption after live observation, not a blanket open.
+- `vercel.json` CSP: the two hosts added to `script-src` + `connect-src`
+  ONLY (img/frame already `https:`-open). No other policy loosened.
+- Refusals standing: no popup/interstitial formats ever, nothing inside the
+  player, iframe sandbox never removed (§156).
 
 ## 164. Translation moat (2026-10-11)
 

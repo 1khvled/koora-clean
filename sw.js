@@ -6,6 +6,11 @@ const TELEGRAM_RE = /(^|[\/.])t\.me([/?#]|$)|telegram\.me|telegram\.org|telegram
 const AD_RE = /(popads|popcash|adcash|propeller|onclkds|highperformancegate|highcpmgate|highcpm|exoclick|exo\.click|juicyads|hilltopads|doubleclick|googlesyndication|adsystem|adnxs|criteo|outbrain|taboola|zeroredirect|realsrv|adsterra|popunder)/i;
 const BLOCK_RE = new RegExp(TELEGRAM_RE.source + '|' + AD_RE.source, 'i');
 
+// Owner's own banner units — first-party slots on our pages. These two
+// delivery hosts pass through; popup/redirect engines on every other host
+// stay blocked (incl. anything the creatives pull from blocked hosts).
+const AD_ALLOW = /(^|\.)profitableratecpmnetwork\.com($|[\/?#])|(^|\.)highrevenueformat\.com($|[\/?#])/i;
+
 // 'gads'/'onclick' as bare substrings false-positive on query strings
 // (?gads=, ?onclick=) and slugs — anchor them to host labels / path
 // segments only (host+pathname, never the query). Keeps blocking power
@@ -29,7 +34,8 @@ self.addEventListener('fetch', event => {
   let segAd = false, hp = url;
   try { const u = new URL(url); hp = u.hostname + u.pathname; segAd = segHit(u.hostname, u.pathname); } catch { segAd = false; }
 
-  // block telegram + ads
+  // block telegram + ads (owner's own banner hosts exempted above)
+  if (AD_ALLOW.test(hp)) return;
   if (BLOCK_RE.test(hp) || PATH_BLOCK.test(hp) || segAd) {
     // notify page
     event.waitUntil(
