@@ -1786,6 +1786,25 @@ def llm_fix(text):
         if not _re2.search(r'@\w', src):
             return repair_names(dedupe_lines(src))
     import time as _t
+    or_key = os.environ.get('OPENROUTER_API_KEY', '').strip()
+    # Paid primary (PAID_MODEL env, e.g. openai/gpt-4o-mini): the free
+    # engines pass Arabic grammar but mangle idioms/names in ways the owner
+    # had to report one by one (audit 2026-10-11: "Tarard" idiom, "Mia San
+    # Mia" chant, "Desiree Doe"). One ~1s paid call fixed EVERY audited
+    # failure shape at fractions of a cent (~$0.10/mo at our volume).
+    # Fail-open to the free chain below (no credits / HTTP error -> Groq ->
+    # free OpenRouter -> machine translation). Kill switch: drop the
+    # PAID_MODEL line from the workflow env.
+    paid = os.environ.get('PAID_MODEL', '').strip()
+    if paid and or_key:
+        try:
+            out = openrouter_chat(or_key, paid, system, src[:3500])
+            print('[lang] paid ok: %s (%d chars)' % (paid, len(out)))
+            got = _llm_accept(out, text, 'paid')
+            if got:
+                return got
+        except Exception as e:
+            print('[lang] paid fail: %s' % (str(e)[:80] or type(e).__name__))
     for model in models:
         out = None
         for attempt in (1, 2):

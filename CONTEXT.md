@@ -4,7 +4,27 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§161 — audit-driven translation fixes).
+> Last updated: 2026-10-11 (§162 — paid translator primary).
+
+## 162. Paid translator primary (2026-10-11)
+
+- Owner: stop sending one translation error at a time, make it better. The
+  free engines pass grammar but still mangle idioms/names he must report
+  individually (Tarard idiom, "Mia San Mia" chant, "Desiree Doe"). Audited
+  180 posts -> the failures are the free models' ceiling, not fixable by
+  more glossary patches.
+- Owner already supplied a PAID OpenRouter key ("he's paid, use the key if
+  needed"). Probed gpt-4o-mini live on ALL three audited failure shapes +
+  8 realistic normal posts through the FULL production path (protect_names
+  shield + llm_fix + _llm_accept): 11/11, correct meaning, natural English,
+  ~1s, byte-clean accents (Désiré Doué / Koundé verified at 0xe9).
+- Shipped: paid model as PRIMARY via PAID_MODEL env (openai/gpt-4o-mini in
+  the workflow). Fail-open to the free chain (Groq x2 -> OpenRouter free x3
+  -> MyMemory -> Google) on ANY paid error (credits/HTTP/timeout/reject), so
+  posting never depends on the paid key. ~$0.10-0.45/mo at our volume.
+  Kill switch: delete the one PAID_MODEL workflow line.
+- Proof: paidbench 11/11 (paid path), auditfix 16/16, malintest 30/30,
+  py_compile clean.
 
 ## 161. Audit-driven translation fixes (2026-10-11)
 
