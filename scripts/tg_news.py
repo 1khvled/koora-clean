@@ -1049,6 +1049,11 @@ _NAME_CANON = {
     'upamecano': 'Upamecano',
     'dembele': 'Dembélé',
     'hakimi': 'Hakimi',
+    # reported 2026-10-11: "Desiree Doe" for Désiré Doué. Full-name variants
+    # only -- bare 'doe'/'desire' are ordinary English words, never keys.
+    'desiree doe': 'Désiré Doué',
+    'desire doue': 'Désiré Doué',
+    'desiree doue': 'Désiré Doué',
     'vitinha': 'Vitinha',
     'marquinhos': 'Marquinhos',
     'kvaratskhelia': 'Kvaratskhelia',
@@ -1345,6 +1350,9 @@ _AR_PROTECT = [
     # --- PSG / Marseille ---
     ('عثمان ديمبيلي', 'Ousmane Dembélé'),
     ('ديمبيلي', 'Dembélé'),
+    # reported 2026-10-11: ديزيري دوي came out "Desiree Doe" -- full name
+    # only ('doe'/'desire' alone are ordinary English words, never keys).
+    ('ديزيري دوي', 'Désiré Doué'),
     ('أشرف حكيمي', 'Achraf Hakimi'),
     ('حكيمي', 'Hakimi'),
     ('ماركينيوس', 'Marquinhos'),
@@ -1845,23 +1853,74 @@ def llm_fix(text):
     return repair_names(text)
 
 
+# Tokens whose presence in the LONGER line proves new facts (keep it).
+_DEDUP_NEG = frozenset(['no', 'not', 'never', 'without', 'neither', 'nor',
+                        "n't", 'deny', 'denies', 'denied', 'refutes'])
+
+
+def _roster_toks():
+    """Lowercase Latin tokens of every rostered name (names = new facts)."""
+    global _ROSTER_TOKS
+    try:
+        return _ROSTER_TOKS
+    except NameError:
+        pass
+    toks = set()
+    try:
+        import re as _re
+        for v in list(_NAME_CANON.values()):
+            toks.update(_re.findall(r'[a-z]+', v.lower()))
+        for _ar, lat in _AR_PROTECT:
+            toks.update(_re.findall(r'[a-z]+', lat.lower()))
+    except Exception:
+        pass
+    _ROSTER_TOKS = frozenset(toks)
+    return _ROSTER_TOKS
+
+
 def dedupe_lines(text):
     """Drop repeated lines (case/punctuation-insensitive, bullet-aware), keep
-    first occurrence. The translator echoes single-item posts as header +
-    identical bullet; this guarantees it never ships, whatever the model does.
+    first occurrence. Also drops near-echo restatements: when one line's
+    tokens contain the other's and the extra words carry no new facts (no
+    digits, no roster names, no negations), the longer line is an echo, not
+    news (observed: "Third Mia Mia Mia" / "The third Mia Mia Mia chant").
     Never raises; returns the text unchanged when nothing repeats."""
     try:
         import re as _re
+
+        def _dig(w):
+            return any(ch.isdigit() for ch in w)
+
         lines = (text or '').split('\n')
         seen = set()
         keep = []
         for ln in lines:
             key = _re.sub(r'^[\s\u2022\-\*\u00b7\d\.\)]+', '', ln.strip())
             key = _re.sub(r'\s+', ' ', key).strip().lower()
-            if not key or key not in seen:
+            if not key:
                 keep.append(ln)
-                if key:
-                    seen.add(key)
+                continue
+            if key in seen:
+                continue
+            toks = set(key.split())
+            drop = False
+            for s in seen:
+                stoks = set(s.split())
+                if toks <= stoks:
+                    extra = stoks - toks
+                elif stoks <= toks:
+                    extra = toks - stoks
+                else:
+                    continue
+                if extra and not any(_dig(w) for w in extra) \
+                        and not (extra & _DEDUP_NEG) \
+                        and not (extra & _roster_toks()):
+                    drop = True
+                    break
+            if drop:
+                continue
+            keep.append(ln)
+            seen.add(key)
         return '\n'.join(keep).strip()
     except Exception:
         return text

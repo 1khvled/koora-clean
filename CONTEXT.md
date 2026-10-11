@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§160 — first-paint speedup).
+> Last updated: 2026-10-11 (§161 — audit-driven translation fixes).
+
+## 161. Audit-driven translation fixes (2026-10-11)
+
+- Owner: stop fixing one error at a time, audit old posts instead. Pulled
+  180 channel posts and classified every anomaly: 0 Arabic leftovers, 0
+  meta labels, 0 true echoes (echo reports were preview-chrome artifacts);
+  real finds: "Desiree Doe" (Désiré Doué mangled), "Third Mia Mia Mia"
+  near-echo, unaccented vinicius x6 (guard already covers it now), one old
+  t.me leak (#1640, queued for cleanup sweep).
+- Shipped: Doué roster (source) + full-name post-guard (bare doe/desire
+  provably untouched); near-echo guard in dedupe_lines (containment + no
+  digits/names/negations in the extra words — scores, names, denials always
+  kept).
+- Paid-model probe (owner key, ~$0.0001): gpt-4o-mini nails all three
+  failure shapes in ~1s (Tarard meaning right, Mia idiom perfect, Doué
+  right). ~$0.45/mo at our volume. NOT switched: recurring spend needs
+  explicit approval — proposal in chat.
+- Proof: auditfix 16/16, malintest 30/30 green.
 
 ## 160. First-paint speedup (2026-10-11)
 
