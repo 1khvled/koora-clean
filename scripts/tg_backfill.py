@@ -49,13 +49,7 @@ def parse(html):
         # Cut the reply-quote first: it carries the PARENT post's thumbnail,
         # which would otherwise be mistaken for this post's photo.
         bq = tg._cut_quote(b)
-        tm = re.search(r'tgme_widget_message_text[^>]*>([\s\S]*?)</div>\s*</div>', bq)
-        txt = ''
-        if tm:
-            txt = re.sub(r'<br\s*/?>', '\n', tm.group(1))
-            txt = re.sub(r'<[^>]+>', '', txt)
-            import html as _h
-            txt = _h.unescape(txt)
+        txt = tg.own_text(b)
         pm = re.search(r'tgme_widget_message_photo[^>]*background-image:url\(\'([^\']+)\'', bq)
         out.append((int(m.group(1)), txt, pm.group(1) if pm else ''))
     return out

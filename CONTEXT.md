@@ -37,6 +37,25 @@
   telegram-cleanup.yml) edits/deletes named posts via Bot API (photos stay).
 - Proof: moattest 30/30, auditfix 16/16, malintest 30/30, gentest 7/7,
   py_compile clean.
+- Deeper finding during the repair (reply-quote parse bug, ALL tools): a
+  t.me/s reply block renders the PARENT's quote text FIRST; five parsers
+  took the first text div, so (a) the bridge translated a source reply's
+  PARENT content instead of its own text, (b) seed_seen seeded the parent
+  fingerprint for replies (dedupe hole), (c) tg_cleanup could scrub-edit a
+  reply's real text with quote content and leaked "N views" footer junk
+  into scrubbed/donor text (tg_backfill same). New shared tg.own_text():
+  quote-cut + depth-walk + normalize, wired into scrape_offside_preview,
+  seed_seen, tg_cleanup.parse (photo now also measured quote-cut) and
+  tg_backfill.parse. parsetest 11/11 (synthetic reply fixture).
+- Live post #1860 forensics: NOT the duplicate it first looked like -- it
+  is a reply whose posted text ("Dousbury-Hall sets up thrilling goal for
+  Leicester...") is a MODEL HALLUCINATION (no Leicester anywhere in the
+  Arabic source history; KDH is ex-Leicester, the source named him).
+  Deleted as fabricated content; the true facts were already posted
+  (#1852 equalizer, #1861 assist). Prompt now bans input-absent
+  clubs/places ("input-bound facts only"). Dispatch-only tg_editpost.py
+  fixed 8 live posts (escapes in #1847/#1848/#1852/#1856/#1857/#1858/
+  #1863/#1864 + Pino/Beloumi names) via the new 'edit' job.
 
 ## 163. Clean /watch/<id> links (2026-10-11)
 
