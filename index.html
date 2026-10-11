@@ -1820,6 +1820,12 @@ async function fetchData(day, silent){
     } catch { return null; } finally { clearTimeout(to); }
   });
   const results = await Promise.all(racers);
+  // Empty lists are NOT data: a cold worker / timed-out scrape can answer []
+  // while another source has the full day. First non-empty wins; only when
+  // every source agrees on empty do we accept [] (a genuinely match-free day
+  // still renders the honest empty state instead of retrying forever).
+  // Accepting the first [] is what caused the "no matches until refresh" bug.
+  let fallbackEmpty = null;
   for (const r of results){
     if (!r) continue;
     if (r.u === './matches.json'){
@@ -1828,9 +1834,13 @@ async function fetchData(day, silent){
         if (!r.data.every(m => String((m && m.start) || '').slice(0, 10) === exp)) continue;
       } catch {}
     }
-    return r.data;
+    if (Array.isArray(r.data) && r.data.length) return r.data;
+    if (fallbackEmpty === null) fallbackEmpty = r.data;
   }
-  // Fallback bust cache if all missed
+  if (fallbackEmpty !== null) return fallbackEmpty;
+  // Fallback bust cache if all missed (same empty-list rule as above:
+  // first non-empty wins, all-empty agreement accepted as honest empty).
+  let bustEmpty = null;
   for (const u of urls){
     try {
       const r = await fetch(u + (u.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout(3000) });
@@ -1843,10 +1853,12 @@ async function fetchData(day, silent){
             if (!j.every(m => String((m && m.start) || '').slice(0, 10) === exp)) continue;
           } catch {}
         }
-        return j;
+        if (j.length) return j;
+        if (bustEmpty === null) bustEmpty = j;
       }
     } catch {}
   }
+  if (bustEmpty !== null) return bustEmpty;
   return null;
 }
 
@@ -1865,7 +1877,7 @@ function loadStale(day){
     const raw = localStorage.getItem('koora:all:' + day);
     if (!raw) return false;
     const o = JSON.parse(raw);
-    if (!o || !Array.isArray(o.data) || Date.now() - o.at > 90000) return false;
+    if (!o || !Array.isArray(o.data) || !o.data.length || Date.now() - o.at > 90000) return false;
     ALL = o.data.filter(x => x && typeof x === 'object');
     const fAt = Date.now();
     for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }
@@ -1907,7 +1919,11 @@ async function loadDay(day, silent){
   const fAt = Date.now();
   for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }
   try { document.getElementById('errbox').hidden = true; } catch {}
-  try { localStorage.setItem('koora:all:' + day, JSON.stringify({ at: Date.now(), data: ALL })); } catch {}
+  // Never cache a blank list: fetchData yields [] only on all-source
+  // agreement, but a cached blank would keep rendering "no matches" for 90s
+  // through loadStale even after the backend recovers (the other half of
+  // the no-matches-until-refresh bug). Honest empty days simply re-fetch.
+  if (ALL.length) { try { localStorage.setItem('koora:all:' + day, JSON.stringify({ at: Date.now(), data: ALL })); } catch {} }
   try {
     const cur = {};
     for (const m of ALL) cur[m.id] = String(m.score_home ?? '') + '-' + String(m.score_away ?? '');
