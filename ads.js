@@ -119,11 +119,21 @@
       } else if (n >= 24) {
         try { clearInterval(iv); } catch (e) {}
         /* Empty: remove the frame so no blank box remains. data-filled is
-           cleared so a later re-enable retries from scratch. */
+           cleared so a later re-enable retries from scratch. One slow retry
+           (provider fill-rate varies, concurrent same-key loads often lose):
+           a single refill 20s later, never a loop. */
         try {
           slot.innerHTML = '';
           slot.removeAttribute('data-filled');
           slot.classList.remove('on');
+          if (!slot.getAttribute('data-retried')) {
+            slot.setAttribute('data-retried', '1');
+            setTimeout(function () {
+              try {
+                if (enabled() && !slot.getAttribute('data-filled') && !slot.classList.contains('on')) fill(slot, false);
+              } catch (e) {}
+            }, 20000);
+          }
         } catch (e) {}
       }
     }, 500);
@@ -196,6 +206,7 @@
     for (var i = 0; i < slots.length; i++) {
       slots[i].innerHTML = '';
       slots[i].removeAttribute('data-filled');
+      slots[i].removeAttribute('data-retried');
       slots[i].classList.remove('on');
       slots[i].hidden = true;
       slots[i].style.display = 'none';
