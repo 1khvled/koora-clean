@@ -42,6 +42,12 @@
   (headless quirk, verified with a manual probe) -- added a 3s timer
   backstop in `fillAll` so slots fill even where IO is dead (real browsers
   still get the fast IO path; `data-filled` guards double-fill).
+- Post-deploy finding 2: side (160x600) srcdoc parsed with its scripts dead
+  (invoke never requested, `atOptions` undefined) while native worked --
+  replaced the `<scr'+'ipt>` split-string habit with plain tags (safe: this
+  file is external, no inline-parser interaction). Live-observed creative
+  backends `protrafficinspector.com` + `furiousexpansion.com` added to
+  `connect-src` ONLY (XHR endpoints the units need; no new script hosts).
 
 ## 164. Translation moat (2026-10-11)
 
