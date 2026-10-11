@@ -1125,6 +1125,15 @@ _NAME_CANON = {
     'jeremy bino': 'Jérémie Pino',
     'yaremi bino': 'Jérémie Pino',
     'yeremy bino': 'Jérémie Pino',
+    # reported 2026-10-11 (moat era): the SOURCE spells these players with
+    # elongations ("كييركيز", "فييررتز") and faithful transliteration then
+    # mangles them ("Kierkez"/"Fierertiz" vs correct "Kerkez"/"Wirtz" in a
+    # sibling post). Wrong-only keys, both Liverpool players.
+    'kierkez': 'Kerkez',
+    'fierertiz': 'Wirtz',
+    'fierertz': 'Wirtz',
+    'fieretz': 'Wirtz',
+    'fiertz': 'Wirtz',
     'vitinha': 'Vitinha',
     'marquinhos': 'Marquinhos',
     'kvaratskhelia': 'Kvaratskhelia',

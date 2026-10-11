@@ -56,6 +56,21 @@
   clubs/places ("input-bound facts only"). Dispatch-only tg_editpost.py
   fixed 8 live posts (escapes in #1847/#1848/#1852/#1856/#1857/#1858/
   #1863/#1864 + Pino/Beloumi names) via the new 'edit' job.
+- Repair completion details: 5 of the 9 targets are VIDEO posts (their
+  text is a caption) -- editMessageText failed with "no text in the
+  message to edit"; tg_cleanup.parse now flags video/animation/gif as
+  media so caption edits are used (parsetest extended, 13/13). t.me/s
+  pages are cache-skewed (a page can miss a real message): tg_editpost
+  probes missing ids via a tight ?before=&after= window before skipping.
+  Final state verified live: all 9 targets clean (real newlines, Jérémie
+  Pino, Mohamed Beloumi), fabricated #1860 deleted, ZERO escape leaks and
+  zero Arabic across the last 60 posts.
+- Moat-era name curation: the source itself elongates player names
+  ("كييركيز", "فييررتز"); faithful transliteration (the new prompt rule)
+  then posted "Kierkez"/"Fierertiz" in one post and "Kerkez"/"Wirtz" in a
+  sibling. _NAME_CANON gained wrong-only keys (kierkez->Kerkez,
+  fierertiz/fierertz/fieretz/fiertz->Wirtz). moattest 33/33, all five
+  batteries green.
 
 ## 163. Clean /watch/<id> links (2026-10-11)
 
