@@ -43,15 +43,13 @@ def parse(html):
         m = re.search(r'data-post="messistatdotcom/(\d+)"', b)
         if not m:
             continue
-        tm = re.search(r'tgme_widget_message_text[^>]*>([\s\S]*?)</div>\s*</div>', b)
-        txt = ''
-        if tm:
-            txt = re.sub(r'<br\s*/?>', '\n', tm.group(1))
-            txt = re.sub(r'<[^>]+>', '', txt)
-            import html as _h
-            txt = _h.unescape(txt)
+        # Reply-quotes cut first: a reply carries the PARENT's text and
+        # thumbnail as its first elements -- mistaking either for this
+        # message's own content corrupts scrub-edits and photo decisions.
+        txt = tg.own_text(b)
+        bq = tg._cut_quote(b)
         has_photo = bool(re.search(
-            r'tgme_widget_message_photo[^>]*background-image:url\(\'([^\']+)\'', b))
+            r'tgme_widget_message_photo[^>]*background-image:url\(\'([^\']+)\'', bq))
         out.append((int(m.group(1)), txt, has_photo))
     return out
 

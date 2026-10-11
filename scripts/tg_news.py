@@ -209,27 +209,7 @@ def seed_seen(state, target):
         for i, m in enumerate(marks):
             end = marks[i + 1].start() if i + 1 < len(marks) else len(html)
             seg = html[m.start():end]
-            j = seg.find('tgme_widget_message_text')
-            if j < 0:
-                continue
-            k = seg.find('>', j)
-            depth, p, stop = 1, k + 1, len(seg)
-            while p < len(seg) and depth:
-                if seg.startswith('<div', p):
-                    depth += 1
-                    p += 4
-                elif seg.startswith('</div>', p):
-                    depth -= 1
-                    if not depth:
-                        stop = p
-                        break
-                    p += 6
-                else:
-                    p += 1
-            t = re.sub(r'<br\s*/?>', '\r\n', seg[k + 1:stop])
-            t = re.sub(r'<[^>]+>', '', t)
-            import html as _h
-            fp = fingerprint(re.sub(r'[ \t\xa0]+', ' ', _h.unescape(t)).strip())
+            fp = fingerprint(own_text(seg))
             if fp and fp not in seen:
                 seen.append(fp)
         if len(seen) > SEEN_KEEP:
@@ -392,6 +372,43 @@ def _own_photos(seg):
         return []
 
 
+def own_text(b):
+    """THIS message's own text from a t.me/s block: the reply-quote (the
+    PARENT's text, rendered FIRST in the block) is cut before extraction,
+    then the own text div is depth-walked -- nested markup cannot truncate
+    it and the footer (views/time) cannot leak in. Same normalization as
+    the old inline extraction: br->newline, tags stripped, entities
+    decoded, space runs collapsed, trimmed. '' when no text. Never
+    raises."""
+    try:
+        seg = _cut_quote(b)
+        j = seg.find('tgme_widget_message_text')
+        if j < 0:
+            return ''
+        k = seg.find('>', j)
+        if k < 0:
+            return ''
+        depth, p, stop = 1, k + 1, len(seg)
+        while p < len(seg) and depth:
+            if seg.startswith('<div', p):
+                depth += 1
+                p += 4
+            elif seg.startswith('</div>', p):
+                depth -= 1
+                if not depth:
+                    stop = p
+                    break
+                p += 6
+            else:
+                p += 1
+        t = re.sub(r'<br\s*/?>', '\r\n', seg[k + 1:stop])
+        t = re.sub(r'<[^>]+>', '', t)
+        import html as _h
+        return re.sub(r'[ \t\xa0]+', ' ', _h.unescape(t)).strip()
+    except Exception:
+        return ''
+
+
 def scrape_offside_preview(limit=25):
     global AVATAR_URL
     html = http_get_text('https://t.me/s/Offsideahdaff')
@@ -402,14 +419,7 @@ def scrape_offside_preview(limit=25):
         if not m:
             continue
         mid = int(m.group(1))
-        tm = re.search(r'tgme_widget_message_text[^>]*>([\s\S]{0,4000}?)</div>', b)
-        txt = ''
-        if tm:
-            txt = re.sub(r'<br\s*/?>', '\r\n', tm.group(1))
-            txt = re.sub(r'<[^>]+>', '', txt)
-            import html as _html
-            txt = _html.unescape(txt)
-            txt = re.sub(r'[ \t\xa0]+', ' ', txt).strip()
+        txt = own_text(b)
         rm = re.search(r'tgme_widget_message_reply[^>]*href="[^"]*/(\d+)"', b)
         # Quote carries the parent post's thumbnail: cut it before collecting
         # this post's photos (else biggest() can attach another post's photo).
@@ -1834,6 +1844,9 @@ def llm_fix(text):
               'score, card, transfer, quote, lineup). Never write empty '
               'praise or restate the header ("made a significant impact", '
               '"faces X in an exciting matchup"). '
+              'Input-bound facts only: every club, player, competition and '
+              'place named in the output must appear in the input -- never a '
+              "player's former club, never an invented venue. "
               'Example. Input: '
               "'سجل Lamine Yamal هدفا عالميا في الدقيقة 73 ليقود Barcelona "
               "لفوز صعب 2-1 على Getafe.' "
