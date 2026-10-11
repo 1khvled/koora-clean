@@ -23,6 +23,13 @@
      impressions (real browsers already gate via IO + 400px margin).
 - Proof: adscheck green, node clean, mirrors identical. Live-verify: flow
   band states (loading = 1 kid iframe only, revealed = label + iframe).
+- Follow-up fixes: watchdog destroy/clearAll now also drop the `.loading`
+  reserve (else a 120px ghost gap stays forever); above-fold fail-fast
+  relaxed 4s->6s; same-key native loads STAGGERED (first flow now, rest +8s;
+  toggle-ON still immediate) since concurrent same-key loads usually fill
+  only one; watchdog timeout ALSO wall-clock budgeted (throttled background
+  tabs can starve tick-counts -- revealed by the automation tab freezing
+  mid-watch, a test-env artifact, real foreground tabs unaffected).
 
 ## 167. Watch-page flow slots (2026-10-11)
 
