@@ -1807,8 +1807,10 @@ async function fetchData(day, silent){
   urls.push('/api/matches?day=' + day);
   if (day === 'today') urls.push('./matches.json');
   // Parallel race — sequential walk was up to 12s (3×4s). Now fastest wins.
+  const ctrls = [];
   const racers = urls.map(async (u) => {
     const ctrl = new AbortController();
+    ctrls.push(ctrl);
     const to = setTimeout(() => ctrl.abort(), 3500);
     try {
       // First try uses edge cache (no bust) for instant; bust only on retry via loadDay silent
@@ -1819,24 +1821,33 @@ async function fetchData(day, silent){
       return Array.isArray(j) ? { u, data: j } : null;
     } catch { return null; } finally { clearTimeout(to); }
   });
-  const results = await Promise.all(racers);
-  // Empty lists are NOT data: a cold worker / timed-out scrape can answer []
-  // while another source has the full day. First non-empty wins; only when
-  // every source agrees on empty do we accept [] (a genuinely match-free day
-  // still renders the honest empty state instead of retrying forever).
-  // Accepting the first [] is what caused the "no matches until refresh" bug.
-  let fallbackEmpty = null;
-  for (const r of results){
+  // First NON-EMPTY response paints immediately; stragglers (a 6s cold API
+  // behind a 0.4s static file) are aborted instead of gating first paint.
+  // Only all-empty agreement yields [] (honest empty day).
+  const dateOk = (u, data) => {
+    if (u !== './matches.json') return true;
+    try {
+      const exp = riyadhYMD(day);
+      return data.every(m => String((m && m.start) || '').slice(0, 10) === exp);
+    } catch { return true; }
+  };
+  const pending = new Set(racers);
+  let fallbackEmpty = null, winner = null;
+  while (pending.size && winner === null){
+    let res;
+    try {
+      res = await Promise.race([...pending].map(p => p.then(
+        v => ({ v, p }), () => ({ v: null, p }))));
+    } catch { break; }
+    pending.delete(res.p);
+    const r = res.v;
     if (!r) continue;
-    if (r.u === './matches.json'){
-      try {
-        const exp = riyadhYMD(day);
-        if (!r.data.every(m => String((m && m.start) || '').slice(0, 10) === exp)) continue;
-      } catch {}
-    }
-    if (Array.isArray(r.data) && r.data.length) return r.data;
+    if (!dateOk(r.u, r.data)) continue;
+    if (Array.isArray(r.data) && r.data.length){ winner = r.data; break; }
     if (fallbackEmpty === null) fallbackEmpty = r.data;
   }
+  try { for (const c of ctrls){ try { c.abort(); } catch {} } } catch {}
+  if (winner !== null) return winner;
   if (fallbackEmpty !== null) return fallbackEmpty;
   // Fallback bust cache if all missed (same empty-list rule as above:
   // first non-empty wins, all-empty agreement accepted as honest empty).
@@ -1877,7 +1888,7 @@ function loadStale(day){
     const raw = localStorage.getItem('koora:all:' + day);
     if (!raw) return false;
     const o = JSON.parse(raw);
-    if (!o || !Array.isArray(o.data) || !o.data.length || Date.now() - o.at > 90000) return false;
+    if (!o || !Array.isArray(o.data) || !o.data.length || Date.now() - o.at > 180000) return false;
     ALL = o.data.filter(x => x && typeof x === 'object');
     const fAt = Date.now();
     for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }

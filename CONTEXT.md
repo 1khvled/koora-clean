@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§159 — Tarard Malin fix).
+> Last updated: 2026-10-11 (§160 — first-paint speedup).
+
+## 160. First-paint speedup (2026-10-11)
+
+- Owner: homepage opens empty, needs refresh/wait, loads slowly. Measured:
+  static file answers in 0.39s while the live API takes 6.41s — and the
+  "parallel race" awaited ALL endpoints, so every open waited ~6s+ for the
+  slowest. Fix: first NON-EMPTY response paints immediately (stragglers
+  aborted); empty-agreement and bust-loop semantics from §157 preserved.
+- Instant-paint window widened: stale cache TTL 90s -> 180s (background
+  refresh still updates; live scores re-fuse on the 45s poll).
+- Proof: fetchtest 5/5 incl. timing (6s-cold + 0.1s-static resolves fast
+  with full data), index JS parses.
 
 ## 159. Tarard Malin fix (2026-10-11)
 
