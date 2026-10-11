@@ -593,6 +593,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
     <button class="btn ghost" id="btnReload" data-i18n="reload">⟳ Reload</button>
     <button class="btn ghost" id="btnShare" aria-label="Share" data-i18n-aria="ariaShare">&#128279;</button>
     <button class="btn ghost" id="btnBell" aria-label="Notifications" data-i18n-aria="ariaBell">&#128276;</button>
+    <a class="btn ghost" id="btnOpen" target="_blank" rel="noopener" data-i18n="openNew" aria-label="Open stream in new tab" data-i18n-aria="ariaOpen" hidden>↗</a>
   </div>
   <div class="disclaimer" data-i18n="commentaryNote">🔊 Commentary in Arabic</div>
   <div class="mcard" id="matchCard" hidden>
@@ -709,8 +710,8 @@ homeAlt: 'Home team logo', awayAlt: 'Away team logo',
 srcTitle: '📡 Stream sources', searching: 'Searching for servers…',
 tgBtn: '📢 Telegram',
 reportBtn: '⚠ Report dead', reportThanks: 'Reported — trying the next server', reportNone: 'No server playing right now',
-fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked',
-ariaFav: 'Toggle favorite', ariaLike: 'Like this match', ariaShare: 'Share match link', ariaBell: 'Match notifications', walletBtn: '⧉ BEP20 wallet',
+fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked', openNew: '\u2197 New tab',
+ariaFav: 'Toggle favorite', ariaLike: 'Like this match', ariaShare: 'Share match link', ariaOpen: 'Open stream in new tab', ariaBell: 'Match notifications', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentary in Arabic',
 updatedAgo: (s) => 'updated ' + s + 's ago',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', supMsg: '❤ Streams are free — support us with a donation.',
@@ -767,8 +768,8 @@ homeAlt: 'Logo de l’équipe domicile', awayAlt: 'Logo de l’équipe extérieu
 srcTitle: '📡 Sources du stream', searching: 'Recherche de serveurs…',
 tgBtn: '📢 Telegram',
 reportBtn: '⚠ Signaler', reportThanks: 'Signalé — serveur suivant', reportNone: 'Aucun serveur en cours',
-fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués',
-ariaFav: 'Ajouter aux favoris', ariaLike: 'Aimer ce match', ariaShare: 'Copier le lien du match', ariaBell: 'Notifications du match', walletBtn: '⧉ BEP20 wallet',
+fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués', openNew: '\u2197 Nouvel onglet',
+ariaFav: 'Ajouter aux favoris', ariaLike: 'Aimer ce match', ariaShare: 'Copier le lien du match', ariaOpen: 'Ouvrir le stream dans un nouvel onglet', ariaBell: 'Notifications du match', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentaires en arabe',
 updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', supMsg: '❤ Les streams sont gratuits — soutenez-nous avec un don.',
@@ -825,8 +826,8 @@ homeAlt: 'شعار الفريق المضيف', awayAlt: 'شعار الفريق �
 srcTitle: '📡 مصادر البث', searching: 'جاري البحث عن السيرفرات…',
 tgBtn: '📢 تيليغرام',
 reportBtn: '⚠ إبلاغ عن عطل', reportThanks: 'تم الإبلاغ — جاري التحويل لسيرفر آخر', reportNone: 'لا يوجد سيرفر يعمل الآن',
-fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', blocked: 'محظور',
-ariaFav: 'إضافة إلى المفضلة', ariaLike: 'أعجبني', ariaShare: 'نسخ رابط المباراة', ariaBell: 'تنبيهات المباراة', walletBtn: '⧉ BEP20 wallet',
+fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', blocked: 'محظور', openNew: '\u2197 تبويب جديد',
+ariaFav: 'إضافة إلى المفضلة', ariaLike: 'أعجبني', ariaShare: 'نسخ رابط المباراة', ariaOpen: 'فتح البث في علامة تبويب جديدة', ariaBell: 'تنبيهات المباراة', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 التعليق باللغة العربية',
 updatedAgo: (s) => 'تم التحديث قبل ' + s + ' ث',
 minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
@@ -2335,6 +2336,14 @@ function showServersFromList(list){
   }
 }
 function paintNow(){
+  try {
+    const ob = document.getElementById('btnOpen');
+    if (ob){
+      const u = (typeof lastCleanSrc === 'string' ? lastCleanSrc : '');
+      if (u && /^https:\/\//i.test(u) && !/\.m3u8($|[?#])/i.test(u)){ ob.href = u; ob.hidden = false; }
+      else { ob.hidden = true; ob.removeAttribute('href'); }
+    }
+  } catch {}
   const s = serverList[srvIdx];
   srvNow.textContent = s ? t('watching')(dispName(s, srvIdx), srvIdx, serverList.length) : '';
   [...serversEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
@@ -2364,9 +2373,10 @@ function srvCacheGet(){
 }
 function srvCacheSet(servers){
   try {
-    if (!servers || !servers.length) return;
+    const clean = (servers || []).filter(s => s && !s.ads);
     const k = srvMemKey() + ':cache';
-    localStorage.setItem(k, JSON.stringify({ at: Date.now(), servers: servers.slice(0, 8) }));
+    if (!clean.length){ try { localStorage.removeItem(k); } catch {} return; }
+    localStorage.setItem(k, JSON.stringify({ at: Date.now(), servers: clean.slice(0, 8) }));
   } catch {}
 }
 function srvRemember(url){ try { const k = srvMemKey(); if (k && url) localStorage.setItem(k, url); } catch {} }
@@ -2376,6 +2386,21 @@ function srvRecall(list){
     const u = localStorage.getItem(k); if (!u) return -1;
     return list.findIndex(s => s && (s.play || s.url) === u);
   } catch { return -1; }
+}
+function autoPlay(){
+  // Autoplay prefers a clean (non-ads) server: remembered/backup embeds die
+  // fast, and auto-loading a dead backup is the black-stage-on-open bug.
+  // Manual taps still load any server (user choice).
+  try {
+    const ri = srvRecall(serverList);
+    if (ri >= 0 && serverList[ri] && !serverList[ri].ads){ goServer(ri, false); return; }
+  } catch {}
+  let i = 0;
+  try {
+    const c = serverList.findIndex(s => s && !s.ads);
+    if (c >= 0) i = c;
+  } catch {}
+  goServer(i, false);
 }
 function goServer(i, auto, _tried){
   if (!serverList.length) return;
@@ -2504,10 +2529,10 @@ async function loadRealPlayer(){
   let _autoRetries = 0;
   const failBox = () => {
     loadRealPlayer._busy = false;
-    const cached = srvCacheGet();
+    const cached = (srvCacheGet() || []).filter(s => s && !s.ads);
     if (cached && cached.length) {
       showServersFromList(cached);
-      const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false);
+      autoPlay();
       srvNow.textContent = t('fromCache');
       toast(t('cacheShown'));
     } else {
@@ -2573,7 +2598,7 @@ async function loadRealPlayer(){
       if (chans.length && list.length) { /* disabled */ }
     } catch {}
     showServersFromList(list);
-    if (serverList.length){ _autoRetries = 0; const ri = srvRecall(serverList); goServer(ri >= 0 ? ri : 0, false); try { srvCacheSet(serverList); } catch {} }
+    if (serverList.length){ _autoRetries = 0; autoPlay(); try { srvCacheSet(serverList); } catch {} }
     else if (data && data.adsBlocked){
       // Nothing ad-free exists for this fixture. Say so; do not spin retries.
       loadRealPlayer._busy = false;
@@ -2586,7 +2611,7 @@ async function loadRealPlayer(){
     }
     else {
       const fb = srvCacheGet();
-      if (fb && fb.length) { showServersFromList(fb); const ri2 = srvRecall(serverList); goServer(ri2 >= 0 ? ri2 : 0, false); toast(t('cacheUpdating')); }
+      if (fb && fb.length) { showServersFromList(fb); autoPlay(); toast(t('cacheUpdating')); }
       else { failBox(); return; }
     }
     loadRealPlayer._busy = false;
