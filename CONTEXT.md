@@ -48,6 +48,17 @@
   file is external, no inline-parser interaction). Live-observed creative
   backends `protrafficinspector.com` + `furiousexpansion.com` added to
   `connect-src` ONLY (XHR endpoints the units need; no new script hosts).
+- Post-deploy finding 3: the networks ROTATE backends per load
+  (`furiousexpansion` -> `fizzyacerbitymellow` for the native unit's
+  ntv.json/pixel; `zoologyfibre` for the side unit's watch.js/api/pixel) --
+  added both to `connect-src` (XHR only; their extra scripts stay blocked
+  by script-src, form POSTs die on sandbox+CSP form-action). Native rendered
+  an empty labeled box until its ntv.json passed; side 160x600 renders.
+  Rotation = ongoing: if a unit ever shows empty, the fix is reading the new
+  host from console and appending it (no code change).
+- Drive-by (pre-existing, 6 chars, zero risk): search-box magnifier is an
+  inline `data:` SVG blocked by `img-src` (console error every load, icon
+  missing) -- added `data:` to `img-src`. data: images cannot exfiltrate.
 
 ## 164. Translation moat (2026-10-11)
 
