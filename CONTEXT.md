@@ -27,7 +27,9 @@
   reserve (else a 120px ghost gap stays forever); above-fold fail-fast
   relaxed 4s->6s; same-key native loads STAGGERED (first flow now, rest +8s;
   toggle-ON still immediate) since concurrent same-key loads usually fill
-  only one.
+  only one; watchdog timeout ALSO wall-clock budgeted (throttled background
+  tabs can starve tick-counts -- revealed by the automation tab freezing
+  mid-watch, a test-env artifact, real foreground tabs unaffected).
 
 ## 167. Watch-page flow slots (2026-10-11)
 
