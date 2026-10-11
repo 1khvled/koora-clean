@@ -4,7 +4,21 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§166 — side rails only + refill fix).
+> Last updated: 2026-10-11 (§167 — watch-page flow slots).
+
+## 167. Watch-page flow slots (2026-10-11)
+
+- Owner: match page wants MORE -- ad bands below lineups etc. + above the
+  match player. New `flow` slot kind on player.html only (2 bands: above
+  `.stage`, below the minfo/lineups section; rails unchanged, other pages
+  untouched): fluid native unit, fills at ANY width (phones included --
+  in-flow has room, unlike rails), same watchdog (reveals only with a real
+  creative, empties destroyed, no blank boxes) and same sandbox/popup rules.
+- `ads.js`: kind/unit split (`flow`->native unit, no wide gate); fillAll no
+  longer early-returns on narrow (per-slot gating inside fill); same-doc
+  container ids are safe (each slot is its own srcdoc document).
+- Proof: adscheck (player pair = 4 slots incl. 2 flow + flow CSS; all other
+  pairs unchanged; stage untouched), node clean, mirrors identical.
 
 ## 166. Side rails only + refill fix (2026-10-11)
 
