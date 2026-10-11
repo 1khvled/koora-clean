@@ -4,7 +4,17 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§152 — old posts execution).
+> Last updated: 2026-10-11 (§153 — backfill reply-thumb fix).
+
+## 153. Backfill reply-thumb fix (2026-10-11)
+
+- #1788 donor run missed it: backfill parse grabbed the first bg-image in
+  the block, which on threaded posts is the PARENT's reply thumbnail — same
+  ownership bug class as the bridge photo picker. parse() now cuts the
+  reply-quote (shared tg._cut_quote) before extracting text/photo, and skip
+  reasons are logged (dl-fail, unmapped). Backfilltest extended: threaded
+  block selects own photo, all green.
+- Executing: targeted #1788 donor fix, then batch upgrades.
 
 ## 152. Old posts execution (2026-10-11)
 
