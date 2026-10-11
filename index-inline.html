@@ -472,6 +472,12 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
   .title h1{font-size:14px}
   .back{padding:8px 12px;min-height:40px;font-size:13px}
 }
+.adslot{margin:14px auto;max-width:100%;overflow:hidden;text-align:center}
+.adslot[hidden]{display:none!important}
+.adslot iframe{border:0;max-width:100%;display:inline-block;vertical-align:top;background:transparent}
+.adtag{font:600 10px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8aa39a;margin-bottom:4px}
+#adPill{position:fixed;inset-inline-start:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:45;font:700 12px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#eafff3;background:#0b3d2e;border:1px solid #10b981;border-radius:999px;min-height:40px;padding:10px 14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);opacity:.94}
+#adPill:active{transform:scale(.96)}
 </style>
 </head>
 <body>
@@ -492,6 +498,7 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
   <input id="searchInput" type="search" placeholder="Search team or league…" data-i18n-ph="searchPh" data-i18n-aria="searchPh" autocomplete="off">
   <div class="chips" id="leagueChips" role="group" aria-label="Filter by league" data-i18n-aria="chipsLabel"></div>
 </div>
+<div class="adslot" data-ad="native"></div>
 <main id="content">
   <div id="loading"><div class="loading" data-i18n="loading">Loading matches…</div><div class="skel-list" aria-hidden="true"><div class="skel-row"><i class="sk-t"></i><div class="sk-teams"><i></i><i></i></div><i class="sk-s"></i></div><div class="skel-row"><i class="sk-t"></i><div class="sk-teams"><i></i><i></i></div><i class="sk-s"></i></div><div class="skel-row"><i class="sk-t"></i><div class="sk-teams"><i></i><i></i></div><i class="sk-s"></i></div></div></div>
   <div id="errbox" hidden><p data-i18n="loadErr" style="text-align:center;color:var(--muted);font-weight:700">Couldn't load matches — check your connection.</p><div style="text-align:center"><button type="button" class="chip" data-i18n="retryBtn" onclick="loadDay(DAY)">Retry</button></div></div>
@@ -519,6 +526,7 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 
 </main>
 
+<div class="adslot" data-ad="side"></div>
 <div class="support" id="support">
   <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us with a donation.</div>
   <div class="sup-row">
@@ -2310,6 +2318,7 @@ if ('serviceWorker' in navigator){
   });
 }
 </script>
+<script src="/ads.js" defer></script>
 
 
 </body>

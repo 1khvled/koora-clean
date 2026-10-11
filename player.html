@@ -564,6 +564,12 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
   .title h1{font-size:14px}
   .back{padding:8px 12px;min-height:40px;font-size:13px}
 }
+.adslot{margin:14px auto;max-width:100%;overflow:hidden;text-align:center}
+.adslot[hidden]{display:none!important}
+.adslot iframe{border:0;max-width:100%;display:inline-block;vertical-align:top;background:transparent}
+.adtag{font:600 10px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8aa39a;margin-bottom:4px}
+#adPill{position:fixed;inset-inline-start:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:45;font:700 12px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#eafff3;background:#0b3d2e;border:1px solid #10b981;border-radius:999px;min-height:40px;padding:10px 14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);opacity:.94}
+#adPill:active{transform:scale(.96)}
 </style>
 </head>
 <body>
@@ -595,6 +601,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
     <button class="btn ghost" id="btnBell" aria-label="Notifications" data-i18n-aria="ariaBell">&#128276;</button>
     <a class="btn ghost" id="btnOpen" target="_blank" rel="noopener" data-i18n="openNew" aria-label="Open stream in new tab" data-i18n-aria="ariaOpen" hidden>↗</a>
   </div>
+  <div class="adslot" data-ad="native"></div>
   <div class="disclaimer" data-i18n="commentaryNote">🔊 Commentary in Arabic</div>
   <div class="mcard" id="matchCard" hidden>
     <div class="team"><img id="homeLogo" alt="Home team logo" data-i18n-alt="homeAlt" width="44" height="44"><b id="homeName">—</b><button class="tstar" id="starH" aria-label="Favorite" data-i18n-aria="ariaFav">&#9734;</button></div>
@@ -634,6 +641,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
     <div id="minfoBody"><div class="loading" data-i18n="minfoLoading">Loading lineups and ratings…</div><div class="mi-skel" aria-hidden="true"><div class="mi-skel-score"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div></div></div>
   </section>
 
+<div class="adslot" data-ad="side"></div>
 <div class="support" id="support">
   <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us with a donation.</div>
   <div class="sup-row">
@@ -3285,6 +3293,7 @@ try {
 })();
 
 </script>
+<script src="/ads.js" defer></script>
 
 
 </body>
