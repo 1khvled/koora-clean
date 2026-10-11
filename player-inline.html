@@ -571,6 +571,8 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 .adslot.on[data-ad="side"]{display:block!important;position:fixed;right:10px;top:50%;transform:translateY(-50%);width:160px;z-index:30;max-height:90vh;overflow:hidden}
 .adslot.on iframe{border:0;max-width:100%;display:block;background:transparent}
 }
+.adslot.on[data-ad="flow"]{display:block!important;margin:14px auto;max-width:100%;overflow:hidden;text-align:center}
+.adslot.on[data-ad="flow"] iframe{width:100%;margin:0 auto}
 #adPill{position:fixed;inset-inline-start:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:45;font:700 12px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#eafff3;background:#0b3d2e;border:1px solid #10b981;border-radius:999px;min-height:40px;padding:10px 14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);opacity:.94}
 #adPill:active{transform:scale(.96)}
 </style>
@@ -584,6 +586,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
     <div class="lang" role="group" aria-label="Language / Langue / اللغة"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button></div>
   </div>
     <div class="promo-row"><a class="pbtn gold" href="/messi.html" data-i18n="ftMessi">Messi</a><a class="pbtn cr7" href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a class="pbtn tg" data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn tg" data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="pbtn" href="https://messistat.com" target="_blank" rel="noopener" data-i18n="messiBtn">MessiStats</a><a class="pbtn tg" data-sitetg hidden target="_blank" rel="noopener" data-i18n="tgBtn">Telegram</a></div>
+  <div class="adslot" data-ad="flow"></div>
   <div class="stage">
     <iframe id="player" title="player" tabindex="-1" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
       sandbox="allow-scripts allow-same-origin allow-presentation" loading="eager"></iframe>
@@ -644,6 +647,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
     <div id="minfoBody"><div class="loading" data-i18n="minfoLoading">Loading lineups and ratings…</div><div class="mi-skel" aria-hidden="true"><div class="mi-skel-score"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div></div></div>
   </section>
 
+<div class="adslot" data-ad="flow"></div>
 <div class="adslot" data-ad="side"></div>
 <div class="support" id="support">
   <div class="sup-msg" data-i18n="supMsg">❤ Streams are free — support us with a donation.</div>

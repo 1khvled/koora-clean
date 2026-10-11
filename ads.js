@@ -119,11 +119,21 @@
       } else if (n >= 24) {
         try { clearInterval(iv); } catch (e) {}
         /* Empty: remove the frame so no blank box remains. data-filled is
-           cleared so a later re-enable retries from scratch. */
+           cleared so a later re-enable retries from scratch. One slow retry
+           (provider fill-rate varies, concurrent same-key loads often lose):
+           a single refill 20s later, never a loop. */
         try {
           slot.innerHTML = '';
           slot.removeAttribute('data-filled');
           slot.classList.remove('on');
+          if (!slot.getAttribute('data-retried')) {
+            slot.setAttribute('data-retried', '1');
+            setTimeout(function () {
+              try {
+                if (enabled() && !slot.getAttribute('data-filled') && !slot.classList.contains('on')) fill(slot, false);
+              } catch (e) {}
+            }, 20000);
+          }
         } catch (e) {}
       }
     }, 500);
@@ -131,8 +141,12 @@
 
   function fill(slot, now) {
     if (!slot || slot.getAttribute('data-filled') === '1') return;
-    if (!enabled() || !wideEnough()) return;
-    var kind = slot.getAttribute('data-ad') === 'side' ? 'side' : 'native';
+    if (!enabled()) return;
+    /* kind: native|side = desktop side rails; flow = in-flow band (watch
+       page), fills at any width. unit: side keeps 160x600, else native. */
+    var kind = slot.getAttribute('data-ad') || 'native';
+    var unit = (kind === 'side') ? 'side' : 'native';
+    if (kind !== 'flow' && !wideEnough()) return;
     var lab = document.createElement('div');
     lab.className = 'adtag';
     lab.textContent = 'Advertisement';
@@ -143,10 +157,10 @@
     /* No allow-top-navigation: ad clicks open a new tab, they can never
        redirect or popup-hijack this page. No allow-forms/pointer-lock. */
     fr.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
-    fr.style.width = kind === 'side' ? '160px' : '100%';
-    fr.style.height = kind === 'side' ? '600px' : '120px';
+    fr.style.width = unit === 'side' ? '160px' : '100%';
+    fr.style.height = unit === 'side' ? '600px' : '120px';
     fr.style.maxWidth = '100%';
-    try { fr.srcdoc = doc(kind); }
+    try { fr.srcdoc = doc(unit); }
     catch (e) { return; }
     slot.appendChild(lab);
     slot.appendChild(fr);
@@ -155,32 +169,32 @@
        Toggle-ON fills NOW (explicit intent); initial load may wait for the
        slot to near the viewport. */
     if (now) {
-      try { watch(slot, kind, fr); } catch (x) {}
+      try { watch(slot, unit, fr); } catch (x) {}
     } else if ('IntersectionObserver' in window) {
       var io = new IntersectionObserver(function (es) {
         for (var k = 0; k < es.length; k++) {
           if (es[k].isIntersecting) {
-            try { watch(slot, kind, fr); } catch (x) {}
+            try { watch(slot, unit, fr); } catch (x) {}
             try { io.disconnect(); } catch (x) {}
             break;
           }
         }
       }, { rootMargin: '400px' });
-      try { io.observe(slot); } catch (x) { try { watch(slot, kind, fr); } catch (y) {} }
+      try { io.observe(slot); } catch (x) { try { watch(slot, unit, fr); } catch (y) {} }
       /* Timer backstop: some environments never fire IntersectionObserver
          (backgrounded/headless tabs); still check for content after 3s. */
       setTimeout(function () {
         try {
-          if (slot.getAttribute('data-filled') === '1' && !slot.classList.contains('on')) watch(slot, kind, fr);
+          if (slot.getAttribute('data-filled') === '1' && !slot.classList.contains('on')) watch(slot, unit, fr);
         } catch (x) {}
       }, 3000);
     } else {
-      try { watch(slot, kind, fr); } catch (x) {}
+      try { watch(slot, unit, fr); } catch (x) {}
     }
   }
 
   function fillAll(now) {
-    if (!enabled() || !wideEnough()) return;
+    if (!enabled()) return;
     var slots = document.querySelectorAll('.adslot');
     for (var i = 0; i < slots.length; i++) {
       try { fill(slots[i], now === true); } catch (x) {}
@@ -192,6 +206,7 @@
     for (var i = 0; i < slots.length; i++) {
       slots[i].innerHTML = '';
       slots[i].removeAttribute('data-filled');
+      slots[i].removeAttribute('data-retried');
       slots[i].classList.remove('on');
       slots[i].hidden = true;
       slots[i].style.display = 'none';
