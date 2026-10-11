@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§167 — watch-page flow slots).
+> Last updated: 2026-10-11 (§168 — mobile-safe ads).
+
+## 168. Mobile-safe ads (2026-10-11)
+
+- Owner: "make them not hurt mobile users optimzie!" Four changes, all in
+  `ads.js` (+ one player.html CSS rule):
+  1. Data-saver gate: `navigator.connection.saveData` or 2G effective type
+     skips ALL auto-fill (explicit toggle-ON bypasses -- user intent wins).
+  2. No layout jump: flow bands reserve 120px TRANSPARENT space while
+     loading (`.loading`, no label yet); the "Advertisement" label is added
+     at reveal, so loading shows no white box and reveal shifts ~100px once,
+     early -- never mid-scroll shove.
+  3. Fast-fail above the fold: watchdog gives visible slots 4s, below-fold
+     12s (empties destroyed either way, one 20s retry as before).
+  4. Backstop viewport gate: the 3s no-IO fallback only fires near the
+     viewport -- off-screen slots never burn mobile data for unseen
+     impressions (real browsers already gate via IO + 400px margin).
+- Proof: adscheck green, node clean, mirrors identical. Live-verify: flow
+  band states (loading = 1 kid iframe only, revealed = label + iframe).
 
 ## 167. Watch-page flow slots (2026-10-11)
 

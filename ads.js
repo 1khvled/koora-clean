@@ -30,6 +30,18 @@
     return false;
   }
 
+  /* Data-saver / snail-network users: never auto-fill (explicit tap
+     still wins -- toggle-ON bypasses this). */
+  function eco() {
+    try {
+      var c = navigator.connection || {};
+      if (c.saveData) return true;
+      var t = String(c.effectiveType || '');
+      if (t.indexOf('2g') !== -1) return true;
+    } catch (e) {}
+    return false;
+  }
+
   /* Full srcdoc document for one slot. The provider <script> tags run inside
      this inner document (still open at parse time), so their document.write
      calls land in the frame, never in our page. */
@@ -100,15 +112,29 @@
   }
 
   function reveal(slot, fr, kind) {
+    try { slot.classList.remove('loading'); } catch (e) {}
+    if (!slot.querySelector('.adtag')) {
+      var lab = document.createElement('div');
+      lab.className = 'adtag';
+      lab.textContent = 'Advertisement';
+      try { slot.insertBefore(lab, slot.firstChild); } catch (e) {}
+    }
     slot.classList.add('on');
     slot.hidden = false;
     slot.style.display = '';
     fit(fr, kind);
   }
 
-  /* Poll for a real creative; reveal on first sight, destroy on timeout. */
+  /* Poll for a real creative; reveal on first sight, destroy on timeout.
+     Above-fold slots fail fast (4s): late reveals there shove the player
+     down mid-scroll. Below-fold gets the full 12s. */
   function watch(slot, kind, fr) {
     var n = 0;
+    var max = 24;
+    try {
+      var r0 = slot.getBoundingClientRect();
+      if (r0.top < window.innerHeight && r0.bottom > 0) max = 8;
+    } catch (e) {}
     var iv = setInterval(function () {
       n++;
       var hit = false;
@@ -116,7 +142,7 @@
       if (hit) {
         try { clearInterval(iv); } catch (e) {}
         try { reveal(slot, fr, kind); } catch (e) {}
-      } else if (n >= 24) {
+      } else if (n >= max) {
         try { clearInterval(iv); } catch (e) {}
         /* Empty: remove the frame so no blank box remains. data-filled is
            cleared so a later re-enable retries from scratch. One slow retry
@@ -147,9 +173,6 @@
     var kind = slot.getAttribute('data-ad') || 'native';
     var unit = (kind === 'side') ? 'side' : 'native';
     if (kind !== 'flow' && !wideEnough()) return;
-    var lab = document.createElement('div');
-    lab.className = 'adtag';
-    lab.textContent = 'Advertisement';
     var fr = document.createElement('iframe');
     fr.setAttribute('title', 'Advertisement');
     fr.setAttribute('scrolling', 'no');
@@ -162,9 +185,13 @@
     fr.style.maxWidth = '100%';
     try { fr.srcdoc = doc(unit); }
     catch (e) { return; }
-    slot.appendChild(lab);
     slot.appendChild(fr);
     slot.setAttribute('data-filled', '1');
+    /* Flow bands reserve transparent space while loading (no layout jump
+       on reveal, no white box); the label is added at reveal, not before. */
+    if (kind === 'flow') {
+      try { slot.classList.add('loading'); } catch (e) {}
+    }
     /* Stays hidden until the watchdog sees a real creative (no blank boxes).
        Toggle-ON fills NOW (explicit intent); initial load may wait for the
        slot to near the viewport. */
@@ -182,10 +209,16 @@
       }, { rootMargin: '400px' });
       try { io.observe(slot); } catch (x) { try { watch(slot, unit, fr); } catch (y) {} }
       /* Timer backstop: some environments never fire IntersectionObserver
-         (backgrounded/headless tabs); still check for content after 3s. */
+         (backgrounded/headless tabs); still check for content after 3s --
+         but only near the viewport, so off-screen slots never burn mobile
+         data for unseen impressions. */
       setTimeout(function () {
         try {
-          if (slot.getAttribute('data-filled') === '1' && !slot.classList.contains('on')) watch(slot, unit, fr);
+          if (slot.getAttribute('data-filled') === '1' && !slot.classList.contains('on')) {
+            var r = slot.getBoundingClientRect();
+            var vh = window.innerHeight || 800;
+            if (r.top < vh + 800 && r.bottom > -800) watch(slot, unit, fr);
+          }
         } catch (x) {}
       }, 3000);
     } else {
@@ -195,6 +228,8 @@
 
   function fillAll(now) {
     if (!enabled()) return;
+    /* now=true is an explicit user tap: bypasses the data-saver gate. */
+    if (now !== true && eco()) return;
     var slots = document.querySelectorAll('.adslot');
     for (var i = 0; i < slots.length; i++) {
       try { fill(slots[i], now === true); } catch (x) {}
