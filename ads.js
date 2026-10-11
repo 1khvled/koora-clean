@@ -131,10 +131,13 @@
   function watch(slot, kind, fr) {
     var n = 0;
     var max = 24;
+    var t0 = 0;
+    var budget = 12000;
     try {
       var r0 = slot.getBoundingClientRect();
-      if (r0.top < window.innerHeight && r0.bottom > 0) max = 12;
-    } catch (e) {}
+      if (r0.top < window.innerHeight && r0.bottom > 0) { max = 12; budget = 6000; }
+      t0 = Date.now();
+    } catch (e) { t0 = 0; }
     var iv = setInterval(function () {
       n++;
       var hit = false;
@@ -142,7 +145,7 @@
       if (hit) {
         try { clearInterval(iv); } catch (e) {}
         try { reveal(slot, fr, kind); } catch (e) {}
-      } else if (n >= max) {
+      } else if (n >= max || (t0 && Date.now() - t0 > budget)) {
         try { clearInterval(iv); } catch (e) {}
         /* Empty: remove the frame so no blank box remains. data-filled is
            cleared so a later re-enable retries from scratch. One slow retry
