@@ -152,6 +152,7 @@
           slot.innerHTML = '';
           slot.removeAttribute('data-filled');
           slot.classList.remove('on');
+          slot.classList.remove('loading');
           if (!slot.getAttribute('data-retried')) {
             slot.setAttribute('data-retried', '1');
             setTimeout(function () {
@@ -243,6 +244,7 @@
       slots[i].removeAttribute('data-filled');
       slots[i].removeAttribute('data-retried');
       slots[i].classList.remove('on');
+      slots[i].classList.remove('loading');
       slots[i].hidden = true;
       slots[i].style.display = 'none';
     }
