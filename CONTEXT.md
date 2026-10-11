@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§151 — per-server sandbox).
+> Last updated: 2026-10-11 (§152 — old posts execution).
+
+## 152. Old posts execution (2026-10-11)
+
+- #1728 SerieALeague1 leak: runner dry-run flagged exactly it; enforce run
+  scrub-edited the caption ok (verified in run log).
+- Backfill dry-run: 40 scanned, 16 upgrade jobs mapped. First enforce run
+  upgraded #1804 (89KB->523KB) and #1813 (89KB->521KB): Telethon originals
+  confirmed ~6x bigger than web copies.
+- #1788 donor fix missed its window (scan covers newest only) — backfill now
+  sorts donor overrides first so caps can't cut them. Proven by test (donor
+  scanned last still wins a cap of 1). Temp dir wiped twice mid-task; test
+  suites rebuilt from history, all green.
 
 ## 151. Per-server sandbox (2026-10-11)
 

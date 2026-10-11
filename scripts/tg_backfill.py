@@ -185,6 +185,9 @@ def main():
     except Exception as e:
         print('backfill: scan failed: %s %s' % (type(e).__name__, str(e)[:100]))
     print('backfill: scanned %d, jobs %d (mode=%s)' % (len(seen), len(jobs), mode))
+    # Donor overrides jump the queue: explicit wrong-photo fixes must not be
+    # cut by MAXEDITS when the scan window holds many generic upgrades.
+    jobs.sort(key=lambda j: 0 if j[4] == 'donor-override' else 1)
     if mode != 'enforce':
         print('backfill: dry-run, nothing changed')
         return 0
