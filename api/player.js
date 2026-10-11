@@ -482,8 +482,10 @@ const resolveYacine = async (home, away, startIso) => {
   // VIPBox (verified 2026-10-04): the football-schedule carries genuinely
   // niche fixtures (South/Central American + lower US leagues) with
   // /onair/football/<slug> pages exposing data-uri /live/... players.
-  // The /live pages send no X-Frame-Options and no CSP, so they embed
-  // directly — no token reversal needed. Hidden fallback BEHIND Streamed:
+  // CORRECTION 2026-10-11: the /live pages are full site pages (ad scripts
+  // included), NOT bare embeds — vipDetail now extracts a bare player from
+  // each live page and drops pages with nothing extractable, instead of
+  // handing the iframe the whole HTML. Hidden fallback BEHIND Streamed:
   // runs ONLY when every Arabic source + Streamed yields zero (numbered
   // buttons, zero brand leakage, same strict gates as the EN path).
   const VIP_HOSTS = ['https://vipbox.live', 'https://vipbox.fm'];
@@ -536,7 +538,31 @@ const resolveYacine = async (home, away, startIso) => {
       return { href: b0.href, host: ghost };
     } catch { return null; }
   };
-  // Phase 2: the /onair page's data-uri players (embeddable live pages).
+  // Phase 2: the /onair page's data-uri players. NOTE (2026-10-11): the
+  // /live/ URLs are FULL site pages (header/schedule/ad scripts, a JS shell
+  // with no static player tag) — handing them to the iframe showed the whole
+  // HTML. So each live page is fetched here and ONLY a bare playable (iframe
+  // embed / video / m3u8 / mp4) is surfaced; a page with nothing extractable
+  // yields nothing, and the API falls through to the honest no-links state
+  // instead of a junk page.
+  const vipPlayerOf = (html) => {
+    try {
+      const out = [];
+      const push = (u) => {
+        u = String(u || '').trim();
+        if (!/^https:\/\//i.test(u)) return;
+        if (/\.(png|jpe?g|gif|css|js)(\?|#|$)/i.test(u)) return;
+        if (out.some(x => x === u)) return;
+        out.push(u);
+      };
+      for (const m of (html || '').matchAll(/<iframe[^>]+src\s*=\s*(["'])(.*?)\1/gi)) push(m[2]);
+      for (const m of (html || '').matchAll(/<video[^>]+src\s*=\s*(["'])(.*?)\1/gi)) push(m[2]);
+      for (const m of (html || '').matchAll(/<source[^>]+src\s*=\s*(["'])(.*?)\1/gi)) push(m[2]);
+      for (const m of (html || '').matchAll(/(https:\/\/[^\s"'<>]+\.m3u8(?:[?#][^\s"'<>]*)?)/gi)) push(m[1]);
+      for (const m of (html || '').matchAll(/<video[^>]+data-[\w-]*src\s*=\s*(["'])(.*?)\1/gi)) push(m[2]);
+      return out.slice(0, 2);
+    } catch { return []; }
+  };
   const vipDetail = async (hit) => {
     if (!hit || !hit.href) return null;
     try {
@@ -551,7 +577,29 @@ const resolveYacine = async (home, away, startIso) => {
       const html = await readCapped(r, 800000);
       const links = [...new Set([...html.matchAll(/data-uri="(\/live\/[^"]+)"/gi)].map(x => x[1]))].slice(0, 3);
       if (!links.length) return null;
-      return { servers: links.map(u => ({ url: hit.host + u })) };
+      const got = await Promise.all(links.map(async (u) => {
+        try {
+          const lr = await fetchT(hit.host + u, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'text/html,application/xhtml+xml',
+              'Referer': hit.host + hit.href,
+            },
+          }, 3000);
+          if (!lr || !lr.ok) return [];
+          const lh = await readCapped(lr, 500000);
+          return vipPlayerOf(lh).map(p => ({ url: p }));
+        } catch { return []; }
+      }));
+      const seen = new Set();
+      const servers = [];
+      for (const s of got.flat()) {
+        if (!s || !/^https:\/\//i.test(s.url) || seen.has(s.url)) continue;
+        seen.add(s.url);
+        servers.push(s);
+      }
+      if (!servers.length) return null;
+      return { servers: servers.slice(0, 3) };
     } catch { return null; }
   };
 

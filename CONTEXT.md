@@ -4,7 +4,24 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§149 — old-post fixes: scrub-edit + backfill).
+> Last updated: 2026-10-11 (§150 — VIPBox whole-HTML fix).
+
+## 150. VIPBox whole-HTML fix (2026-10-11)
+
+- Owner: VIPBox servers showed the whole site HTML, not the player. Root
+  cause: vipDetail handed the iframe full /live/ page URLs. Verified live:
+  /live/ pages are JS shells (no iframe/video/m3u8 tags at all — only ad
+  scripts like llvpn tag injector + a CSRF-gated player), so no bare player
+  is extractable without JS execution (no such infra; reverse-engineering
+  the CSRF links API was time-boxed and dropped).
+- Fix: vipDetail now fetches each live page and surfaces ONLY a bare
+  playable (iframe embed / video / m3u8 / mp4); pages with nothing
+  extractable are dropped, and the API falls through to the honest
+  no-links/adsBlocked state instead of a junk page. Same gates, budgets,
+  labels, and sandboxing; no new hosts or deps.
+- Proof: end-to-end through the real handler with stubbed fetch (embed
+  surfaced + playerSrc, zero /live/ URLs, honest found:false on shells)
+  6/6, plus null extraction on the saved real VIPBox page.
 
 ## 149. Old-post fixes: scrub-edit + backfill (2026-10-11)
 
