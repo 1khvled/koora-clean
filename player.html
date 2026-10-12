@@ -733,7 +733,7 @@ tgBtn: '📢 Telegram',
 reportBtn: '⚠ Report dead', reportThanks: 'Reported — trying the next server', reportNone: 'No server playing right now',
 fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked', openNew: '\u2197 New tab',
 ariaFav: 'Toggle favorite', ariaLike: 'Like this match', ariaShare: 'Share match link', ariaOpen: 'Open stream in new tab', ariaBell: 'Match notifications', walletBtn: '⧉ BEP20 wallet',
-commentaryNote: '🔊 Commentary in Arabic',
+commentaryNote: '🔊 Commentary in Arabic', commentaryNoteEn: '🔊 Commentary in English',
 updatedAgo: (s) => 'updated ' + s + 's ago',
 minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', supMsg: '❤ Streams are free — support us with a donation.',
     copyBtn: 'Copy',
@@ -791,7 +791,7 @@ tgBtn: '📢 Telegram',
 reportBtn: '⚠ Signaler', reportThanks: 'Signalé — serveur suivant', reportNone: 'Aucun serveur en cours',
 fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués', openNew: '\u2197 Nouvel onglet',
 ariaFav: 'Ajouter aux favoris', ariaLike: 'Aimer ce match', ariaShare: 'Copier le lien du match', ariaOpen: 'Ouvrir le stream dans un nouvel onglet', ariaBell: 'Notifications du match', walletBtn: '⧉ BEP20 wallet',
-commentaryNote: '🔊 Commentaires en arabe',
+commentaryNote: '🔊 Commentaires en arabe', commentaryNoteEn: '🔊 Commentaires en anglais',
 updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
 minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', supMsg: '❤ Les streams sont gratuits — soutenez-nous avec un don.',
     copyBtn: 'Copier',
@@ -849,7 +849,7 @@ tgBtn: '📢 تيليغرام',
 reportBtn: '⚠ إبلاغ عن عطل', reportThanks: 'تم الإبلاغ — جاري التحويل لسيرفر آخر', reportNone: 'لا يوجد سيرفر يعمل الآن',
 fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', blocked: 'محظور', openNew: '\u2197 تبويب جديد',
 ariaFav: 'إضافة إلى المفضلة', ariaLike: 'أعجبني', ariaShare: 'نسخ رابط المباراة', ariaOpen: 'فتح البث في علامة تبويب جديدة', ariaBell: 'تنبيهات المباراة', walletBtn: '⧉ BEP20 wallet',
-commentaryNote: '🔊 التعليق باللغة العربية',
+commentaryNote: '🔊 التعليق باللغة العربية', commentaryNoteEn: '🔊 التعليق باللغة الإنجليزية',
 updatedAgo: (s) => 'تم التحديث قبل ' + s + ' ث',
 minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
 favAdd: 'أضيفت إلى المفضلة', favRemove: 'أزيلت إلى المفضلة',
@@ -966,6 +966,16 @@ else if (serversEl.querySelector('#retryBtn')) showServersFromList([]);
 if (miData) renderMi();
 try { paintOdds(); } catch (e) {}
 try { paintHl(); } catch (e) {}
+} catch (e) {}
+try {
+  // EN switched on mid-watch (owner order): VIPBox becomes the main source.
+  // Already in list -> jump to it; absent (list was fetched non-EN) ->
+  // refetch with lang=en so the API leads with VIPBox.
+  if (l === 'en' && serverList && serverList.length) {
+    const vi = serverList.findIndex(s => s && s.kind === 'vipbox');
+    if (vi >= 0) { if (vi !== srvIdx) goServer(vi, false); }
+    else { try { loadRealPlayer(); } catch (e2) {} }
+  }
 } catch (e) {}
 }
 }
@@ -2286,6 +2296,7 @@ function kindTag(s){
   if (s.kind === 'live') return t('kindFull');
   if (s.kind === 'tv') return t('kindTv');
   if (s.kind === 'arena') return 'Arena';
+  if (s.kind === 'vipbox') return 'EN';
   return t('kindServer');
 }
 function subTag(s){
@@ -2367,6 +2378,10 @@ function paintNow(){
   } catch {}
   const s = serverList[srvIdx];
   srvNow.textContent = s ? t('watching')(dispName(s, srvIdx), srvIdx, serverList.length) : '';
+  try {
+    const dc = document.querySelector('.disclaimer');
+    if (dc) dc.textContent = (s && s.kind === 'vipbox') ? t('commentaryNoteEn') : t('commentaryNote');
+  } catch {}
   [...serversEl.children].forEach(b => { if (b.dataset.i !== undefined) b.classList.toggle('on', +b.dataset.i === srvIdx); });
 }
 /* SEC: stream URLs come from third-party scrapes — only http(s) absolute or
@@ -2411,7 +2426,16 @@ function srvRecall(list){
 function autoPlay(){
   // Autoplay prefers a clean (non-ads) server: remembered/backup embeds die
   // fast, and auto-loading a dead backup is the black-stage-on-open bug.
-  // Manual taps still load any server (user choice).
+  // EN mode (owner order): VIPBox is the main English source — remembered
+  // or first VIPBox wins over everything (its embeds passed framing checks).
+  try {
+    if (typeof LANG === 'string' && LANG === 'en' && serverList && serverList.length) {
+      const ri = srvRecall(serverList);
+      if (ri >= 0 && serverList[ri] && serverList[ri].kind === 'vipbox'){ goServer(ri, false); return; }
+      const vi = serverList.findIndex(s => s && s.kind === 'vipbox');
+      if (vi >= 0){ goServer(vi, false); return; }
+    }
+  } catch {}
   try {
     const ri = srvRecall(serverList);
     if (ri >= 0 && serverList[ri] && !serverList[ri].ads){ goServer(ri, false); return; }
@@ -2572,7 +2596,7 @@ async function loadRealPlayer(){
     }
   };
   const fetchApi = async () => {
-    const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP });
+    const q = new URLSearchParams({ id, href, home, away, start: startP, lg: leagueP, lang: (typeof LANG === 'string' ? LANG : 'en') });
     for (let attempt = 1; attempt <= 3; attempt++){
       srvNow.textContent = attempt > 1 ? t('retryN')(attempt) : t('loadingStream');
       // Server budget is ~8.5s (Yassir is asked first and can take a few
