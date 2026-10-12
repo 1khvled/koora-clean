@@ -27,8 +27,12 @@
 - Arabic behavior unchanged: fast path, order, fallback gates identical
   when `lang` is not `en`.
 - Proof: `node --check` clean on `api/player.js` + full 132KB inline
-  player script, mirrors byte-identical. Live-verify next: `lang=en`
-  response shape on a real fixture.
+  player script, mirrors byte-identical. Live-verified 2026-10-12: page
+  boots EN from `?lang=en`, request ships `lang=en`, API answers 200 with
+  identical valid shape on both paths (no live VIPBox-covered fixture at
+  verify time -- closest kickoffs hours out -- so first-place ordering
+  re-proves on the next live game; zero client errors, Arabic path
+  byte-identical behavior).
 
 ## 169. Ad speed + rail retries (2026-10-11)
 
