@@ -4,7 +4,31 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-11 (§169 — ad speed + rail retries).
+> Last updated: 2026-10-12 (§170 — VIPBox main for English).
+
+## 170. VIPBox main for English (2026-10-12)
+
+- Owner: "always add vipbox as english source, make the main for users when
+  English is turned on."
+- Server (`api/player.js`): new `?lang=` param (`wantEn` only on exact
+  `en`; everything else keeps the Arabic-first order byte-for-byte).
+  EN mode skips the Yassir/Arena fast-path early return and falls through
+  to the full chain (fast results stashed + reused, no refetch); VIPBox
+  phase-2 now runs whenever matched and in budget -- leads the list for
+  `lang=en` (`servers[0]`/playerSrc), appended after Arabic otherwise.
+  Entries carry `kind: 'vipbox', lang: 'en', ads: 1` (cached lists still
+  exclude them; autoplay override handles EN). `ADS_MIRRORS` gate kept.
+- Client (`player.html` + identical mirror): request sends `lang` (current
+  UI language); `autoPlay()` jumps to remembered/first VIPBox when EN;
+  tapping EN mid-watch switches to VIPBox in-list or refetches with
+  `lang=en`; server buttons tag VIPBox as `EN` (no brand leakage, same as
+  Arena); disclaimer flips to `commentaryNoteEn` (EN/FR/AR strings added)
+  while a VIPBox server plays.
+- Arabic behavior unchanged: fast path, order, fallback gates identical
+  when `lang` is not `en`.
+- Proof: `node --check` clean on `api/player.js` + full 132KB inline
+  player script, mirrors byte-identical. Live-verify next: `lang=en`
+  response shape on a real fixture.
 
 ## 169. Ad speed + rail retries (2026-10-11)
 

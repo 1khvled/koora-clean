@@ -7,6 +7,10 @@ export default async function handler(req, res) {
   const qHome = cap(req.query.home || '', 120);
   const qAway = cap(req.query.away || '', 120);
   const qStart = cap(req.query.start || req.query.st || '', 64);
+  // UI language: ?lang=en makes VIPBox (English commentary) the main source
+  // (owner order 2026-10-12). Any other value keeps the Arabic-first order.
+  const qLang = cap(String(req.query.lang || '').toLowerCase(), 8);
+  const wantEn = qLang === 'en';
 
   // Fetch with a hard timeout (serverless-friendly). Default 4s: typical
   // upstreams answer in 1-3s; hung ones must die fast inside the 10s budget.
@@ -754,6 +758,11 @@ const resolveYacine = async (home, away, startIso) => {
   // before batchP is even built, so leaving Arena to batchP meant it never ran
   // for id-keyed requests — which is every call the player UI makes (the
   // "where is arena" report). Same promise is reused by batchP below.
+  // Stashed fast-path Yassir result (declared early: EN mode skips the fast
+  // early-return so VIPBox can lead, and the full chain below reuses these
+  // instead of refetching).
+  let yassirHit = false;
+  let yassirServers = null;
   let arenaFast = null;
   if (id && !outOfTime(500)) {
     // Only when the query actually carried team names — a nameless fast-path
@@ -766,9 +775,14 @@ const resolveYacine = async (home, away, startIso) => {
       ]);
     }
     const [y, arenaHit] = await Promise.all([resolveYassir(id), arenaFast || Promise.resolve(null)]);
-    // Arena is the PRIMARY source (owner order): its direct ad-free streams
-    // go first and become the default playerSrc; Yassir follows as backup.
-    if ((y && y.servers && y.servers.length) || (arenaHit && arenaHit.servers && arenaHit.servers.length)) {
+    // EN mode (owner order 2026-10-12): VIPBox is the main English source, so
+    // stash the fast Arabic results and fall through to the full chain, which
+    // reuses arenaFast + yassirServers and leads with VIPBox when found.
+    if (wantEn) {
+      if (y && y.servers && y.servers.length) { yassirServers = y.servers; yassirHit = true; }
+    } else if ((y && y.servers && y.servers.length) || (arenaHit && arenaHit.servers && arenaHit.servers.length)) {
+      // Arena is the PRIMARY source (owner order): its direct ad-free streams
+      // go first and become the default playerSrc; Yassir follows as backup.
       const servers = [];
       if (arenaHit && arenaHit.servers) {
         for (const s of arenaHit.servers) {
@@ -803,8 +817,6 @@ const resolveYacine = async (home, away, startIso) => {
   }
   // Yassir missed (finished, not yet live, or upstream down): carry on to the
   // older Arabic + EN chain below, folding Yassir in if a late retry lands.
-  let yassirHit = false;
-  let yassirServers = null;
 
 
 
@@ -1012,15 +1024,27 @@ const resolveYacine = async (home, away, startIso) => {
         if (en && en.servers) en.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live', ads: 1 }));
       } catch {}
     }
-    // VIPBox niche fallback (verified 2026-10-04): ONLY when every other
-    // source yields zero. Same strict gates; never surfaces a wrong match.
-    if (ADS_MIRRORS && !servers.length && vipHit && !outOfTime(800)) {
+    // VIPBox: English source (owner order 2026-10-12). Always attempted when
+    // matched and in budget; leads the list for ?lang=en, otherwise appended
+    // after the Arabic sources. Same strict gates; never surfaces a wrong
+    // match. Previously empty-only niche fallback (2026-10-04).
+    if (ADS_MIRRORS && vipHit && !outOfTime(800) && (!servers.length || wantEn)) {
       try {
         const vb = await Promise.race([
           vipDetail(vipHit).catch(() => null),
           new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 300)))),
         ]);
-        if (vb && vb.servers) vb.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live', ads: 1 }));
+        if (vb && vb.servers && vb.servers.length) {
+          const vbs = [];
+          for (const s of vb.servers) {
+            const u = String((s && s.url) || '');
+            if (!/^https:\/\//i.test(u)) continue;
+            if (servers.some(x => x.url === u) || vbs.some(x => x.url === u)) continue;
+            vbs.push({ label: 'VIPBox EN', url: u, kind: 'vipbox', lang: 'en', ads: 1 });
+          }
+          if (wantEn) { for (let k = vbs.length - 1; k >= 0; k--) servers.unshift(vbs[k]); }
+          else vbs.forEach(s => pushUnique(s));
+        }
       } catch {}
     }
 
