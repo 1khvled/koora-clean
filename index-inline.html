@@ -1358,6 +1358,26 @@ function parseMin(s){
   const v = (+m[1]) + (+(m[2] || 0));
   return (v >= 1 && v <= 130) ? v : null;
 }
+/* Monotonic per-match anchors: a fresh poll must NEVER move an anchor
+   backward. Upstream feeds freeze constantly (cached pages, sleeping
+   scrapers, per-match scrape skew) — re-anchoring to the same frozen number
+   every 45s used to snap the displayed minute backward into a sawtooth, and
+   matches with differently-stale feeds diverged from each other (1' vs 4'
+   on simultaneous kickoffs). Only a HIGHER upstream minute re-anchors; a
+   same-or-lower minute keeps the old anchor ticking. Null (HT/FT/prose)
+   still clears, so break/full-time display is untouched. Memory is keyed by
+   match id and reset on day change (see loadDay). */
+const CLK = {};
+function stampClock(m, fAt){
+  try {
+    const nb = parseMin(m.game_time || m.time_text);
+    const id = (m && m.id != null) ? String(m.id) : '';
+    const prev = (id && CLK[id]) || null;
+    if (nb == null){ m._base = null; m._at = fAt; if (id) delete CLK[id]; }
+    else if (!prev || nb > prev.base){ m._base = nb; m._at = fAt; if (id) CLK[id] = { base: nb, at: fAt }; }
+    else { m._base = prev.base; m._at = prev.at; }
+  } catch { try { m._base = parseMin(m.game_time || m.time_text); m._at = fAt; } catch {} }
+}
 function halfOf(o){
   const s = [o.official_status, o.status, o.game_time, o.result_text].join(' ');
   if (/استراح|بين الشوطين|\bHT\b/i.test(s)) return 'HT';
@@ -1719,7 +1739,13 @@ async function espnResolve(home, away, start, lg){
   return null;
 }
 function anchorEspn(o, ev){
-  o._ebase = ev.min; o._eat = Date.now(); o._ehalf = ev.half;
+  // Monotonic like stampClock: a frozen/mismatched ESPN minute must never
+  // yank the display backward — but a half change always applies (HT label).
+  try {
+    if (o._ebase == null || (ev.min != null && (ev.min > o._ebase || ev.half !== o._ehalf))){
+      o._ebase = ev.min; o._eat = Date.now(); o._ehalf = ev.half;
+    }
+  } catch { try { o._ebase = ev.min; o._eat = Date.now(); o._ehalf = ev.half; } catch {} }
 }
 /* ESPN-CLIENT-END */
 /* Supabase analytics (free Postgres): counters via SECURITY DEFINER
@@ -1881,7 +1907,7 @@ function loadStale(day){
     if (!o || !Array.isArray(o.data) || Date.now() - o.at > 90000) return false;
     ALL = o.data.filter(x => x && typeof x === 'object');
     const fAt = Date.now();
-    for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }
+    for (const m of ALL){ try { stampClock(m, fAt); } catch {} }
     buildChips(); render(true);
     $('#loading').hidden = true;
     return true;
@@ -1892,6 +1918,8 @@ async function loadDay(day, silent){
   try { document.getElementById('errbox').hidden = true; } catch {}
   const myReq = ++reqSeq;
   DAY = day;
+  if (loadDay._d !== undefined && loadDay._d !== day){ try { for (const k in CLK) delete CLK[k]; } catch {} }
+  loadDay._d = day;
   const hadStale = !silent && loadStale(day);
   if (!silent){
     $$('#dayTabs button').forEach(b => {
@@ -1918,7 +1946,12 @@ async function loadDay(day, silent){
   if (!data){ if (!silent){ try { document.getElementById('errbox').hidden = false; } catch {} toast(t('loadFail')); } return; }
   ALL = data.filter(x => x && typeof x === 'object');
   const fAt = Date.now();
-  for (const m of ALL){ m._at = fAt; m._base = parseMin(m.game_time || m.time_text); }
+  for (const m of ALL){ try { stampClock(m, fAt); } catch {} }
+  try {
+    const seen = {};
+    for (const m of ALL) if (m && m.id != null) seen[String(m.id)] = 1;
+    for (const k in CLK) if (!seen[k]) delete CLK[k];
+  } catch {}
   try { document.getElementById('errbox').hidden = true; } catch {}
   try { localStorage.setItem('koora:all:' + day, JSON.stringify({ at: Date.now(), data: ALL })); } catch {}
   try {

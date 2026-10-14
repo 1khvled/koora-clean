@@ -4,7 +4,29 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-12 (§170 — VIPBox main for English).
+> Last updated: 2026-10-14 (§171 — monotonic match clock).
+
+## 171. Monotonic match clock (2026-10-14)
+
+- Owner (screenshot): live minutes right at kickoff, then bugged — simultaneous
+  matches showing 1'/3'/4'/4'.
+- Root cause: every 45s poll re-anchored `_base` to the polled upstream minute
+  on fresh objects with no memory. Frozen upstream feeds (cached pages,
+  sleeping scrapers, per-match scrape skew) froze the display at the stale
+  number, and any poll gap snapped it backward (sawtooth); matches with
+  differently-stale feeds diverged. The ≥10' stale-feed clamp never caught
+  1–4' divergences. Same overwrite pattern in the ESPN overlay + player page.
+- Fix (index.html + index-inline.html, player.html + identical mirror):
+  anchors are monotonic per match id (`CLK` + `stampClock`, reset on day
+  change, pruned per poll) — only a HIGHER upstream minute re-anchors, a
+  same-or-lower minute keeps the old anchor ticking, null still clears
+  (HT/FT untouched). `anchorEspn`, player `stampUpstream` and `PE` got the
+  same rule, with half-change always applying so the HT label still flips.
+- Proof: new clocktest 11/11 on the real extracted functions (old code
+  reproduced stuck-at-3' + 8'→3' snap-back + ESPN 32'→30' snap; new code
+  ticks 3,4,6,7 / holds 8 / tracks live feeds identically / clears at HT).
+  `node --check` clean on all inline scripts (4 files), player mirror
+  byte-identical, index pair still differs only by the 9 by-design blocks.
 
 ## 170. VIPBox main for English (2026-10-12)
 

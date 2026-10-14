@@ -2208,7 +2208,7 @@ function P(){
 function liveMinuteP(now){ return liveMinute(P(), now); }
 function isLiveP(now){ return isLive(P(), now); }
 function isEndedP(){ return isEnded(P()); }
-function stampUpstream(){ try { PM._base = parseMin(gtP || timeP); PM._at = Date.now(); } catch {} }
+function stampUpstream(){ try { const nb = parseMin(gtP || timeP); if (nb == null){ PM._base = null; PM._at = Date.now(); } else if (PM._base == null || nb > PM._base){ PM._base = nb; PM._at = Date.now(); } } catch {} }
 function headerMinute(now){
   now = now || Date.now();
   // ESPN real minute first (hooked API), then FotMob exact, then fused clock.
@@ -3269,7 +3269,9 @@ async function refreshEspnOne(){
     const ev = await espnResolve(latName(home), latName(away), startP, leagueP);
     if (ev && ev.min != null && (ev.status === 'live' || ev.status === 'ht') &&
         (ev.half === 1 || ev.half === 2 || ev.half === 'HT')){
-      PE = { base: ev.min, half: ev.half, at: Date.now() };
+      // Monotonic: frozen feed must not yank the header minute backward;
+      // a half change always applies (HT label). Same class as index clock.
+      if (PE.base == null || ev.min > PE.base || ev.half !== PE.half) PE = { base: ev.min, half: ev.half, at: Date.now() };
       return true;
     }
   } catch {}
