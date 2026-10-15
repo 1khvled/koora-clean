@@ -180,15 +180,26 @@ button{touch-action:manipulation}
 .foot-links a{color:#e6f2ea;font-size:13px;font-weight:700;text-decoration:none;padding:10px 12px;min-height:44px;display:inline-flex;align-items:center;border-radius:8px}
 .foot-links a.subtle-link{color:#8aa39a!important;font-size:12px}
 .foot-base{text-align:center;color:#9db5a8;font-size:12px;max-width:760px;margin:12px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
-#liveSec,#support,#faq{scroll-margin-top:130px}
+#liveSec,#support,#faq,#polySec{scroll-margin-top:130px}
 #liveJump{position:fixed;inset-inline-end:12px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:40;font-family:var(--font);background:var(--live);color:#fff;border:0;border-radius:999px;min-height:44px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 #liveJump[hidden]{display:none}
 .foot [hidden]{display:none}
-.poly-list{display:grid;gap:8px;margin-top:8px}
-.poly-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
-.poly-row img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none}
-.poly-row .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:13px}
-.poly-row b{font-size:15px;font-weight:900}
+.poly-head{display:flex;align-items:center;gap:10px;margin:0 2px 4px}
+.poly-trophy{width:38px;height:38px;border-radius:12px;background:linear-gradient(160deg,#ffd34d,#b45309);display:grid;place-items:center;font-size:20px;flex:none;box-shadow:0 2px 8px rgba(180,83,9,.35)}
+.poly-head h2{margin:0;font-size:16px;font-weight:900}
+.poly-head small{display:block;font-size:12px;font-weight:700;color:var(--muted)}
+.poly-live{margin-inline-start:auto;flex:none;font-size:11px;font-weight:900;letter-spacing:.08em;color:#fff;background:var(--live);border-radius:999px;padding:4px 10px;animation:polyPulse 1.6s ease-in-out infinite}
+@keyframes polyPulse{0%,100%{opacity:1}50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.poly-live{animation:none}}
+.poly-list{display:grid;gap:8px;margin-top:10px}
+.poly-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.poly-row img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none}
+.poly-row .pmeta{flex:1;min-width:0}
+.poly-row .pn{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:13px}
+.poly-row .pbar{display:block;height:5px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden}
+.poly-row .pbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--grass),#34d399);margin-inline-end:auto}
+.poly-row .pval{display:flex;align-items:baseline;gap:6px;flex:none}
+.poly-row b{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
 .poly-row small{font-size:11px;font-weight:800}
 .poly-row small.up{color:#15803d}
 .poly-row small.dn{color:#c81e1e}
@@ -392,7 +403,9 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
   width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
   font-size:12px;font-weight:900;background:var(--paper);border:1px solid var(--line);
   color:var(--muted);font-variant-numeric:tabular-nums}
-.poly-row:nth-child(1)::before{background:var(--pitch);color:#fff;border-color:var(--pitch)}
+.poly-row:nth-child(1)::before{background:linear-gradient(160deg,#ffd34d,#b45309);color:#231a00;border-color:transparent}
+.poly-row:nth-child(2)::before{background:linear-gradient(160deg,#e5e7eb,#9ca3af);color:#1f2937;border-color:transparent}
+.poly-row:nth-child(3)::before{background:linear-gradient(160deg,#f0b08c,#92400e);color:#231a00;border-color:transparent}
 .poly-row:nth-child(1){border-color:var(--grass)}
 .poly-row b{font-size:16px}
 @media (hover:hover){.poly-row:hover{transform:translateY(-1px);border-color:rgba(22,163,74,.5)}}
@@ -550,7 +563,7 @@ html.dark #searchInput{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 </div>
 
 <section class="seo poly" id="polySec" hidden>
-  <h2 data-i18n="polyTitle">Ballon d’Or 2026 — odds</h2>
+  <div class="poly-head"><span class="poly-trophy" aria-hidden="true">🏆</span><div><h2 data-i18n="polyTitle">Ballon d’Or 2026 — odds</h2><small data-i18n="polySub">Top contenders by market odds</small></div><span class="poly-live">LIVE</span></div>
   <div class="poly-list" id="polyList"></div>
   <p class="ssr-more"><a id="polyLink" href="https://polymarket.com/event/ballon-dor-winner-2026" target="_blank" rel="noopener"><span data-i18n="polyLink">Full odds</span> ↗</a> <small>via Polymarket</small></p>
 </section>
@@ -624,7 +637,7 @@ fq8: 'What is MessiStats?', fa8: 'Detailed Messi stats, records and live data:',
 
 fq9: 'Is Koora Live a good Yacine TV alternative?', fa9: 'Yes — free live football streams with live scores, no account and no popups, on any phone or desktop.',
 fq10: 'Will the 2026 World Cup be covered?', fa10: 'Yes — World Cup 2026 fixtures, live scores and streams appear here with kickoff times and live minutes.',
-polyTitle: 'Ballon d’Or 2026 — odds', polyLink: 'Full odds',
+polyTitle: 'Ballon d’Or 2026 — odds', polySub: 'Top contenders by market odds', polyLink: 'Full odds',
 startsIn: (h, m) => h > 0 ? `in ${h}h ${m}m` : `in ${m}m`,
     fq5: 'Can I watch on mobile?', fa5: 'Yes — the site is fully mobile-optimized and works on any phone, tablet or desktop.',
     fq6: 'What stream quality can I expect?', fa6: 'HD live football streams with live scores and minute-by-minute updates, free with no account needed.',
@@ -666,7 +679,7 @@ fq8: 'C’est quoi MessiStats ?', fa8: 'Stats détaillées, records et données 
 
 fq9: 'Koora Live est-il une bonne alternative à Yacine TV ?', fa9: 'Oui — streams de foot gratuits avec scores en direct, sans compte ni popups, sur mobile comme sur PC.',
 fq10: 'La Coupe du monde 2026 sera-t-elle couverte ?', fa10: 'Oui — matchs, scores en direct et streams de la Coupe du monde 2026 avec horaires et minutes live.',
-polyTitle: 'Ballon d’Or 2026 — cotes', polyLink: 'Toutes les cotes',
+polyTitle: 'Ballon d’Or 2026 — cotes', polySub: 'Favoris selon les cotes du marché', polyLink: 'Toutes les cotes',
 startsIn: (h, m) => h > 0 ? `dans ${h}h ${m}m` : `dans ${m}m`,
     fq5: 'Puis-je regarder sur mobile ?', fa5: 'Oui — le site est 100 % optimisé mobile et marche sur téléphone, tablette ou PC.',
     fq6: 'Quelle qualité de stream ?', fa6: 'Des streams de foot en direct en HD, scores en direct et minute par minute, gratuits et sans compte.',
@@ -719,7 +732,7 @@ fq8: 'ما هو ميسي ستات؟', fa8: 'إحصائيات ميسي التفص
 
 fq9: 'هل كورة لايف بديل جيد لياسين تيفي؟', fa9: 'نعم — بث مباشر مجاني لجميع المباريات مع نتائج لحظية، بدون حساب وبدون إعلانات مزعجة، على الهاتف والكمبيوتر.',
 fq10: 'هل ستتم تغطية كأس العالم 2026؟', fa10: 'نعم — مباريات كأس العالم 2026 ونتائجها وبثها المباشر ستكون هنا مع المواعيد والدقائق لحظة بلحظة.',
-polyTitle: 'الكرة الذهبية 2026 — الاحتمالات', polyLink: 'كل الاحتمالات',
+polyTitle: 'الكرة الذهبية 2026 — الاحتمالات', polySub: 'الأوفر حظاً حسب احتمالات السوق', polyLink: 'كل الاحتمالات',
 startsIn: (h, m) => h > 0 ? `بعد ${h} س ${m} د` : `بعد ${m} د`,
 meta: {
 title: 'كورة لايف — مباريات اليوم بث مباشر | ياسين تيفي وكورة أون لاين',
@@ -2348,8 +2361,9 @@ async function loadPoly(){
     document.getElementById('polyList').innerHTML = j.top.map(p => {
       const chg = (p.chg == null || !isFinite(p.chg)) ? '' : `<small class="${p.chg >= 0 ? 'up' : 'dn'}">${p.chg >= 0 ? '▲' : '▼'}${esc(String(Math.abs(p.chg)))}</small>`;
       const img = (p.img && /^https:\/\//i.test(p.img) && !/[\s<>"]/.test(p.img))
-        ? `<img src="${esc(p.img)}" alt="${esc(p.name)}" width="28" height="28" loading="lazy" onerror="this.style.display='none'">` : '';
-      return `<div class="poly-row">${img}<span class="pn">${esc(p.name)}</span><b>${esc(String(p.pct))}%</b>${chg}</div>`;
+        ? `<img src="${esc(p.img)}" alt="${esc(p.name)}" width="32" height="32" loading="lazy" onerror="this.style.display='none'">` : '';
+      const pct = Math.max(0, Math.min(100, parseFloat(p.pct) || 0));
+      return `<div class="poly-row">${img}<span class="pmeta"><span class="pn">${esc(p.name)}</span><span class="pbar" aria-hidden="true"><i style="width:${pct}%"></i></span></span><span class="pval"><b>${esc(String(p.pct))}%</b>${chg}</span></div>`;
     }).join('');
     const lk = document.getElementById('polyLink');
     if (lk && j.url && /^https:\/\//i.test(j.url)) lk.href = j.url;
