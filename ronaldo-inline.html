@@ -146,11 +146,17 @@ body{margin:0;font-family:var(--font);background:
 .faq p{margin:8px 2px 0;color:var(--muted)}
 .faq a{color:var(--gold);font-weight:800}
 /* footer */
-.foot{display:flex;gap:4px;justify-content:center;align-items:center;flex-wrap:wrap;
-  padding:18px 16px calc(28px + env(safe-area-inset-bottom));color:var(--muted);
-  font-size:13px;font-weight:700;border-top:1px solid var(--line);margin-top:20px}
-.foot a{color:inherit;text-decoration:none;padding:10px 12px;min-height:44px;display:inline-flex;align-items:center;border-radius:8px}
-@media (hover:hover){.foot a:hover{background:rgba(22,163,74,.12);color:var(--ink)}}
+.foot{background:linear-gradient(160deg,var(--night),var(--pitch));color:#fff;margin-top:20px;padding:20px 16px calc(22px + env(safe-area-inset-bottom))}
+.foot-brand{display:flex;align-items:center;gap:10px;max-width:760px;margin:0 auto 12px}
+.foot-brand .fball{width:34px;height:34px;border-radius:50%;background:var(--grass);display:grid;place-items:center;font-size:17px;flex:none}
+.foot-brand b{font-size:15px;font-weight:900;display:block}
+.foot-brand small{color:#bfe3cf;font-size:12px;font-weight:600;display:block}
+.foot-links{display:flex;gap:2px 4px;flex-wrap:wrap;justify-content:center;max-width:760px;margin:0 auto}
+.foot-links a{color:#e6f2ea;font-size:13px;font-weight:700;text-decoration:none;padding:10px 12px;min-height:44px;display:inline-flex;align-items:center;border-radius:8px}
+.foot-links a.subtle-link{color:#8aa39a!important;font-size:12px}
+.foot-links a:hover{background:rgba(255,255,255,.10);color:#fff}
+.foot-base{text-align:center;color:#9db5a8;font-size:12px;max-width:760px;margin:12px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
+
 .foot [hidden]{display:none}
 [data-deals][hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--grass);outline-offset:2px;border-radius:6px}
@@ -344,7 +350,7 @@ button{touch-action:manipulation}
   </div>
   <section class="seo faq" id="faq"><h2 data-i18n="faqH">Watch Ronaldo Live — FAQ</h2><details><summary data-i18n="fq1">How do I watch Ronaldo live?</summary><p data-i18n="fa1">Open any live Al Nassr or Portugal match on this page to start the free stream.</p></details><details><summary data-i18n="fq2">Which Ronaldo matches are listed?</summary><p data-i18n="fa2">Every Al Nassr and Portugal fixture — live now, upcoming and recent results.</p></details><details><summary data-i18n="fq3">Is the Ronaldo stream free?</summary><p data-i18n="fa3">Yes — every Ronaldo stream here is free, with no account and no popups.</p></details><details><summary data-i18n="fq4">Does it work on mobile?</summary><p data-i18n="fa4">Yes — this page is fully mobile-optimized and works on any phone, tablet or desktop.</p></details></section>
 </div>
-<footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a class="subtle-link" data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="subtle-link" data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="#top" data-i18n="ftTop">Top</a><a href="/about.html" data-i18n="ftAbout">About</a><a href="/faq.html" data-i18n="ftFaqPage">FAQ</a><a href="/privacy.html" data-i18n="ftPrivacy">Privacy</a><a href="/contact.html" data-i18n="ftContact">Contact</a></footer>
+<footer class="foot"><div class="foot-brand"><span class="fball">⚽</span><div><b>Koora Live</b><small data-i18n="tagline">Every Ronaldo match: live, upcoming & results</small></div></div><nav class="foot-links" aria-label="Footer"><a href="/" data-i18n="ftHome">Home</a><a class="subtle-link" data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="subtle-link" data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="#top" data-i18n="ftTop">Top</a><a href="/about.html" data-i18n="ftAbout">About</a><a href="/faq.html" data-i18n="ftFaqPage">FAQ</a><a href="/privacy.html" data-i18n="ftPrivacy">Privacy</a><a href="/contact.html" data-i18n="ftContact">Contact</a></nav><div class="foot-base">© 2026 Koora Live</div></footer>
 
 <script>
 'use strict';

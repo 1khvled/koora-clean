@@ -4,7 +4,19 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-15 (§175 — SEO structure: H1, metas, schemas).
+> Last updated: 2026-10-15 (§176 — branded footer).
+
+## 176. Branded footer (2026-10-15)
+
+- Owner: "footer design make it better please".
+- All 12 pages: footer is now a dark pitch-gradient band — brand row
+  (⚽ Koora Live + live tagline), pill link row (all existing links kept,
+  subtle stays subtle), divider + © 2026 base row. Links wrapped in
+  `<nav aria-label>`; zero new i18n keys (brand/year are language-neutral,
+  tagline key already existed everywhere). Old light-theme hover rule that
+  would have turned links invisible on dark neutralized on messi/ronaldo.
+- Proof: footcheck (brand/nav/base/CSS/tagline/nav-balance on all 12,
+  mirrors identical, all scripts parse).
 
 ## 175. SEO structure: H1, metas, schemas (2026-10-15)
 
