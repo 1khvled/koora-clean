@@ -4,7 +4,26 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-15 (§174 — About / FAQ / Privacy / Contact pages).
+> Last updated: 2026-10-15 (§175 — SEO structure: H1, metas, schemas).
+
+## 175. SEO structure: H1, metas, schemas (2026-10-15)
+
+- Owner: more SEO structure — H1/keywords improvements, structured like a
+  real website. Improvements only, no visual changes.
+- Audit first: exactly 1 H1 per page already ✅, h2/h3 nesting clean ✅,
+  alts on logos ✅, canonical/hreflang present ✅, per-match SportsEvent
+  schema already emitting on index ✅. Fixed only real gaps:
+  1. Descriptions into range: index EN 214→153 chars, player EN 77→130
+     (static tag + all 3 I18N `meta` dicts; FR/AR trimmed the same way);
+  2. BreadcrumbList schema on player (matches the visible breadcrumb nav)
+     in BOTH the static block and the JS `updateMeta` template (which
+     rewrites `#static-jsonld`, item 2 uses the live `/watch/<id>` URL);
+  3. Typed schemas on the 4 info pages (AboutPage / FAQPage with all 8 Q&As
+     / ContactPage / WebPage for privacy) + concise keywords meta each;
+  4. Player got its missing keywords tag.
+- Proof: seocheck (12 files: H1==1, every ld+json parses, desclens in
+  range, BreadcrumbList present, all inline scripts parse, mirror
+  identical).
 
 ## 174. About / FAQ / Privacy / Contact pages (2026-10-15)
 
