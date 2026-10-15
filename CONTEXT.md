@@ -4,7 +4,18 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-15 (§172 — messistat.com trimmed to FAQ + Messi).
+> Last updated: 2026-10-15 (§173 — subtle footer deals links).
+
+## 173. Subtle footer deals links (2026-10-15)
+
+- Owner: same subtle treatment for the AliExpress deals channels, footer.
+- All 8 pages: footer FR/AR deals anchors (plus the index fq7 FAQ twins
+  found sharing the markup) now carry `.subtle-link` (12px muted underline
+  instead of full footer-link chrome); rule added where missing (player,
+  ronaldo). Promo-row buttons, fq7 I18N + JSON-LD, geo show/hide logic all
+  untouched. Telegram/Ko-fi links intact.
+- Proof: dealscheck (zero bare deals anchors, subtle present + CSS on all
+  8, mirrors identical, scripts parse) + mscheck re-green.
 
 ## 172. Messistat.com trimmed to FAQ + Messi (2026-10-15)
 
