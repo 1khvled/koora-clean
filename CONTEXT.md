@@ -4,7 +4,24 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-14 (§171 — monotonic match clock).
+> Last updated: 2026-10-15 (§172 — messistat.com trimmed to FAQ + Messi).
+
+## 172. Messistat.com trimmed to FAQ + Messi (2026-10-15)
+
+- Owner: remove the messistat.com website promos, then corrected: keep it
+  ONLY in the homepage FAQ and the Messi page, nothing else — hidden/subtle.
+- Removed: promo-row + footer MessiStats buttons (index, player), full
+  partner card sections + footer links (messi, ronaldo), `| MessiStats`
+  title suffixes + keywords tokens (messi, ronaldo), dead fq8/fa8 keys
+  (index cleanup round 1). Player + Ronaldo pages: zero website traces.
+- Kept subtle: index fq8 FAQ entry is back but de-badged (plain muted
+  12px `.subtle-link` inside the collapsed FAQ + trimmed answer text, no
+  button); messi.html keeps one muted footer text link (`messiBtn` key
+  restored EN/FR/AR, no emoji). JSON-LD fq8 entry kept (invisible metadata).
+- Untouched by design: `t.me/messistatdotcom` channel links + Ko-fi
+  `ko-fi.com/messistat` donation slug (different things, owner kept both).
+- Proof: mscheck (exact href counts 1/1/0/0/1/1/0/0, no leftover promo
+  strings, mirrors identical, all inline scripts parse).
 
 ## 171. Monotonic match clock (2026-10-14)
 
