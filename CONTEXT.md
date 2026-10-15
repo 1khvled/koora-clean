@@ -4,7 +4,26 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-15 (§173 — subtle footer deals links).
+> Last updated: 2026-10-15 (§174 — About / FAQ / Privacy / Contact pages).
+
+## 174. About / FAQ / Privacy / Contact pages (2026-10-15)
+
+- Owner: "make these pages bro turn it into real website" — About us, FAQ,
+  Privacy Policy, Contact & Support as real standalone pages.
+- New `about.html`, `faq.html`, `privacy.html`, `contact.html`: self-contained
+  (no new deps/hosts), full EN/FR/AR via the site `data-i18n` pattern with
+  `koora_lang` persistence, dark/light theme synced with the main site,
+  canonical + hreflang + OG meta each. Content is real and working only:
+  About (features, competitions, sandbox-host note), FAQ (8 answers reused
+  from site copy incl. EN commentary + World Cup 2026), Privacy (on-device
+  data only, no accounts, ad-cookie note with Ads-toggle opt-out, sandboxed
+  hosts, children), Contact (Telegram channel card, ⚠ Report how-to, Ko-fi
+  support). No contact form (no backend would make it fake).
+- Linked from every main footer (About · FAQ · Privacy · Contact, trilingual
+  keys ×3 langs ×4 pages) + cross-linked between info pages; `sitemap.xml`
+  gains the 4 URLs. No ads on info pages (trust pages stay clean).
+- Proof: infocheck (mirrors identical, footer links + keys on all 8 mains,
+  every data-i18n resolves, all scripts parse, sitemap valid).
 
 ## 173. Subtle footer deals links (2026-10-15)
 
