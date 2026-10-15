@@ -55,8 +55,16 @@ body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);-
 .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
 .btn{display:inline-flex;align-items:center;gap:8px;background:var(--pitch);color:#fff;border-radius:999px;padding:10px 18px;min-height:44px;font-weight:800;font-size:14px;text-decoration:none;border:1px solid var(--pitch)}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
-.foot{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;padding:18px 16px calc(22px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
-.foot a{color:var(--muted);font-size:13px;font-weight:700;text-decoration:none;min-height:40px;display:inline-flex;align-items:center}
+.foot{background:linear-gradient(160deg,var(--night),var(--pitch));color:#fff;margin-top:20px;padding:20px 16px calc(22px + env(safe-area-inset-bottom))}
+.foot-brand{display:flex;align-items:center;gap:10px;max-width:760px;margin:0 auto 12px}
+.foot-brand .fball{width:34px;height:34px;border-radius:50%;background:var(--grass);display:grid;place-items:center;font-size:17px;flex:none}
+.foot-brand b{font-size:15px;font-weight:900;display:block}
+.foot-brand small{color:#bfe3cf;font-size:12px;font-weight:600;display:block}
+.foot-links{display:flex;gap:2px 4px;flex-wrap:wrap;justify-content:center;max-width:760px;margin:0 auto}
+.foot-links a{color:#e6f2ea;font-size:13px;font-weight:700;text-decoration:none;padding:10px 12px;min-height:44px;display:inline-flex;align-items:center;border-radius:8px}
+.foot-links a.subtle-link{color:#8aa39a!important;font-size:12px}
+.foot-links a:hover{background:rgba(255,255,255,.10);color:#fff}
+.foot-base{text-align:center;color:#9db5a8;font-size:12px;max-width:760px;margin:12px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
 details{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px;background:var(--card)}
 summary{font-weight:800;font-size:15px;cursor:pointer;min-height:44px;display:flex;align-items:center}
 details p{margin:8px 0 0;line-height:1.9;font-size:15px}
@@ -86,7 +94,7 @@ details p{margin:8px 0 0;line-height:1.9;font-size:15px}
     <div class="links"><a class="btn ghost" href="/contact.html" data-i18n="ftContact">Contact</a><a class="btn ghost" href="/" data-i18n="ftHome">Home</a></div>
   </section>
 </main>
-<footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a href="/about.html" data-i18n="ftAbout">About</a><a href="/faq.html" data-i18n="ftFaqPage">FAQ</a><a href="/privacy.html" data-i18n="ftPrivacy">Privacy</a><a href="/contact.html" data-i18n="ftContact">Contact</a></footer>
+<footer class="foot"><div class="foot-brand"><span class="fball">⚽</span><div><b>Koora Live</b><small data-i18n="tagline">Clean streams, no popups</small></div></div><nav class="foot-links" aria-label="Footer"><a href="/" data-i18n="ftHome">Home</a><a href="/about.html" data-i18n="ftAbout">About</a><a href="/faq.html" data-i18n="ftFaqPage">FAQ</a><a href="/privacy.html" data-i18n="ftPrivacy">Privacy</a><a href="/contact.html" data-i18n="ftContact">Contact</a></nav><div class="foot-base">© 2026 Koora Live</div></footer>
 <script>
 'use strict';
 const I18N = {
