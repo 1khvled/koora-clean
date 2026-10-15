@@ -4,7 +4,25 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-15 (§179 — tables, H2H, PWA prompt, local times).
+> Last updated: 2026-10-15 (§180 — Messi/Ronaldo deep UI pass).
+
+## 180. Messi/Ronaldo deep UI pass (2026-10-15)
+
+- Owner: "messi ronaldo page UI and UX needs deep work bro".
+- Header declutter (both pages): promo pills (Deals/Telegram/cross-link)
+  moved out of the crowded language cluster into their own `.promo-row`
+  below the brand (player-page pattern); all pill selectors retargeted,
+  nothing renamed so i18n/geo logic untouched.
+- Smart hero CTA: deep-links straight into the live stream when a match is
+  live, jumps to the next match when only upcoming exists, hides when the
+  page is empty (the old `#liveSec` anchor was a dead button most days).
+  Hero also gets a red `is-live` ring while on air. Zero new i18n keys.
+- Drive-by fix everywhere: the §179 Tables footer link was appended AFTER
+  the copyright div (unstyled orphan) — moved inside the links nav on all
+  5 main pages.
+- Proof: mrcheck (promo-row present, zero `.lang a.promo` orphans,
+  hero/CTA logic + tables-in-nav on all 8 files, scripts parse, mirrors
+  identical, index pair still exactly the 9 by-design diff blocks).
 
 ## 179. Tables, H2H, PWA prompt, local times (2026-10-15)
 
