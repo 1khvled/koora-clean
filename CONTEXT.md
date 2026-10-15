@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-15 (§177 — odds board redesign).
+> Last updated: 2026-10-15 (§178 — SEO league section redesign).
+
+## 178. SEO league section redesign (2026-10-15)
+
+- Owner screenshot: the leagues/SEO block looked bare and edge-pinned
+  ("pulled to a side"). Cause: `.seo` sections had no max-width/padding —
+  full-bleed while everything else centers at 760px — plus plain bullets.
+- Fix (index pair): all `.seo` sections now center in the 760px container;
+  league links became a responsive card grid (220px min) with chevron,
+  hover lift, RTL-mirrored chevron and reduced-motion guard; section H2s
+  got the green accent bar. League-filter JS attributes untouched, so
+  tapping a card still filters exactly as before.
+- Proof: seoseccheck (container/grid/chevron/RTL/attrs on both files,
+  scripts parse, index pair still exactly the 9 by-design diff blocks).
 
 ## 177. Odds board redesign (2026-10-15)
 
