@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://www.highrevenueformat.com">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <title>Watch match live — Koora Live</title>
-<meta name="description" content="Watch the match live in clean HD quality with no annoying popups on Koora Live.">
+<meta name="description" content="Watch the match live in clean HD on Koora Live — free football streams with live scores and minute updates. No account, no popups.">
+<meta name="keywords" content="watch match live, live football stream, koora live, soccer stream free, regarder match en direct, مشاهدة مباراة بث مباشر">
 <link rel="canonical" href="https://kooraadz.vercel.app/player.html">
 <link rel="alternate" hreflang="en" href="https://kooraadz.vercel.app/player.html">
 <link rel="alternate" hreflang="fr" href="https://kooraadz.vercel.app/player.html?lang=fr">
@@ -35,7 +36,7 @@
 <!-- Google Search Console: create a property for https://kooraadz.vercel.app/, choose the HTML-tag method,
      and paste the code below (replace REPLACE_WITH_SEARCH_CONSOLE_CODE). -->
 <meta name="google-site-verification" content="REPLACE_WITH_SEARCH_CONSOLE_CODE">
-<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"Koora Live","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebPage","@id":"https://kooraadz.vercel.app/player.html#page","url":"https://kooraadz.vercel.app/player.html","name":"Watch match live — Koora Live","inLanguage":["en","fr","ar"],"isPartOf":{"@id":"https://kooraadz.vercel.app/#site"}}]}</script>
+<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kooraadz.vercel.app/#org","name":"Koora Live","url":"https://kooraadz.vercel.app/","logo":"https://kooraadz.vercel.app/icon-512.png"},{"@type":"WebPage","@id":"https://kooraadz.vercel.app/player.html#page","url":"https://kooraadz.vercel.app/player.html","name":"Watch match live — Koora Live","inLanguage":["en","fr","ar"],"isPartOf":{"@id":"https://kooraadz.vercel.app/#site"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://kooraadz.vercel.app/"},{"@type":"ListItem","position":2,"name":"Watch match","item":"https://kooraadz.vercel.app/player.html"}]}]}</script>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
@@ -777,9 +778,9 @@ watchTitle: (h, a) => 'Watch ' + h + ' vs ' + a + ' live — Koora Live',
 watchDesc: (h, a, l) => 'Watch ' + h + ' vs ' + a + (l ? ' (' + l + ')' : '') + ' live stream in HD — Koora Live',
 meta: {
 title: 'Watch match live — Koora Live',
-desc: 'Watch the match live in clean HD quality with no annoying popups on Koora Live.',
+desc: 'Watch the match live in clean HD on Koora Live — free football streams with live scores and minute updates. No account, no popups.',
 ogTitle: 'Watch match live — Koora Live',
-ogDesc: 'Clean live HD stream with no annoying popups.'
+ogDesc: 'Clean HD live stream with live scores — free, no account, no popups.'
 }
 },
 fr: {
@@ -835,9 +836,9 @@ watchTitle: (h, a) => 'Voir ' + h + ' vs ' + a + ' en direct — Koora Live',
 watchDesc: (h, a, l) => 'Voir ' + h + ' vs ' + a + (l ? ' (' + l + ')' : '') + ' en direct et en HD — Koora Live',
 meta: {
 title: 'Voir le match en direct — Koora Live',
-desc: 'Regardez le match en direct en HD propre, sans popups agaçants sur Koora Live.',
+desc: 'Regardez le match en direct en HD propre sur Koora Live — streams gratuits avec scores en direct. Sans compte, sans popups.',
 ogTitle: 'Voir le match en direct — Koora Live',
-ogDesc: 'Stream HD propre en direct, sans popups agaçants.'
+ogDesc: 'Stream HD propre en direct avec scores — gratuit, sans popups.'
 }
 },
 ar: {
@@ -893,9 +894,9 @@ polyTitle: 'الكرة الذهبية 2026 — الاحتمالات',
 hiTitle: '🎬 ملخص المباراة',
 meta: {
 title: 'مشاهدة المباراة بث مباشر — كورة لايف',
-desc: 'مشاهدة المباراة بث مباشر بجودة عالية وبدون إعلانات مزعجة على كورة لايف.',
+desc: 'شاهد المباراة بث مباشر بجودة عالية على كورة لايف — بث مجاني مع نتائج لحظية. بدون حساب وبدون إعلانات.',
 ogTitle: 'مشاهدة المباراة بث مباشر — كورة لايف',
-ogDesc: 'بث مباشر بجودة عالية وبدون إعلانات مزعجة.'
+ogDesc: 'بث مباشر نظيف مع نتائج لحظية — مجاني وبدون حساب.'
 }
 },
 };
@@ -932,7 +933,8 @@ try { if (!home && !away) document.title = m.title; } catch (e) { try { document
 const st = document.getElementById('static-jsonld');
 if (st) st.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [
 { '@type': 'Organization', '@id': 'https://kooraadz.vercel.app/#org', name: 'Koora Live', url: 'https://kooraadz.vercel.app/', logo: 'https://kooraadz.vercel.app/icon-512.png' },
-{ '@type': 'WebPage', '@id': 'https://kooraadz.vercel.app/player.html#page', url: 'https://kooraadz.vercel.app/player.html', name: m.title, inLanguage: ['en', 'fr', 'ar'], isPartOf: { '@id': 'https://kooraadz.vercel.app/#site' } }
+{ '@type': 'WebPage', '@id': 'https://kooraadz.vercel.app/player.html#page', url: 'https://kooraadz.vercel.app/player.html', name: m.title, inLanguage: ['en', 'fr', 'ar'], isPartOf: { '@id': 'https://kooraadz.vercel.app/#site' } },
+{ '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: 'https://kooraadz.vercel.app/' }, { '@type': 'ListItem', position: 2, name: 'Watch match', item: __base }] }
 ]});
 }
 const SITE_TG = 'https://t.me/messistatdotcom';
