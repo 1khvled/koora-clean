@@ -4,7 +4,30 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-15 (§178 — SEO league section redesign).
+> Last updated: 2026-10-15 (§179 — tables, H2H, PWA prompt, local times).
+
+## 179. Tables, H2H, PWA prompt, local times (2026-10-15)
+
+- Owner: build suggestions 1+3+4+5 (tables, PWA install, H2H+form, local
+  kickoff times). No push/notification work, and nothing may slow or break
+  the site — every addition is lazy, isolated or fail-silent.
+- Tables: new `api/standings.js` (ESPN core $ref chain → trimmed
+  pos/team/P/W/D/L/GD/Pts + form string + logos; 8 leagues incl. UCL
+  36-row phase table + KSA/MLS; edge-cached) + `tables.html` (trilingual
+  tabs, form dots, retry state; no ads). Verified live-shaped data for
+  eng.1/esp.1/UCL via local handler runs (1.6–2.5s).
+- H2H: new `api/form.js` (`slug+eid` → summary team ids → both schedules →
+  last-5 form + shared completed fixtures as H2H; proven on
+  Chelsea–Bournemouth: WLD LW/DDD + 5–1 Oct 10). Player page renders a
+  `formSec` card 2.5s after streams load, hidden on empty. No new hosts.
+- PWA: `beforeinstallprompt` pill on index pair only (dismiss 30d, install
+  hides forever, standalone never shows). Dead code everywhere else.
+- Local times: `fmtLocal`/`tzAbbr` on index/player/messi/ronaldo converts
+  upcoming kickoffs from site zone to visitor zone (`21:00 GMT+1`);
+  unparseable ISO falls back to old text. Live/ended displays untouched.
+- Footers/navs/sitemap link Tables everywhere (ftTables ×3 langs).
+- Proof: featcheck (mirrors, API syntax, links+keys+i18n-resolution on all
+  13 pages, formSec, sitemap).
 
 ## 178. SEO league section redesign (2026-10-15)
 

@@ -587,6 +587,19 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
 #adPill{position:fixed;inset-inline-start:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:45;font:700 12px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#eafff3;background:#0b3d2e;border:1px solid #10b981;border-radius:999px;min-height:40px;padding:10px 14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);opacity:.94}
 #adPill:active{transform:scale(.96)}
 .subtle-link{font-size:12px!important;color:#8aa39a!important;text-decoration:underline;font-weight:400}
+.fform{display:grid;gap:8px}
+.frow{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+.frow .fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fdots{display:inline-flex;gap:3px}
+.fdot{width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;font-size:10px;font-weight:900;color:#fff}
+.fdot.w{background:#16a34a}
+.fdot.d{background:#9ca3af}
+.fdot.l{background:#dc2626}
+.fh2h{margin-top:4px;display:grid;gap:6px}
+.fh2h .fm{display:flex;gap:8px;align-items:baseline;font-size:13px;border-top:1px solid var(--line);padding-top:6px}
+.fh2h .fm b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.fh2h .fm small{color:var(--muted);margin-inline-start:auto;flex:none}
+.fsub{font-size:12px;font-weight:800;color:var(--muted);margin:10px 0 2px}
 </style>
 </head>
 <body>
@@ -659,6 +672,14 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
     <div id="minfoBody"><div class="loading" data-i18n="minfoLoading">Loading lineups and ratings…</div><div class="mi-skel" aria-hidden="true"><div class="mi-skel-score"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div><div class="mi-skel-line"></div></div></div>
   </section>
 
+  <section class="minfo" id="formSec" hidden>
+    <div class="src-head" style="margin-top:0">
+      <h2 data-i18n="formTitle">📊 Recent form & head-to-head</h2>
+      <small>ESPN</small>
+    </div>
+    <div id="formBody"></div>
+  </section>
+
 <div class="adslot" data-ad="flow"></div>
 <div class="adslot" data-ad="side"></div>
 <div class="support" id="support">
@@ -670,7 +691,7 @@ button.pdot:hover .pimg i,button.pdot:focus-visible .pimg i{box-shadow:0 0 0 3px
   <div class="sup-wallet" id="walletBox" hidden><code dir="ltr">0xe78ee7a6ce01978562c90df0fa3f775215457390</code><button class="sup-btn" id="walletCopy" type="button" data-i18n="copyBtn">Copy</button></div>
 </div>
 </div>
-<footer class="foot"><div class="foot-brand"><span class="fball">⚽</span><div><b>Koora Live</b><small data-i18n="tagline">Clean streams, no popups</small></div></div><nav class="foot-links" aria-label="Footer"><a href="/" data-i18n="footHome">Home</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a class="subtle-link" data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="subtle-link" data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="/about.html" data-i18n="ftAbout">About</a><a href="/faq.html" data-i18n="ftFaqPage">FAQ</a><a href="/privacy.html" data-i18n="ftPrivacy">Privacy</a><a href="/contact.html" data-i18n="ftContact">Contact</a></nav><div class="foot-base">© 2026 Koora Live</div></footer>
+<footer class="foot"><div class="foot-brand"><span class="fball">⚽</span><div><b>Koora Live</b><small data-i18n="tagline">Clean streams, no popups</small></div></div><nav class="foot-links" aria-label="Footer"><a href="/" data-i18n="footHome">Home</a><a href="/messi.html" data-i18n="ftMessi">Messi</a><a href="/ronaldo.html" data-i18n="ftCR7">Ronaldo</a><a class="subtle-link" data-deals="fr" href="https://t.me/francedealsdz" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a class="subtle-link" data-deals="ar" hidden href="https://t.me/DzAliexpress0" target="_blank" rel="noopener" data-i18n="dealsBtn">Deals</a><a href="/about.html" data-i18n="ftAbout">About</a><a href="/faq.html" data-i18n="ftFaqPage">FAQ</a><a href="/privacy.html" data-i18n="ftPrivacy">Privacy</a><a href="/contact.html" data-i18n="ftContact">Contact</a></nav><div class="foot-base">© 2026 Koora Live</div><a href="/tables.html" data-i18n="ftTables">Tables</a></footer>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -744,9 +765,9 @@ fullscreen: '⛶ Fullscreen', reload: '⟳ Reload', blocked: 'Blocked', openNew:
 ariaFav: 'Toggle favorite', ariaLike: 'Like this match', ariaShare: 'Share match link', ariaOpen: 'Open stream in new tab', ariaBell: 'Match notifications', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentary in Arabic', commentaryNoteEn: '🔊 Commentary in English',
 updatedAgo: (s) => 'updated ' + s + 's ago',
-minfoTitle: '📊 Match data', minfoLoading: 'Loading lineups and ratings…', supMsg: '❤ Streams are free — support us with a donation.',
+minfoTitle: '📊 Match data', formTitle: '📊 Recent form & head-to-head', formH2H: 'Head-to-head', minfoLoading: 'Loading lineups and ratings…', supMsg: '❤ Streams are free — support us with a donation.',
     copyBtn: 'Copy',
-dealsBtn: '🔥 Deals', footHome: 'Home', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo', ftAbout: 'About', ftFaqPage: 'FAQ', ftPrivacy: 'Privacy', ftContact: 'Contact',
+dealsBtn: '🔥 Deals', footHome: 'Home', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo', ftAbout: 'About', ftFaqPage: 'FAQ', ftPrivacy: 'Privacy', ftContact: 'Contact', ftTables: 'Tables',
 oddsTitle: 'Match odds', oddsDraw: 'Draw', polyLink: 'Full odds',
 polyTitle: 'Ballon d’Or 2026 — odds',
 hiTitle: '🎬 Highlights',
@@ -802,9 +823,9 @@ fullscreen: '⛶ Plein écran', reload: '⟳ Recharger', blocked: 'Bloqués', op
 ariaFav: 'Ajouter aux favoris', ariaLike: 'Aimer ce match', ariaShare: 'Copier le lien du match', ariaOpen: 'Ouvrir le stream dans un nouvel onglet', ariaBell: 'Notifications du match', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 Commentaires en arabe', commentaryNoteEn: '🔊 Commentaires en anglais',
 updatedAgo: (s) => 'actualisé il y a ' + s + ' s',
-minfoTitle: '📊 Données du match', minfoLoading: 'Chargement des compos et des notes…', supMsg: '❤ Les streams sont gratuits — soutenez-nous avec un don.',
+minfoTitle: '📊 Données du match', formTitle: '📊 Forme récente & confrontations', formH2H: 'Confrontations', minfoLoading: 'Chargement des compos et des notes…', supMsg: '❤ Les streams sont gratuits — soutenez-nous avec un don.',
     copyBtn: 'Copier',
-dealsBtn: '🔥 Bons plans', footHome: 'Accueil', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo', ftAbout: 'À propos', ftFaqPage: 'FAQ', ftPrivacy: 'Confidentialité', ftContact: 'Contact',
+dealsBtn: '🔥 Bons plans', footHome: 'Accueil', ftMessi: '🐐 Messi', ftCR7: '👑 Ronaldo', ftAbout: 'À propos', ftFaqPage: 'FAQ', ftPrivacy: 'Confidentialité', ftContact: 'Contact', ftTables: 'Classement',
 oddsTitle: 'Cotes du match', oddsDraw: 'Nul', polyLink: 'Toutes les cotes',
 polyTitle: 'Ballon d’Or 2026 — cotes',
 hiTitle: '🎬 Résumé vidéo',
@@ -860,7 +881,7 @@ fullscreen: '⛶ ملء الشاشة', reload: '⟳ إعادة تحميل', bloc
 ariaFav: 'إضافة إلى المفضلة', ariaLike: 'أعجبني', ariaShare: 'نسخ رابط المباراة', ariaOpen: 'فتح البث في علامة تبويب جديدة', ariaBell: 'تنبيهات المباراة', walletBtn: '⧉ BEP20 wallet',
 commentaryNote: '🔊 التعليق باللغة العربية', commentaryNoteEn: '🔊 التعليق باللغة الإنجليزية',
 updatedAgo: (s) => 'تم التحديث قبل ' + s + ' ث',
-minfoTitle: '📊 بيانات المباراة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
+minfoTitle: '📊 بيانات المباراة', formTitle: '📊 الفورمة والمواجهات', formH2H: 'المواجهات المباشرة', minfoLoading: 'جاري تحميل التشكيلة والتقييمات…', live: 'مباشر', ended: 'انتهت', upcoming: 'لم تبدأ', break: 'استراحة', vs: 'ضد',
 favAdd: 'أضيفت إلى المفضلة', favRemove: 'أزيلت إلى المفضلة',
 bellStart: 'بدأت المباراة', bellGoal: '⚽ هدف', bellScore: 'تغيرت النتيجة',
 bellUnsupported: 'التنبيهات غير مدعومة', bellDenied: 'فعل التنبيهات من المتصفح',
@@ -895,7 +916,7 @@ watchTitle: (h, a) => 'مشاهدة ' + h + ' × ' + a + ' بث مباشر — �
 watchDesc: (h, a, l) => 'مشاهدة ' + h + ' × ' + a + (l ? ' (' + l + ')' : '') + ' بث مباشر بجودة عالية — كورة لايف',
 supMsg: '❤ البث مجاني — ادعمنا بتبرع.',
 copyBtn: 'نسخ',
-dealsBtn: '🔥 عروض', footHome: 'الرئيسية', ftMessi: '🐐 ميسي', ftCR7: '👑 رونالدو', ftAbout: 'من نحن', ftFaqPage: 'الأسئلة الشائعة', ftPrivacy: 'الخصوصية', ftContact: 'اتصل بنا',
+dealsBtn: '🔥 عروض', footHome: 'الرئيسية', ftMessi: '🐐 ميسي', ftCR7: '👑 رونالدو', ftAbout: 'من نحن', ftFaqPage: 'الأسئلة الشائعة', ftPrivacy: 'الخصوصية', ftContact: 'اتصل بنا', ftTables: 'الترتيب',
 oddsTitle: 'احتمالات المباراة', oddsDraw: 'تعادل', polyLink: 'كل الاحتمالات',
 polyTitle: 'الكرة الذهبية 2026 — الاحتمالات',
 hiTitle: '🎬 ملخص المباراة',
@@ -1519,6 +1540,27 @@ function dispTeam(n){
 function dispTime(s){
   const x = String(s == null ? '' : s).trim();
   return /[\u0600-\u06FF]/.test(x) ? '' : x;
+}
+/* Local kickoff times: upstream wall strings sit in the site zone; convert
+   the absolute ISO start to the visitor's own zone (DST handled by Date).
+   Fail-safe: unparseable ISO falls back to the old text. */
+let __tz = null;
+function tzAbbr(){
+  if (__tz !== null) return __tz;
+  try {
+    const ps = new Intl.DateTimeFormat('en', { timeZoneName: 'shortOffset' }).formatToParts(Date.now());
+    const o = (ps.find(p => p.type === 'timeZoneName') || {}).value || '';
+    __tz = /GMT([+-]\d+)?/.test(o) ? o : '';
+  } catch { __tz = ''; }
+  return __tz;
+}
+function fmtLocal(iso){
+  try {
+    const ms = Date.parse(iso || '');
+    if (!isFinite(ms)) return '';
+    const d = new Date(ms);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  } catch { return ''; }
 }
 function dispLeague(n){
 
@@ -2286,7 +2328,9 @@ function paintMatch(h, a, hl, al, lg){
   } else {
     stEl.textContent = t('upcoming');
     stEl.classList.remove('live');
-    tmEl.textContent = dispTime(timeP);
+    const ltP = fmtLocal(startP);
+    tmEl.textContent = ltP || dispTime(timeP);
+    try { if (ltP) { const tzP = tzAbbr(); if (tzP) tmEl.textContent += ' ' + tzP; } } catch {}
   }
   try { const sl = document.getElementById('stageLive'); if (sl){ const lv = isLiveP() && !isEndedP(); sl.hidden = !lv; if (lv) sl.textContent = t('live'); } } catch (e) {}
 }
@@ -2653,7 +2697,7 @@ async function loadRealPlayer(){
       if (chans.length && list.length) { /* disabled */ }
     } catch {}
     showServersFromList(list);
-    if (serverList.length){ _autoRetries = 0; autoPlay(); try { srvCacheSet(serverList); } catch {} }
+    if (serverList.length){ _autoRetries = 0; autoPlay(); try { srvCacheSet(serverList); } catch {} try { setTimeout(() => { try { loadForm(); } catch {} }, 2500); } catch {} }
     else if (data && data.adsBlocked){
       // Nothing ad-free exists for this fixture. Say so; do not spin retries.
       loadRealPlayer._busy = false;
@@ -2673,6 +2717,39 @@ async function loadRealPlayer(){
   } catch (e){
     failBox();
   }
+}
+/* Recent form + H2H (lazy, low priority, fail-silent): ESPN team schedules
+   via same-origin /api/form. Never blocks streams; the section stays hidden
+   when upstream has nothing. */
+async function loadForm(){
+  const box = document.getElementById('formSec');
+  const body = document.getElementById('formBody');
+  if (!box || !body || !home || !away) return;
+  if (!box.hidden && body.children.length) return;
+  try {
+    const ev = await espnResolve(latName(home), latName(away), startP, leagueP);
+    if (!ev || !ev.eid || !ev.slug) return;
+    const ctrl = new AbortController();
+    const to = setTimeout(() => { try { ctrl.abort(); } catch {} }, 9000);
+    let j = null;
+    try {
+      const r = await fetch('/api/form?slug=' + encodeURIComponent(ev.slug) + '&eid=' + encodeURIComponent(ev.eid), { cache: 'no-store', signal: ctrl.signal });
+      if (r.ok) j = await r.json();
+    } finally { clearTimeout(to); }
+    if (!j || !j.found) return;
+    const dots = (f) => `<span class="fdots">${(Array.isArray(f) ? f : []).slice(0, 5).map(c => {
+      const k = (c === 'W' || c === 'D' || c === 'L') ? c.toLowerCase() : 'd';
+      return `<span class="fdot ${k}">${esc(String(c))}</span>`;
+    }).join('')}</span>`;
+    const row = (nm, f) => `<div class="frow"><span class="fn">${esc(dispTeam(nm))}</span>${dots(f)}</div>`;
+    let html = `<div class="fform">${row(j.h.name, j.h.form)}${row(j.a.name, j.a.form)}</div>`;
+    if (Array.isArray(j.h2h) && j.h2h.length) {
+      html += `<div class="fsub">${esc(t('formH2H'))}</div><div class="fh2h">` + j.h2h.map(m =>
+        `<div class="fm"><span>${esc(m.hn)} <b>${esc(String(m.hs))} - ${esc(String(m.as))}</b> ${esc(m.an)}</span><small>${esc(m.d || '')}</small></div>`).join('') + `</div>`;
+    }
+    body.innerHTML = html;
+    box.hidden = false;
+  } catch {}
 }
 
 

@@ -1,0 +1,245 @@
+<!doctype html>
+<html dir="ltr" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071f19">
+<script>try{var __t=localStorage.getItem('koora_theme');if(__t!=='light'&&__t!=='dark'){__t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}if(__t==='dark')document.documentElement.classList.add('dark');}catch(e){}</script>
+<meta name="robots" content="index, follow">
+<title>League Tables — Koora Live</title>
+<meta name="description" content="Live league tables: standings, points, goals and form for the top leagues, Champions League, Saudi and MLS.">
+<meta name="keywords" content="league table, standings, premier league table, la liga standings, champions league table, classement foot, ترتيب الدوريات, koora live">
+<link rel="canonical" href="https://kooraadz.vercel.app/tables.html">
+<link rel="alternate" hreflang="en" href="https://kooraadz.vercel.app/tables.html">
+<link rel="alternate" hreflang="fr" href="https://kooraadz.vercel.app/tables.html?lang=fr">
+<link rel="alternate" hreflang="ar" href="https://kooraadz.vercel.app/tables.html?lang=ar">
+<link rel="alternate" hreflang="x-default" href="https://kooraadz.vercel.app/tables.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Koora Live">
+<meta property="og:title" content="League Tables — Koora Live">
+<meta property="og:description" content="Live standings with points, goals and form.">
+<meta property="og:url" content="https://kooraadz.vercel.app/tables.html">
+<script type="application/ld+json" id="static-jsonld">{"@context":"https://schema.org","@type":"WebPage","url":"https://kooraadz.vercel.app/tables.html","name":"League Tables — Koora Live","inLanguage":["en","fr","ar"],"isPartOf":{"@type":"WebSite","name":"Koora Live","url":"https://kooraadz.vercel.app/"}}</script>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#071f19; --pitch:#0b3d2e; --grass:#16a34a;
+  --paper:#f2f5f2; --card:#ffffff; --ink:#131a15; --muted:#5f6f65;
+  --line:#e2e9e4; --live:#e0202e; --gold:#ffb800;
+  --radius:16px; --shadow:0 1px 3px rgba(7,31,25,.10);
+  --font:"Cairo",system-ui,"Segoe UI",Tahoma,Arial,sans-serif;
+}
+html.dark{color-scheme:dark;--paper:#0c1a15;--card:#10251e;--ink:#f2f7f4;--muted:#9db5a8;--line:#1e3a30;--shadow:0 1px 3px rgba(0,0,0,.45)}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums}
+.topbar{background:linear-gradient(160deg,var(--night),var(--pitch));color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;position:relative;overflow:hidden}
+.brand{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+.brand>div{min-width:0;flex:1}
+.brand .ball{width:42px;height:42px;border-radius:50%;background:var(--grass);display:grid;place-items:center;font-size:22px;flex:none}
+.brand h1{display:block;font-size:20px;font-weight:900;line-height:1.2;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brand small{display:block;color:#bfe3cf;font-size:12px;font-weight:600}
+.lang{display:flex;gap:6px;margin-top:10px;position:relative;z-index:1;flex-wrap:wrap}
+.lang button{font-family:var(--font);border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:999px;min-height:40px;padding:8px 14px;font-size:13px;font-weight:800;cursor:pointer}
+.lang button.on{background:#fff;color:var(--pitch);border-color:#fff}
+.navrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;position:relative;z-index:1}
+.navrow a{color:#bfe3cf;font-size:13px;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 14px;min-height:40px;display:inline-flex;align-items:center}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:0 0 14px;overflow-x:auto}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;font-family:var(--font);border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:13px;font-weight:800;border-radius:999px;padding:8px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--pitch);border-color:var(--pitch);color:#fff}
+.gname{font-size:13px;font-weight:900;color:var(--muted);margin:6px 2px 8px}
+table.st{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+.st th,.st td{padding:8px 6px;text-align:center;white-space:nowrap}
+.st thead th{font-size:11px;color:var(--muted);border-bottom:1px solid var(--line)}
+.st tbody tr{border-bottom:1px solid var(--line)}
+.st tbody tr:last-child{border-bottom:0}
+.st td.tm,.st th.tm{text-align:start}
+.st .pos{font-weight:900;color:var(--muted);width:26px}
+.st tr:nth-child(-n+4) .pos{color:var(--grass)}
+.st .team{display:flex;align-items:center;gap:8px;font-weight:700;justify-content:flex-start}
+.st .team img{width:22px;height:22px;object-fit:contain;flex:none}
+.st td.pts{font-weight:900}
+.fdots{display:inline-flex;gap:3px}
+.fdot{width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;font-size:10px;font-weight:900;color:#fff}
+.fdot.w{background:#16a34a}
+.fdot.d{background:#9ca3af}
+.fdot.l{background:#dc2626}
+.loading{text-align:center;color:var(--muted);font-weight:700;padding:18px}
+.errbox{text-align:center;padding:14px}
+.retry{font-family:var(--font);border:1px solid var(--line);background:var(--pitch);color:#fff;border-radius:999px;padding:10px 22px;min-height:44px;font-weight:800;cursor:pointer}
+.foot{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;padding:18px 16px calc(22px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
+.foot a{color:var(--muted);font-size:13px;font-weight:700;text-decoration:none;min-height:40px;display:inline-flex;align-items:center}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="ball">⚽</span>
+    <div><h1 data-i18n="brand">League Tables</h1><small data-i18n="tagline">Clean streams, no popups</small></div>
+  </div>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" class="on">EN</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="ar">AR</button><button type="button" id="themeBtn" aria-label="Toggle dark mode">🌙</button></div>
+  <nav class="navrow"><a href="/" data-i18n="ftHome">Home</a><a href="/tables.html" data-i18n="ftTables">Tables</a><a href="/about.html" data-i18n="ftAbout">About</a><a href="/faq.html" data-i18n="ftFaqPage">FAQ</a><a href="/privacy.html" data-i18n="ftPrivacy">Privacy</a><a href="/contact.html" data-i18n="ftContact">Contact</a></nav>
+</header>
+<main class="wrap">
+  <div class="tabs" id="lgTabs" role="group" aria-label="League"></div>
+  <section class="card" id="stCard" aria-live="polite"></section>
+</main>
+<footer class="foot"><a href="/" data-i18n="ftHome">Home</a><a href="/tables.html" data-i18n="ftTables">Tables</a><a href="/about.html" data-i18n="ftAbout">About</a><a href="/faq.html" data-i18n="ftFaqPage">FAQ</a><a href="/privacy.html" data-i18n="ftPrivacy">Privacy</a><a href="/contact.html" data-i18n="ftContact">Contact</a></footer>
+<script>
+'use strict';
+const LEAGUES = [
+  { slug: 'eng.1', en: 'England', fr: 'Angleterre', ar: 'إنجلترا' },
+  { slug: 'esp.1', en: 'Spain', fr: 'Espagne', ar: 'إسبانيا' },
+  { slug: 'ita.1', en: 'Italy', fr: 'Italie', ar: 'إيطاليا' },
+  { slug: 'ger.1', en: 'Germany', fr: 'Allemagne', ar: 'ألمانيا' },
+  { slug: 'fra.1', en: 'France', fr: 'France', ar: 'فرنسا' },
+  { slug: 'uefa.champions', en: 'UCL', fr: 'LDC', ar: 'الأبطال' },
+  { slug: 'ksa.1', en: 'Saudi', fr: 'Arabie', ar: 'السعودية' },
+  { slug: 'usa.1', en: 'MLS', fr: 'MLS', ar: 'الأمريكي' }
+];
+const I18N = {
+en: {
+brand: 'League Tables', tagline: 'Clean streams, no popups', title: 'League Tables — Koora Live',
+ftHome: 'Home', ftTables: 'Tables', ftAbout: 'About', ftFaqPage: 'FAQ', ftPrivacy: 'Privacy', ftContact: 'Contact',
+thTeam: 'Team', thForm: 'Form', loading: 'Loading standings…', loadFail: 'Could not load the table — check your connection.', retryBtn: 'Retry'
+},
+fr: {
+brand: 'Classements', tagline: 'Streams propres, sans popups', title: 'Classements — Koora Live',
+ftHome: 'Accueil', ftTables: 'Classement', ftAbout: 'À propos', ftFaqPage: 'FAQ', ftPrivacy: 'Confidentialité', ftContact: 'Contact',
+thTeam: 'Équipe', thForm: 'Forme', loading: 'Chargement du classement…', loadFail: 'Classement indisponible — vérifiez la connexion.', retryBtn: 'Réessayer'
+},
+ar: {
+brand: 'ترتيب الدوريات', tagline: 'بث نظيف بدون إعلانات', title: 'ترتيب الدوريات — كورة لايف',
+ftHome: 'الرئيسية', ftTables: 'الترتيب', ftAbout: 'من نحن', ftFaqPage: 'الأسئلة الشائعة', ftPrivacy: 'الخصوصية', ftContact: 'اتصل بنا',
+thTeam: 'الفريق', thForm: 'الفورمة', loading: 'جاري تحميل الترتيب…', loadFail: 'تعذر تحميل الجدول — تحقق من الاتصال.', retryBtn: 'إعادة'
+}
+};
+let LANG = 'en', CUR = 'eng.1';
+const cache = {};
+function t(k){ const d = I18N[LANG] || I18N.en; const v = d[k]; return v !== undefined ? v : (I18N.en[k] !== undefined ? I18N.en[k] : k); }
+function esc(s){
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function lgName(l){ try { return l[LANG] || l.en; } catch { return l.en; } }
+function setLang(l, save){
+  if (!I18N[l]) return;
+  LANG = l;
+  try { document.documentElement.lang = l; document.documentElement.dir = (l === 'ar' ? 'rtl' : 'ltr'); } catch (e) {}
+  if (save !== false){ try { localStorage.setItem('koora_lang', l); } catch (e) {} }
+  try {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const v = t(el.getAttribute('data-i18n'));
+      if (typeof v === 'string') el.textContent = v;
+    });
+    document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.getAttribute('data-lang') === LANG));
+    document.title = t('title');
+    paintTabs();
+    const cur = cache[CUR];
+    if (cur && cur.found) renderTable(cur);
+  } catch (e) {}
+}
+function paintTabs(){
+  try {
+    document.getElementById('lgTabs').innerHTML = LEAGUES.map(l =>
+      `<button type="button" class="tab${l.slug === CUR ? ' on' : ''}" data-lg="${l.slug}">${esc(lgName(l))}</button>`).join('');
+    [...document.getElementById('lgTabs').children].forEach(b => {
+      b.onclick = () => { CUR = b.getAttribute('data-lg'); paintTabs(); loadTable(); };
+    });
+  } catch {}
+}
+function formDots(form){
+  const f = String(form || '').slice(0, 5);
+  if (!f) return '';
+  return `<span class="fdots">${[...f].map(c => {
+    const k = (c === 'W' || c === 'D' || c === 'L') ? c.toLowerCase() : 'd';
+    return `<span class="fdot ${k}">${c}</span>`;
+  }).join('')}</span>`;
+}
+async function loadTable(){
+  const card = document.getElementById('stCard');
+  try { card.innerHTML = `<div class="loading">${esc(t('loading'))}</div>`; } catch {}
+  try {
+    let j = cache[CUR];
+    if (!j) {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => { try { ctrl.abort(); } catch {} }, 10000);
+      try {
+        const r = await fetch('/api/standings?lg=' + encodeURIComponent(CUR), { cache: 'no-store', signal: ctrl.signal });
+        if (!r.ok) throw 0;
+        j = await r.json();
+        cache[CUR] = j;
+      } finally { clearTimeout(to); }
+    }
+    if (!j || !j.found) throw 0;
+    renderTable(j);
+  } catch {
+    try {
+      card.innerHTML = `<div class="errbox"><p>${esc(t('loadFail'))}</p><button type="button" class="retry">${esc(t('retryBtn'))}</button></div>`;
+      const b = card.querySelector('.retry');
+      if (b) b.onclick = () => loadTable();
+    } catch {}
+  }
+}
+function renderTable(j){
+  const card = document.getElementById('stCard');
+  const th = `<tr><th>#</th><th class="tm">${esc(t('thTeam'))}</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th><th>${esc(t('thForm'))}</th></tr>`;
+  const html = (j.groups || []).map(g => {
+    const rows = (g.rows || []).map((r, i) => {
+      const img = (r.logo && /^https:\/\//i.test(r.logo))
+        ? `<img src="${esc(r.logo)}" alt="${esc(r.short || r.name)}" width="22" height="22" loading="lazy" onerror="this.style.display='none'">` : '';
+      const nm = esc(r.short || r.name);
+      return `<tr><td class="pos">${i + 1}</td><td class="tm"><span class="team">${img}<span>${nm}</span></span></td><td>${r.P ?? ''}</td><td>${r.W ?? ''}</td><td>${r.D ?? ''}</td><td>${r.L ?? ''}</td><td>${r.GD ?? ''}</td><td class="pts">${r.Pts ?? ''}</td><td>${formDots(r.form)}</td></tr>`;
+    }).join('');
+    const gh = (j.groups.length > 1) ? `<div class="gname">${esc(g.name || '')}</div>` : '';
+    return gh + `<table class="st"><thead>${th}</thead><tbody>${rows}</tbody></table>`;
+  }).join('');
+  try { card.innerHTML = html; } catch {}
+}
+function getTheme(){
+  try { const s = localStorage.getItem('koora_theme'); if (s === 'light' || s === 'dark') return s; } catch (e) {}
+  try { if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) return 'dark'; } catch (e) {}
+  return 'light';
+}
+function paintTheme(){
+  const dark = document.documentElement.classList.contains('dark');
+  try {
+    const b = document.getElementById('themeBtn');
+    if (b) b.textContent = dark ? '☀️' : '🌙';
+    const mc = document.querySelector('meta[name="theme-color"]');
+    if (mc) mc.setAttribute('content', dark ? '#0c1a15' : '#071f19');
+  } catch (e) {}
+}
+function applyTheme(m){ try { document.documentElement.classList.toggle('dark', m === 'dark'); } catch (e) {} paintTheme(); }
+function setTheme(m){
+  const mode = m === 'dark' ? 'dark' : 'light';
+  applyTheme(mode);
+  try { localStorage.setItem('koora_theme', mode); } catch (e) {}
+}
+try {
+  let init = 'en';
+  try {
+    const q0 = new URLSearchParams(location.search).get('lang');
+    let s0 = null; try { s0 = localStorage.getItem('koora_lang'); } catch (e) {}
+    if (q0 && I18N[q0]) init = q0;
+    else if (s0 && I18N[s0]) init = s0;
+    else { const nl = (navigator.language || '').toLowerCase(); if (nl.indexOf('fr') === 0) init = 'fr'; else if (nl.indexOf('ar') === 0) init = 'ar'; }
+  } catch (e) {}
+  setLang(init, false);
+  applyTheme(getTheme());
+  const tb = document.getElementById('themeBtn');
+  if (tb) tb.onclick = () => setTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
+  document.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => setLang(b.getAttribute('data-lang')); });
+  paintTabs();
+  loadTable();
+} catch (e) {}
+</script>
+</body>
+</html>
