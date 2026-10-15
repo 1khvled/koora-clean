@@ -4,7 +4,20 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-15 (§176 — branded footer).
+> Last updated: 2026-10-15 (§177 — odds board redesign).
+
+## 177. Odds board redesign (2026-10-15)
+
+- Owner screenshot: Ballon d'Or odds segment looked rough + sticky toolbar
+  slides over its title. Redesigned as a real leaderboard (index pair):
+  trophy header (🏆 + subtitle + pulsing LIVE badge, trilingual `polySub`),
+  gold/silver/bronze rank medals (was: plain counter, only 1st styled),
+  per-row percentage bars (RTL-mirrored via logical margins), bigger
+  tabular figures, change chips kept. `#polySec` joins the scroll-margin
+  list so anchor jumps clear the sticky toolbar. Reduced-motion respected.
+- Proof: polycheck (header/sub/bars/medals/scroll-margin on both files,
+  old row template gone, scripts parse, index pair still exactly the 9
+  by-design diff blocks).
 
 ## 176. Branded footer (2026-10-15)
 
