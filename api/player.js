@@ -1,5 +1,6 @@
 import { rl, cap, selfOrigin, fetchableUrl, readCapped } from './_sec.js';
 import { strumykMatch as sMatch, strumykDetail as sDetail, sfAnchor } from './_strumyk.js';
+import { streamfreeMatch as sfMatch, streamfreeVerify as sfVerify } from './_streamfree.js';
 export default async function handler(req, res) {
   const id = cap(req.query.id || '', 160);
   const href = cap(req.query.href || '', 500);
@@ -897,12 +898,25 @@ const resolveYacine = async (home, away, startIso) => {
     // adsBlocked. Phase 2 (the actual embed URLs) is what stays gated.
     canEn ? Promise.race([
         streamedMatch(matchHome, matchAway, kickoff).catch(() => null),
-        new Promise(r => setTimeout(() => r(null), Math.min(mirrorCap(), Math.max(0, left() - 900)))),
+        new Promise(r => setTimeout(() => r(null), Math.min(wantEn ? 2500 : mirrorCap(), Math.max(0, left() - 900)))),
       ]).catch(() => null)
           : Promise.resolve(null),
     canEn ? Promise.race([
         vipMatch(matchHome, matchAway, kickoff).catch(() => null),
-        new Promise(r => setTimeout(() => r(null), Math.min(mirrorCap(), Math.max(0, left() - 900)))),
+        new Promise(r => setTimeout(() => r(null), Math.min(wantEn ? 2500 : mirrorCap(), Math.max(0, left() - 900)))),
+      ]).catch(() => null)
+          : Promise.resolve(null),
+    // StreamFree (owner 2026-10-20): English stream pages, matched by name
+    // from their published sitemap. Public pages only (their robots.txt
+    // disallows /api/, /embed/, /get-stream-key/ -- we never touch those).
+    canEn ? Promise.race([
+        (async () => {
+          const it = await sfMatch({ arToksOf, enToksOf, editDist }, matchHome, matchAway);
+          if (!it) return null;
+          if (!(await sfVerify(it))) return null;
+          return it;
+        })().catch(() => null),
+        new Promise(r => setTimeout(() => r(null), Math.min(3000, Math.max(0, left() - 400)))),
       ]).catch(() => null)
           : Promise.resolve(null),
     // Strumyk/flashscore: English names + tokens + an independent live minute.
@@ -924,7 +938,7 @@ const resolveYacine = async (home, away, startIso) => {
   let kooraHtml = '';
   let playerHtml = null;
   let playerSrc = null;
-  if (target && !outOfTime(1500)) {
+  if (target && !outOfTime(1500) && !wantEn) {
     if (/^http:\/\//i.test(target)) { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'href host not allowed' }); }
     if (!/^https:\/\//i.test(target)) target = 'https://kooralive-plus.info' + target;
     try { targetHost = new URL(target).hostname.toLowerCase(); } catch { res.setHeader('Cache-Control', 'no-store'); return res.status(400).json({ error: 'bad href' }); }
@@ -961,7 +975,7 @@ const resolveYacine = async (home, away, startIso) => {
     // Match IDs are shared across the whole STING-clone ecosystem, so try
     // every known sister domain — if any one of them unlocks its API we get
     // players for all matches.
-    if (!playerSrc && !outOfTime(1200)) {
+    if (!playerSrc && !outOfTime(1200) && !wantEn) {
       const apiBases = [
         'https://kooralive-plus.info',
         'https://kooralive24.com',
@@ -1004,7 +1018,7 @@ const resolveYacine = async (home, away, startIso) => {
     // Yassir already answered (or was tried) in the fast path above; the
     // name-matched resolvers were started before this chain and are awaited
     // here. Yassir is folded in again only if the fast path did not return.
-    const [yacine, arenaHit, enHit, vipHit, strumykHit] = await batchP;
+    const [yacine, arenaHit, enHit, vipHit, sfHit, strumykHit] = await batchP;
     const servers = [];
     if (id && !yassirHit) {
       const y2 = await resolveYassir(id).catch(() => null);
@@ -1039,6 +1053,14 @@ const resolveYacine = async (home, away, startIso) => {
       }));
     }
     // (Arena already merged first above.)
+    // StreamFree English player page: a full page (its player is nested
+    // inside), so it behaves like VIPBox -- sandboxed, popups blocked, ad
+    // hosts filtered by the service worker.
+    if (ADS_MIRRORS && sfHit && sfHit.url && (!servers.length || wantEn)) {
+      const sfe = { label: 'EN', url: sfHit.url, kind: 'vipbox', lang: 'en', ads: 1 };
+      if (wantEn) servers.unshift(sfe);
+      else pushUnique(sfe);
+    }
     // Strumyk/flashscore English channels (owner 2026-10-20): tokens are
     // VERIFIED live upstream before they reach us, so a dead token never
     // becomes a dead button. Leads for ?lang=en, else a fallback source.
@@ -1047,27 +1069,29 @@ const resolveYacine = async (home, away, startIso) => {
       if (wantEn) { for (let k = sf.length - 1; k >= 0; k--) servers.unshift(sf[k]); }
       else sf.forEach(s => pushUnique(s));
     }
-    // Hidden EN fallback (owner-authorized): phase 2, ONLY when Yassir +
-    // Yacine + Kora all yield zero servers.
-    if (ADS_MIRRORS && !servers.length && enHit && !outOfTime(800)) {
-      try {
-        const en = await Promise.race([
+    // The two English fallback details (Streamed + VIPBox) are INDEPENDENT
+    // probes -- they ran back-to-back and doubled the chain latency. Run them
+    // together: the answer is the same, the wall-clock is halved.
+    const needEn = ADS_MIRRORS && !servers.length && enHit && !outOfTime(800);
+    // VIPBox is a bonus English source: if StreamFree already gave us one,
+    // we skip the (slow) VIPBox detail and answer immediately.
+    const needVip = ADS_MIRRORS && vipHit && !outOfTime(800) && (!servers.length || (wantEn && !sfHit));
+    if (needEn || needVip) {
+      const cap1 = Math.min(4000, Math.max(0, left() - 300));
+      const [en, vb] = await Promise.all([
+        needEn ? Promise.race([
           streamedDetail(enHit).catch(() => null),
-          new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 300)))),
-        ]);
+          new Promise(r => setTimeout(() => r(null), cap1)),
+        ]) : null,
+        needVip ? Promise.race([
+          vipDetail(vipHit).catch(() => null),
+          new Promise(r => setTimeout(() => r(null), cap1)),
+        ]) : null,
+      ]);
+      try {
         if (en && en.servers) en.servers.forEach(s => pushUnique({ label: 'backup', url: s.url, kind: 'live', ads: 1 }));
       } catch {}
-    }
-    // VIPBox: English source (owner order 2026-10-12). Always attempted when
-    // matched and in budget; leads the list for ?lang=en, otherwise appended
-    // after the Arabic sources. Same strict gates; never surfaces a wrong
-    // match. Previously empty-only niche fallback (2026-10-04).
-    if (ADS_MIRRORS && vipHit && !outOfTime(800) && (!servers.length || wantEn)) {
       try {
-        const vb = await Promise.race([
-          vipDetail(vipHit).catch(() => null),
-          new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 300)))),
-        ]);
         if (vb && vb.servers && vb.servers.length) {
           const vbs = [];
           for (const s of vb.servers) {
