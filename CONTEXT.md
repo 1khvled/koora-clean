@@ -4,7 +4,44 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-15 (§180 — Messi/Ronaldo deep UI pass).
+> Last updated: 2026-10-20 (§181 — Strumyk/flashscore source).
+
+## 181. Strumyk / flashscore source (2026-10-20)
+
+- Owner: "GOLD MINE OF LINKS HERE ... so many links for players, please
+  scrape them and integrate them, most of them are English" +
+  https://strumyk.pk/match/football/6u963YJ6.
+- Reverse-engineered their stack (their pages are a JS shell):
+  `strumyk.pk/api/v1/football/<ymd>` -> the day's match ids;
+  `strumyk.pk/api/v1/match/FS:<id>` -> per-match channel tokens
+  (-> `iplayer24.me/beta/<token>`); the metadata comes from a flashscore
+  feed relay `1.newsoccers.one/2/x/feed/`: day list `f_1_<offset>_2_en_1/`
+  (261 football matches with ENGLISH names/kickoff/league/logos),
+  `dc_1_<id>` (status/kickoff/score, 277 B) and `df_sui_1_<id>` (event
+  timeline in ENGLISH: minutes, cards, subs).
+- TRUTH ABOUT THE LINKS: every token currently 302s to google.com --
+  verified from a datacenter AND a residential Algerian IP, on live and
+  finished matches, across all path variants (/beta, /embed, /player, /tv).
+  The iplayer24 service is not serving players for anyone we could test.
+  So the links are integrated but GATED: every token is verified live
+  server-side before it reaches a player (a dead token must never become
+  a dead button), and they light up automatically when the upstream revives.
+- What works TODAY: a 4th independent LIVE-MINUTE source (English feed)
+  + the EN stream channel list when alive. New `api/_strumyk.js` (shared,
+  underscore = not a route) + `api/strumyk.js` (GET ?home=&away=&start=
+  -> {min,plus,half}); the player page fetches it in PARALLEL with the
+  ESPN/FotMob minute calls (headerMinute order: ESPN -> FotMob ->
+  Strumyk -> fused). The server list is NOT delayed by it: the fast path
+  fires the Strumyk resolve and forgets it (an early version awaited it
+  and the throttled upstream turned every open into an 8s answer -- fixed).
+- Matching: same strict MAX-of-sides name gate as every other resolver
+  (0.55) + 90-min kickoff window; kickoffs compared in SECONDS (their
+  feed) vs ms (ours) -- that unit bug was why nothing matched at first.
+  Caches: day list 10 min, per-match detail 10 min (module memory).
+- Proof: strumykcheck (5 API files + player inline JS parse, mirrors
+  identical, no leftovers), stapitest (live fixture -> 72' with English
+  names; finished fixture -> found:false; negative control rejected),
+  scorer probe (Liverpool/Villarreal 0.50 match, Morocco/Rwanda 0.75 miss).
 
 ## 180. Messi/Ronaldo deep UI pass (2026-10-15)
 

@@ -2253,6 +2253,7 @@ function isEnded(m){
 let PM = { _base: null, _at: 0 };
 let FOT = null;
 let PE = { base: null, half: null, at: 0 };
+let PS = null;   // Strumyk/flashscore live minute (English feed)
 function P(){
   return { official_status: offP, status: '', game_time: gtP, result_text: timeP,
     time_text: timeP, start: startP, gameends: geP, _base: PM._base, _at: PM._at };
@@ -2278,6 +2279,15 @@ function headerMinute(now){
       if ((FOT.half === 1 || FOT.half === 'HT') && t > 57) return FOT.half === 'HT' ? { brk: true } : { min: 45, plus: 12 };
       if (t > 90) return { min: 90, plus: Math.min(t - 90, 20) };
       return { min: t, plus: 0 };
+    }
+  }
+  // Strumyk/flashscore English minute (4th independent source).
+  if (PS && PS.min != null && (now - PS.at) < 6 * 60000){
+    const s = PS.min + Math.floor((now - PS.at) / 60000);
+    if (s >= 1 && s <= 130){
+      if ((PS.half === 1) && s > 57) return { min: 45, plus: 12 };
+      if (s > 90) return { min: 90, plus: Math.min(s - 90, 20) };
+      return { min: s, plus: PS.plus || 0 };
     }
   }
   return showMinute(P(), now);
@@ -2682,6 +2692,9 @@ async function loadRealPlayer(){
     const chanP = (async () => [] )();
     const data = await fetchApi();
     if (data && (data.home || data.away)) paintMatch(data.home || home, data.away || away, homeLogo, awayLogo, leagueP); paintStars();
+    // Strumyk/flashscore live minute anchor (English feed) — rides on top of
+    // the header clock next to ESPN/FotMob.
+    try { if (data && data.sf && data.sf.min != null) PS = { min: data.sf.min, plus: data.sf.plus || 0, half: data.sf.half || 1, at: Date.now() }; } catch {}
     let list = [];
     if (data && Array.isArray(data.servers) && data.servers.length) list = data.servers;
     else if (data) {
@@ -3364,6 +3377,25 @@ async function refreshEspnOne(){
   } catch {}
   return false;
 }
+/* Strumyk/flashscore minute (English feed): a 4th independent live-minute
+   source, fetched in parallel so it never delays the streams. */
+async function refreshStrumykOne(){
+  try {
+    if (!home || !away || !startP) return false;
+    const q = new URLSearchParams({ home: latName(home), away: latName(away), start: startP });
+    const ctrl = new AbortController();
+    const to = setTimeout(() => { try { ctrl.abort(); } catch (e) {} }, 6000);
+    let j = null;
+    try {
+      const r = await fetch('/api/strumyk?' + q.toString(), { cache: 'no-store', signal: ctrl.signal });
+      if (r.ok) j = await r.json();
+    } finally { clearTimeout(to); }
+    if (!j || !j.found || j.min == null) return false;
+    if (!PS || j.min > PS.min || j.half !== PS.half) PS = { min: j.min, plus: j.plus || 0, half: j.half || 1, at: Date.now() };
+    return true;
+  } catch {}
+  return false;
+}
 /* Startup: short links resolve their snapshot first (storage → API),
    then paint + streams + FotMob + the 20s header tick (fused minutes keep
    advancing between the 60s FotMob refreshes). */
@@ -3406,6 +3438,7 @@ try {
     }).catch(()=>{});
   }
   refreshEspnOne().then(ok => { if (ok) { tickHeader(); try { loadHl(); } catch {} } }).catch(()=>{});
+  refreshStrumykOne().then(ok => { if (ok) tickHeader(); }).catch(()=>{});
   sbTrackMatch();
   loadRealPlayer();
   loadOdds();
@@ -3413,6 +3446,7 @@ try {
   loadMatchInfo();
   setInterval(tickHeader, 20000);
   setInterval(async () => { try { if (await refreshEspnOne()) tickHeader(); } catch {} }, 60000);
+  setInterval(async () => { try { if (await refreshStrumykOne()) tickHeader(); } catch {} }, 60000);
 })();
 
 </script>

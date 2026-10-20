@@ -1,4 +1,5 @@
 import { rl, cap, selfOrigin, fetchableUrl, readCapped } from './_sec.js';
+import { strumykMatch as sMatch, strumykDetail as sDetail, sfAnchor } from './_strumyk.js';
 export default async function handler(req, res) {
   const id = cap(req.query.id || '', 160);
   const href = cap(req.query.href || '', 500);
@@ -764,6 +765,8 @@ const resolveYacine = async (home, away, startIso) => {
   let yassirHit = false;
   let yassirServers = null;
   let arenaFast = null;
+  let strumykFast = null;
+  let strumykFastM = null;
   if (id && !outOfTime(500)) {
     // Only when the query actually carried team names — a nameless fast-path
     // promise would resolve null and (via reuse below) poison batchP, which
@@ -773,6 +776,17 @@ const resolveYacine = async (home, away, startIso) => {
         resolveArena(qHome, qAway, qStart).catch(() => null),
         new Promise(r => setTimeout(() => r(null), Math.min(4000, Math.max(0, left() - 900)))),
       ]);
+      // Strumyk/flashscore rides ALONG the fast path (never behind it): English
+      // channel tokens + an independent live minute. Day list + per-match
+      // token results are cached in-module, so repeat opens cost ~0.
+      // Fire-and-forget: warms the Strumyk cache for the next call, but the
+      // response never waits on it (the upstream can throttle -> 8s answers).
+      strumykFast = (async () => {
+        const m = await sMatch({ arToksOf, enToksOf, editDist }, qHome, qAway, qStart);
+        if (!m) return null;
+        strumykFastM = m;
+        return await sDetail(m, false);
+      })().catch(() => null);
     }
     const [y, arenaHit] = await Promise.all([resolveYassir(id), arenaFast || Promise.resolve(null)]);
     // EN mode (owner order 2026-10-12): VIPBox is the main English source, so
@@ -798,6 +812,8 @@ const resolveYacine = async (home, away, startIso) => {
         if (servers.some(x => x.url === s.url)) continue;
         servers.push({ label: 'سيرفر ' + (servers.length + 1), url: s.url, kind: 'live' });
       }
+      // English channels (Strumyk/flashscore) are added by the full chain
+      // (they need a verified token check) — the fast path stays instant.
       if (servers.length) {
         res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
         return res.status(200).json({
@@ -889,6 +905,16 @@ const resolveYacine = async (home, away, startIso) => {
         new Promise(r => setTimeout(() => r(null), Math.min(mirrorCap(), Math.max(0, left() - 900)))),
       ]).catch(() => null)
           : Promise.resolve(null),
+    // Strumyk/flashscore: English names + tokens + an independent live minute.
+    canEn ? Promise.race([
+        (async () => {
+          const m = strumykFastM || (await sMatch({ arToksOf, enToksOf, editDist }, matchHome, matchAway, kickoff));
+          if (!m) return null;
+          return await sDetail(m, true);
+        })().catch(() => null),
+        new Promise(r => setTimeout(() => r(null), Math.min(3000, Math.max(0, left() - 400)))),
+      ]).catch(() => null)
+          : Promise.resolve(null),
   ]);
 
   // Allow yacine/hd7 lookup even when kooralive has no entry for this
@@ -978,7 +1004,7 @@ const resolveYacine = async (home, away, startIso) => {
     // Yassir already answered (or was tried) in the fast path above; the
     // name-matched resolvers were started before this chain and are awaited
     // here. Yassir is folded in again only if the fast path did not return.
-    const [yacine, arenaHit, enHit, vipHit] = await batchP;
+    const [yacine, arenaHit, enHit, vipHit, strumykHit] = await batchP;
     const servers = [];
     if (id && !yassirHit) {
       const y2 = await resolveYassir(id).catch(() => null);
@@ -1013,6 +1039,14 @@ const resolveYacine = async (home, away, startIso) => {
       }));
     }
     // (Arena already merged first above.)
+    // Strumyk/flashscore English channels (owner 2026-10-20): tokens are
+    // VERIFIED live upstream before they reach us, so a dead token never
+    // becomes a dead button. Leads for ?lang=en, else a fallback source.
+    if (ADS_MIRRORS && strumykHit && strumykHit.streams && strumykHit.streams.length && (!servers.length || wantEn)) {
+      const sf = strumykHit.streams.map(s => ({ label: 'EN', url: s.url, kind: 'vipbox', lang: 'en', ads: 1 }));
+      if (wantEn) { for (let k = sf.length - 1; k >= 0; k--) servers.unshift(sf[k]); }
+      else sf.forEach(s => pushUnique(s));
+    }
     // Hidden EN fallback (owner-authorized): phase 2, ONLY when Yassir +
     // Yacine + Kora all yield zero servers.
     if (ADS_MIRRORS && !servers.length && enHit && !outOfTime(800)) {
@@ -1054,6 +1088,9 @@ const resolveYacine = async (home, away, startIso) => {
     // found = a real playable embed exists (post-filter, not the raw inputs —
     // a dropped javascript: URL must not report found:true).
     const hasPlayable = servers.length > 0;
+    // Strumyk live minute (English feed) as an extra anchor for the header
+    // clock -- a 4th independent source next to ESPN/FotMob.
+    const sfMin = sfAnchor(strumykHit);
     if (hasPlayable) {
       const first = servers[0].url;
       res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
@@ -1068,6 +1105,7 @@ const resolveYacine = async (home, away, startIso) => {
         embedUrl: first,
         count: servers.length,
         servers,
+        sf: sfMin || undefined,
       });
     } else {
       // Unknown fixture (no self-lookup hit and nothing identifiable from
@@ -1087,6 +1125,7 @@ const resolveYacine = async (home, away, startIso) => {
         found: false,
         count: servers.length,
         servers,
+        sf: sfMin || undefined,
         adsBlocked,
         message: adsBlocked ? 'Only ad-carrying sources had this match'
                             : 'No playable stream found'
