@@ -4,7 +4,40 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-20 (§181 — Strumyk/flashscore source).
+> Last updated: 2026-10-20 (§182 — StreamFree English source).
+
+## 182. StreamFree English source (2026-10-20)
+
+- Owner: "https://streamfree.top/player/soccer/barcelona-vs-paris-saint-germain
+  same here another gold mine ... this is ENGLISH".
+- Their robots.txt disallows /api/, /embed/, /get-stream-key/ and /internal/
+  -- so we integrate ONLY the public pages: the player page itself and the
+  sitemap they publish for crawlers. Their page then loads its own stream
+  exactly like it does for a human visitor.
+- Verified in a real browser: the player loads and streams INSIDE a strict
+  sandbox (their /embed/ frame returns 200, MSE blob created), their pop
+  engines (adexchangerapid, wnouncillorswhowish, ndcertainlywhen) fire but
+  the sandbox kills the popups; their ad/pop hosts are now blocked by our
+  service worker (sw.js AD_RE extended) so the stage stays clean.
+- New `api/_streamfree.js`: sitemap -> current match pages (25 entries,
+  slug = home-vs-away), teams parsed from the slug, name-matched to our
+  fixture with the strict MAX-of-sides 0.55 gate (English tokens kept in
+  BOTH devoweled and spelled form -- vowel-stripping dropped "Aek" to "k"
+  and killed that match), then the page title is verified before we serve
+  it (the sitemap rotates daily).
+- Wiring: the StreamFree player page is a server like VIPBox (kind vipbox,
+  tag EN) -- leads in ?lang=en, fallback-only in Arabic mode. The Arabic
+  Kora chain is skipped in EN mode and the two English fallback details
+  (Streamed + VIPBox) now run in PARALLEL: EN answers 6.5s -> 2.4-3.9s,
+  Arabic mode unchanged (~170ms).
+- Two real fixtures match (Villarreal-Liverpool, Barcelona-PSG, Atletico-
+  Stuttgart, PSV-Porto); short/transliterated names (AEK Athens) can miss --
+  a miss stays a miss, never a wrong match.
+- Proof: sfcheck (8 JS files parse, SW blocks the ad hosts but not the
+  player hosts, module touches no disallowed path, wiring order correct,
+  mirrors identical), sfmatch (3/5 fixtures matched + title-verified,
+  negative control rejected), sandbox browser test (player streams inside
+  the sandbox).
 
 ## 181. Strumyk / flashscore source (2026-10-20)
 

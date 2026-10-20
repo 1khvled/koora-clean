@@ -3,7 +3,7 @@
 // and returns 204 for known ad/telegram domains.
 
 const TELEGRAM_RE = /(^|[\/.])t\.me([/?#]|$)|telegram\.me|telegram\.org|telegram\.dog|tg:\/\/|joinchat/i;
-const AD_RE = /(popads|popcash|adcash|propeller|onclkds|highperformancegate|highcpmgate|highcpm|exoclick|exo\.click|juicyads|hilltopads|doubleclick|googlesyndication|adsystem|adnxs|criteo|outbrain|taboola|zeroredirect|realsrv|adsterra|popunder)/i;
+const AD_RE = /(popads|popcash|adcash|propeller|onclkds|highperformancegate|highcpmgate|highcpm|exoclick|exo\.click|juicyads|hilltopads|doubleclick|googlesyndication|adsystem|adnxs|criteo|outbrain|taboola|zeroredirect|realsrv|adsterra|popunder|adexchangerapid|pubmatic|gumgum|connatix|yellowblue|ottadvisors|wnouncillorswhowish|ndcertainlywhen|segaarcadehub|veltrix42|throughlnk|dtscout)/i;
 const BLOCK_RE = new RegExp(TELEGRAM_RE.source + '|' + AD_RE.source, 'i');
 
 // Owner's own banner units — first-party slots on our pages. These two
