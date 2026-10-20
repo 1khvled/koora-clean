@@ -85,13 +85,21 @@ export async function streamfreeMatch(scorers, home, away) {
     }
     return tot / at.length;
   };
-  let best = null;
+  let best = null, second = 99;
   for (const it of list) {
+    // Football only: a "hockey" page is a different sport entirely (a soccer
+    // fixture must never match an NHL page -- that is a wrong-match bug we
+    // caught live with Al Nassr -> "Anaheim Ducks").
+    if (it.sport !== 'soccer' && it.sport !== 'football') continue;
     const eh = enTokens(it.h), ea = enTokens(it.a);
     const sc = Math.min(Math.max(sd(arH, eh), sd(arA, ea)), Math.max(sd(arH, ea), sd(arA, eh)));
-    if (!best || sc < best.sc) best = { it, sc };
+    if (!best || sc < best.sc) { second = best ? best.sc : second; best = { it, sc }; }
+    else if (sc < second) second = sc;
   }
   if (!best || !(best.sc <= 0.55)) return null;
+  // The winner must be clearly better than the runner-up: a near-tie means
+  // the names are too generic to trust (a miss must stay a miss).
+  if (second < 900 && (second - best.sc) < 0.05) return null;
   return best.it;
 }
 // The page must still be the match we matched (the sitemap rotates daily).
