@@ -31,13 +31,20 @@
   (Streamed + VIPBox) now run in PARALLEL: EN answers 6.5s -> 2.4-3.9s,
   Arabic mode unchanged (~170ms).
 - Two real fixtures match (Villarreal-Liverpool, Barcelona-PSG, Atletico-
-  Stuttgart, PSV-Porto); short/transliterated names (AEK Athens) can miss --
-  a miss stays a miss, never a wrong match.
+  Stuttgart, PSV-Porto, Slovan-Roma); short/transliterated names (AEK Athens)
+  can miss -- a miss stays a miss, never a wrong match.
+- WRONG-MATCH BUG CAUGHT LIVE AND FIXED: the first live probe matched
+  "Al Nassr vs Neom" (football) to "Anaheim Ducks vs New York Islanders"
+  (HOCKEY) at score 0.50 -- short tokens made the names look similar.
+  Two guards now: (1) football only (their /hockey/ and /basketball/ pages
+  are never candidates), (2) the winner must beat the runner-up by 0.05
+  (a near-tie = too generic to trust). Re-probed 10 live fixtures: 5 correct
+  matches, 0 wrong, 5 honest misses.
 - Proof: sfcheck (8 JS files parse, SW blocks the ad hosts but not the
   player hosts, module touches no disallowed path, wiring order correct,
   mirrors identical), sfmatch (3/5 fixtures matched + title-verified,
-  negative control rejected), sandbox browser test (player streams inside
-  the sandbox).
+  negative control rejected), sffp (10-fixture wrong-match probe: 0 wrong),
+  sandbox browser test (player streams inside the sandbox).
 
 ## 181. Strumyk / flashscore source (2026-10-20)
 
