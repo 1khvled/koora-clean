@@ -1053,11 +1053,12 @@ const resolveYacine = async (home, away, startIso) => {
       }));
     }
     // (Arena already merged first above.)
-    // StreamFree English player page: a full page (its player is nested
-    // inside), so it behaves like VIPBox -- sandboxed, popups blocked, ad
-    // hosts filtered by the service worker.
+    // StreamFree English player page: their embed REFUSES a sandboxed frame
+    // (it probes for the sandbox and shows "embed without sandbox"), so it
+    // can only play at top level -> the player opens it in a NEW TAB instead
+    // of the stage (our sandbox stays strict, their pop-ads never touch us).
     if (ADS_MIRRORS && sfHit && sfHit.url && (!servers.length || wantEn)) {
-      const sfe = { label: 'EN', url: sfHit.url, kind: 'vipbox', lang: 'en', ads: 1 };
+      const sfe = { label: 'EN', url: sfHit.url, kind: 'vipbox', lang: 'en', ads: 1, newTab: 1 };
       if (wantEn) servers.unshift(sfe);
       else pushUnique(sfe);
     }
