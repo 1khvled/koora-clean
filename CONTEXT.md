@@ -4,7 +4,34 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-20 (§182 — StreamFree English source).
+> Last updated: 2026-10-21 (§183 — StreamFree needs a tab, not a sandbox).
+
+## 183. StreamFree needs a tab, not a sandbox (2026-10-21)
+
+- Owner screenshot: the new StreamFree source renders "Embed this stream
+  without sandbox" instead of the video.
+- Root cause found by reading their frames: the embed page runs a SANDBOX
+  PROBE (a frame named "sandDetect" loading `data:application/pdf` -- PDF
+  plugins are blocked inside sandboxes, so the load tells them they are
+  sandboxed) and then REFUSES to play. Their player also requires the
+  referrer to be their own domain. Two gates => their embed can only play at
+  top level, inside their own site. Proven in a real browser: their embed
+  page loads (200) in a sandboxed frame but serves NO media requests.
+- Fix (NOT "remove the sandbox"): the stage keeps its strict sandbox
+  (never weakened -- §156 rule), and the StreamFree source became a
+  NEW-TAB source: the server entry carries `newTab: 1`, the player opens it
+  top-level (where it plays for the user, exactly like visiting their site)
+  and the stage stays clean. Autoplay NEVER opens a tab (no popup spam);
+  the server button shows a ↗ marker and the toast explains the tap.
+  Inline servers are unaffected.
+- Our service worker still blocks their ad/pop hosts (adexchangerapid,
+  pubmatic, gumgum, connatix, yellowblue, ottadvisors, wnouncillorswhowish,
+  ndcertainlywhen, dtscout, tanktds-style hosts) so the tab they open is
+  the same experience a normal visitor gets.
+- Proof: tabcheck (5 JS files + 2 inline scripts parse, newTab path,
+  no auto-open, arrow marker, i18n x3, sandbox still strict, mirror
+  identical), browser probe (embed loads but serves no media under a
+  sandbox -> confirmed refusal).
 
 ## 182. StreamFree English source (2026-10-20)
 

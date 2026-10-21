@@ -781,7 +781,7 @@ skel: 'Searching…', noLinks: 'No stream links', noLinksSub: 'No stream availab
 noStream: 'No stream available',
 note: (n) => n + ' live server' + (n > 1 ? 's' : '') + ' — if a stream stutters, try the next one. Auto-switch kicks in when popups are blocked.',
 watching: (name, i, total) => 'Watching: ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
-noValid: 'No working server', tryingNext: 'Trying another server…',
+noValid: 'No working server', tryingNext: 'Trying another server…', openTabHint: 'Tap the ↗ source to open it in a new tab', openedTab: 'Opened in a new tab',
 updating: 'Updating stream…', proxyBad: 'Saved proxy link invalid', demoServer: 'Demo server',
 fromCache: 'Saved stream — retrying…', cacheShown: 'Update failed — showing saved stream',
 loadFailT: 'Load failed', retryCta: 'Tap to retry', checkConn: 'Check your connection and retry',
@@ -839,7 +839,7 @@ skel: 'Recherche…', noLinks: 'Aucun lien de stream', noLinksSub: 'Aucun stream
 noStream: 'Aucun stream disponible',
 note: (n) => n + ' serveur' + (n > 1 ? 's' : '') + ' en direct — si ça coupe, essayez le suivant. Le switch auto agit quand les popups sont bloquées.',
 watching: (name, i, total) => 'Vous regardez : ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
-noValid: 'Aucun serveur valide', tryingNext: 'Essai d’un autre serveur…',
+noValid: 'Aucun serveur valide', tryingNext: 'Essai d’un autre serveur…', openTabHint: 'Touchez la source ↗ pour l’ouvrir dans un onglet', openedTab: 'Ouvert dans un nouvel onglet',
 updating: 'Actualisation du stream…', proxyBad: 'Lien proxy enregistré invalide', demoServer: 'Serveur démo',
 fromCache: 'Stream sauvegardé — nouvel essai…', cacheShown: 'Échec de mise à jour — stream sauvegardé affiché',
 loadFailT: 'Échec du chargement', retryCta: 'Touchez pour réessayer', checkConn: 'Vérifiez la connexion puis réessayez',
@@ -891,7 +891,7 @@ skel: 'جاري البحث…', noLinks: 'لا توجد روابط بث', noLink
 noStream: 'لا يوجد بث متاح حالياً',
 note: (n) => n + ' سيرفر بث مباشر — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.',
 watching: (name, i, total) => 'تشاهد الآن: ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
-noValid: 'لا يوجد سيرفر صالح', tryingNext: 'نحاول سيرفراً آخر…',
+noValid: 'لا يوجد سيرفر صالح', tryingNext: 'نحاول سيرفراً آخر…', openTabHint: 'اضغط المصدر ↗ لفتحه في تبويب جديد', openedTab: 'تم الفتح في تبويب جديد',
 updating: 'جاري تحديث البث…', proxyBad: 'رابط البروكسي المحفوظ غير صالح', demoServer: 'سيرفر تجريبي',
 fromCache: 'البث من الذاكرة — إعادة المحاولة…', cacheShown: 'تعذّر التحديث — عرض البث المحفوظ',
 loadFailT: 'تعذّر التحميل', retryCta: 'اضغط لإعادة المحاولة', checkConn: 'تحقق من الاتصال ثم أعد المحاولة',
@@ -2366,7 +2366,9 @@ function kindTag(s){
 function subTag(s){
   // NOTE: keep brand names OUT of button text (only kind + time) — some
   // ad-block cosmetic lists remove page elements that mention stream brands.
-  return [kindTag(s), s && s.sub].filter(Boolean).join(' • ');
+  const parts = [kindTag(s), s && s.sub].filter(Boolean);
+  if (s && s.newTab) parts.push('↗');
+  return parts.join(' • ');
 }
 function dispName(s, i){
   // Source-hiding: buttons never carry upstream brand names — numbered
@@ -2492,23 +2494,31 @@ function autoPlay(){
   // fast, and auto-loading a dead backup is the black-stage-on-open bug.
   // EN mode (owner order): VIPBox is the main English source — remembered
   // or first VIPBox wins over everything (its embeds passed framing checks).
+  // NOTE: newTab sources are never auto-opened (no popup spam on load) and
+  // are skipped when an inline server exists.
   try {
     if (typeof LANG === 'string' && LANG === 'en' && serverList && serverList.length) {
       const ri = srvRecall(serverList);
-      if (ri >= 0 && serverList[ri] && serverList[ri].kind === 'vipbox'){ goServer(ri, false); return; }
-      const vi = serverList.findIndex(s => s && s.kind === 'vipbox');
+      if (ri >= 0 && serverList[ri] && serverList[ri].kind === 'vipbox' && !serverList[ri].newTab){ goServer(ri, false); return; }
+      const vi = serverList.findIndex(s => s && s.kind === 'vipbox' && !s.newTab);
       if (vi >= 0){ goServer(vi, false); return; }
     }
   } catch {}
   try {
     const ri = srvRecall(serverList);
-    if (ri >= 0 && serverList[ri] && !serverList[ri].ads){ goServer(ri, false); return; }
+    if (ri >= 0 && serverList[ri] && !serverList[ri].ads && !serverList[ri].newTab){ goServer(ri, false); return; }
   } catch {}
   let i = 0;
   try {
-    const c = serverList.findIndex(s => s && !s.ads);
+    const c = serverList.findIndex(s => s && !s.ads && !s.newTab);
     if (c >= 0) i = c;
   } catch {}
+  // Nothing inline available: keep the stage clean and let the user tap the
+  // new-tab source themselves (no automatic popup).
+  if (serverList[i] && serverList[i].newTab){
+    try { paintNow(); toast(t('openTabHint')); } catch {}
+    return;
+  }
   goServer(i, false);
 }
 function goServer(i, auto, _tried){
@@ -2523,6 +2533,18 @@ function goServer(i, auto, _tried){
   if (!src){
     if ((_tried || 0) >= serverList.length - 1){ toast(t('noValid')); return; }
     goServer(srvIdx + 1, auto, (_tried || 0) + 1);
+    return;
+  }
+  // Sources that REFUSE a sandboxed frame (they probe for it and show
+  // "embed without sandbox") can only work at top level: open them in a tab
+  // instead of the stage. The stage keeps its strict sandbox.
+  if (s && s.newTab){
+    try {
+      const w = window.open(src, '_blank', 'noopener');
+      if (!w) toast(t('openTabHint'));
+      else toast(t('openedTab'));
+    } catch { toast(t('openTabHint')); }
+    try { paintNow(); } catch {}
     return;
   }
   if (/\.m3u8($|[?#])/i.test(src)){
