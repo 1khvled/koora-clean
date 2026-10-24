@@ -140,25 +140,40 @@ def bot(method, payload=None, files=None, timeout=60):
             body += ('--' + boundary + '\r\nContent-Disposition: form-data; name="%s"; filename="%s"\r\n'
                      'Content-Type: %s\r\n\r\n' % (k, fname, mime)).encode('utf-8') + data + b'\r\n'
         body += ('--' + boundary + '--\r\n').encode('utf-8')
-        req = urllib.request.Request(url, data=body,
-                                     headers={'Content-Type': 'multipart/form-data; boundary=' + boundary})
+        req_headers = {'Content-Type': 'multipart/form-data; boundary=' + boundary}
+        req_data = body
     else:
-        req = urllib.request.Request(url, data=json.dumps(payload or {}).encode('utf-8'),
-                                     headers={'Content-Type': 'application/json'})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.loads(r.read().decode('utf-8', 'replace'))
-    except urllib.error.HTTPError as e:
-        # Telegram answers 4xx with a JSON body; surface it instead of raising so
-        # one rejected post cannot abort the run (bot() callers check .ok).
+        req_headers = {'Content-Type': 'application/json'}
+        req_data = json.dumps(payload or {}).encode('utf-8')
+
+    retries = 3
+    for attempt in range(retries):
+        req = urllib.request.Request(url, data=req_data, headers=req_headers)
         try:
-            body = json.loads(e.read().decode('utf-8', 'replace'))
-            if isinstance(body, dict):
-                body.setdefault('description', 'HTTP %s' % e.code)
-                return body
-        except Exception:
-            pass
-        return {'ok': False, 'description': 'HTTP %s' % e.code}
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode('utf-8', 'replace'))
+        except urllib.error.HTTPError as e:
+            # 5xx server error (e.g. 502 Bad Gateway) or 429 rate limit: back off and retry
+            if (e.code in (429, 500, 502, 503, 504)) and attempt < retries - 1:
+                time.sleep(2 * (attempt + 1))
+                continue
+            # Telegram answers 4xx with a JSON body; surface it instead of raising so
+            # one rejected post cannot abort the run (bot() callers check .ok).
+            try:
+                raw = e.read().decode('utf-8', 'replace')
+                b = json.loads(raw)
+                if isinstance(b, dict):
+                    b.setdefault('error_code', e.code)
+                    b.setdefault('description', 'HTTP %s' % e.code)
+                    return b
+            except Exception:
+                pass
+            return {'ok': False, 'error_code': e.code, 'description': 'HTTP %s' % e.code}
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
+            if attempt < retries - 1:
+                time.sleep(2 * (attempt + 1))
+                continue
+            return {'ok': False, 'error_code': 0, 'description': str(e)[:70] or type(e).__name__}
 
 
 def load_state():
@@ -535,7 +550,12 @@ def bot_preflight(target):
     except Exception as e:
         return False, 'Telegram API unreachable: %s' % (str(e)[:70] or type(e).__name__), False
     if not me.get('ok'):
-        return False, 'bot token rejected by Telegram: %s' % me.get('description'), True
+        desc = str(me.get('description') or '')
+        code = me.get('error_code') or 0
+        # Token rejection is HTTP 401 Unauthorized; 5xx / Bad Gateway is transient
+        if code == 401 or 'Unauthorized' in desc or 'token' in desc.lower():
+            return False, 'bot token rejected by Telegram: %s' % desc, True
+        return False, 'Telegram API temporary error: %s' % desc, False
     who = (me.get('result') or {}).get('username') or 'id%s' % (me.get('result') or {}).get('id')
     try:
         ch = bot('getChat', {'chat_id': target})
