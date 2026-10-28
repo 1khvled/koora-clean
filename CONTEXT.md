@@ -4,7 +4,57 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-21 (§183 — StreamFree needs a tab, not a sandbox).
+> Last updated: 2026-10-28 (§184 — the Yacine feed moved to Kora-API).
+
+## 184. Arabic chain rebuilt on Kora-API (2026-10-28)
+
+- Owner report: "not streaming links what happened?" + the new source
+  (https://yacinews.com and
+  https://robotiva.online/kora.html?m=650&ref=yacinews.com).
+- The whole Arabic chain really was dead, for two independent reasons:
+  1. `yasirtv.com` / `912acsss8af382.yasirtv.com` now fail TLS with
+     ERR_TLS_CERT_ALTNAME_INVALID (cert no longer matches the host), and
+     bypassing TLS shows `playerv5.php` returning the 2.3 KB "match ended"
+     page with 0 server tabs. Nothing to salvage.
+  2. yacinelive.online / yacinews.com were REWRITTEN: the day page no longer
+     contains match cards or iframes (0 cards, 0 iframes), it is a JS app fed
+     by `https://cdn.kora-api.org/api/v1/matches`. Old HTML parsers had
+     nothing left to read.
+- New source decoded from their own bundle: `api/v1/matches` answers text
+  starting with `k1` = drop the prefix, REVERSE the characters, map a custom
+  64-char alphabet back to base64url, AES-256-GCM (12-byte IV, site-wide key).
+  Playback is `https://<live_domain>/kora.html?m=<id>&ref=<host>`
+  (`live_domain` robotiva.online, `en_live_domain` goalidor.space).
+- Why it is a NEW-TAB source (same pattern as §183, sandbox untouched):
+  1. their channel player `a*.kora-plus.li/frame.php` sends
+     `Content-Security-Policy: frame-ancestors` limited to kora-plus.*/
+     sportycos.com — measured as `chrome-error` inside our stage;
+  2. the raw playlist (`/live/b1.m3u8?token=&exp=`) has NO CORS header, so a
+     browser player on our origin cannot read it even with the URL;
+  3. our own CSP only allows media from our media hosts.
+  Loaded TOP-LEVEL, `kora.html` plays perfectly (b1.m3u8 + .ts segments 200),
+  so the user gets the real stream in one tap.
+- New `api/_kora.js`: decrypt + list cache (120 s), then a strict gate —
+  `stream_open === true` (their own "feed is live now" flag, so a future or
+  finished match never becomes a dead button), `active === 1`,
+  `has_channels === 1`, name score >= 2.5 of 4 on BOTH sides (Arabic-loose
+  normalize) and kickoff within 90 min. A miss stays a miss.
+- Wiring in `api/player.js`: 7th member of `batchP` (3 s race). Arabic mode
+  appends it as `kind: vipbox`, `newTab: 1`, label `AR`; English mode only
+  gets it when no other server was found (StreamFree still leads) and uses
+  the EN domain with label `EN`. Arena/Yassir fast path untouched.
+- UI: a new-tab-only match used to leave an empty black stage with a toast.
+  Now `showTabCta()` turns the existing tap-to-watch overlay into a real
+  button ("▶ Watch — opens in a new tab"), tap opens the tab through the
+  normal user gesture, `rearmShield()` restores the plain "tap to watch"
+  wording for inline servers, and the label re-translates on language
+  switch (new `openTabBtn` string in EN/FR/AR).
+- Proof: local handler tests — Monza-Napoli -> #638, Liverpool-Chelsea ->
+  #650 (AR) and goalidor #650 (EN), Man City-Brighton -> #649,
+  Genoa-Juventus -> #637; no-source and finished fixtures stay empty (no
+  invented links). tabcheck: 8 JS files parse, both inline scripts parse,
+  newTab path wired, no auto-open, CTA wired + reset, arrow marker, i18n x3,
+  sandbox still strict, player mirror byte-identical.
 
 ## 183. StreamFree needs a tab, not a sandbox (2026-10-21)
 

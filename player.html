@@ -781,7 +781,7 @@ skel: 'Searching…', noLinks: 'No stream links', noLinksSub: 'No stream availab
 noStream: 'No stream available',
 note: (n) => n + ' live server' + (n > 1 ? 's' : '') + ' — if a stream stutters, try the next one. Auto-switch kicks in when popups are blocked.',
 watching: (name, i, total) => 'Watching: ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
-noValid: 'No working server', tryingNext: 'Trying another server…', openTabHint: 'Tap the ↗ source to open it in a new tab', openedTab: 'Opened in a new tab',
+noValid: 'No working server', tryingNext: 'Trying another server…', openTabHint: 'Tap the ↗ source to open it in a new tab', openedTab: 'Opened in a new tab', openTabBtn: '▶ Watch — opens in a new tab',
 updating: 'Updating stream…', proxyBad: 'Saved proxy link invalid', demoServer: 'Demo server',
 fromCache: 'Saved stream — retrying…', cacheShown: 'Update failed — showing saved stream',
 loadFailT: 'Load failed', retryCta: 'Tap to retry', checkConn: 'Check your connection and retry',
@@ -839,7 +839,7 @@ skel: 'Recherche…', noLinks: 'Aucun lien de stream', noLinksSub: 'Aucun stream
 noStream: 'Aucun stream disponible',
 note: (n) => n + ' serveur' + (n > 1 ? 's' : '') + ' en direct — si ça coupe, essayez le suivant. Le switch auto agit quand les popups sont bloquées.',
 watching: (name, i, total) => 'Vous regardez : ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
-noValid: 'Aucun serveur valide', tryingNext: 'Essai d’un autre serveur…', openTabHint: 'Touchez la source ↗ pour l’ouvrir dans un onglet', openedTab: 'Ouvert dans un nouvel onglet',
+noValid: 'Aucun serveur valide', tryingNext: 'Essai d’un autre serveur…', openTabHint: 'Touchez la source ↗ pour l’ouvrir dans un onglet', openedTab: 'Ouvert dans un nouvel onglet', openTabBtn: '▶ Regarder — s’ouvre dans un onglet',
 updating: 'Actualisation du stream…', proxyBad: 'Lien proxy enregistré invalide', demoServer: 'Serveur démo',
 fromCache: 'Stream sauvegardé — nouvel essai…', cacheShown: 'Échec de mise à jour — stream sauvegardé affiché',
 loadFailT: 'Échec du chargement', retryCta: 'Touchez pour réessayer', checkConn: 'Vérifiez la connexion puis réessayez',
@@ -891,7 +891,7 @@ skel: 'جاري البحث…', noLinks: 'لا توجد روابط بث', noLink
 noStream: 'لا يوجد بث متاح حالياً',
 note: (n) => n + ' سيرفر بث مباشر — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.',
 watching: (name, i, total) => 'تشاهد الآن: ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
-noValid: 'لا يوجد سيرفر صالح', tryingNext: 'نحاول سيرفراً آخر…', openTabHint: 'اضغط المصدر ↗ لفتحه في تبويب جديد', openedTab: 'تم الفتح في تبويب جديد',
+noValid: 'لا يوجد سيرفر صالح', tryingNext: 'نحاول سيرفراً آخر…', openTabHint: 'اضغط المصدر ↗ لفتحه في تبويب جديد', openedTab: 'تم الفتح في تبويب جديد', openTabBtn: '▶ شاهد — يفتح في تبويب جديد',
 updating: 'جاري تحديث البث…', proxyBad: 'رابط البروكسي المحفوظ غير صالح', demoServer: 'سيرفر تجريبي',
 fromCache: 'البث من الذاكرة — إعادة المحاولة…', cacheShown: 'تعذّر التحديث — عرض البث المحفوظ',
 loadFailT: 'تعذّر التحميل', retryCta: 'اضغط لإعادة المحاولة', checkConn: 'تحقق من الاتصال ثم أعد المحاولة',
@@ -992,6 +992,7 @@ serversEl.innerHTML = serverList.map((s, i) => btnHtml(s, i, i === srvIdx)).join
 Array.prototype.forEach.call(serversEl.children, b => { if (b.getAttribute('data-i') !== null) b.onclick = () => goServer(+b.getAttribute('data-i'), false); });
 paintNow();
 if (srcNote && !srcNote.hidden) srcNote.textContent = t('note')(serverList.length);
+try { if (clickShield.dataset.newtab === '1'){ const b = document.getElementById('playBtn'); if (b) b.textContent = t('openTabBtn'); const h = clickShield.querySelector('small'); if (h) h.textContent = t('openTabHint'); } } catch (e) {}
 } else if (serversEl.querySelector('.skel')) showSkeleton();
 else if (serversEl.querySelector('#retryBtn')) showServersFromList([]);
 if (miData) renderMi();
@@ -2514,12 +2515,28 @@ function autoPlay(){
     if (c >= 0) i = c;
   } catch {}
   // Nothing inline available: keep the stage clean and let the user tap the
-  // new-tab source themselves (no automatic popup).
+  // new-tab source themselves (no automatic popup). The stage shows a real CTA
+  // instead of an empty black box.
   if (serverList[i] && serverList[i].newTab){
-    try { paintNow(); toast(t('openTabHint')); } catch {}
+    showTabCta();
     return;
   }
   goServer(i, false);
+}
+/* New-tab-only match (e.g. the Kora/Yacine feed, whose player refuses any
+   iframe): turn the tap-to-watch overlay into a clear "opens in a new tab"
+   button. Tapping opens the tab via the normal user-gesture path. */
+function showTabCta(){
+  try {
+    const btn = document.getElementById('playBtn');
+    if (btn) btn.textContent = t('openTabBtn');
+    const hint = clickShield.querySelector('small');
+    if (hint) hint.textContent = t('openTabHint');
+    clickShield.dataset.newtab = '1';
+    clickShield.classList.remove('hidden');
+  } catch {}
+  try { paintNow(); } catch {}
+  try { toast(t('openTabHint')); } catch {}
 }
 function goServer(i, auto, _tried){
   if (!serverList.length) return;
@@ -2572,6 +2589,7 @@ function goServer(i, auto, _tried){
   if (auto) toast(t('tryingNext'));
 }
 function rearmShield(){
+  try { clickShield.dataset.newtab = ''; const b = document.getElementById('playBtn'); if (b) b.textContent = t('playBtn'); const h = clickShield.querySelector('small'); if (h) h.textContent = t('playHint'); } catch {}
   clickShield.classList.remove('hidden');
   try{iframe.setAttribute('tabindex','-1');}catch{}
 }
@@ -2900,8 +2918,19 @@ async function loadHl(){
 }
 /* first click is absorbed so popups never open */
 function hideShield(){ try{clickShield.classList.add('hidden');}catch{} try{iframe.removeAttribute('tabindex');}catch{} }
-clickShield.addEventListener('click', hideShield);
-clickShield.addEventListener('keydown', (e) => { try{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); hideShield(); } }catch{} });
+clickShield.addEventListener('click', () => {
+  try { if (clickShield.dataset.newtab === '1') { goServer(srvIdx, false); return; } } catch {}
+  hideShield();
+});
+clickShield.addEventListener('keydown', (e) => {
+  try {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (clickShield.dataset.newtab === '1') { goServer(srvIdx, false); return; }
+      hideShield();
+    }
+  } catch {}
+});
 document.getElementById('btnLike').onclick = () => likeToggle();
 document.getElementById('starH').onclick = () => favToggle(home);
 document.getElementById('starA').onclick = () => favToggle(away);
