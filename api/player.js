@@ -1065,7 +1065,21 @@ const resolveYacine = async (home, away, startIso) => {
     // yacinelive/yasirtv chain. Top-level only (their frame.php sends
     // frame-ancestors CSP and the playlist has no CORS) -> new-tab source,
     // exactly like StreamFree below. Autoplay never opens it by itself.
+    // In-page first (owner 2026-10-28): their English "Live" wrapper points at
+    // framestream.php, whose segments openly allow our origin — so this one
+    // plays INSIDE our stage (hls:1) instead of sending the visitor away.
+    // Custom channels (b1/alwan1/main) stay newTab: their segments carry no
+    // CORS header at all, so a browser player on our origin cannot read them.
     if (koraHit && koraHit.url && (!servers.length || !wantEn)) {
+      const kch = Array.isArray(koraHit.channels) ? koraHit.channels : [];
+      kch.forEach((c, i) => {
+        if (!c || String(c.type) !== 'Frame') return;
+        if (!/^https:\/\/sportiskos\.space\/streameast\.html\?/i.test(String(c.link || ''))) return;
+        pushUnique({
+          label: 'EN', url: '/api/kora-stream.m3u8?m=' + koraHit.id + '&c=' + i,
+          kind: 'direct', lang: 'en', ads: 0, hls: 1,
+        });
+      });
       pushUnique({
         label: wantEn ? 'EN' : 'AR', url: koraHit.url, kind: 'vipbox',
         lang: wantEn ? 'en' : 'ar', ads: 1, newTab: 1,

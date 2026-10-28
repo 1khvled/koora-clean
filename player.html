@@ -2564,7 +2564,7 @@ function goServer(i, auto, _tried){
     try { paintNow(); } catch {}
     return;
   }
-  if (/\.m3u8($|[?#])/i.test(src)){
+  if ((s && s.hls) || /\.m3u8($|[?#])/i.test(src)){
     if (playHls(src, () => goServer(srvIdx + 1, auto, (_tried || 0) + 1))) {
       lastCleanSrc = src;
       if (auto) toast(t('tryingNext'));
