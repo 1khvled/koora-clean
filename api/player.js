@@ -1097,14 +1097,14 @@ const resolveYacine = async (home, away, startIso) => {
       // The day list carries no channel rows — pull the per-match detail
       // (cached 45s) to find the Frame channels that can play in-page.
       let kch = Array.isArray(koraHit.channels) ? koraHit.channels : [];
-      const hasFrame = kch.some(c => c && String(c.type) === 'Frame' && /streameast/i.test(String(c.link || '')));
+      const hasFrame = kch.some(c => c && String(c.type) === 'Frame' && /sportiskos\.space\/(streameast|streamlat)/i.test(String(c.link || '')));
       if (!hasFrame && koraHit.id) {
         const kd = await koraMatchChannels(koraHit.id);
         if (kd && Array.isArray(kd.channels)) kch = kd.channels;
       }
       kch.forEach((c, i) => {
         if (!c || String(c.type) !== 'Frame') return;
-        if (!/^https:\/\/sportiskos\.space\/streameast\.html\?/i.test(String(c.link || ''))) return;
+        if (!/^https:\/\/sportiskos\.space\/(streameast|streamlat)\.html\?/i.test(String(c.link || ''))) return;
         pushUnique({
           label: 'EN', url: selfOrigin(req) + '/api/player?kstream=1&m=' + koraHit.id + '&c=' + i,
           kind: 'direct', lang: 'en', ads: 0, hls: 1,
