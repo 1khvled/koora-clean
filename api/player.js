@@ -1,8 +1,31 @@
 import { rl, cap, selfOrigin, fetchableUrl, readCapped } from './_sec.js';
 import { strumykMatch as sMatch, strumykDetail as sDetail, sfAnchor } from './_strumyk.js';
 import { streamfreeMatch as sfMatch, streamfreeVerify as sfVerify } from './_streamfree.js';
-import { koraMatch } from './_kora.js';
+import { koraMatch, koraPlaylist } from './_kora.js';
 export default async function handler(req, res) {
+  // Kora live playlist for the in-page player. Folded into this function
+  // because the Hobby plan caps a deployment at 12 serverless functions —
+  // a 13th route fails the WHOLE build (learned the hard way 2026-10-28).
+  if (req.query && req.query.kstream) {
+    if (!rl(req, res, 'kstream', 600, 60000)) return;
+    const km = String(req.query.m || '').replace(/\D/g, '').slice(0, 12);
+    const kc = Number(req.query.c);
+    if (!km || !Number.isInteger(kc) || kc < 0 || kc > 23) {
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(400).json({ found: false });
+      return;
+    }
+    const pl = await koraPlaylist(km, kc);
+    if (!pl) {
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(404).json({ found: false });
+      return;
+    }
+    res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
+    res.status(200).send(pl);
+    return;
+  }
   const id = cap(req.query.id || '', 160);
   const href = cap(req.query.href || '', 500);
   // Optional: team names (Arabic) so the hd7livex resolver can run without
@@ -1076,7 +1099,7 @@ const resolveYacine = async (home, away, startIso) => {
         if (!c || String(c.type) !== 'Frame') return;
         if (!/^https:\/\/sportiskos\.space\/streameast\.html\?/i.test(String(c.link || ''))) return;
         pushUnique({
-          label: 'EN', url: '/api/kora-stream?m=' + koraHit.id + '&c=' + i,
+          label: 'EN', url: '/api/player?kstream=1&m=' + koraHit.id + '&c=' + i,
           kind: 'direct', lang: 'en', ads: 0, hls: 1,
         });
       });
