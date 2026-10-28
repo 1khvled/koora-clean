@@ -54,7 +54,11 @@
   Genoa-Juventus -> #637; no-source and finished fixtures stay empty (no
   invented links). tabcheck: 8 JS files parse, both inline scripts parse,
   newTab path wired, no auto-open, CTA wired + reset, arrow marker, i18n x3,
-  sandbox still strict, player mirror byte-identical.
+  sandbox still strict, player mirror byte-identical. Production after
+  deploy: `/api/player` answers `AR · vipbox · newTab` for 649/650, the watch
+  page shows the Arabic CTA over an empty stage, and the EN domain player
+  (goalidor.space) was verified playing `main.m3u8` + `.ts` segments (200)
+  with our `ref` in the page.
 
 ## 183. StreamFree needs a tab, not a sandbox (2026-10-21)
 
