@@ -4,7 +4,32 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-28 (§184 — the Yacine feed moved to Kora-API).
+> Last updated: 2026-10-28 (§185 — the new-tab button was swallowed by our own popup guard).
+
+## 185. The new-tab button was swallowed by our own popup guard (2026-10-28)
+
+- Owner: "player not working lol it says Tap the ↗ source to open it in a new
+  tab and get stuck".
+- Root cause: `player.html` deliberately overrides `window.open` near the
+  embed setup (`window.open = function(){ bumpBlocked(); return null; }` —
+  the ad-popup kill switch from §156). `goServer`'s new-tab branch called
+  `window.open(...)`, so it was swallowed by our own guard, returned null and
+  only showed the "tap the ↗ source" toast. Nothing ever opened — the user
+  was stuck on a dead CTA. (`window.open(url,'_blank','noopener')` also
+  returns null BY SPEC even when it works, so the success branch was dead
+  code either way.)
+- Fix: new `openTabUrl(url)` builds a hidden `<a href target="_blank"
+  rel="noopener">` and clicks it. An anchor click is a NAVIGATION, not a
+  popup, so neither our override nor browser/in-app popup blockers can stop
+  it. `goServer` uses it for every `newTab` source (Kora/Yacine, StreamFree).
+  The popup guard stays exactly as it is — embeds are still unable to open
+  windows.
+- Copy: the CTA hint now says what happens ("The stream opens on the
+  provider page — no popups here", EN/FR/AR `openTabSub`) instead of telling
+  users to tap a ↗ that is not on screen; the duplicate toast was dropped.
+- Proof: tabcheck (8 JS files + 2 inline scripts parse, anchor path present,
+  no `window.open(src` left, popup guard still installed, CTA reset, i18n x3,
+  sandbox strict, mirror identical) + production click test.
 
 ## 184. Arabic chain rebuilt on Kora-API (2026-10-28)
 
