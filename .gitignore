@@ -3,3 +3,4 @@ _watch.html
 __pycache__/
 *.pyc
 
+.vercel
