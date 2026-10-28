@@ -1,7 +1,7 @@
 import { rl, cap, selfOrigin, fetchableUrl, readCapped } from './_sec.js';
 import { strumykMatch as sMatch, strumykDetail as sDetail, sfAnchor } from './_strumyk.js';
 import { streamfreeMatch as sfMatch, streamfreeVerify as sfVerify } from './_streamfree.js';
-import { koraMatch, koraPlaylist } from './_kora.js';
+import { koraMatch, koraMatchChannels, koraPlaylist } from './_kora.js';
 export default async function handler(req, res) {
   // Kora live playlist for the in-page player. Folded into this function
   // because the Hobby plan caps a deployment at 12 serverless functions —
@@ -1094,7 +1094,14 @@ const resolveYacine = async (home, away, startIso) => {
     // Custom channels (b1/alwan1/main) stay newTab: their segments carry no
     // CORS header at all, so a browser player on our origin cannot read them.
     if (koraHit && koraHit.url && (!servers.length || !wantEn)) {
-      const kch = Array.isArray(koraHit.channels) ? koraHit.channels : [];
+      // The day list carries no channel rows — pull the per-match detail
+      // (cached 45s) to find the Frame channels that can play in-page.
+      let kch = Array.isArray(koraHit.channels) ? koraHit.channels : [];
+      const hasFrame = kch.some(c => c && String(c.type) === 'Frame' && /streameast/i.test(String(c.link || '')));
+      if (!hasFrame && koraHit.id) {
+        const kd = await koraMatchChannels(koraHit.id);
+        if (kd && Array.isArray(kd.channels)) kch = kd.channels;
+      }
       kch.forEach((c, i) => {
         if (!c || String(c.type) !== 'Frame') return;
         if (!/^https:\/\/sportiskos\.space\/streameast\.html\?/i.test(String(c.link || ''))) return;
