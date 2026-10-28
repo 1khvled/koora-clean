@@ -199,7 +199,7 @@ async function aGet(url, ms, headers, max) {
   finally { clearTimeout(to); }
 }
 
-async function matchChannels(id) {
+export async function koraMatchChannels(id) {
   const hit = _mCache.get(id);
   if (hit && Date.now() - hit.at < 45000) return hit.data;
   const d = await getJson('/matche/' + id + '?t=' + Date.now(), 3500, true);
@@ -259,7 +259,7 @@ export async function koraPlaylist(matchId, idx) {
   const ck = id + ':' + i;
   const ok = _pCache.get(ck);
   if (ok && Date.now() - ok.at < 2500) return ok.body;
-  const m = await matchChannels(id);
+  const m = await koraMatchChannels(id);
   if (!m) return null;
   const ch = (m.channels || [])[i];
   if (!ch || String(ch.type) !== 'Frame' || !ch.link) return null;
