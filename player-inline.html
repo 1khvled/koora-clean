@@ -2361,7 +2361,7 @@ function kindTag(s){
   if (s.kind === 'live') return t('kindFull');
   if (s.kind === 'tv') return t('kindTv');
   if (s.kind === 'arena') return 'Arena';
-  if (s.kind === 'vipbox') return 'EN';
+  if (s.kind === 'vipbox') return s.lang === 'ar' ? 'AR' : 'EN';
   return t('kindServer');
 }
 function subTag(s){

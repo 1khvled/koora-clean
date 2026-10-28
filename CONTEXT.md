@@ -27,6 +27,9 @@
 - Copy: the CTA hint now says what happens ("The stream opens on the
   provider page — no popups here", EN/FR/AR `openTabSub`) instead of telling
   users to tap a ↗ that is not on screen; the duplicate toast was dropped.
+- Badge fix spotted while testing: `kindTag()` hard-coded `EN` for every
+  vipbox source, so the Arabic Kora feed showed an "EN" chip in an Arabic
+  UI. It now reads the source's own `lang` (`AR` for Arabic feeds).
 - Proof: tabcheck (8 JS files + 2 inline scripts parse, anchor path present,
   no `window.open(src` left, popup guard still installed, CTA reset, i18n x3,
   sandbox strict, mirror identical) + production click test.
