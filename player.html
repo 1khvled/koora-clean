@@ -781,7 +781,7 @@ skel: 'Searching…', noLinks: 'No stream links', noLinksSub: 'No stream availab
 noStream: 'No stream available',
 note: (n) => n + ' live server' + (n > 1 ? 's' : '') + ' — if a stream stutters, try the next one. Auto-switch kicks in when popups are blocked.',
 watching: (name, i, total) => 'Watching: ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
-noValid: 'No working server', tryingNext: 'Trying another server…', openTabHint: 'Tap the ↗ source to open it in a new tab', openedTab: 'Opened in a new tab', openTabBtn: '▶ Watch — opens in a new tab',
+noValid: 'No working server', tryingNext: 'Trying another server…', openTabHint: 'Tap the ↗ source to open it in a new tab', openedTab: 'Opened in a new tab', openTabBtn: '▶ Watch — opens in a new tab', openTabSub: 'The stream opens on the provider page — no popups here',
 updating: 'Updating stream…', proxyBad: 'Saved proxy link invalid', demoServer: 'Demo server',
 fromCache: 'Saved stream — retrying…', cacheShown: 'Update failed — showing saved stream',
 loadFailT: 'Load failed', retryCta: 'Tap to retry', checkConn: 'Check your connection and retry',
@@ -839,7 +839,7 @@ skel: 'Recherche…', noLinks: 'Aucun lien de stream', noLinksSub: 'Aucun stream
 noStream: 'Aucun stream disponible',
 note: (n) => n + ' serveur' + (n > 1 ? 's' : '') + ' en direct — si ça coupe, essayez le suivant. Le switch auto agit quand les popups sont bloquées.',
 watching: (name, i, total) => 'Vous regardez : ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
-noValid: 'Aucun serveur valide', tryingNext: 'Essai d’un autre serveur…', openTabHint: 'Touchez la source ↗ pour l’ouvrir dans un onglet', openedTab: 'Ouvert dans un nouvel onglet', openTabBtn: '▶ Regarder — s’ouvre dans un onglet',
+noValid: 'Aucun serveur valide', tryingNext: 'Essai d’un autre serveur…', openTabHint: 'Touchez la source ↗ pour l’ouvrir dans un onglet', openedTab: 'Ouvert dans un nouvel onglet', openTabBtn: '▶ Regarder — s’ouvre dans un onglet', openTabSub: 'Le flux s’ouvre chez le fournisseur — sans popups ici',
 updating: 'Actualisation du stream…', proxyBad: 'Lien proxy enregistré invalide', demoServer: 'Serveur démo',
 fromCache: 'Stream sauvegardé — nouvel essai…', cacheShown: 'Échec de mise à jour — stream sauvegardé affiché',
 loadFailT: 'Échec du chargement', retryCta: 'Touchez pour réessayer', checkConn: 'Vérifiez la connexion puis réessayez',
@@ -891,7 +891,7 @@ skel: 'جاري البحث…', noLinks: 'لا توجد روابط بث', noLink
 noStream: 'لا يوجد بث متاح حالياً',
 note: (n) => n + ' سيرفر بث مباشر — إذا تقطّع البث جرّب السيرفر التالي. التبديل التلقائي يعمل عند حجب النوافذ.',
 watching: (name, i, total) => 'تشاهد الآن: ' + name + ' ⁦(' + (i + 1) + '/' + total + ')⁩',
-noValid: 'لا يوجد سيرفر صالح', tryingNext: 'نحاول سيرفراً آخر…', openTabHint: 'اضغط المصدر ↗ لفتحه في تبويب جديد', openedTab: 'تم الفتح في تبويب جديد', openTabBtn: '▶ شاهد — يفتح في تبويب جديد',
+noValid: 'لا يوجد سيرفر صالح', tryingNext: 'نحاول سيرفراً آخر…', openTabHint: 'اضغط المصدر ↗ لفتحه في تبويب جديد', openedTab: 'تم الفتح في تبويب جديد', openTabBtn: '▶ شاهد — يفتح في تبويب جديد', openTabSub: 'البث يفتح على صفحة المزوّد — بدون نوافذ منبثقة هنا',
 updating: 'جاري تحديث البث…', proxyBad: 'رابط البروكسي المحفوظ غير صالح', demoServer: 'سيرفر تجريبي',
 fromCache: 'البث من الذاكرة — إعادة المحاولة…', cacheShown: 'تعذّر التحديث — عرض البث المحفوظ',
 loadFailT: 'تعذّر التحميل', retryCta: 'اضغط لإعادة المحاولة', checkConn: 'تحقق من الاتصال ثم أعد المحاولة',
@@ -992,7 +992,7 @@ serversEl.innerHTML = serverList.map((s, i) => btnHtml(s, i, i === srvIdx)).join
 Array.prototype.forEach.call(serversEl.children, b => { if (b.getAttribute('data-i') !== null) b.onclick = () => goServer(+b.getAttribute('data-i'), false); });
 paintNow();
 if (srcNote && !srcNote.hidden) srcNote.textContent = t('note')(serverList.length);
-try { if (clickShield.dataset.newtab === '1'){ const b = document.getElementById('playBtn'); if (b) b.textContent = t('openTabBtn'); const h = clickShield.querySelector('small'); if (h) h.textContent = t('openTabHint'); } } catch (e) {}
+try { if (clickShield.dataset.newtab === '1'){ const b = document.getElementById('playBtn'); if (b) b.textContent = t('openTabBtn'); const h = clickShield.querySelector('small'); if (h) h.textContent = t('openTabSub'); } } catch (e) {}
 } else if (serversEl.querySelector('.skel')) showSkeleton();
 else if (serversEl.querySelector('#retryBtn')) showServersFromList([]);
 if (miData) renderMi();
@@ -2531,12 +2531,11 @@ function showTabCta(){
     const btn = document.getElementById('playBtn');
     if (btn) btn.textContent = t('openTabBtn');
     const hint = clickShield.querySelector('small');
-    if (hint) hint.textContent = t('openTabHint');
+    if (hint) hint.textContent = t('openTabSub');
     clickShield.dataset.newtab = '1';
     clickShield.classList.remove('hidden');
   } catch {}
   try { paintNow(); } catch {}
-  try { toast(t('openTabHint')); } catch {}
 }
 function goServer(i, auto, _tried){
   if (!serverList.length) return;
@@ -2556,11 +2555,12 @@ function goServer(i, auto, _tried){
   // "embed without sandbox") can only work at top level: open them in a tab
   // instead of the stage. The stage keeps its strict sandbox.
   if (s && s.newTab){
-    try {
-      const w = window.open(src, '_blank', 'noopener');
-      if (!w) toast(t('openTabHint'));
-      else toast(t('openedTab'));
-    } catch { toast(t('openTabHint')); }
+    // Anchor navigation, not window.open: popup blockers and in-app webviews
+    // (Facebook/Instagram browsers) kill window.open even inside a real tap,
+    // and `window.open(..., 'noopener')` returns null by spec, so the old code
+    // reported "tap the source" while nothing opened. A synthetic <a> click is
+    // a navigation, not a popup, so every browser honours it.
+    openTabUrl(src);
     try { paintNow(); } catch {}
     return;
   }
@@ -2587,6 +2587,20 @@ function goServer(i, auto, _tried){
   paintNow();
   rearmShield();
   if (auto) toast(t('tryingNext'));
+}
+function openTabUrl(url){
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    try { a.remove(); } catch {}
+    toast(t('openedTab'));
+    return true;
+  } catch (e) { return false; }
 }
 function rearmShield(){
   try { clickShield.dataset.newtab = ''; const b = document.getElementById('playBtn'); if (b) b.textContent = t('playBtn'); const h = clickShield.querySelector('small'); if (h) h.textContent = t('playHint'); } catch {}
