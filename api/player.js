@@ -1,6 +1,7 @@
 import { rl, cap, selfOrigin, fetchableUrl, readCapped } from './_sec.js';
 import { strumykMatch as sMatch, strumykDetail as sDetail, sfAnchor } from './_strumyk.js';
 import { streamfreeMatch as sfMatch, streamfreeVerify as sfVerify } from './_streamfree.js';
+import { koraMatch } from './_kora.js';
 export default async function handler(req, res) {
   const id = cap(req.query.id || '', 160);
   const href = cap(req.query.href || '', 500);
@@ -929,6 +930,14 @@ const resolveYacine = async (home, away, startIso) => {
         new Promise(r => setTimeout(() => r(null), Math.min(3000, Math.max(0, left() - 400)))),
       ]).catch(() => null)
           : Promise.resolve(null),
+    // Kora API (owner 2026-10-28): the new Yacine TV feed. Its player can only
+    // run TOP-LEVEL (frame.php sends frame-ancestors CSP and the HLS playlist
+    // has no CORS), so this is a NEW-TAB source -- see api/_kora.js.
+    canEn ? Promise.race([
+        koraMatch(matchHome, matchAway, kickoff, { en: wantEn }).catch(() => null),
+        new Promise(r => setTimeout(() => r(null), Math.min(3000, Math.max(0, left() - 400)))),
+      ]).catch(() => null)
+          : Promise.resolve(null),
   ]);
 
   // Allow yacine/hd7 lookup even when kooralive has no entry for this
@@ -1018,7 +1027,7 @@ const resolveYacine = async (home, away, startIso) => {
     // Yassir already answered (or was tried) in the fast path above; the
     // name-matched resolvers were started before this chain and are awaited
     // here. Yassir is folded in again only if the fast path did not return.
-    const [yacine, arenaHit, enHit, vipHit, sfHit, strumykHit] = await batchP;
+    const [yacine, arenaHit, enHit, vipHit, sfHit, strumykHit, koraHit] = await batchP;
     const servers = [];
     if (id && !yassirHit) {
       const y2 = await resolveYassir(id).catch(() => null);
@@ -1051,6 +1060,16 @@ const resolveYacine = async (home, away, startIso) => {
       yacine.servers.forEach((s, i) => pushUnique({
         label: 'سيرفر ' + (i + 1), url: s.url, kind: 'leaf',
       }));
+    }
+    // Kora API (owner 2026-10-28) — the new Yacine TV feed, replacing the dead
+    // yacinelive/yasirtv chain. Top-level only (their frame.php sends
+    // frame-ancestors CSP and the playlist has no CORS) -> new-tab source,
+    // exactly like StreamFree below. Autoplay never opens it by itself.
+    if (koraHit && koraHit.url && (!servers.length || !wantEn)) {
+      pushUnique({
+        label: wantEn ? 'EN' : 'AR', url: koraHit.url, kind: 'vipbox',
+        lang: wantEn ? 'en' : 'ar', ads: 1, newTab: 1,
+      });
     }
     // (Arena already merged first above.)
     // StreamFree English player page: their embed REFUSES a sandboxed frame
