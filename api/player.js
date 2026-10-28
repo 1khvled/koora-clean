@@ -1076,7 +1076,7 @@ const resolveYacine = async (home, away, startIso) => {
         if (!c || String(c.type) !== 'Frame') return;
         if (!/^https:\/\/sportiskos\.space\/streameast\.html\?/i.test(String(c.link || ''))) return;
         pushUnique({
-          label: 'EN', url: '/api/kora-stream.m3u8?m=' + koraHit.id + '&c=' + i,
+          label: 'EN', url: '/api/kora-stream?m=' + koraHit.id + '&c=' + i,
           kind: 'direct', lang: 'en', ads: 0, hls: 1,
         });
       });
