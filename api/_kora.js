@@ -174,15 +174,20 @@ export async function koraMatch(home, away, startIso, opts) {
 
 // ---- In-page playback (owner 2026-10-28) --------------------------------
 // "Frame" channels (Live 1..N) are thin wrappers around
-// a*.kora-plus.li/framestream.php. The page mints a token that decodes to a
-// playlist path; the SEGMENTS live on a.refram1.space and DO send
+// a*.kora-plus.li|mov/framestream.php. The page mints a token that decodes to
+// a playlist path; the SEGMENTS live on a CORS-open CDN (*.refram1.space or,
+// since 2026-11-21, *.kora-plus.mov) and DO send
 // `Access-Control-Allow-Origin: *` (measured on framestream + framelatin).
 // Only the tiny playlist is CORS-closed — so we fetch it server-side and hand
 // it to our own hls.js. Video bytes come straight from their CDN: in-page
 // playback with no bandwidth through us. Custom channels (b1/alwan1/main)
 // serve segments from kora-plus.li with NO CORS at all, so they stay newTab.
 const KEDGE = ['a11', 'a12', 'a13', 'a14', 'a15', 'a16'];
-const SEG_OK = /(^|\.)refram1\.space$/i;
+// Segment CDNs measured CORS-open (Access-Control-Allow-Origin: *):
+//   *.refram1.space  — legacy framestream/framelatin segments
+//   *.kora-plus.mov  — current framelatin segments (video/mp2t, ACAO *, 2026-11-21)
+// Custom channels serve from kora-plus.li/.app with NO CORS — never add them.
+const SEG_OK = /(^|\.)refram1\.space$|(^|\.)kora-plus\.mov$/i;
 const _mCache = globalThis.__koraMatchCache || (globalThis.__koraMatchCache = new Map());
 const _pCache = globalThis.__koraStreamCache || (globalThis.__koraStreamCache = new Map());
 
@@ -214,21 +219,39 @@ export async function koraMatchChannels(id) {
 
 // Provider wrapper -> the frame page that mints the token. strict allowlist,
 // so a tampered payload can never point us at an arbitrary host.
+// 2026-11-21: upstream migrated its Frame wrappers. The live payloads now use
+// redirectus.net (current) as well as the legacy sportiskos.space, and the
+// minting edges moved from kora-plus.li to kora-plus.mov. Both wrappers build
+// the SAME token-minting URLs, so this stays on the existing machinery.
+// Deliberately NOT allowlisted:
+//   golygoals.com/streame.html -> framecenter.php: real playlist (ACAO *) but
+//     its segments are TikTok PNG images (image/png, magic 89 50 4E 47), not
+//     video — hls.js cannot play them.
+//   sportsoonline.click -> dynbush.net/e/... -> "Not allowed / domain
+//     protected" page; no playlist at all.
+//   redirectus.net/streame.html -> framecenter.php: same image-only problem.
+//   redirectus.net/streameast.html -> framestream.php: mints fine, but every
+//     live id returned playlist HTTP 404 on all a11-a16 edges at test time.
 function frameFor(link) {
   try {
     const u = new URL(String(link || ''));
     if (u.protocol !== 'https:') return null;
-    if (!/(^|\.)sportiskos\.space$/i.test(u.hostname)) return null;
+    const cur = /(^|\.)redirectus\.net$/i.test(u.hostname);
+    if (!cur && !/(^|\.)sportiskos\.space$/i.test(u.hostname)) return null;
     const id = u.searchParams.get('id') || '';
     if (!/^[A-Za-z0-9_-]{3,64}$/.test(id)) return null;
-    if (u.pathname === '/streameast.html') return { page: 'framestream.php', q: 'id', id };
-    if (u.pathname === '/streamlat.html') return { page: 'framelatin.php', q: 'ch', id };
+    const domain = cur ? 'kora-plus.mov' : 'kora-plus.li';
+    // Legacy streameast (framestream.php) is kept for sportiskos only: on
+    // redirectus every live id returned playlist 404 (measured), so mapping it
+    // here would only create a button that 404s.
+    if (u.pathname === '/streameast.html' && !cur) return { page: 'framestream.php', q: 'id', id, domain };
+    if (u.pathname === '/streamlat.html') return { page: 'framelatin.php', q: 'ch', id, domain };
     return null;
   } catch { return null; }
 }
 
 async function mint(edge, f) {
-  const url = 'https://' + edge + '.kora-plus.li/' + f.page + '?' + f.q + '=' + encodeURIComponent(f.id);
+  const url = 'https://' + edge + '.' + (f.domain || 'kora-plus.li') + '/' + f.page + '?' + f.q + '=' + encodeURIComponent(f.id);
   const html = await aGet(url, 3500, {
     'User-Agent': UA,
     Referer: 'https://sportiskos.space/',
@@ -245,7 +268,10 @@ async function mint(edge, f) {
   let dec = '';
   try { dec = atob(String(tok).replace(/-/g, '+').replace(/_/g, '/')); } catch { return null; }
   let purl = null;
-  try { purl = new URL(dec, 'https://' + edge + '.kora-plus.li/'); } catch { return null; }
+  // The minted token is usually a RELATIVE playlist path — resolve it against
+  // the same edge domain we minted from (.li for legacy, .mov for current),
+  // otherwise the segments come back on a host SEG_OK does not allow.
+  try { purl = new URL(dec, 'https://' + edge + '.' + (f.domain || 'kora-plus.li') + '/'); } catch { return null; }
   if (!/(^|\.)kora-plus\.(li|app|mov)$/i.test(purl.hostname)) return null;
   const exp = Number((html.match(/exp:\s*(\d+)/) || [])[1] || 0);
   return { purl: purl.href, exp };
