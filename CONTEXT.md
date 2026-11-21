@@ -4,7 +4,43 @@
 > repo MUST update this file in the same commit: append to `Changelog`, update
 > `Current state`, `Pending`, and any section the change affects. Then push to
 > GitHub (pushes are pre-authorized by the owner). Never leave this file stale.
-> Last updated: 2026-10-28 (§185 — the new-tab button was swallowed by our own popup guard).
+> Last updated: 2026-11-21 (§186 — streams play inside the player again).
+
+## 186. Kora streams finally play inside the player (2026-11-21)
+
+- Owner furious: clicking play sent visitors OUTSIDE to
+  `https://goalidor.space/kora.html?m=650&ref=kooraadz.vercel.app` — wanted
+  playback inside the site, not a new tab.
+- Root cause: Kora channel iframes (`a*.kora-plus.li/frame.php`,
+  `framestream.php`, `framelatin.php`) ship `Content-Security-Policy:
+  frame-ancestors` limited to kora-plus.*/sportycos.com — cannot be embedded
+  (§184's newTab decision). Their AR "Custom" channels (b1/alwan1/main) also
+  serve segments off kora-plus.li with NO CORS — unusable in our player, so
+  they stay `newTab`.
+- Breakthrough: Kora "Frame" channels (Live 1..N; `streameast.html` ->
+  `framestream.php`, `streamlat.html` -> `framelatin.php`) mint a token that
+  decodes to a playlist path. That playlist is CORS-closed, but its SEGMENTS
+  live on `a.refram1.space` with `Access-Control-Allow-Origin: *` and are
+  MPEG-TS (magic byte 0x47). So we only need the tiny playlist.
+- Solution: `/api/player?kstream=1&m=<id>&c=<idx>` (folded INTO `api/player.js`)
+  mints the token server-side, rewrites segment URLs to absolute, allowlisted
+  CDN URLs and returns the small playlist with `no-store`. The client plays
+  that URL in the stage. Video bytes go straight from their CDN — zero
+  bandwidth through us.
+- Vercel trap: Hobby plan caps 12 Serverless Functions per deployment.
+  Adding `api/kora-stream.js` as a 13th made EVERY deploy fail — even empty
+  commits. Route folded into `player.js`. If future deploys suddenly all
+  fail, count `api/*.js` excluding `_*.js` first.
+- CSP: `connect-src` AND `media-src` now allow `https://a.refram1.space` +
+  `https://*.refram1.space`; `blob:` added to `media-src`.
+- Client: `player.html` / `player-inline.html` byte-identical. `goServer`
+  honours `s.hls`; `playHls()` lazily loads self-hosted `hls.light.min.js`
+  (v1.7.4 light build, ~380 KB, fetched ONLY when an HLS source is opened)
+  and prefers hls.js over native HLS — Chrome's native HLS refused the CDN's
+  `.txt`/text-plain segments (`MEDIA_ERR_SRC_NOT_SUPPORTED`) though it plays
+  normal HLS fine.
+- Autoplay prefers clean in-page sources; `newTab` sources are still NEVER
+  auto-opened; popup guard (§156/§185) and strict iframe sandbox unchanged.
 
 ## 185. The new-tab button was swallowed by our own popup guard (2026-10-28)
 
