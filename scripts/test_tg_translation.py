@@ -512,5 +512,86 @@ class SharedStatEchoTests(unittest.TestCase):
                       seen['system'])
 
 
+class CarlosEspiAssistTests(unittest.TestCase):
+    """Audit 2026-11-21, Offsideahdaff/390086 + 390081/390082.
+
+    Carlos Espí (كارلوس إسبي) is a real Real Madrid striker; the LLM swapped in
+    the tennis namesake Carlos Alcaraz and rendered the bare shield token as
+    "Isbi". The same post also merged a stats line into a self-contradictory
+    assist sentence. All offline: pure helpers + mocked engines only.
+    """
+
+    # Arabic source spellings of the player (kept as \u escapes like the rest
+    # of this file, so stdout never has to encode Arabic).
+    FULL = '\u0643\u0627\u0631\u0644\u0648\u0633 \u0625\u0633\u0628\u064a'
+    BARE = '\u0625\u0633\u0628\u064a'
+    ALT = '\u0627\u0633\u0628\u064a'
+    ASSIST_SRC = ('\u062c\u0648\u062f \u0628\u064a\u0644\u064a\u0646\u063a\u0647\u0627\u0645 '
+                  '\u0643\u064a\u0644\u064a\u0627\u0646 \u0645\u0628\u0627\u0628\u064a')
+
+    def test_source_shield_emits_carlos_espi_all_spellings(self):
+        for ar in (self.FULL, self.BARE, self.ALT):
+            self.assertEqual(tg.protect_names(ar), 'Carlos Esp\u00ed', ar)
+        # Longest-first: the full name must shield whole, never partially
+        # eaten by the bare "إسبي" rule, even when both occur in one post.
+        got = tg.protect_names(self.FULL + ' \u062b\u0645 ' + self.BARE)
+        self.assertEqual(got.count('Carlos Esp\u00ed'), 2, got)
+        self.assertNotIn('\u0625\u0633\u0628\u064a', got)
+        self.assertNotIn('\u0627\u0633\u0628\u064a', got)
+
+    def test_wrong_only_name_repairs(self):
+        for bad, good in (
+            ('Carlos Alcaraz scored', 'Carlos Esp\u00ed scored'),
+            ('Carlos Espe scored', 'Carlos Esp\u00ed scored'),
+            ("Isbi's world-class ball retention",
+             "Carlos Esp\u00ed's world-class ball retention"),
+            ('Ispi scored', 'Carlos Esp\u00ed scored'),
+        ):
+            self.assertEqual(tg.repair_names(bad), good, bad)
+
+    def test_legitimate_tennis_mention_survives(self):
+        # The Alcaraz key is scoped to "Carlos Alcaraz scored" (football verb),
+        # so a real tennis mention is never rewritten onto Espí.
+        for good in ('Carlos Alcaraz wins tennis title',
+                     'Carlos Alcaraz won the final in straight sets'):
+            self.assertEqual(tg.repair_names(good), good)
+
+    def test_self_contradictory_assist_is_rejected(self):
+        bad = ('Mbapp\u00e9 scored, assisted Jude Bellingham, and was assisted '
+               'by Jude Bellingham.')
+        self.assertTrue(tg._self_contradictory_assist(bad))
+        self.assertIsNone(
+            tg.validate_translation(self.ASSIST_SRC, bad, 'test'))
+        # The gate is the SAME one every engine path uses.
+        self.assertIsNone(tg._llm_accept(bad, self.ASSIST_SRC, 'test'))
+
+    def test_legitimate_two_way_assists_survive(self):
+        # A genuine give-and-go uses a qualifier and/or the active form twice;
+        # neither shape matches the narrow merge pattern.
+        for ok in ('Bellingham assisted Mbapp\u00e9, and later Mbapp\u00e9 '
+                   'assisted Bellingham.',
+                   'Bellingham assisted Mbapp\u00e9, and was later assisted '
+                   'by Mbapp\u00e9.'):
+            self.assertFalse(tg._self_contradictory_assist(ok), ok)
+            self.assertIsNotNone(
+                tg.validate_translation(self.ASSIST_SRC, ok, 'test'), ok)
+
+    def test_prompt_forbids_assist_flip_and_namesake_swap(self):
+        seen = {}
+
+        def fake_or(key, model, system, user, timeout=25):
+            seen['system'] = system
+            return GOOD_EN
+
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'openrouter_chat', side_effect=fake_or), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('no network')), \
+             mock.patch.object(tg, 'translate_free_ar_en', return_value=''):
+            tg.llm_fix(SRC_AR)
+        self.assertIn('Never turn one assist into two', seen['system'])
+        self.assertIn('never substitute a famous namesake', seen['system'])
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
