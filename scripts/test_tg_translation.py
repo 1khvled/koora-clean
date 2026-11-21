@@ -5,6 +5,7 @@ Every network boundary (Bot API, model APIs, machine translation, the source
 scraper) is mocked. Run with:  python scripts/test_tg_translation.py
 """
 import io
+import json
 import os
 import sys
 import unittest
@@ -792,6 +793,97 @@ class NameSweepTests(unittest.TestCase):
                    '\u0646\u0647\u0627\u064a\u0629 \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629',
                    '\u0627\u0644\u0641\u0631\u0635\u0629 \u0636\u0627\u0639\u062a'):
             self.assertEqual(tg.protect_names(ar), ar, ar)
+
+
+class NameMapFileTests(unittest.TestCase):
+    """The committed Wikidata-derived name map in name_map_ar_en.json.
+
+    Offline only: reads the file from disk, exercises the pure loader and the
+    source shield. The API is never contacted by these tests."""
+
+    ESPII = '\u0643\u0627\u0631\u0644\u0648\u0633 \u0625\u0633\u0628\u064a'
+    SWEDBERG = ('\u0641\u064a\u0644\u064a\u0648\u062a \u0633\u0641\u064a\u062f\u0628\u064a\u0631\u063a')
+    DURAN_N = '\u0628\u0627\u0628\u0644\u0648\u0646 \u062f\u0648\u0631\u0627\u0646'
+    DURAN = '\u0628\u0627\u0628\u0644\u0648 \u062f\u0648\u0631\u0627\u0646'
+    PAIRS = {
+        ESPII: 'Carlos Esp\u00ed',
+        SWEDBERG: 'Williot Swedberg',
+        DURAN_N: 'Pablo Dur\u00e1n',
+        DURAN: 'Pablo Dur\u00e1n',
+    }
+    QIDS = {
+        'Q124636010': 'Carlos Esp\u00ed',
+        'Q107485012': 'Williot Swedberg',
+        'Q114906705': 'Pablo Dur\u00e1n',
+    }
+
+    def _path(self):
+        return os.path.join(os.path.dirname(os.path.abspath(tg.__file__)),
+                            'name_map_ar_en.json')
+
+    def test_map_file_loads_and_shields_verified_names(self):
+        with open(self._path(), encoding='utf-8') as f:
+            data = json.load(f)
+        self.assertIsInstance(data, dict)
+        for ar, latin in self.PAIRS.items():
+            self.assertEqual(data.get(ar), latin, ar)
+            self.assertEqual(tg.protect_names(ar), latin, ar)
+        # Both spellings survive side by side; neither eats the other.
+        self.assertEqual(tg.protect_names(self.DURAN_N + ' ' + self.DURAN),
+                         'Pablo Dur\u00e1n Pablo Dur\u00e1n')
+
+    def test_qids_section_present_for_refresh(self):
+        with open(self._path(), encoding='utf-8') as f:
+            data = json.load(f)
+        self.assertEqual(data.get('qids'), self.QIDS)
+
+    def test_new_variant_is_live_in_compiled_roster(self):
+        # بابلون دوران (with ن) is NOT in the hand-curated _AR_PROTECT list;
+        # its presence in the compiled map proves the JSON loader ran at
+        # import time, before _build_protect().
+        key = tg._ar_norm1(self.DURAN_N)
+        self.assertIn(key, tg._PROTECT_MAP)
+        self.assertEqual(tg._PROTECT_MAP[key], 'Pablo Dur\u00e1n')
+        self.assertEqual(tg.protect_names(self.DURAN_N), 'Pablo Dur\u00e1n')
+
+    def test_loader_dedupes_and_skips_qids(self):
+        fake_json = json.dumps({
+            self.ESPII: 'Carlos Esp\u00ed',
+            self.DURAN_N: 'Pablo Dur\u00e1n',
+            'qids': {'Q114906705': 'Pablo Dur\u00e1n'},
+        }, ensure_ascii=False)
+        original = tg._AR_PROTECT
+        try:
+            tg._AR_PROTECT = [(self.ESPII, 'Carlos Esp\u00ed')]
+            with mock.patch('builtins.open',
+                            mock.mock_open(read_data=fake_json)):
+                got = tg._load_name_map()
+        finally:
+            tg._AR_PROTECT = original
+        # The already-rostered name is skipped; qids is never a pair.
+        self.assertEqual(got, [(self.DURAN_N, 'Pablo Dur\u00e1n')])
+
+    def test_missing_or_malformed_json_degrades_silently(self):
+        with mock.patch('builtins.open', side_effect=FileNotFoundError):
+            self.assertEqual(tg._load_name_map(), [])
+        with mock.patch('builtins.open',
+                        mock.mock_open(read_data='{not valid json')):
+            self.assertEqual(tg._load_name_map(), [])
+        with mock.patch('builtins.open',
+                        mock.mock_open(read_data='["not", "an", "object"]')):
+            self.assertEqual(tg._load_name_map(), [])
+        # A broken map never disables the hand-curated shield.
+        self.assertEqual(tg.protect_names(self.ESPII), 'Carlos Esp\u00ed')
+        self.assertIsNotNone(tg._PROTECT_RX)
+
+    def test_unrelated_names_unchanged_by_map(self):
+        for ar in ('\u0627\u0644\u062d\u0643\u0645 \u064a\u0631\u0627\u062c\u0639 '
+                   '\u0627\u0644\u0642\u0631\u0627\u0631',
+                   '\u0646\u0647\u0627\u064a\u0629 \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629'):
+            self.assertEqual(tg.protect_names(ar), ar, ar)
+        for good in ('Oscar Bobb scored', 'Donyell Malen scored',
+                     'Senny Mayulu assisted'):
+            self.assertEqual(tg.repair_names(good), good, good)
 
 
 if __name__ == '__main__':
