@@ -1243,6 +1243,27 @@ _NAME_CANON = {
     'carlos espe': 'Carlos Espí',
     'isbi': 'Carlos Espí',
     'ispi': 'Carlos Espí',
+    # 2026-11-22 name sweep: wrong-only Latin spellings actually emitted by
+    # the bot in the harvested channel history. Each pairs with the shield
+    # key above; no key is a real player's name (so a legitimate same-spelled
+    # name is never rewritten). Full names or distinctive two-word keys only.
+    'rodrygo moizes': 'Rodrigo Muniz',   # source رودريغو مونيز (Fulham)
+    'oscar bob': 'Oscar Bobb',
+    'jack rodinei': 'Jack Rudoni',       # source جاك رودوني
+    'emmanuel imeaga': 'Emmanuel Emegha',  # source إيمانويل إميغا
+    'jonathan claes': 'Jonathan Clauss',   # source جوناثان كلاوس
+    'senne mayulu': 'Senny Mayulu',        # official PSG: Senny
+    'malick thiao': 'Malick Thiaw',        # official Newcastle: Thiaw
+    'kiki salas': 'Kike Salas',            # official Sevilla: Kike
+    'isak romero': 'Isaac Romero',         # official Sevilla: Isaac
+    'tighani nusselin': 'Tijjani Noslin',  # official Lazio: Tijjani Noslin
+    'david frattesi': 'Davide Frattesi',   # official Lazio: Davide
+    'nijst elvige': 'Nesta Elphege',       # official Parma: Nesta Elphege
+    'emanuel loai': 'Emanuele Lulli',      # official Roma: Emanuele Lulli
+    'donny malen': 'Donyell Malen',
+    'luka williams-barnett': 'Luca Williams-Barnett',
+    'luke williams-barnett': 'Luca Williams-Barnett',
+    'luka williams-barrett': 'Luca Williams-Barnett',
 }
 
 # Keys whose token can also occur INSIDE a correct canonical form need
@@ -1816,6 +1837,74 @@ _AR_PROTECT = [
     ('كولومبيا', 'Colombia'),
     ('اليابان', 'Japan'),
     ('كوريا الجنوبية', 'South Korea'),
+    # --- 2026-11-22 name sweep: source-channel goal-event names ------------
+    # Harvested read-only from ~460 public source posts (Offsideahdaff) and
+    # paired with ~460 bot outputs (messistatdotcom) by SAME minute + scoreline
+    # + both teams, then every Latin spelling checked against an authoritative
+    # source (official club/league sites, Wikipedia, ESPN). These are the names
+    # the shield must emit BEFORE the LLM sees the post: left unshielded, the
+    # model transliterates them by ear and invents namesakes (the Carlos Espí
+    # / Alcaraz failure). _build_protect sorts longest-first, so the full-name
+    # keys below always win over any shorter tail.
+    # --- Man City / Fulham / Coventry / Palace ---
+    ('إليوت أندرسون', 'Elliot Anderson'),
+    ('رودريغو مونيز', 'Rodrigo Muniz'),
+    ('أوسكار بوب', 'Oscar Bobb'),
+    ('تايوو أونيي', 'Taiwo Awoniyi'),
+    ('تايو أونيي', 'Taiwo Awoniyi'),
+    ('جاك رودوني', 'Jack Rudoni'),
+    ('يورغن ستراند لارسن', 'Jørgen Strand Larsen'),
+    ('تاتسوهيرو ساكاموتو', 'Tatsuhiro Sakamoto'),
+    # bare source spelling ("ساكاموتو.") -- without this the shorter 'ساكا'
+    # (Saka) key would partially rewrite it; longest-first resolves it.
+    ('ساكاموتو', 'Tatsuhiro Sakamoto'),
+    # --- Tottenham / Bournemouth / Leeds / Chelsea ---
+    ('لوكا ويليامز-بارنيت', 'Luca Williams-Barnett'),
+    ('لوكا ويليامز بارنيت', 'Luca Williams-Barnett'),
+    ('لوكا ويليامز بارنت', 'Luca Williams-Barnett'),
+    ('بيدرو بورو', 'Pedro Porro'),
+    ('دومينيك سولانكي', 'Dominic Solanke'),
+    ('إيفانيلسون', 'Evanilson'),
+    ('جيمس هيل', 'James Hill'),
+    ('جاستن كلويفرت', 'Justin Kluivert'),
+    ('ماركوس تافيرنييه', 'Marcus Tavernier'),
+    ('إيمانويل إميغا', 'Emmanuel Emegha'),
+    ('دومينيك كالفرت لوين', 'Dominic Calvert-Lewin'),
+    ('نوح أوكافور', 'Noah Okafor'),
+    ('دوايت ماكنيل', 'Dwight McNeil'),
+    # --- Nice / PSG ---
+    ('محمد الأمين عمورة', 'Mohamed Amine Amoura'),
+    ('جوناثان كلاوس', 'Jonathan Clauss'),
+    ('سيني مايولو', 'Senny Mayulu'),
+    # --- Newcastle ---
+    ('هارفي بارنز', 'Harvey Barnes'),
+    ('ويليام أوسولا', 'William Osula'),
+    ('مالك ثياو', 'Malick Thiaw'),
+    ('جو ويلوك', 'Joe Willock'),
+    ('لويس هال', 'Lewis Hall'),
+    ('سفين بوتمان', 'Sven Botman'),
+    # --- Betis / Sevilla / Celta ---
+    ('أنتوني', 'Antony'),
+    ('إيسكو', 'Isco'),
+    ('كيكي سالاس', 'Kike Salas'),
+    ('إسحاق روميرو', 'Isaac Romero'),
+    ('ياغو أسباس', 'Iago Aspas'),
+    # --- Lazio / Roma / Parma / Como / Dortmund / Napoli ---
+    ('تيجاني نوسلين', 'Tijjani Noslin'),
+    ('غوستاف إيزاكسن', 'Gustav Isaksen'),
+    ('كينيث تايلور', 'Kenneth Taylor'),
+    ('ديفيد فراتيسي', 'Davide Frattesi'),
+    ('نيستا إلفيج', 'Nesta Elphege'),
+    ('ماريانو ترويلو', 'Mariano Troilo'),
+    ('إيمانويل لولي', 'Emanuele Lulli'),
+    ('خاكوبو رامون', 'Jacobo Ramón'),
+    ('يان كوتو', 'Yan Couto'),
+    ('لوكاس دا كونيا', 'Lucas Da Cunha'),
+    ('فيليكس نميتشا', 'Felix Nmecha'),
+    ('نوا لانغ', 'Noa Lang'),
+    # source spells this one دونيل (one ي) while the older roster key has
+    # دونييل -- both must be present; _ar_norm1 does not fold letter counts.
+    ('دونيل مالين', 'Donyell Malen'),
 ]
 
 

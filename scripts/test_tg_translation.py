@@ -593,5 +593,206 @@ class CarlosEspiAssistTests(unittest.TestCase):
         self.assertIn('never substitute a famous namesake', seen['system'])
 
 
+class NameSweepTests(unittest.TestCase):
+    """2026-11-22 name sweep.
+
+    Read-only harvest of ~460 public source posts (Offsideahdaff) paired with
+    ~460 bot outputs (messistatdotcom) by the SAME minute + scoreline + both
+    teams. Every Latin spelling below was checked against an authoritative
+    source (official club/league sites, Wikipedia, ESPN) before being added.
+    All offline: pure helpers, no model / network / Telegram calls.
+    """
+
+    # Arabic source spelling -> verified canonical Latin name. Kept as \u
+    # escapes (like the rest of this file) so stdout never encodes Arabic.
+    SHIELD = [
+        ('\u0625\u0644\u064a\u0648\u062a \u0623\u0646\u062f\u0631\u0633\u0648\u0646', 'Elliot Anderson'),
+        ('\u0631\u0648\u062f\u0631\u064a\u063a\u0648 \u0645\u0648\u0646\u064a\u0632', 'Rodrigo Muniz'),
+        ('\u0623\u0648\u0633\u0643\u0627\u0631 \u0628\u0648\u0628', 'Oscar Bobb'),
+        ('\u062a\u0627\u064a\u0648\u0648 \u0623\u0648\u0646\u064a\u064a', 'Taiwo Awoniyi'),
+        ('\u062c\u0627\u0643 \u0631\u0648\u062f\u0648\u0646\u064a', 'Jack Rudoni'),
+        ('\u064a\u0648\u0631\u063a\u0646 \u0633\u062a\u0631\u0627\u0646\u062f \u0644\u0627\u0631\u0633\u0646', 'J\u00f8rgen Strand Larsen'),
+        ('\u062a\u0627\u062a\u0633\u0648\u0647\u064a\u0631\u0648 \u0633\u0627\u0643\u0627\u0645\u0648\u062a\u0648', 'Tatsuhiro Sakamoto'),
+        ('\u0633\u0627\u0643\u0627\u0645\u0648\u062a\u0648', 'Tatsuhiro Sakamoto'),
+        ('\u0644\u0648\u0643\u0627 \u0648\u064a\u0644\u064a\u0627\u0645\u0632-\u0628\u0627\u0631\u0646\u064a\u062a', 'Luca Williams-Barnett'),
+        ('\u0628\u064a\u062f\u0631\u0648 \u0628\u0648\u0631\u0648', 'Pedro Porro'),
+        ('\u062f\u0648\u0645\u064a\u0646\u064a\u0643 \u0633\u0648\u0644\u0627\u0646\u0643\u064a', 'Dominic Solanke'),
+        ('\u0625\u064a\u0641\u0627\u0646\u064a\u0644\u0633\u0648\u0646', 'Evanilson'),
+        ('\u062c\u064a\u0645\u0633 \u0647\u064a\u0644', 'James Hill'),
+        ('\u062c\u0627\u0633\u062a\u0646 \u0643\u0644\u0648\u064a\u0641\u0631\u062a', 'Justin Kluivert'),
+        ('\u0645\u0627\u0631\u0643\u0648\u0633 \u062a\u0627\u0641\u064a\u0631\u0646\u064a\u064a\u0647', 'Marcus Tavernier'),
+        ('\u0625\u064a\u0645\u0627\u0646\u0648\u064a\u0644 \u0625\u0645\u064a\u063a\u0627', 'Emmanuel Emegha'),
+        ('\u062f\u0648\u0645\u064a\u0646\u064a\u0643 \u0643\u0627\u0644\u0641\u0631\u062a \u0644\u0648\u064a\u0646', 'Dominic Calvert-Lewin'),
+        ('\u0646\u0648\u062d \u0623\u0648\u0643\u0627\u0641\u0648\u0631', 'Noah Okafor'),
+        ('\u0645\u062d\u0645\u062f \u0627\u0644\u0623\u0645\u064a\u0646 \u0639\u0645\u0648\u0631\u0629', 'Mohamed Amine Amoura'),
+        ('\u062c\u0648\u0646\u0627\u062b\u0627\u0646 \u0643\u0644\u0627\u0648\u0633', 'Jonathan Clauss'),
+        ('\u0633\u064a\u0646\u064a \u0645\u0627\u064a\u0648\u0644\u0648', 'Senny Mayulu'),
+        ('\u0647\u0627\u0631\u0641\u064a \u0628\u0627\u0631\u0646\u0632', 'Harvey Barnes'),
+        ('\u0648\u064a\u0644\u064a\u0627\u0645 \u0623\u0648\u0633\u0648\u0644\u0627', 'William Osula'),
+        ('\u0645\u0627\u0644\u0643 \u062b\u064a\u0627\u0648', 'Malick Thiaw'),
+        ('\u0623\u0646\u062a\u0648\u0646\u064a', 'Antony'),
+        ('\u0625\u064a\u0633\u0643\u0648', 'Isco'),
+        ('\u0643\u064a\u0643\u064a \u0633\u0627\u0644\u0627\u0633', 'Kike Salas'),
+        ('\u0625\u0633\u062d\u0627\u0642 \u0631\u0648\u0645\u064a\u0631\u0648', 'Isaac Romero'),
+        ('\u062a\u064a\u062c\u0627\u0646\u064a \u0646\u0648\u0633\u0644\u064a\u0646', 'Tijjani Noslin'),
+        ('\u063a\u0648\u0633\u062a\u0627\u0641 \u0625\u064a\u0632\u0627\u0643\u0633\u0646', 'Gustav Isaksen'),
+        ('\u0643\u064a\u0646\u064a\u062b \u062a\u0627\u064a\u0644\u0648\u0631', 'Kenneth Taylor'),
+        ('\u062f\u064a\u0641\u064a\u062f \u0641\u0631\u0627\u062a\u064a\u0633\u064a', 'Davide Frattesi'),
+        ('\u0646\u064a\u0633\u062a\u0627 \u0625\u0644\u0641\u064a\u062c', 'Nesta Elphege'),
+        ('\u0645\u0627\u0631\u064a\u0627\u0646\u0648 \u062a\u0631\u0648\u064a\u0644\u0648', 'Mariano Troilo'),
+        ('\u0625\u064a\u0645\u0627\u0646\u0648\u064a\u0644 \u0644\u0648\u0644\u064a', 'Emanuele Lulli'),
+        ('\u062e\u0627\u0643\u0648\u0628\u0648 \u0631\u0627\u0645\u0648\u0646', 'Jacobo Ram\u00f3n'),
+        ('\u064a\u0627\u0646 \u0643\u0648\u062a\u0648', 'Yan Couto'),
+        ('\u0644\u0648\u0643\u0627\u0633 \u062f\u0627 \u0643\u0648\u0646\u064a\u0627', 'Lucas Da Cunha'),
+        ('\u0641\u064a\u0644\u064a\u0643\u0633 \u0646\u0645\u064a\u062a\u0634\u0627', 'Felix Nmecha'),
+        ('\u0646\u0648\u0627 \u0644\u0627\u0646\u063a', 'Noa Lang'),
+        ('\u062f\u0648\u0646\u064a\u0644 \u0645\u0627\u0644\u064a\u0646', 'Donyell Malen'),
+    ]
+
+    def test_new_names_shielded_before_llm(self):
+        for ar, latin in self.SHIELD:
+            self.assertEqual(tg.protect_names(ar), latin, ar)
+        # every key is live in the compiled roster
+        for ar, _latin in self.SHIELD:
+            self.assertIn(tg._ar_norm1(ar), tg._PROTECT_MAP, ar)
+
+    def test_wrong_only_latin_variants_repaired(self):
+        for bad, good in (
+            ('Rodrygo Moizes scored', 'Rodrigo Muniz scored'),
+            ('Oscar Bob assisted', 'Oscar Bobb assisted'),
+            ('Jack Rodinei provided the assist', 'Jack Rudoni provided the assist'),
+            ('Emmanuel Imeaga scored the opener', 'Emmanuel Emegha scored the opener'),
+            ('Jonathan Claes provided the assist',
+             'Jonathan Clauss provided the assist'),
+            ('Senne Mayulu scored for Paris Saint-Germain',
+             'Senny Mayulu scored for Paris Saint-Germain'),
+            ('Malick Thiao scored a second goal', 'Malick Thiaw scored a second goal'),
+            ('Kiki Salas scored the equalizer', 'Kike Salas scored the equalizer'),
+            ('Isak Romero was involved', 'Isaac Romero was involved'),
+            ('Tighani Nusselin scored twice', 'Tijjani Noslin scored twice'),
+            ('David Frattesi added the third', 'Davide Frattesi added the third'),
+            ('Nijst Elvige scored', 'Nesta Elphege scored'),
+            ('Emanuel Loai assisted', 'Emanuele Lulli assisted'),
+            ('Donny Malen scored', 'Donyell Malen scored'),
+            ('Luka Williams-Barnett scored', 'Luca Williams-Barnett scored'),
+            ('Luke Williams-Barnett scored', 'Luca Williams-Barnett scored'),
+            ('Luka Williams-Barrett and Pedro Porro scored',
+             'Luca Williams-Barnett and Pedro Porro scored'),
+        ):
+            self.assertEqual(tg.repair_names(bad), good, bad)
+
+    def test_full_source_sentences_emit_all_names(self):
+        # Real captions from the harvested source channel. Checks both that
+        # every expected name is present and that no Arabic name is left over
+        # for the model to transliterate.
+        cases = [
+            ("\u062f57' | \u0647\u062f\u0641 \u0627\u0644\u062a\u0639\u0627\u062f\u0644 \u0644\u0640 "
+             "\u0645\u0627\u0646\u0634\u0633\u062a\u0631 \u0633\u064a\u062a\u064a \u0636\u062f "
+             "\u0641\u0648\u0644\u0647\u0627\u0645. [1-1]\r\n\r\n\u26a1\ufe0f "
+             "\u0625\u0644\u064a\u0648\u062a \u0623\u0646\u062f\u0631\u0633\u0648\u0646.",
+             ['Elliot Anderson']),
+            ("\u062f5' | \u0647\u062f\u0641 \u0623\u0648\u0644 \u0644\u0640 \u0643\u0648\u0641\u0646\u062a\u0631\u064a "
+             "\u0633\u064a\u062a\u064a \u0636\u062f \u0643\u0631\u064a\u0633\u062a\u0627\u0644 \u0628\u0627\u0644\u0627\u0633. "
+             "[1-0]\r\n\r\n\u26a1\ufe0f \u062a\u0627\u064a\u0648\u0648 \u0623\u0648\u0646\u064a\u064a.\r\n"
+             "\U0001f3af \u062c\u0627\u0643 \u0631\u0648\u062f\u0648\u0646\u064a.",
+             ['Taiwo Awoniyi', 'Jack Rudoni']),
+            ("\u0646\u0647\u0627\u064a\u0629 \u0627\u0644\u0634\u0648\u0637 \u0627\u0644\u0623\u0648\u0644 "
+             "[\u0627\u0644\u062f\u0648\u0631\u064a \u0627\u0644\u0641\u0631\u0646\u0633\u064a]:\r\n\r\n"
+             "\u0645\u062d\u0645\u062f \u0627\u0644\u0623\u0645\u064a\u0646 \u0639\u0645\u0648\u0631\u0629 "
+             "\u062c\u0648\u0646\u0627\u062b\u0627\u0646 \u0643\u0644\u0627\u0648\u0633 "
+             "\u0633\u064a\u0646\u064a \u0645\u0627\u064a\u0648\u0644\u0648 "
+             "\u062f\u064a\u0632\u064a\u0631\u064a \u062f\u0648\u064a \u0623\u0634\u0631\u0641 \u062d\u0643\u064a\u0645\u064a.",
+             ['Mohamed Amine Amoura', 'Jonathan Clauss', 'Senny Mayulu',
+              'D\u00e9sir\u00e9 Dou\u00e9', 'Achraf Hakimi']),
+            ("\u0646\u0647\u0627\u064a\u0629 \u0627\u0644\u0645\u064f\u0628\u0627\u0631\u0627\u0629 "
+             "[\u0627\u0644\u062f\u0648\u0631\u064a \u0627\u0644\u0625\u064a\u0637\u0627\u0644\u064a]:\r\n\r\n"
+             "\u062a\u064a\u062c\u0627\u0646\u064a \u0646\u0648\u0633\u0644\u064a\u0646 "
+             "\u063a\u0648\u0633\u062a\u0627\u0641 \u0625\u064a\u0632\u0627\u0643\u0633\u0646 "
+             "\u0643\u064a\u0646\u064a\u062b \u062a\u0627\u064a\u0644\u0648\u0631 "
+             "\u062f\u064a\u0641\u064a\u062f \u0641\u0631\u0627\u062a\u064a\u0633\u064a.",
+             ['Tijjani Noslin', 'Gustav Isaksen', 'Kenneth Taylor',
+              'Davide Frattesi']),
+            ("\u0646\u064a\u0633\u062a\u0627 \u0625\u0644\u0641\u064a\u062c "
+             "\u0645\u0627\u0631\u064a\u0627\u0646\u0648 \u062a\u0631\u0648\u064a\u0644\u0648 "
+             "\u062f\u0648\u0646\u064a\u0644 \u0645\u0627\u0644\u064a\u0646 "
+             "\u0625\u064a\u0645\u0627\u0646\u0648\u064a\u0644 \u0644\u0648\u0644\u064a.",
+             ['Nesta Elphege', 'Mariano Troilo', 'Donyell Malen',
+              'Emanuele Lulli']),
+        ]
+        for src, wants in cases:
+            out = tg.protect_names(src)
+            for w in wants:
+                self.assertIn(w, out, (w, out))
+            for ar, _latin in self.SHIELD:
+                self.assertNotIn(ar, out, ar)
+
+    def test_longest_first_no_partial_rewrite(self):
+        # A short key must never eat the tail of a longer one, even when both
+        # occur in the same caption.
+        cases = [
+            ('\u0631\u0648\u062f\u0631\u064a\u063a\u0648 \u0645\u0648\u0646\u064a\u0632 '
+             '\u0648\u0631\u0648\u062f\u0631\u064a\u063a\u0648',
+             ['Rodrigo Muniz', 'Rodrygo']),
+            ('\u063a\u0648\u0633\u062a\u0627\u0641 \u0625\u064a\u0632\u0627\u0643\u0633\u0646 '
+             '\u0648\u0623\u0644\u0643\u0633\u0646\u062f\u0631 \u0625\u064a\u0632\u0627\u0643',
+             ['Gustav Isaksen', 'Alexander Isak']),
+            ('\u0633\u0627\u0643\u0627\u0645\u0648\u062a\u0648 \u0648\u0628\u0648\u0643\u0627\u064a\u0648 \u0633\u0627\u0643\u0627',
+             ['Tatsuhiro Sakamoto', 'Bukayo Saka']),
+            ('\u062f\u0648\u0646\u064a\u0644 \u0645\u0627\u0644\u064a\u0646 '
+             '\u0648\u062f\u0648\u0646\u064a\u064a\u0644 \u0645\u0627\u0644\u064a\u0646',
+             ['Donyell Malen', 'Donyell Malen']),
+        ]
+        for src, wants in cases:
+            out = tg.protect_names(src)
+            for w in wants:
+                self.assertIn(w, out, (w, out))
+        # the two Malen spellings in the source both resolve to Donyell Malen,
+        # never a half-rewritten "Malen" tail
+        malen_src = cases[-1][0]
+        self.assertEqual(tg.protect_names(malen_src).count('Donyell Malen'), 2)
+
+    # --- negative cases: unrelated names MUST stay byte-identical ---------
+    def test_unrelated_correct_names_unchanged(self):
+        for good in (
+            'Oscar Bobb scored',                 # not the "Oscar Bob" mangle
+            'Senny Mayulu assisted',             # correct spelling
+            'Malick Thiaw scored',               # correct spelling
+            'Kike Salas and Isaac Romero scored',  # correct spellings
+            'Tijjani Noslin scored twice',       # correct spelling
+            'Davide Frattesi added the third',   # correct spelling
+            'Nesta Elphege scored',              # correct spelling
+            'Emanuele Lulli assisted',           # correct spelling
+            'Luca Williams-Barnett scored',      # correct spelling
+            'Donyell Malen scored',              # correct spelling
+            'Jack Rudoni provided the assist',   # correct spelling
+            'Emmanuel Emegha scored',            # correct spelling
+            'Jonathan Clauss provided the assist',  # correct spelling
+            'Rodrigo Muniz scored',              # correct spelling
+        ):
+            self.assertEqual(tg.repair_names(good), good, good)
+
+    def test_unrelated_people_and_english_words_unchanged(self):
+        # No bare famous name was added as a canon key, so a legitimate
+        # different player / ordinary word passes through untouched.
+        for good in (
+            'Anthony Gordon scored for Newcastle',
+            'David Silva controlled the midfield',
+            'James Maddison assisted Son Heung-min',
+            'Lucas Hernandez joined the defence',
+            'Kepa Arrizabalaga saved the penalty',
+            'The manager made three changes at half-time',
+        ):
+            self.assertEqual(tg.repair_names(good), good, good)
+
+    def test_unrelated_arabic_prose_unchanged(self):
+        # Shield leaves ordinary football prose byte-identical (apart from
+        # the standard diacritic / elongation normalization).
+        for ar in ('\u0627\u0644\u062d\u0643\u0645 \u064a\u0631\u0627\u062c\u0639 '
+                   '\u0627\u0644\u0642\u0631\u0627\u0631',
+                   '\u0646\u0647\u0627\u064a\u0629 \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629',
+                   '\u0627\u0644\u0641\u0631\u0635\u0629 \u0636\u0627\u0639\u062a'):
+            self.assertEqual(tg.protect_names(ar), ar, ar)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
