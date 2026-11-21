@@ -2158,6 +2158,9 @@ def llm_fix(text):
               'score, card, transfer, quote, lineup). Never write empty '
               'praise or restate the header ("made a significant impact", '
               '"faces X in an exciting matchup"). '
+              'The bullet must add a NEW fact or detail, never restate the '
+              'headline in different words; if there is nothing new, output '
+              'the headline alone with no bullet. '
               'Input-bound facts only: every club, player, competition and '
               'place named in the output must appear in the input -- never a '
               "player's former club, never an invented venue. "
@@ -2319,6 +2322,64 @@ def _roster_toks():
     return _ROSTER_TOKS
 
 
+# Stopwords ignored when measuring CONTENT overlap for paraphrase echoes.
+# Digits are deliberately NOT here: a new number is a new fact (keep signal).
+_DEDUP_STOP = frozenset([
+    'a', 'an', 'the', 'to', 'of', 'from', 'in', 'on', 'for', 'with', 'and',
+    'is', 'was', 'were', 'be', 'been', 'has', 'have', 'had', 'it', 'its',
+    'that', 'this', 'as', 'at', 'by',
+])
+_DEDUP_JACCARD = 0.5
+# Opposite actions mean a DIFFERENT event, never a paraphrase. Reuse the
+# contradiction gate's pairs and add scored <-> assist ("scored" / "assisted"
+# are two facts about the same minute, not a restatement).
+_DEDUP_ACTION_PAIRS = _CONTRADICTORY_ACTIONS + (
+    (re.compile(r'(?i)\b(?:scored|netted|goals?)\b'),
+     re.compile(r'(?i)\bassist(?:ed|s)?\b')),
+)
+
+
+def _content_toks(toks):
+    """Content words only (stopwords gone, digits kept as facts)."""
+    return {w for w in toks if w not in _DEDUP_STOP}
+
+
+def _diff_action(a, b):
+    """True when the two lines describe opposite football actions."""
+    for a_rx, b_rx in _DEDUP_ACTION_PAIRS:
+        if ((a_rx.search(a) and b_rx.search(b)) or
+                (b_rx.search(a) and a_rx.search(b))):
+            return True
+    return False
+
+
+def _paraphrase_echo(cand_key, cand_toks, prev_key, prev_toks):
+    """True when the LATER line restates an earlier kept line in different
+    words with no new facts. Conservative: high content overlap plus zero new
+    digits / roster names / negations / opposite actions. Never raises."""
+    try:
+        c = _content_toks(cand_toks)
+        p = _content_toks(prev_toks)
+        if not c or not p:
+            return False
+        if len(c & p) / float(len(c | p)) < _DEDUP_JACCARD:
+            return False
+        new = c - p
+        if any(any(ch.isdigit() for ch in w) for w in new):
+            return False                       # new minute/score = new fact
+        if new & _roster_toks():
+            return False                       # new player/club = new fact
+        if c & _DEDUP_NEG:
+            return False                       # negation flips the meaning
+        if 't' in c and re.search(r"\b\w+['\u2019]t\b", cand_key):
+            return False                       # "don't", "didn't" -> contraction
+        if _diff_action(cand_key, prev_key):
+            return False                       # shot/pass, scored/missed, scored/assist
+        return True
+    except Exception:
+        return False
+
+
 def dedupe_lines(text):
     """Drop repeated lines (case/punctuation-insensitive, bullet-aware), keep
     first occurrence. Also drops near-echo restatements: when one line's
@@ -2327,8 +2388,13 @@ def dedupe_lines(text):
     news (observed: "Third Mia Mia Mia" / "The third Mia Mia Mia chant").
     Audit 2026-11-21: tokens are now alphanumeric runs, so a trailing full
     stop no longer makes "unbelievable." different from "unbelievable".
-    The digit / roster / _DEDUP_NEG exceptions are unchanged. Never raises;
-    returns the text unchanged when nothing repeats."""
+    The digit / roster / _DEDUP_NEG exceptions are unchanged. Audit 2026-11-21
+    adds an ADDITIONAL rule (never a replacement): a later line that restates
+    an earlier one in different words is dropped too -- high content-word
+    overlap with no new digit, roster name, negation or opposite action. This
+    catches "cover saves Madrid from a second goal" / "provided crucial cover
+    to prevent Madrid conceding a second goal". Never raises; returns the text
+    unchanged when nothing repeats."""
     try:
         import re as _re
 
@@ -2360,6 +2426,13 @@ def dedupe_lines(text):
                 elif stoks <= toks:
                     extra, longer = toks - stoks, key
                 else:
+                    extra = None
+                if extra is None:
+                    # ADDITIONAL rule: same facts, different wording. Drop the
+                    # LATER line (candidate), keep the first/header line.
+                    if _paraphrase_echo(key, toks, s, stoks):
+                        drop = True
+                        break
                     continue
                 # Contractions tokenise as a stem + "t" ("don't" -> don, t),
                 # so keep the original raw key in the loop for that check.

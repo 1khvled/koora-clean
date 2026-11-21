@@ -340,5 +340,71 @@ class AuditFixTests(unittest.TestCase):
         self.assertIn('\n\u2022 Lamine Yamal scored', got)
 
 
+class ParaphraseEchoTests(unittest.TestCase):
+    """Audit 2026-11-21: a bullet that restates the headline in different
+    words is an echo, but genuine follow-ups must survive."""
+
+    HEADER = "Konat\u00e9's defensive cover saves Madrid from a second goal"
+
+    def test_konate_paraphrase_echo_dropped(self):
+        text = (self.HEADER + '\n'
+                '\u2022 Konat\u00e9 provided crucial defensive cover to prevent '
+                'Madrid from conceding a second goal.')
+        got = tg.dedupe_lines(text)
+        self.assertEqual(got, self.HEADER)
+        self.assertNotIn('provided crucial', got)
+
+    def test_mbappe_unbelievable_echo_still_dropped(self):
+        # The older strict-subset case must keep working after the change.
+        got = tg.dedupe_lines('Mbapp\u00e9 unbelievable\n'
+                              '\u2022 Mbapp\u00e9 is unbelievable.')
+        self.assertEqual(got, 'Mbapp\u00e9 unbelievable')
+
+    def test_followup_different_player_survives(self):
+        text = self.HEADER + '\n\u2022 Vin\u00edcius scored in the 73rd minute.'
+        got = tg.dedupe_lines(text)
+        self.assertIn('Vin\u00edcius scored', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_followup_new_minute_survives(self):
+        text = ('Mbapp\u00e9 scored in the 20th minute of the match\n'
+                '\u2022 Mbapp\u00e9 scored in the 73rd minute of the match.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('73rd', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_negation_survives(self):
+        text = (self.HEADER + '\n'
+                "\u2022 Konat\u00e9's defensive cover does not save Madrid "
+                'from a second goal.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('does not', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_scored_vs_assisted_survives(self):
+        # Same player + same minute, but a different fact (the assist).
+        text = ('Vin\u00edcius scored in the 20th minute of the match\n'
+                '\u2022 Vin\u00edcius assisted in the 20th minute of the match.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('assisted', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_prompt_forbids_restating_headline(self):
+        seen = {}
+
+        def fake_or(key, model, system, user, timeout=25):
+            seen['system'] = system
+            return GOOD_EN
+
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'openrouter_chat', side_effect=fake_or), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('no network')), \
+             mock.patch.object(tg, 'translate_free_ar_en', return_value=''):
+            tg.llm_fix(SRC_AR)
+        self.assertIn('never restate the headline in different words',
+                      seen['system'])
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
