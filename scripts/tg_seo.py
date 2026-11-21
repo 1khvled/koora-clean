@@ -16,18 +16,23 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tg_news as tg
 
-# --- 1. channel About: the phrases people actually type into telegram search
+# --- 1. channel About: the phrases people actually type into telegram search.
+# Promotes the two sites we own (Messi first, Ronaldo second); the old Koora
+# destination is gone. Long-tail league keywords are kept. 247/255 chars.
 ABOUT = (
-    "⚽ Live football & soccer: live matches, scores, goals and highlights. "
+    "⚽ Live football & soccer: scores, goals, highlights. "
     "Premier League, La Liga, Serie A, Champions League, Bundesliga, Ligue 1, "
-    "Europa League, World Cup, AFCON, Nations League. No ads. "
-    "Watch live: https://kooraadz.vercel.app/"
+    "Europa League, World Cup, AFCON, Nations League. "
+    "Stats: https://www.messistat.com/en | https://ronaldostats.vercel.app/en"
 )
 
-# --- 2. pinned post: the long-tail league and competition list
+# --- 2. pinned post: the long-tail league and competition list.
+# Edited in place on the next run. The promoted destination is now the two
+# owned stats sites; Koora is no longer advertised here.
 PINNED = (
-    "\U0001f4fa MESSISTAT — live football & soccer, no ads\n"
-    "\U0001f3a6 Watch live streams: https://kooraadz.vercel.app/\n"
+    "\U0001f4fa MESSISTAT — verified Lionel Messi career stats\n"
+    "\U0001f3a6 Messi: https://www.messistat.com/en\n"
+    "\U0001f3a6 Ronaldo: https://ronaldostats.vercel.app/en\n"
     "\n"
     "\U0001f3df Leagues: Premier League · La Liga · Serie A · Champions League · "
     "Europa League · Conference League · Bundesliga · Ligue 1 · Saudi Pro League · "
@@ -77,6 +82,7 @@ def main():
         print('TARGET_CHAT missing')
         return 1
     assert len(ABOUT) <= 255, 'about is %d chars, telegram allows 255' % len(ABOUT)
+    assert len(PINNED) <= 4096, 'pinned is %d chars, telegram allows 4096' % len(PINNED)
 
     # 1. About -----------------------------------------------------------------
     cur = ((tg.bot('getChat', {'chat_id': target}, timeout=60) or {})
