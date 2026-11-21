@@ -2495,6 +2495,10 @@ def translate_free_ar_en(text):
 
 
 SITE_BASE = 'https://kooraadz.vercel.app'
+# Keep the Koora watch link as useful context, but only on 1 in N genuine
+# single-match posts. The counter lives in tg_state.json so a restart or a
+# fresh run cannot reset the budget (owner: "less marketing", not zero).
+WATCH_LINK_EVERY = 12
 _FIXTURES = {'at': 0.0, 'items': []}
 _AR_MARKS = '\u064b-\u0652\u0670\u06d6-\u06ed\u0640'
 
@@ -2545,10 +2549,14 @@ def team_tokens(name):
     return [k] if len(k) >= 3 else []
 
 
-def match_link(text):
+def match_link(text, state=None):
     """The exact player link for the fixture this post names. Only when
     exactly one of our fixtures matches: two or more means the post is about
-    several matches and guessing would post the wrong link."""
+    several matches and guessing would post the wrong link.
+
+    With a state dict, also apply the persisted frequency cap: only 1 in
+    WATCH_LINK_EVERY genuine match posts carries the Koora link. Without a
+    state dict (legacy callers/tests) the cap is not applied."""
     if not text:
         return ''
     fx = site_fixtures()
@@ -2564,6 +2572,13 @@ def match_link(text):
             print('match link skipped: %d fixtures named (ambiguous)' % len(hits))
         return ''
     f = hits[0]
+    if state is not None:
+        n = int(state.get('watch_link_count') or 0) + 1
+        state['watch_link_count'] = n
+        if (n - 1) % WATCH_LINK_EVERY:
+            print('[links] watch link skipped by cap (%d in %d)'
+                  % (n, WATCH_LINK_EVERY))
+            return ''
     url = '%s/watch/%s' % (SITE_BASE, f['id'])
     if f['day'] and f['day'] != 'today':
         url += '?d=%s' % f['day']
@@ -3045,7 +3060,7 @@ def public_preview_run(target):
                 # Terminal: never postable by policy — same, drop the entry.
                 tries.pop(x['key'], None)
                 continue
-            body = with_link(body, match_link(src_txt))
+            body = with_link(body, match_link(src_txt, state))
             reply_to = None
             parent = int(x.get('reply_to') or 0)
             if parent:
