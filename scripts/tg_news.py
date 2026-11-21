@@ -1232,6 +1232,17 @@ _NAME_CANON = {
     # guarded below: a bare "Arnold" must never fire inside the
     # already-correct "Alexander-Arnold", nor start another proper name.
     'arnold': 'Trent Alexander-Arnold',
+    # reported 2026-11-21: the LLM swapped the famous tennis namesake in for
+    # Real Madrid's Carlos Espí (source كارلوس إسبي), and emitted the bare
+    # shield token as "Isbi" / "Ispi" / "Carlos Espe". The _AR_PROTECT shield
+    # is the primary fix; these are the post-pass net. Context-scoped: the
+    # Alcaraz key carries the football verb "scored", so a legitimate
+    # "Carlos Alcaraz wins tennis title" is NEVER rewritten. \b (built by
+    # _name_variant_rx) gives word boundaries, so "Isbi's" is covered too.
+    'carlos alcaraz scored': 'Carlos Espí scored',
+    'carlos espe': 'Carlos Espí',
+    'isbi': 'Carlos Espí',
+    'ispi': 'Carlos Espí',
 }
 
 # Keys whose token can also occur INSIDE a correct canonical form need
@@ -1405,6 +1416,13 @@ _AR_PROTECT = [
     ('براهيم دياز', 'Brahim Díaz'),
     ('داني سيبايوس', 'Dani Ceballos'),
     ('سيبايوس', 'Ceballos'),
+    # source-confirmed 2026-11-21 (Offsideahdaff/390086, 390081/390082):
+    # كارلوس إسبي / إسبي / اسبي = Carlos Espí, the Real Madrid striker -- never
+    # the tennis namesake. Full name first; _build_protect sorts longest-first
+    # so the bare key cannot partially match inside the full name.
+    ('كارلوس إسبي', 'Carlos Espí'),
+    ('إسبي', 'Carlos Espí'),
+    ('اسبي', 'Carlos Espí'),
     # --- Barcelona ---
     ('جول كوندي', 'Jules Koundé'),
     ('كوندي', 'Koundé'),
@@ -2052,6 +2070,44 @@ def _contradictory_actions(text):
         return False
 
 
+# Audit 2026-11-21 (Offsideahdaff/390086): the source had exactly ONE assist
+# marker (جود بيلينغهام 🅰️ كيليان مبابي = Bellingham scored, Mbappé assisted),
+# but the model merged a separate Mbappé stats line into "Mbappé scored,
+# assisted Jude Bellingham, and was assisted by Jude Bellingham." One event
+# cannot make the same player both the assister and its recipient. Narrow by
+# design: requires the ACTIVE "assisted <Name>" AND the PASSIVE
+# "was assisted by <same Name>" in ONE line, with no two-way qualifier. A real
+# "X assisted Y, and later Y assisted X" carries a qualifier ("later",
+# "again", ...) and/or uses the active form both times, so it is never caught.
+# Fail closed: the gate rejects the whole post. Recovery of the exact source
+# facts is not reliable from the merged text, so no clause is silently kept.
+_ASSIST_ACTIVE_NAME = (r'[A-Z][a-zA-Z\u00c0-\u024f\-]+'
+                       r'(?:\s+[A-Z][a-zA-Z\u00c0-\u024f\-]+){0,3}')
+_CONTRADICTORY_ASSIST_RX = re.compile(
+    r'(?i)\bassisted\s+(?P<name>' + _ASSIST_ACTIVE_NAME + r')\b'
+    r'[^.\n]{0,80}?'
+    r'\bwas assisted by\s+(?P=name)\b')
+_ASSIST_TWOWAY_QUALIFY_RX = re.compile(
+    r'(?i)\b(?:later|then|earlier|again|subsequently|afterwards?|'
+    r'meanwhile|another|alternate|in return|in kind)\b')
+
+
+def _self_contradictory_assist(text):
+    """True when one line says the same player both assisted X and was
+    assisted by X -- the observed merge error. A two-way qualifier ("later",
+    "again", ...) escapes it, so legitimate give-and-go narratives survive.
+    Never raises."""
+    try:
+        for line in (text or '').split('\n'):
+            if _ASSIST_TWOWAY_QUALIFY_RX.search(line):
+                continue
+            if _CONTRADICTORY_ASSIST_RX.search(line):
+                return True
+        return False
+    except Exception:
+        return False
+
+
 _SCRIPT_TAG_RX = re.compile(r'(?i)</?source\s*>')
 
 
@@ -2099,6 +2155,9 @@ def validate_translation(src, out, tag='', allow_our_link=False, min_len=3):
         if _contradictory_actions(out):
             print('[lang] %s output rejected (contradictory actions)' % tag)
             return None
+        if _self_contradictory_assist(out):
+            print('[lang] %s output rejected (self-contradictory assist)' % tag)
+            return None
         src_nums = number_tokens(src)
         if src_nums and not src_nums <= number_tokens(out):
             lost = sorted(src_nums - number_tokens(out))[:6]
@@ -2139,6 +2198,11 @@ def llm_fix(text):
               "'correct' it. "
               'Football punishments are never people: a sending-off (طرد) is '
               '"sent off", a red card stays a red card -- never a surname. '
+              "Keep the source's assist direction exact: 'A ⚽ 🅰️ B' means A "
+              'scored and B assisted. Never turn one assist into two, and never '
+              "credit the stats line's player with the goal. "
+              'If a name is unfamiliar, copy it from the shielded source '
+              'exactly; never substitute a famous namesake. '
               'Keep scores, minute marks, and every number exactly. Keep the '
               'emojis and the item order. English only: a header line, then '
               'one bullet per item starting with the bullet char. Each '
