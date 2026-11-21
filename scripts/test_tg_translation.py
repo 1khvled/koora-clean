@@ -4,9 +4,11 @@ No network, no model calls, no Telegram messages, no session/token access.
 Every network boundary (Bot API, model APIs, machine translation, the source
 scraper) is mocked. Run with:  python scripts/test_tg_translation.py
 """
+import io
 import os
 import sys
 import unittest
+from contextlib import redirect_stdout
 from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -403,6 +405,110 @@ class ParaphraseEchoTests(unittest.TestCase):
              mock.patch.object(tg, 'translate_free_ar_en', return_value=''):
             tg.llm_fix(SRC_AR)
         self.assertIn('never restate the headline in different words',
+                      seen['system'])
+
+
+class SharedStatEchoTests(unittest.TestCase):
+    """Audit 2026-11-21, channel post #13739: a bullet that restates the
+    header's win streak with a date / manager tail is ONE fact. Genuine
+    follow-ups must survive. Offline only -- no network, no model, no
+    Telegram, no writes."""
+
+    HEADER = 'Real Madrid Mourinho achieve 9 consecutive wins'
+    BULLET = ('\u2022 Real Madrid Mourinho have won 9 straight matches for the '
+              'first time since September 2022, guided by Carlo Ancelotti.')
+
+    def test_real_madrid_mourinho_ancelotti_collapses_to_headline(self):
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            got = tg.dedupe_lines(self.HEADER + '\n' + self.BULLET)
+        self.assertEqual(got, self.HEADER)
+        for gone in ('Ancelotti', 'guided by', 'first time since', '2022'):
+            self.assertNotIn(gone, got)
+        self.assertIn('conflicting manager names', buf.getvalue())
+
+    def test_konate_paraphrase_echo_still_dropped(self):
+        header = "Konat\u00e9's defensive cover saves Madrid from a second goal"
+        text = (header + '\n'
+                '\u2022 Konat\u00e9 provided crucial defensive cover to prevent '
+                'Madrid from conceding a second goal.')
+        self.assertEqual(tg.dedupe_lines(text), header)
+
+    def test_different_minute_survives(self):
+        text = ('Real Madrid won 9 straight matches\n'
+                '\u2022 Mbapp\u00e9 scored in the 73rd minute of the match.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('73rd', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_different_player_action_survives(self):
+        text = ('Real Madrid won 9 straight matches\n'
+                '\u2022 Vin\u00edcius assisted the winner for Real Madrid.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('assisted', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_won_then_scored_survives(self):
+        text = ('Real Madrid won 9 straight matches\n'
+                '\u2022 Mbapp\u00e9 scored for Real Madrid in the 9th minute.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('scored', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_manager_change_with_both_names_in_source_survives(self):
+        text = ('Real Madrid won 9 straight matches under Ancelotti\n'
+                '\u2022 Mourinho replaced Ancelotti as Real Madrid coach after '
+                '9 straight wins.')
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            got = tg.dedupe_lines(text)
+        self.assertIn('replaced Ancelotti', got)
+        self.assertEqual(len(got.split('\n')), 2)
+        self.assertIn('conflicting manager names', buf.getvalue())
+
+    def test_substitution_survives(self):
+        text = ('Real Madrid won 9 straight matches\n'
+                '\u2022 Endrick replaced Mbapp\u00e9 for Real Madrid.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('replaced', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_card_survives(self):
+        text = ('Real Madrid won 9 straight matches\n'
+                '\u2022 R\u00fcdiger got a red card for Real Madrid.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('red card', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_quote_survives(self):
+        text = ('Real Madrid won 9 straight matches\n'
+                '\u2022 Mourinho said "we played well" after the 9th win.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('said', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_negation_survives(self):
+        text = ('Real Madrid won 9 straight matches\n'
+                '\u2022 Real Madrid have not won 9 straight matches.')
+        got = tg.dedupe_lines(text)
+        self.assertIn('have not won', got)
+        self.assertEqual(len(got.split('\n')), 2)
+
+    def test_prompt_forbids_guide_by_modifier(self):
+        seen = {}
+
+        def fake_or(key, model, system, user, timeout=25):
+            seen['system'] = system
+            return GOOD_EN
+
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'openrouter_chat', side_effect=fake_or), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('no network')), \
+             mock.patch.object(tg, 'translate_free_ar_en', return_value=''):
+            tg.llm_fix(SRC_AR)
+        self.assertIn('Do not append \'guided by <manager>\'', seen['system'])
+        self.assertIn('Never name a manager who is not in the source',
                       seen['system'])
 
 
