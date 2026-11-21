@@ -2610,6 +2610,7 @@ function rearmShield(){
 let hlsInst = null;
 let hlsTimer = 0;
 function stopHls(){
+  try { hlsGen++; } catch {}
   try { clearTimeout(hlsTimer); hlsTimer = 0; } catch {}
   try { if (hlsInst){ hlsInst.destroy(); hlsInst = null; } } catch {}
   try {
@@ -2621,19 +2622,41 @@ function stopHls(){
 /* Direct-stream (m3u8) servers, e.g. Arena: native HLS where supported
    (Safari), else vendored hls.js. Returns false when unplayable here so
    the caller skips to the next server. */
+/* Direct-stream (m3u8) servers, e.g. Arena: vendored hls.js when the browser
+   supports MSE (Chrome/Android/Firefox), native HLS where it does not
+   (iOS Safari). hls.js is 380 KB, so it is fetched LAZY — only when an HLS
+   stream is actually opened, never on normal page loads. */
+let hlsLoadP = null;
+let hlsGen = 0;
+function loadHls(){
+  if (window.Hls) return Promise.resolve(true);
+  if (!hlsLoadP){
+    hlsLoadP = new Promise((res) => {
+      try {
+        const s = document.createElement('script');
+        s.src = 'hls.light.min.js';
+        s.async = true;
+        s.onload = () => res(!!window.Hls);
+        s.onerror = () => res(false);
+        document.head.appendChild(s);
+      } catch { res(false); }
+    });
+  }
+  return hlsLoadP;
+}
 function playHls(src, onFatal){
   stopHls();
   const v = document.getElementById('hlsVideo');
   if (!v) return false;
-  let native = false;
-  try { native = !!v.canPlayType('application/vnd.apple.mpegurl'); } catch {}
   iframe.hidden = true; v.hidden = false; hideShield();
+  const gen = ++hlsGen;
   const fail = () => { try { onFatal && onFatal(); } catch {} };
   // Watchdog: a dead stream must skip, never stare. Fires only with zero
   // progress (readyState 0); autoplay-blocked-but-loading video is safe.
+  let wd = 0;
   const armWatchdog = () => {
-    try { clearTimeout(hlsTimer); } catch {}
-    hlsTimer = setTimeout(() => {
+    try { clearTimeout(wd); } catch {}
+    wd = setTimeout(() => {
       try {
         const vv = document.getElementById('hlsVideo');
         if (vv && vv.readyState > 0) return;
@@ -2641,28 +2664,44 @@ function playHls(src, onFatal){
       fail();
     }, 9000);
   };
-  const clearWatchdog = () => { try { clearTimeout(hlsTimer); hlsTimer = 0; } catch {} };
-  try {
-    if (native){
-      v.onerror = () => fail();
-      v.onloadeddata = () => clearWatchdog();
-      v.src = src;
-      armWatchdog();
-      const p = v.play(); if (p && p.catch) p.catch(() => {});
-      return true;
+  const clearWatchdog = () => { try { clearTimeout(wd); wd = 0; } catch {} };
+  const start = () => {
+    if (gen !== hlsGen) return;
+    let native = false;
+    try { native = !!v.canPlayType('application/vnd.apple.mpegurl'); } catch {}
+    try {
+      if (window.Hls && window.Hls.isSupported()){
+        const h = new window.Hls({ capLevelToPlayerSize: true, maxBufferLength: 30 });
+        hlsInst = h;
+        h.on(window.Hls.Events.ERROR, (_, data) => { if (data && data.fatal) fail(); });
+        h.on(window.Hls.Events.MANIFEST_PARSED, () => clearWatchdog());
+        h.loadSource(src); h.attachMedia(v);
+        armWatchdog();
+        const p = v.play(); if (p && p.catch) p.catch(() => {});
+        return;
+      }
+      if (native){
+        v.onerror = () => fail();
+        v.onloadeddata = () => clearWatchdog();
+        v.src = src;
+        armWatchdog();
+        const p = v.play(); if (p && p.catch) p.catch(() => {});
+        return;
+      }
+    } catch { clearWatchdog(); fail(); }
+    clearWatchdog(); fail();
+  };
+  if (window.Hls){ start(); return true; }
+  loadHls().then((ok) => {
+    if (gen !== hlsGen) return;
+    if (!ok){
+      let native = false;
+      try { native = !!v.canPlayType('application/vnd.apple.mpegurl'); } catch {}
+      if (!native){ fail(); return; }
     }
-    if (window.Hls && window.Hls.isSupported()){
-      const h = new window.Hls({ capLevelToPlayerSize: true, maxBufferLength: 30 });
-      hlsInst = h;
-      h.on(window.Hls.Events.ERROR, (_, data) => { if (data && data.fatal) fail(); });
-      h.on(window.Hls.Events.MANIFEST_PARSED, () => clearWatchdog());
-      h.loadSource(src); h.attachMedia(v);
-      armWatchdog();
-      const p = v.play(); if (p && p.catch) p.catch(() => {});
-      return true;
-    }
-  } catch {}
-  return false;
+    start();
+  }).catch(() => { if (gen === hlsGen) fail(); });
+  return true;
 }
 
 async function loadRealPlayer(){
