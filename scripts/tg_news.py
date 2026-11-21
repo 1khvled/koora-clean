@@ -2161,6 +2161,10 @@ def llm_fix(text):
               'The bullet must add a NEW fact or detail, never restate the '
               'headline in different words; if there is nothing new, output '
               'the headline alone with no bullet. '
+              "Do not append 'guided by <manager>', dates, or 'first time "
+              "since' modifiers to a bullet that restates the headline; either "
+              'add a genuinely new fact or return the headline alone. Never '
+              'name a manager who is not in the source. '
               'Input-bound facts only: every club, player, competition and '
               'place named in the output must appear in the input -- never a '
               "player's former club, never an invented venue. "
@@ -2380,6 +2384,118 @@ def _paraphrase_echo(cand_key, cand_toks, prev_key, prev_toks):
         return False
 
 
+# --- narrow shared-stat echo (audit 2026-11-21, channel post #13739) ------
+# A header and its bullet that state the SAME team's SAME win-streak number in
+# different words are ONE fact, even when the bullet appends a "for the first
+# time since <date>" or "guided by <manager>" modifier. The older subset /
+# Jaccard rules let this through because the appended date and manager look
+# like new facts (a new digit + a new roster name). This is an ADDITIONAL,
+# tightly scoped check that fires ONLY inside the matched action class;
+# everything outside it keeps the existing keep-new-fact behavior.
+_STREAK_NORM = {
+    'win': 'win', 'wins': 'win', 'won': 'win', 'winning': 'win',
+    'victory': 'win', 'victories': 'win',
+    'straight': 'consecutive', 'consecutive': 'consecutive',
+    'streak': 'consecutive', 'streaks': 'consecutive',
+    'match': 'match', 'matches': 'match', 'game': 'match', 'games': 'match',
+    'unbeaten': 'unbeaten',
+}
+# Cardinal words only (no ordinals: "first time since" must not create a 1).
+_WORD_NUM = {'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5',
+             'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10',
+             'eleven': '11', 'twelve': '12'}
+# Team tokens are kept when deciding the subject; people tokens are stripped.
+_TEAM_NAMES = (
+    'real madrid', 'atletico madrid', 'atlético madrid', 'barcelona',
+    'manchester city', 'manchester united', 'liverpool', 'arsenal', 'chelsea',
+    'tottenham', 'newcastle', 'aston villa', 'everton', 'west ham',
+    'brighton', 'bournemouth', 'fulham', 'crystal palace', 'brentford',
+    'wolves', 'nottingham forest', 'leeds', 'burnley', 'sunderland',
+    'bayern munich', 'borussia dortmund', 'bayer leverkusen', 'rb leipzig',
+    'eintracht frankfurt', 'stuttgart', 'paris saint-germain', 'marseille',
+    'monaco', 'lyon', 'ajax', 'feyenoord', 'psv', 'benfica', 'sporting cp',
+    'galatasaray', 'fenerbahce', 'juventus', 'milan', 'inter milan', 'inter',
+    'napoli', 'lazio', 'atalanta', 'celta vigo', 'sevilla', 'villarreal',
+    'real betis', 'athletic bilbao', 'getafe', 'real sociedad', 'valencia',
+    'mallorca', 'girona', 'rayo vallecano', 'espanyol', 'alaves', 'osasuna',
+    'spain', 'france', 'england', 'portugal', 'germany', 'italy',
+    'netherlands', 'belgium', 'croatia', 'argentina', 'brazil', 'morocco',
+    'algeria', 'egypt', 'tunisia', 'senegal', 'uruguay', 'colombia',
+    'japan', 'south korea',
+)
+_TEAM_TOKS = frozenset(
+    w for name in _TEAM_NAMES for w in re.findall(r'[a-z]+', name.lower()))
+_MANAGER_SURNAMES = frozenset([
+    'mourinho', 'ancelotti', 'guardiola', 'arteta', 'slot', 'maresca',
+    'amorim', 'flick', 'tuchel', 'kompany', 'klopp', 'conte', 'allegri',
+    'xavi', 'alonso', 'inzaghi', 'simeone', 'pochettino', 'motta',
+])
+# A DIFFERENT action / score / personnel fact in the later line means a
+# genuine follow-up, never a restatement of the streak.
+_STREAK_BLOCK_RX = re.compile(
+    r'(?i)\b(?:scor\w*|goal\w*|assist\w*|substitut\w*|came on|replac\w*|'
+    r'sent off|red card|yellow card|booked|quote\w*|said|told|'
+    r'sign\w*|join\w*|transfer\w*|loan\w*|sack\w*|appoint\w*|'
+    r'hired|resign\w*|step down)\b')
+
+
+def _streak_core(line):
+    """(normalized action classes, numbers, team tokens) of one line."""
+    toks = set(re.findall(r'[a-z0-9]+', (line or '').lower()))
+    acts = {_STREAK_NORM[t] for t in toks if t in _STREAK_NORM}
+    nums = set(re.findall(r'\d+', canon_text(line)))
+    for w, n in _WORD_NUM.items():
+        if w in toks:
+            nums.add(n)
+    team = {t for t in toks if t in _TEAM_TOKS}
+    return acts, nums, team
+
+
+def _streak_echo(cand, prev):
+    """True when the LATER line restates the earlier line's win streak with
+    no new fact: same team, same normalized action class, same number. A
+    "first time since <year>" date and a "guided by <manager>" modifier are
+    allowed (they are the observed echo shape). A different action, a new
+    minute/score, a new player/team, a substitution/card/quote or a negation
+    keeps the line. Never raises."""
+    try:
+        ca, cn, ct = _streak_core(cand)
+        pa, pn, pt = _streak_core(prev)
+        if not (ca & pa) or not (cn & pn):
+            return False
+        if not ct or not pt or not (ct & pt) or (ct - pt):
+            return False
+        cl, pl = (cand or '').lower(), (prev or '').lower()
+        # Two different managers across the pair: leave the factual call to
+        # the source, but flag it in the run log (do not silently pick one).
+        mgr_c = {m for m in _MANAGER_SURNAMES if m in cl}
+        mgr_p = {m for m in _MANAGER_SURNAMES if m in pl}
+        if mgr_c and mgr_p and mgr_c != mgr_p:
+            print('[dedupe] conflicting manager names in streak lines '
+                  '(%s vs %s) - verify source'
+                  % (','.join(sorted(mgr_p)),
+                     ','.join(sorted(mgr_c - mgr_p)) or '?'))
+        if _STREAK_BLOCK_RX.search(cl):
+            return False                       # different action / new fact
+        ctoks = set(re.findall(r'[a-z0-9]+', cl))
+        ptoks = set(re.findall(r'[a-z0-9]+', pl))
+        if (ctoks & _DEDUP_NEG) or re.search(r"\b\w+['\u2019]t\b", cl):
+            return False                       # negation flips the meaning
+        new_people = (_roster_toks() - _TEAM_TOKS) & (ctoks - ptoks)
+        if new_people and not re.search(r'\b(?:guided by|under|coached by)\b', cl):
+            return False                       # new player/coach = new fact
+        new_nums = cn - pn
+        if new_nums:
+            # Only a year inside a "first time since" date modifier is fine.
+            if not re.search(r'\b(?:first time since|since)\b', cl):
+                return False
+            if any(not re.fullmatch(r'(?:19|20)\d{2}', n) for n in new_nums):
+                return False
+        return True
+    except Exception:
+        return False
+
+
 def dedupe_lines(text):
     """Drop repeated lines (case/punctuation-insensitive, bullet-aware), keep
     first occurrence. Also drops near-echo restatements: when one line's
@@ -2420,6 +2536,12 @@ def dedupe_lines(text):
             toks = _tokens(key)
             drop = False
             for s in seen:
+                # ADDITIONAL narrow rule (never a replacement): same team +
+                # same win-streak action + same number = one fact, even with
+                # a "first time since <date>" / "guided by <manager>" tail.
+                if _streak_echo(key, s):
+                    drop = True
+                    break
                 stoks = _tokens(s)
                 if toks <= stoks:
                     extra, longer = stoks - toks, s
