@@ -1,0 +1,20 @@
+# Cloudflare deployment for koora-clean (replaces the blocked Vercel project).
+# No secrets here — set any future secrets with `wrangler secret put`.
+name = "koora-clean"
+main = "src/worker.js"
+compatibility_date = "2026-11-21"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[assets]
+directory = "./public/"
+binding = "ASSETS"
+# Keep /player.html, /index.html etc. serving exactly as they do on Vercel;
+# the Worker handles / and the /index.html redirect itself.
+html_handling = "none"
+# Every request goes through the Worker so it can add vercel.json's headers.
+run_worker_first = true
+
+[observability]
+enabled = true
+head_sampling_rate = 1

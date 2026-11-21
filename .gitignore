@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 
 .vercel
+.wrangler/
+.dev.vars
