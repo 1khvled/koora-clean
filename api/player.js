@@ -1096,15 +1096,22 @@ const resolveYacine = async (home, away, startIso) => {
     if (koraHit && koraHit.url && (!servers.length || !wantEn)) {
       // The day list carries no channel rows — pull the per-match detail
       // (cached 45s) to find the Frame channels that can play in-page.
+      // Wrapper allowlist (verified 2026-11-21): legacy sportiskos.space on
+      // kora-plus.li edges and current redirectus.net on kora-plus.mov edges.
+      // Only streameast/framestream and streamlat/framelatin yield real video
+      // with CORS-open segments. golygoals.com/streame.html (framecenter.php)
+      // serves TikTok PNG images, and sportsoonline.click lands on a
+      // domain-protected dynbush page — both are deliberately excluded.
+      const frameOk = /^(?:https:\/\/sportiskos\.space\/(?:streameast|streamlat)\.html\?|https:\/\/redirectus\.net\/streamlat\.html\?)/i;
       let kch = Array.isArray(koraHit.channels) ? koraHit.channels : [];
-      const hasFrame = kch.some(c => c && String(c.type) === 'Frame' && /sportiskos\.space\/(streameast|streamlat)/i.test(String(c.link || '')));
+      const hasFrame = kch.some(c => c && String(c.type) === 'Frame' && frameOk.test(String(c.link || '')));
       if (!hasFrame && koraHit.id) {
         const kd = await koraMatchChannels(koraHit.id);
         if (kd && Array.isArray(kd.channels)) kch = kd.channels;
       }
       kch.forEach((c, i) => {
         if (!c || String(c.type) !== 'Frame') return;
-        if (!/^https:\/\/sportiskos\.space\/(streameast|streamlat)\.html\?/i.test(String(c.link || ''))) return;
+        if (!frameOk.test(String(c.link || ''))) return;
         pushUnique({
           label: 'EN', url: selfOrigin(req) + '/api/player?kstream=1&m=' + koraHit.id + '&c=' + i,
           kind: 'direct', lang: 'en', ads: 0, hls: 1,
