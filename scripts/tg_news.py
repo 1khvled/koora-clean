@@ -1945,6 +1945,45 @@ def _build_protect():
     return rx, mapping
 
 
+# Dev-maintained extra names (scripts/name_map_ar_en.json), harvested from the
+# free Wikidata Action API by scripts/build_name_map.py. Loaded here with stdlib
+# json BEFORE the roster is compiled, deduped by normalized key against the
+# hand-curated entries above. Missing/corrupt file = silently no additions.
+# The longest-first regex in _build_protect() is unchanged; these keys simply
+# join the same mapping. No network call happens at runtime.
+def _load_name_map():
+    try:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'name_map_ar_en.json')
+        with open(path, encoding='utf-8') as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            return []
+        seen = set()
+        for ar, _lat in _AR_PROTECT:
+            try:
+                seen.add(_ar_norm1(ar))
+            except Exception:
+                pass
+        out = []
+        for ar, lat in data.items():
+            if ar == 'qids' or not isinstance(ar, str) or not isinstance(lat, str):
+                continue
+            k = _ar_norm1(ar)
+            if not k or k in seen:
+                continue
+            seen.add(k)
+            out.append((ar, lat))
+        return out
+    except Exception:
+        return []
+
+
+try:
+    _AR_PROTECT.extend(_load_name_map())
+except Exception:
+    pass
+
 try:
     _PROTECT_RX, _PROTECT_MAP = _build_protect()
 except Exception:
