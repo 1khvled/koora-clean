@@ -213,5 +213,132 @@ class SendTests(unittest.TestCase):
         b.assert_not_called()  # no media-only / untranslated post went out
 
 
+class AuditFixTests(unittest.TestCase):
+    """2026-11-21 audit defects. All offline: helpers + mocked engines only."""
+
+    def test_audited_name_manglings_repaired(self):
+        for bad, good in (
+            ('Cortua', 'Courtois'),
+            ('Housen', 'Huijsen'),
+            ('Madueki', 'Madueke'),
+            ('Anthony Eze', 'Eberechi Eze'),
+            ('Vilhelm Svedberg', 'Williot Swedberg'),
+            ('Filip Svedberg', 'Williot Swedberg'),
+            ('Pablo Duran', 'Pablo Durán'),
+        ):
+            self.assertEqual(tg.repair_names('X ' + bad + ' scored'),
+                             'X ' + good + ' scored')
+
+    def test_arnold_guard_no_over_correction(self):
+        self.assertEqual(tg.repair_names('Arnold assisted the winner'),
+                         'Trent Alexander-Arnold assisted the winner')
+        self.assertEqual(tg.repair_names("Arnold's corner was delivered"),
+                         "Trent Alexander-Arnold's corner was delivered")
+        # Already-correct forms and unrelated "Arnold" names must be untouched.
+        for good in ('Trent Alexander-Arnold assisted',
+                     'Alexander-Arnold assisted',
+                     'Alexander Arnold assisted',
+                     'Arnold Palmer won the tournament'):
+            self.assertEqual(tg.repair_names(good), good)
+
+    def test_source_shield_emits_latin_names(self):
+        for ar, latin in (
+            ('\u0641\u064a\u0644\u064a\u0648\u062a \u0633\u0641\u064a\u062f\u0628\u064a\u0631\u063a',
+             'Williot Swedberg'),
+            ('\u0628\u0627\u0628\u0644\u0648 \u062f\u0648\u0631\u0627\u0646',
+             'Pablo Durán'),
+            ('\u0625\u064a\u0632\u064a', 'Eberechi Eze'),
+            ('\u0623\u0631\u0646\u0648\u0644\u062f',
+             'Trent Alexander-Arnold'),
+            ('\u0643\u0648\u0631\u062a\u0648\u0627', 'Courtois'),
+            ('\u0647\u0648\u064a\u0633\u0646', 'Huijsen'),
+            ('\u0645\u0627\u062f\u0648\u0643\u064a', 'Madueke'),
+        ):
+            self.assertEqual(tg.protect_names(ar), latin, ar)
+
+    def test_inline_bullets_normalized(self):
+        bad = ('Mbapp\u00e9 misses with a shot wide of the post '
+               '\u2022 Mbapp\u00e9 sent a shot wide of the post.\n\n\n  \n'
+               '\u2022 Vin\u00edcius added a second.')
+        got = tg.normalize_inline_bullets(bad)
+        self.assertTrue(got.startswith('Mbapp\u00e9 misses'))
+        self.assertIn('\n\u2022 Mbapp\u00e9', got)
+        self.assertNotIn('\n\n\n', got)
+        self.assertNotIn(' \u2022 ', got)
+
+    def test_llm_accept_normalizes_and_drops_echo(self):
+        flat = ('Mbapp\u00e9 unbelievable \u2022 Mbapp\u00e9 is unbelievable.\n'
+                '\u2022 He scored in the 73rd minute as Barcelona won 2-1.')
+        got = tg._llm_accept(flat, SRC_AR, 'test')
+        self.assertIsNotNone(got)
+        self.assertIn('\n\u2022 ', got)
+        self.assertNotIn('unbelievable.', got)  # trailing-dot echo dropped
+        self.assertIn('73rd minute', got)
+
+    def test_echo_with_trailing_punctuation_dropped(self):
+        text = ("Madrid's penalty\n\u2022 Madrid earned a penalty\n"
+                '\u2022 Vin\u00edcius scored the 73rd-minute penalty.')
+        got = tg.dedupe_lines(text)
+        self.assertNotIn('Madrid earned', got)
+        self.assertIn('Vin\u00edcius scored', got)
+
+    def test_shot_pass_swap_repaired(self):
+        bad = ('Mbapp\u00e9 misses with a shot wide of the post\n'
+               '\u2022 Mbapp\u00e9 sent a pass wide of the post.')
+        fixed = ('Mbapp\u00e9 misses with a shot wide of the post\n'
+                 '\u2022 Mbapp\u00e9 sent a shot wide of the post.')
+        self.assertEqual(tg.repair_names(bad), fixed)
+        # The gate applies the same repair before its consistency check.
+        self.assertIsNotNone(tg.validate_translation(
+            '\u0643\u064a\u0644\u064a\u0627\u0646 \u0645\u0628\u0627\u0628\u064a', bad, 'test'))
+
+    def test_contradictory_actions_fail_closed(self):
+        bad = 'Mbapp\u00e9 takes a shot\n\u2022 Mbapp\u00e9 made a pass.'
+        self.assertTrue(tg._contradictory_actions(bad))
+        self.assertIsNone(tg.validate_translation(
+            '\u0643\u064a\u0644\u064a\u0627\u0646 \u0645\u0628\u0627\u0628\u064a', bad, 'test'))
+        # A qualifier resolves the pair: no false positive on a real narrative.
+        ok = ('Mbapp\u00e9 missed a chance\n'
+              '\u2022 Mbapp\u00e9 scored in the 73rd minute.')
+        self.assertFalse(tg._contradictory_actions(ok))
+        self.assertIsNotNone(tg.validate_translation(
+            '\u0643\u064a\u0644\u064a\u0627\u0646 \u0645\u0628\u0627\u0628\u064a 73', ok, 'test'))
+
+    def test_source_mention_phrasings_rejected(self):
+        for phrase in ('via the channel', 'as seen on the channel',
+                       'reposted from the channel', 'according to the channel',
+                       'from the channel', 'courtesy of the channel'):
+            self.assertIsNone(tg.validate_translation(
+                SRC_AR, GOOD_EN + '\n' + phrase + '.', 'test'), phrase)
+
+    def test_prompt_forbids_action_swap(self):
+        seen = {}
+
+        def fake_or(key, model, system, user, timeout=25):
+            seen['system'] = system
+            return GOOD_EN
+
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'openrouter_chat', side_effect=fake_or), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('no network')), \
+             mock.patch.object(tg, 'translate_free_ar_en', return_value=''):
+            tg.llm_fix(SRC_AR)
+        self.assertIn('A shot stays a shot and a pass stays a pass',
+                      seen['system'])
+
+    def test_machine_fallback_normalizes_inline_bullets(self):
+        flat = ('Lamine Yamal stunner seals Barcelona win \u2022 Lamine Yamal '
+                'scored a superb 73rd-minute goal as Barcelona edged Getafe 2-1.')
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'openrouter_chat',
+                               side_effect=RuntimeError('all models down')), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('groq down')), \
+             mock.patch.object(tg, 'translate_free_ar_en', return_value=flat):
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('\n\u2022 Lamine Yamal scored', got)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

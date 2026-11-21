@@ -952,6 +952,29 @@ def sanitize_output(text):
         return text
 
 
+def normalize_inline_bullets(text):
+    """Put bullets on their own line and collapse blank-line/indent junk.
+
+    Audit 2026-11-21: 8 posts shipped as "header • bullet" on ONE physical
+    line (some with a stray "\\n\\n\\n  \\n") because the model ignored the
+    real-line-break instruction. This is a pure formatting repair -- no word
+    is added, removed or re-spelled. Never raises."""
+    try:
+        t = text or ''
+        if not t:
+            return t
+        # A bullet preceded by visible text belongs on a new line. The
+        # lookbehind leaves bullets already starting a line untouched.
+        t = re.sub(r'(?m)(?<=\S)[ \t]*[\u2022\u25aa\u25e6][ \t]*', '\n\u2022 ', t)
+        # An indented bullet at the start of a line loses its indent.
+        t = re.sub(r'(?m)^[ \t]+[\u2022\u25aa\u25e6][ \t]*', '\u2022 ', t)
+        t = re.sub(r'[ \t]+\n', '\n', t)
+        t = re.sub(r'\n[ \t]*\n(?:[ \t]*\n)*', '\n\n', t)
+        return t.strip()
+    except Exception:
+        return text
+
+
 def _llm_accept(out, text, tag):
     """Shared output gate for the LLM engines (paid + Groq + OpenRouter).
     Thin wrapper over validate_translation(), the SAME fail-closed gate every
@@ -961,7 +984,7 @@ def _llm_accept(out, text, tag):
         got = validate_translation(text, out, tag, min_len=20)
         if not got:
             return None
-        return repair_names(dedupe_lines(got))
+        return repair_names(dedupe_lines(normalize_inline_bullets(got)))
     except Exception:
         return None
 
@@ -1188,6 +1211,37 @@ _NAME_CANON = {
     'tarard': 'Red card',
     'malin': 'Malen',
     'donyell malen': 'Donyell Malen',
+    # audit 2026-11-21: wrong-only Latin spellings that reached the channel.
+    # Each maps to ONE curated correct form; no key is a real player's name.
+    'cortua': 'Courtois',
+    'housen': 'Huijsen',
+    'huijsen': 'Huijsen',
+    'madueki': 'Madueke',
+    'madueke': 'Madueke',
+    # the model invented "Anthony" because the shield emitted bare "Eze"
+    'anthony eze': 'Eberechi Eze',
+    # source-confirmed (Arabic فيليوت سفيدبيرغ): Celta's assister is
+    # Williot Swedberg -- never the invented "Filip/Vilhelm Svedberg".
+    'williot svedberg': 'Williot Swedberg',
+    'filip svedberg': 'Williot Swedberg',
+    'vilhelm svedberg': 'Williot Swedberg',
+    'svedberg': 'Williot Swedberg',
+    # source-confirmed (Arabic بابلو دوران): Celta's scorer is Pablo Durán.
+    # Full-name keys only -- a bare "Duran" is also another player's name.
+    'pablo duran': 'Pablo Durán',
+    # guarded below: a bare "Arnold" must never fire inside the
+    # already-correct "Alexander-Arnold", nor start another proper name.
+    'arnold': 'Trent Alexander-Arnold',
+}
+
+# Keys whose token can also occur INSIDE a correct canonical form need
+# context, not just a word boundary. A bare \b...\b regex would rewrite the
+# tail of "Alexander-Arnold" into "Alexander-Trent Alexander-Arnold" and
+# would turn "Williot Swedberg" into "Williot Williot Swedberg". Fixed-width
+# lookbehinds keep the repair surgical (stdlib re only).
+_GUARDED_CANON = {
+    'arnold': r'(?<!alexander-)(?<!alexander )',
+    'svedberg': r'(?<!williot )',
 }
 
 # letters that differ only by accents across the Latin spellings we accept
@@ -1218,7 +1272,14 @@ def _name_variant_rx(variant):
             parts.append('[' + eq + eq.upper() + ']')
         else:
             parts.append(re.escape(ch))
-    return re.compile(r'(?i)\b(?:' + ''.join(parts) + r')\b')
+    guard = _GUARDED_CANON.get(variant, '')
+    # "Arnold" is a bare surname in fan posts, but must not swallow the tail
+    # of a full name already spelled correctly, nor begin a different proper
+    # name ("Arnold Palmer"). The lookahead only blocks a Capitalised word.
+    # scoped (?-i:) is essential: under (?i) a plain [A-Z] also matches
+    # lowercase, which would block "Arnold assisted".
+    tail = r'(?![ \t]+(?-i:[A-Z]))' if variant == 'arnold' else ''
+    return re.compile(r'(?i)' + guard + r'\b(?:' + ''.join(parts) + r')\b' + tail)
 
 
 # longest variant first, so "lamine yamal" always wins over its "yamal" tail
@@ -1234,17 +1295,62 @@ _CONTRADICTION_FIXES = [
                 r'(?:had|has|was|is) been scored\b'), r'\1 a chance'),
 ]
 
+# Audit 2026-11-21: #13579 shipped "Mbappé misses with a shot wide of the
+# post" as the header but "Mbappé sent a pass wide of the post." as the
+# bullet -- the action noun was swapped. Surgical, one-directional repair:
+# only when BOTH lines share the same player and the same "wide of the
+# post/goal/target" context, and only shot -> pass (never the reverse, which
+# could invent a shot). No facts, minutes or names are added.
+_ACTION_WIDE_RX = re.compile(
+    r'(?i)\b(?P<action>shot|pass)\b[^.\n]*?'
+    r'\bwide of the (?P<target>post|goal|target)\b')
+_NAME_TOKEN_RX = re.compile(r'\b[A-Z][a-zA-Z\u00c0-\u024f\-]{2,}\b')
+
+
+def _fix_shot_pass(text):
+    """Repair the observed shot->pass swap inside a header/bullet pair.
+    Idempotent, fail-open (returns the text unchanged on any surprise).
+    Never raises."""
+    try:
+        t = text or ''
+        lines = t.split('\n')
+        changed = False
+        for i in range(len(lines) - 1):
+            hdr, bul = lines[i], lines[i + 1]
+            if not re.match(r'^\s*[\u2022\-\*]', bul):
+                continue
+            hm = _ACTION_WIDE_RX.search(hdr)
+            bm = _ACTION_WIDE_RX.search(bul)
+            if not hm or not bm:
+                continue
+            if hm.group('action').lower() != 'shot' \
+                    or bm.group('action').lower() != 'pass':
+                continue
+            if hm.group('target').lower() != bm.group('target').lower():
+                continue
+            if not (_NAME_TOKEN_RX.findall(hdr) and
+                    set(_NAME_TOKEN_RX.findall(hdr))
+                    & set(_NAME_TOKEN_RX.findall(bul))):
+                continue
+            w = bm.group('action')
+            repl = 'Shot' if w[:1].isupper() else 'shot'
+            lines[i + 1] = bul[:bm.start('action')] + repl + bul[bm.end('action'):]
+            changed = True
+        return '\n'.join(lines) if changed else t
+    except Exception:
+        return text
+
 
 def repair_names(text):
     """Deterministic post-pass on translator output (Groq path and free
-    fallback): curated name spellings, then the one known self-contradiction
-    pattern. Never raises."""
+    fallback): curated name spellings, the known self-contradiction pattern,
+    then the surgical shot->pass repair. Never raises."""
     t = text or ''
     for rx, good in _NAME_FIXES:
         t = rx.sub(good, t)
     for rx, good in _CONTRADICTION_FIXES:
         t = rx.sub(good, t)
-    return t
+    return _fix_shot_pass(t)
 
 
 # Owner rule: names must NEVER be transliterated by the model. This roster
@@ -1258,6 +1364,15 @@ def repair_names(text):
 _AR_PROTECT = [
     # --- Real Madrid ---
     ('تيبو كورتوا', 'Thibaut Courtois'),
+    ('كورتوا', 'Courtois'),
+    ('دين هويسن', 'Dean Huijsen'),
+    ('هويسن', 'Huijsen'),
+    # "وارنولد" -> Trent Alexander-Arnold (source 2026-11-21). Supplies the
+    # correct Latin name BEFORE the model sees it; the guarded repair_names
+    # key catches any bare "Arnold" the model still emits afterwards.
+    ('ترنت ألكسندر أرنولد', 'Trent Alexander-Arnold'),
+    ('ألكسندر أرنولد', 'Trent Alexander-Arnold'),
+    ('ارنولد', 'Trent Alexander-Arnold'),
     ('داني كارفاخال', 'Dani Carvajal'),
     ('كارفاخال', 'Carvajal'),
     ('إيدر ميليتاو', 'Éder Militão'),
@@ -1336,6 +1451,13 @@ _AR_PROTECT = [
     ('يورينتي', 'Llorente'),
     ('كونور غالاغير', 'Conor Gallagher'),
     ('غالاغير', 'Gallagher'),
+    # --- Celta Vigo (source-confirmed 2026-11-21) ---
+    # Arabic "فيليوت سفيدبيرغ" / "بابلو دوران" came out as invented
+    # "Filip/Vilhelm Svedberg" and inconsistent "Durán"/"Duran". One
+    # canonical form each, emitted before the model sees the source.
+    ('فيليوت سفيدبيرغ', 'Williot Swedberg'),
+    ('سفيدبيرغ', 'Williot Swedberg'),
+    ('بابلو دوران', 'Pablo Durán'),
     # --- Man City ---
     ('إيرلينغ هالاند', 'Erling Haaland'),
     ('هالاند', 'Haaland'),
@@ -1377,7 +1499,9 @@ _AR_PROTECT = [
     ('فيكتور غيوكيريس', 'Viktor Gyökeres'),
     ('غيوكيريس', 'Gyökeres'),
     ('إيبيريتشي إيزي', 'Eberechi Eze'),
-    ('إيزي', 'Eze'),
+    # Bare إيزي used to emit "Eze", which invited the model to invent a first
+    # name ("Anthony Eze"). Emit the full canonical name instead.
+    ('إيزي', 'Eberechi Eze'),
     ('مارتن زوبيميندي', 'Martín Zubimendi'),
     ('زوبيميندي', 'Zubimendi'),
     ('يوريان تيمبر', 'Jurriën Timber'),
@@ -1411,6 +1535,8 @@ _AR_PROTECT = [
     ('كوكوريا', 'Cucurella'),
     ('أليخاندرو غارناتشو', 'Alejandro Garnacho'),
     ('غارناتشو', 'Garnacho'),
+    ('نوني مادوكي', 'Noni Madueke'),
+    ('مادوكي', 'Madueke'),
     ('إستيفاو', 'Estêvão'),
     # --- Man United ---
     ('برونو فرنانديز', 'Bruno Fernandes'),
@@ -1878,8 +2004,54 @@ _JSON_WRAP_RX = re.compile(r'(?i)^\s*[\[{]\s*["\']?(?:translation|text|result|'
 _SOURCE_MENTION_RX = re.compile(
     r'(?i)\b(?:source channel|original channel|according to the source|'
     r'from the source|the source post|original post|reposted from|'
-    r'as seen on telegram)\b')
+    r'as seen on telegram|via the channel|as seen on the channel|'
+    r'reposted from the channel|according to the channel|'
+    r'from the channel|the channel reported|shared by the channel|'
+    r'courtesy of the channel)\b')
 _URL_RX = re.compile(r'(?i)\b(?:https?://|www\.)[^\s<>"\']+')
+
+# Fail-closed action-consistency guard (audit 2026-11-21, #13579: a "shot
+# wide of the post" header paired with a "pass wide of the post" bullet).
+# Closed action nouns only. A qualifier ("attempt", "chance", "opportunity",
+# "penalty") in EITHER line resolves the pair, so legitimate "missed a
+# chance, then scored" narratives are never rejected. The same player must
+# be named in both lines and the second line must be a bullet.
+_ACTION_QUALIFY_RX = re.compile(
+    r'(?i)\b(?:attempt|attempts|chance|chances|opportunity|opportunities|'
+    r'try|tries|penalty|penalties|rebound)\b')
+_CONTRADICTORY_ACTIONS = (
+    (re.compile(r'(?i)\bshot\b'), re.compile(r'(?i)\bpass(?:ed|es)?\b')),
+    (re.compile(r'(?i)\b(?:scored|netted|goal)\b'),
+     re.compile(r'(?i)\b(?:missed|miss|wasted)\b')),
+)
+
+
+def _contradictory_actions(text):
+    """True when a header/bullet pair names the same player with opposite
+    closed action nouns and no resolving qualifier. Narrow by design:
+    no bullet, no shared capitalised name, or any qualifier -> False.
+    Never raises."""
+    try:
+        lines = [ln for ln in (text or '').split('\n') if ln.strip()]
+        for i in range(len(lines) - 1):
+            hdr, bul = lines[i], lines[i + 1]
+            if not re.match(r'^\s*[\u2022\-\*]', bul):
+                continue
+            hn = set(_NAME_TOKEN_RX.findall(hdr))
+            bn = set(_NAME_TOKEN_RX.findall(bul))
+            if not hn or not (hn & bn):
+                continue
+            if _ACTION_QUALIFY_RX.search(hdr) or _ACTION_QUALIFY_RX.search(bul):
+                continue
+            for a_rx, b_rx in _CONTRADICTORY_ACTIONS:
+                if ((a_rx.search(hdr) and b_rx.search(bul)) or
+                        (b_rx.search(hdr) and a_rx.search(bul))):
+                    return True
+        return False
+    except Exception:
+        return False
+
+
 _SCRIPT_TAG_RX = re.compile(r'(?i)</?source\s*>')
 
 
@@ -1898,6 +2070,10 @@ def validate_translation(src, out, tag='', allow_our_link=False, min_len=3):
         if not isinstance(out, str):
             return None
         out = sanitize_output(out)
+        # Formatting + the one known deterministic action swap happen BEFORE
+        # the consistency check: both operate on the same lines the gate
+        # inspects, so a flattened "header • bullet" is still checked.
+        out = _fix_shot_pass(normalize_inline_bullets(out))
         if not out or len(out) < min_len or len(out) > 3900:
             return None
         if len(out) > len(src or '') * 1.5 + 200:
@@ -1919,6 +2095,9 @@ def validate_translation(src, out, tag='', allow_our_link=False, min_len=3):
             return None
         if _SOURCE_MENTION_RX.search(out):
             print('[lang] %s output rejected (source mention)' % tag)
+            return None
+        if _contradictory_actions(out):
+            print('[lang] %s output rejected (contradictory actions)' % tag)
             return None
         src_nums = number_tokens(src)
         if src_nums and not src_nums <= number_tokens(out):
@@ -1969,7 +2148,8 @@ def llm_fix(text):
               'unsure of a name, keep the source wording. Never write '
               'a self-contradictory sentence -- a missed chance and a scored '
               'goal are opposites, so state one clearly ("missed a chance", '
-              'never "missed a goal that had been scored"). No meta text (no '
+              'never "missed a goal that had been scored"). A shot stays a '
+              'shot and a pass stays a pass; never swap the action. No meta text (no '
               '"Translation:", no "Corrected:", no "Here is"), no hashtags, '
               'mentions, links, or commentary. Output ONLY the post. '
               'Arabic person names: transliterate faithfully, letter by '
@@ -2101,7 +2281,7 @@ def llm_fix(text):
         got = validate_translation(src, fb, 'free')
         if got:
             print('[lang] free fallback used')
-            return repair_names(dedupe_lines(got))
+            return repair_names(dedupe_lines(normalize_inline_bullets(got)))
     if has_arabic(text):
         # Channel is English-only. Rather than post Arabic, drop the post.
         print('[lang] UNTRANSLATABLE arabic -> skip post')
@@ -2111,7 +2291,7 @@ def llm_fix(text):
     if not got:
         print('[lang] original failed final gate -> skip post')
         return ''
-    return repair_names(got)
+    return repair_names(dedupe_lines(normalize_inline_bullets(got)))
 
 
 # Tokens whose presence in the LONGER line proves new facts (keep it).
@@ -2145,12 +2325,20 @@ def dedupe_lines(text):
     tokens contain the other's and the extra words carry no new facts (no
     digits, no roster names, no negations), the longer line is an echo, not
     news (observed: "Third Mia Mia Mia" / "The third Mia Mia Mia chant").
-    Never raises; returns the text unchanged when nothing repeats."""
+    Audit 2026-11-21: tokens are now alphanumeric runs, so a trailing full
+    stop no longer makes "unbelievable." different from "unbelievable".
+    The digit / roster / _DEDUP_NEG exceptions are unchanged. Never raises;
+    returns the text unchanged when nothing repeats."""
     try:
         import re as _re
 
         def _dig(w):
             return any(ch.isdigit() for ch in w)
+
+        def _tokens(key):
+            toks = set(_re.findall(r'[a-z0-9]+', key.lower()))
+            toks.discard('s')  # possessive "'s" is not a new fact
+            return toks
 
         lines = (text or '').split('\n')
         seen = set()
@@ -2163,19 +2351,22 @@ def dedupe_lines(text):
                 continue
             if key in seen:
                 continue
-            toks = set(key.split())
+            toks = _tokens(key)
             drop = False
             for s in seen:
-                stoks = set(s.split())
+                stoks = _tokens(s)
                 if toks <= stoks:
-                    extra = stoks - toks
+                    extra, longer = stoks - toks, s
                 elif stoks <= toks:
-                    extra = toks - stoks
+                    extra, longer = toks - stoks, key
                 else:
                     continue
+                # Contractions tokenise as a stem + "t" ("don't" -> don, t),
+                # so keep the original raw key in the loop for that check.
+                neg = bool(extra & _DEDUP_NEG) or bool(
+                    't' in extra and _re.search(r"\b\w+['\u2019]t\b", longer))
                 if extra and not any(_dig(w) for w in extra) \
-                        and not (extra & _DEDUP_NEG) \
-                        and not (extra & _roster_toks()):
+                        and not neg and not (extra & _roster_toks()):
                     drop = True
                     break
             if drop:
