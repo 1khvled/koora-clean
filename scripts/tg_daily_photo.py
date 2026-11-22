@@ -29,6 +29,26 @@ STATE_KEY = 'last_daily_photo_date'
 MAX_ROWS = 30
 FETCH_TIMEOUT = 10
 
+# Non-secret runtime tunables live in scripts/tg_runtime.json (owned elsewhere).
+# Missing/malformed file -> silent fallback; no secrets are ever read here.
+RUNTIME_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'tg_runtime.json')
+DEFAULT_PHOTO_TIME_UTC = '08:00'   # post at/after this UTC time, not after midnight
+
+# Small explicit top-competition allowlist. Names are the English forms already
+# used by this project's own competition list (about.html / index.html), matched
+# case- and punctuation-insensitively against the name carried in the payload.
+# Real payload data only: nothing here is injected into the drawn board.
+TOP_COMPETITIONS = frozenset(
+    re.sub(r'[^a-z0-9]+', ' ', n.lower()).strip() for n in (
+        'Premier League', 'La Liga', 'LaLiga', 'Serie A', 'Bundesliga',
+        'Ligue 1', 'Saudi Pro League', 'Champions League',
+        'UEFA Champions League', 'Europa League', 'UEFA Europa League',
+        'FA Cup', 'Copa del Rey',
+    ))
+# Status tokens that mean in-progress (used when a row has no explicit flag).
+LIVE_STATUSES = frozenset(('LIVE', '1H', '2H', 'HT', 'ET', 'PEN'))
+
 # Canvas geometry (the *_H names are asserted by the offline image tests).
 WIDTH = 1000
 PAD = 24
@@ -56,6 +76,7 @@ RED_2 = (239, 68, 68)        # #EF4444 secondary accent (the "v" separator)
 GOLD = (251, 191, 36)        # #FBBF24 kickoff time + date
 WHITE = (255, 255, 255)      # #FFFFFF team names / title
 SLATE = (148, 163, 184)      # #94A3B8 muted labels / scheduled status
+MUTED = (100, 116, 139)      # #64748B quieter slate for the optional sponsor
 FT_GREEN = (110, 231, 183)   # #6EE7B7 finished results (muted emerald)
 FT_PILL = (16, 45, 42)       # dark green pill behind a finished result
 SLATE_PILL = (32, 44, 70)    # neutral pill for scheduled/cancelled matches
@@ -108,6 +129,61 @@ def date_display(day=None):
 
 
 # --------------------------------------------------------------------------
+# non-secret runtime config + fixed posting hour (stdlib, fail-silent)
+# --------------------------------------------------------------------------
+def runtime_config():
+    """Read scripts/tg_runtime.json with the stdlib. Missing/bad file -> {}.
+
+    The file is owned by another part of the bridge; it carries only non-secret
+    tunables. We never edit or write it here.
+    """
+    try:
+        with open(RUNTIME_PATH, encoding='utf-8') as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def _cfg(cfg):
+    return cfg if isinstance(cfg, dict) else runtime_config()
+
+
+def configured_photo_time(cfg=None):
+    """'HH:MM' UTC from daily_photo_time_utc, else DEFAULT_PHOTO_TIME_UTC."""
+    raw = str(_cfg(cfg).get('daily_photo_time_utc', '') or '').strip()
+    m = re.match(r'^(\d{1,2}):(\d{2})$', raw)
+    if m:
+        try:
+            hh, mm = int(m.group(1)), int(m.group(2))
+            if 0 <= hh <= 23 and 0 <= mm <= 59:
+                return '%02d:%02d' % (hh, mm)
+        except Exception:
+            pass
+    return DEFAULT_PHOTO_TIME_UTC
+
+
+def configured_sponsor_line(cfg=None):
+    """Optional one-line footer text; empty by default (board is unchanged)."""
+    return str(_cfg(cfg).get('sponsor_line', '') or '').strip()
+
+
+def now_utc():
+    """Timezone-aware UTC clock; injectable via post_daily_photo(now=...)."""
+    return datetime.datetime.now(datetime.timezone.utc)
+
+
+def past_posting_hour(now=None, cfg=None):
+    """True when the current UTC time-of-day is at/after the configured hour.
+
+    '>=' (not '==') means a bot that starts late still posts, so no day is
+    missed; the once-per-day state key still prevents a second post.
+    """
+    n = now or now_utc()
+    return n.strftime('%H:%M') >= configured_photo_time(cfg)
+
+
+# --------------------------------------------------------------------------
 # normalising helpers
 # --------------------------------------------------------------------------
 def _clean_name(value):
@@ -153,11 +229,18 @@ def _redact(text, token=''):
     return s[:120]
 
 
-def _match(time_key, home, away, status, league_order, logos=None):
-    """A normalised match row. `logos` carries optional crest URL + team id."""
+def _match(time_key, home, away, status, league_order, logos=None,
+           live=False, competition=''):
+    """A normalised match row.
+
+    `logos` carries optional crest URL + team id. `live` and `competition` are
+    taken straight from the source payload (never invented); both are used only
+    for ranking the board, never drawn into the image.
+    """
     logos = logos or {}
     return {'time': _hhmm(time_key), 'sort': time_key, 'home': home,
             'away': away, 'status': status, 'league_order': league_order,
+            'live': bool(live), 'competition': _clean_name(competition),
             'home_logo': str(logos.get('home_logo') or ''),
             'away_logo': str(logos.get('away_logo') or ''),
             'home_tid': str(logos.get('home_tid') or ''),
@@ -179,6 +262,7 @@ def parse_fotmob(data):
         for order, league in enumerate(data.get('leagues') or []):
             if not isinstance(league, dict):
                 continue
+            comp_name = _clean_name(league.get('name'))
             for m in (league.get('matches') or []):
                 if not isinstance(m, dict):
                     continue
@@ -206,7 +290,9 @@ def parse_fotmob(data):
                     if tid not in (None, ''):
                         logos[side + '_tid'] = str(tid)
                         logos[side + '_logo'] = _FOTMOB_LOGO % tid
-                out.append(_match(key, home, away, status, order, logos))
+                out.append(_match(key, home, away, status, order, logos,
+                                  live=live and not cancelled and not done,
+                                  competition=comp_name))
     except Exception:
         return []
     return out
@@ -215,6 +301,10 @@ def parse_fotmob(data):
 def parse_espn(data):
     out = []
     try:
+        leagues = data.get('leagues') or []
+        default_comp = ''
+        if len(leagues) == 1 and isinstance(leagues[0], dict):
+            default_comp = _clean_name(leagues[0].get('name'))
         for order, ev in enumerate(data.get('events') or []):
             if not isinstance(ev, dict):
                 continue
@@ -251,6 +341,18 @@ def parse_espn(data):
                 status = 'FT'
             else:
                 status = ''
+            live = ('PROGRESS' in tname or 'LIVE' in tname or
+                    bool(typ.get('inProgress'))) and not (
+                        'CANCEL' in tname or 'POSTPONE' in tname or
+                        'FINAL' in tname)
+            ev_league = ev.get('league')
+            if isinstance(ev_league, dict):
+                comp_name = _clean_name(ev_league.get('name'))
+            elif isinstance(ev_league, str):
+                comp_name = _clean_name(ev_league)
+            else:
+                comp_name = ''
+            comp_name = comp_name or default_comp
             logos = {}
             for side, team in (('home', home_team), ('away', away_team)):
                 url = team.get('logo') or ''
@@ -259,7 +361,8 @@ def parse_espn(data):
                     logos[side + '_logo'] = str(url)
                 if tid not in (None, ''):
                     logos[side + '_tid'] = str(tid)
-            out.append(_match(key, home, away, status, order, logos))
+            out.append(_match(key, home, away, status, order, logos,
+                              live=live, competition=comp_name))
     except Exception:
         return []
     return out
@@ -281,6 +384,10 @@ def parse_tifo(data):
             if not _english(home, away):
                 continue
             key = _utc_key(m.get('date') or m.get('time') or m.get('kickoff'))
+            comp = m.get('competition') or m.get('league') or ''
+            if isinstance(comp, dict):
+                comp = comp.get('name') or ''
+            comp_name = _clean_name(comp)
             logos = {}
             for side, keys in (('home', ('home_logo', 'homeLogo', 'home_crest')),
                                ('away', ('away_logo', 'awayLogo', 'away_crest'))):
@@ -288,7 +395,8 @@ def parse_tifo(data):
                 if url:
                     logos[side + '_logo'] = str(url)
                     logos[side + '_tid'] = str(url)  # URL itself is the cache key
-            out.append(_match(key, home, away, '', order, logos))
+            out.append(_match(key, home, away, '', order, logos,
+                              competition=comp_name))
     except Exception:
         return []
     return out
@@ -319,15 +427,37 @@ def fetch_today(date_value=None, fetcher=None):
     return []
 
 
+def _norm_comp(name):
+    return re.sub(r'[^a-z0-9]+', ' ', str(name or '').lower()).strip()
+
+
+def _is_live(match):
+    """Explicit payload flag first, then the status token for hand-built rows."""
+    if match.get('live') is True:
+        return True
+    return str(match.get('status') or '').strip().upper() in LIVE_STATUSES
+
+
+def _is_top(match):
+    return _norm_comp(match.get('competition')) in TOP_COMPETITIONS
+
+
 def select_matches(matches, limit=MAX_ROWS):
-    """Prefer the first leagues the source lists (top competitions first),
-    then show the chosen subset ordered by kickoff time. Bounded to `limit`."""
+    """Rank the board so big games are not buried by FotMob's league order.
+
+    Priority: (a) live/in-progress, then (b) top competitions (small explicit
+    allowlist), then (c) kickoff time; `league_order` is only a stable final
+    tiebreaker. All ranking data comes from the parsed payload. Bounded to
+    `limit` rows. The returned list follows the same priority order.
+    """
     try:
-        ordered = sorted(matches, key=lambda m: (int(m.get('league_order', 999)),
-                                                 str(m.get('sort') or '')))
-        picked = ordered[:limit]
-        return sorted(picked, key=lambda m: (str(m.get('sort') or ''),
-                                             int(m.get('league_order', 999))))
+        def rank(m):
+            return (0 if _is_live(m) else 1,
+                    0 if _is_top(m) else 1,
+                    str(m.get('sort') or ''),
+                    int(m.get('league_order', 999)))
+
+        return sorted(matches or [], key=rank)[:limit]
     except Exception:
         return list(matches or [])[:limit]
 
@@ -348,15 +478,20 @@ def caption_text(date_display_value, count):
     return "Today's matches: %s (%d matches)" % (date_display_value, count)
 
 
-def image_text(matches, date_display_value):
+def image_text(matches, date_display_value, sponsor_line=''):
     """Every human-readable string drawn into the PNG, newline-joined.
 
-    Exposed so tests can assert the rendered content is English-only."""
+    Exposed so tests can assert the rendered content is English-only. The
+    optional sponsor line is included so the English-only moat covers it too.
+    """
     parts = [header_text(date_display_value), 'TIME', 'MATCH', 'STATUS']
     for m in matches:
         parts.append('%s | %s v %s | %s' % (
             m.get('time'), m.get('home'), m.get('away'), m.get('status')))
     parts.append('%d matches' % len(matches))
+    sponsor = (sponsor_line or '').strip()
+    if sponsor:
+        parts.append(sponsor)
     return '\n'.join(parts)
 
 
@@ -526,8 +661,12 @@ def _draw_pill(d, x_right, y_center, label, fill, color, font):
            label, font=font, fill=color)
 
 
-def render_png(matches, date_display_value):
-    """Draw the PNG in memory: dark sports-broadcast board, 1000px wide."""
+def render_png(matches, date_display_value, sponsor_line=''):
+    """Draw the PNG in memory: dark sports-broadcast board, 1000px wide.
+
+    `sponsor_line` is optional and muted; empty by default so the board is
+    unchanged. No link, call-to-action or emoji is added.
+    """
     from PIL import Image, ImageDraw
     rows = list(matches)
     height = TITLE_H + COL_H + max(1, len(rows)) * ROW_H + FOOTER_H
@@ -586,14 +725,23 @@ def render_png(matches, date_display_value):
     d.text((PAD + 60, fy + (FOOTER_H - FONT_FOOT) // 2),
            '%d MATCHES' % len(rows), font=f_foot, fill=SLATE)
 
+    sponsor = (sponsor_line or '').strip()
+    if sponsor:
+        # Right-aligned, quieter than the match label, never a link/CTA/emoji.
+        f_sponsor = _font(FONT_FOOT)
+        s = _fit(d, sponsor, f_sponsor, WIDTH - 2 * PAD - 180)
+        d.text((WIDTH - PAD - d.textlength(s, font=f_sponsor),
+                fy + (FOOTER_H - FONT_FOOT) // 2),
+               s, font=f_sponsor, fill=MUTED)
+
     out = io.BytesIO()
     img.save(out, format='PNG', optimize=True)
     return out.getvalue()
 
 
-def render_image(matches, date_display_value):
+def render_image(matches, date_display_value, sponsor_line=''):
     """Save the PNG to a tempfile OUTSIDE the repo. Returns (path, bytes)."""
-    png = render_png(matches, date_display_value)
+    png = render_png(matches, date_display_value, sponsor_line)
     tf = tempfile.NamedTemporaryFile(prefix='tg_daily_', suffix='.png', delete=False)
     try:
         tf.write(png)
@@ -646,17 +794,26 @@ def _send_photo_bytes(png, caption, tgmod=None, timeout=30):
 # --------------------------------------------------------------------------
 # once-per-day entry point
 # --------------------------------------------------------------------------
-def post_daily_photo(tgmod=None, day=None):
-    """Post once per UTC calendar day. Writes the state key ONLY after a
-    confirmed send. Fully fail-open: never raises into the posting loop."""
+def post_daily_photo(tgmod=None, day=None, now=None):
+    """Post once per UTC calendar day, at/after the configured UTC hour.
+
+    Writes the state key ONLY after a confirmed send. Fully fail-open: never
+    raises into the posting loop. `now` is injectable for offline tests and
+    only controls the time-of-day gate; `day` still selects the fixtures/state.
+    """
     T = tgmod or tg
     path = None
     try:
-        d = day or today_utc()
+        n = now or now_utc()
+        d = day or n.date()
         ds, disp = date_str(d), date_display(d)
         state = T.load_state()
         if str(state.get(STATE_KEY) or '') == ds:
             return False  # already posted today -- the only idempotence gate
+        if not past_posting_hour(n):
+            print('daily photo: before %s UTC, skipping'
+                  % configured_photo_time())
+            return False
         matches = fetch_today(ds)
         if not matches:
             print('daily photo: no fixtures for %s, skipping' % ds)
@@ -665,12 +822,15 @@ def post_daily_photo(tgmod=None, day=None):
         if not picked:
             return False
         caption = caption_text(disp, len(picked))
-        # English-only moat: nothing Arabic / non-Latin reaches the channel.
-        if T.has_arabic(caption + '\n' + image_text(picked, disp)) or \
-                T.has_foreign_script(caption + '\n' + image_text(picked, disp)):
+        sponsor = configured_sponsor_line()
+        # English-only moat: nothing Arabic / non-Latin reaches the channel,
+        # including the optional sponsor line.
+        drawn = image_text(picked, disp, sponsor)
+        if T.has_arabic(caption + '\n' + drawn) or \
+                T.has_foreign_script(caption + '\n' + drawn):
             print('daily photo: non-English text detected, skipping')
             return False
-        path, png = render_image(picked, disp)
+        path, png = render_image(picked, disp, sponsor)
         result = _send_photo_bytes(png, caption, tgmod=T)
         if not (isinstance(result, dict) and result.get('ok')):
             try:
