@@ -3493,6 +3493,17 @@ def main():
         return 0
     # Default path: public preview, zero extra secrets.
     posted = public_preview_run(target)
+
+    # Daily matches photo: ONE English image per UTC calendar day. Called here
+    # (right after the news work, before any early return) so it runs on every
+    # scheduled invocation and its own fail-open wrapper can never break the
+    # posting above or the state save below. No new dependencies, no secrets.
+    try:
+        import tg_daily_photo
+        tg_daily_photo.post_daily_photo(tg_daily_photo.tg)
+    except Exception as e:
+        print('daily photo skipped:', str(e)[:120] or type(e).__name__)
+
     # Upgrade path: private Kurdish source joins in when reader creds exist.
     api_id = int(os.environ.get('TG_API_ID', '0') or 0)
     api_hash = os.environ.get('TG_API_HASH', '').strip()
