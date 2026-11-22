@@ -876,8 +876,25 @@ NVIDIA_MODELS = [
     ('nvidia/nemotron-3-nano-omni-30b-a3b-reasoning', 1200),
 ]
 
+# Cadence guard: the news workflow fires every 5 min with no in-progress
+# cancel, so a slow NIM call queues the next run (observed 157-290s/run).
+# Benchmarks: ultra 2.9-10.8s, nano 0.9-8s -> 12s covers the slowest call with
+# headroom; two consecutive transport failures skip NVIDIA for the rest of
+# this process (run) and go straight to Groq.
+NVIDIA_TIMEOUT = 12
+_NVIDIA_FAIL_LIMIT = 2
+_nvidia_consec_failures = 0
+_nvidia_circuit_open = False
 
-def nvidia_chat(key, model, system, user, max_tokens=400, timeout=25):
+
+def _reset_nvidia_circuit():
+    """Fresh-run reset (state is module/process scoped). Test hook + startup."""
+    global _nvidia_consec_failures, _nvidia_circuit_open
+    _nvidia_consec_failures = 0
+    _nvidia_circuit_open = False
+
+
+def nvidia_chat(key, model, system, user, max_tokens=400, timeout=NVIDIA_TIMEOUT):
     """NVIDIA NIM OpenAI-compatible chat call (stdlib only). Returns the
     stripped choices[0].message.content, or '' when a reasoning model puts its
     thought in reasoning_content and leaves content empty. Raises on HTTP /
@@ -2521,6 +2538,7 @@ def validate_translation(src, out, tag='', allow_our_link=False, min_len=3):
 
 def llm_fix(text):
     """Fix (and translate to English) with the free Groq LLM. Channel is English-only: Arabic in, natural English out, clean bullet list. Fail-open to original. Key in GROQ_API_KEY secret only."""
+    global _nvidia_consec_failures, _nvidia_circuit_open
     text = (text or '').strip()
     if not text:
         return text
@@ -2651,15 +2669,26 @@ def llm_fix(text):
     # the next NVIDIA model, then the existing free Groq -> free OpenRouter ->
     # machine chain. No key literal here: read from NVIDIA_API_KEY only.
     nvidia_key = os.environ.get('NVIDIA_API_KEY', '').strip()
-    if nvidia_key:
+    if nvidia_key and not _nvidia_circuit_open:
         for model, nmax in NVIDIA_MODELS:
+            if _nvidia_circuit_open:
+                break
             try:
                 out = nvidia_chat(nvidia_key, model, system, user,
                                   max_tokens=nmax)
             except Exception as e:
+                _nvidia_consec_failures += 1
                 print('[lang] nvidia fail: %s %s' % (
                     model, str(e)[:80] or type(e).__name__))
+                if (_nvidia_consec_failures >= _NVIDIA_FAIL_LIMIT
+                        and not _nvidia_circuit_open):
+                    _nvidia_circuit_open = True
+                    print('[lang] nvidia circuit open (%d timeouts), '
+                          'using Groq for rest of run' % _nvidia_consec_failures)
                 continue
+            # A returned response resets the breaker even when the gate below
+            # rejects it: only transport failures count, not bad output.
+            _nvidia_consec_failures = 0
             got = _llm_accept(out, text, 'nvidia')
             if got:
                 print('[lang] nvidia ok: %s (%d chars)' % (model, len(out)))
