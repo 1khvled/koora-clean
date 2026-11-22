@@ -331,7 +331,10 @@ class AuditFixTests(unittest.TestCase):
     def test_llm_accept_normalizes_and_drops_echo(self):
         flat = ('Mbapp\u00e9 unbelievable \u2022 Mbapp\u00e9 is unbelievable.\n'
                 '\u2022 He scored in the 73rd minute as Barcelona won 2-1.')
-        got = tg._llm_accept(flat, SRC_AR, 'test')
+        # Ground the name in the source: the new gate rejects a mapped name
+        # the source never named (the 2026-11-22 hallucination class).
+        src = '\u0643\u064a\u0644\u064a\u0627\u0646 \u0645\u0628\u0627\u0628\u064a ' + SRC_AR
+        got = tg._llm_accept(flat, src, 'test')
         self.assertIsNotNone(got)
         self.assertIn('\n\u2022 ', got)
         self.assertNotIn('unbelievable.', got)  # trailing-dot echo dropped
@@ -943,6 +946,110 @@ class NameMapFileTests(unittest.TestCase):
         for good in ('Oscar Bobb scored', 'Donyell Malen scored',
                      'Senny Mayulu assisted'):
             self.assertEqual(tg.repair_names(good), good, good)
+
+
+class MappedNameGroundingTests(unittest.TestCase):
+    """Audit 2026-11-22: invented mapped names / tiny-source over-generation.
+
+    The named posts (#13789/#13790/#13797) came from the same hallucination
+    class the scoreline gate alone did not cover: a famous-namesake swap and
+    an invented team reply. All offline: pure gate + mocked engines only."""
+
+    # Arabic source spellings as \u escapes (stdout never encodes Arabic).
+    VENEZIA = '\u0641\u064a\u0646\u064a\u062a\u0633\u064a\u0627'   # فينيتسيا
+    FENER = '\u0641\u0646\u0631\u0628\u062e\u0634\u0629'          # فنربخشة
+    JUV = '\u064a\u0648\u0641\u0646\u062a\u0648\u0633'            # يوفنتوس
+    GOAL = '\u062c\u0648\u0648\u0648\u0648\u0644'                  # جوووول
+    ONEWORD = '\u0641\u0648\u0644\u062a\u0645\u0627\u062f\u062f\u0647'  # فولتمادده
+
+    def test_invented_mapped_name_rejected(self):
+        # #13789/#13797: source named Venezia; output swapped in Fenerbahce.
+        src = ('\u0627\u0644\u0647\u062f\u0641 \u0627\u0644\u0623\u0648\u0644 '
+               + self.JUV + ' \u0636\u062f ' + self.VENEZIA)
+        out = 'Goal\n\u2022 First Juventus vs Fenerbahce'
+        self.assertIsNone(tg.validate_translation(src, out, 'test'))
+        # Same shared gate on paid / free / machine paths.
+        self.assertIsNone(tg._llm_accept(out, src, 'paid'))
+
+    def test_genuine_mapped_name_passes(self):
+        src = (self.FENER + ' \u064a\u0646\u062a\u0635\u0631 \u0639\u0644\u0649 '
+               + self.JUV + ' 2-1')
+        out = 'Fenerbah\u00e7e beat Juventus 2-1 in a cup tie.'
+        self.assertIsNotNone(tg.validate_translation(src, out, 'test'))
+        self.assertIsNotNone(tg._llm_accept(out, src, 'paid'))
+
+    def test_tiny_source_overgeneration_rejected(self):
+        # A single digit-free word must become a short caption, not a report.
+        out = ('A full match report with many details about the game and '
+               'the teams and the referee and the stadium.')
+        self.assertIsNone(tg.validate_translation(self.ONEWORD, out, 'test'))
+        self.assertIsNone(tg._llm_accept(out, self.ONEWORD, 'paid'))
+
+    def test_short_legit_reaction_passes(self):
+        self.assertIsNotNone(
+            tg.validate_translation(self.GOAL, 'GOAAAL!', 'test'))
+        self.assertIsNotNone(
+            tg.validate_translation('\u062c\u0648\u0648\u0648\u0644',
+                                    'GOOAAAL', 'test'))
+
+    def test_real_score_preserved(self):
+        src = ('\u0633\u062c\u0644 ' + self.JUV + ' \u0641\u064a \u0627\u0644\u062f\u0642\u064a\u0642\u0629 73 '
+               '\u0648\u0641\u0627\u0632 2-1 \u0639\u0644\u0649 ' + self.VENEZIA + '.')
+        out = 'Juventus won 2-1 against Venezia after a goal in the 73rd minute.'
+        self.assertIsNotNone(tg.validate_translation(src, out, 'test'))
+        ar_src = src.replace('73', '\u0667\u0663').replace('2-1', '\u0662\u2013\u0661')
+        self.assertIsNotNone(tg.validate_translation(ar_src, out, 'test'))
+
+    def test_scoreless_first_goal_alert_accepted(self):
+        src = ('\u0627\u0644\u0647\u062f\u0641 \u0627\u0644\u0623\u0648\u0644! \u0633\u062c\u0644 '
+               + self.JUV + ' \u0636\u062f ' + self.VENEZIA
+               + ' \u0641\u064a \u0627\u0644\u0634\u0648\u0637 \u0627\u0644\u0623\u0648\u0644.')
+        out = ('First goal! Juventus scored against Venezia in the first half.\n'
+               '\u2022 A great finish put the home side ahead early on.')
+        self.assertIsNotNone(tg.validate_translation(src, out, 'test'))
+
+    def test_fenerbahce_vs_venezia_discrimination(self):
+        # A real Fenerbahce post is never corrupted into Venezia, and a real
+        # Venezia post is never upgraded to the famous namesake.
+        good_src = self.FENER + ' \u064a\u0644\u0639\u0628 \u0623\u0645\u0627\u0645 ' + self.JUV
+        self.assertIsNotNone(tg.validate_translation(
+            good_src, 'Fenerbahce face Juventus in a big match.', 'test'))
+        bad_src = self.JUV + ' \u0636\u062f ' + self.VENEZIA
+        self.assertIsNone(tg.validate_translation(
+            bad_src, 'Juventus vs Fenerbahce', 'test'))
+
+    def test_spelling_variant_and_name_expansion_survive(self):
+        # Source spelling drift (سيلتا vs key سلتا) and full-name expansion
+        # from a bare shield key (مبابي -> Kylian Mbappe) are NOT hallucinations.
+        self.assertIsNotNone(tg.validate_translation(
+            '\u0633\u064a\u0644\u062a\u0627 \u0641\u064a\u063a\u0648',
+            'Celta Vigo drew their last match.', 'test'))
+        self.assertIsNotNone(tg.validate_translation(
+            '\u0645\u0628\u0627\u0628\u064a',
+            'Kylian Mbappe scored a stunning goal.', 'test'))
+        # A repairable mangle is fixed by the post-pass, not dropped at the gate.
+        got = tg._llm_accept('Isak Romero scored the equaliser.',
+                             '\u0625\u0633\u062d\u0627\u0642 \u0631\u0648\u0645\u064a\u0631\u0648',
+                             'test')
+        self.assertIn('Isaac Romero scored', got)
+
+    def test_prompt_forbids_invented_facts(self):
+        seen = {}
+
+        def fake_or(key, model, system, user, timeout=25):
+            seen['system'] = system
+            return GOOD_EN
+
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'openrouter_chat', side_effect=fake_or), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('no network')), \
+             mock.patch.object(tg, 'translate_free_ar_en', return_value=''):
+            tg.llm_fix(SRC_AR)
+        self.assertIn('Never introduce a team, player, score or minute',
+                      seen['system'])
+        self.assertIn('a one-word source becomes a short caption',
+                      seen['system'])
 
 
 if __name__ == '__main__':
