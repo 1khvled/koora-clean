@@ -1594,6 +1594,114 @@ class RuntimeConfigTests(unittest.TestCase):
         self.assertEqual(tg.NVIDIA_MODELS[1][1], 1200)
 
 
+class OpenRouterModelConfigTests(unittest.TestCase):
+    """The OpenRouter model list is a non-secret runtime tunable.
+
+    Offline only: no model / network / Telegram calls. Verifies config load,
+    fail-silent fallback, the full NVIDIA -> Groq -> OpenRouter -> machine
+    chain order, no paid model, and the per-model 429 retry.
+    """
+
+    WORKING = ['nvidia/nemotron-3-ultra-550b-a55b:free',
+               'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free']
+
+    def setUp(self):
+        tg._reset_nvidia_circuit()
+
+    def tearDown(self):
+        tg._reset_nvidia_circuit()
+
+    def test_committed_config_supplies_verified_free_models(self):
+        with open(tg.RUNTIME_PATH, encoding='utf-8') as f:
+            cfg = json.load(f)
+        self.assertEqual(cfg.get('openrouter_models'), self.WORKING)
+        self.assertEqual(tg.OR_MODELS, self.WORKING)
+        for m in tg.OR_MODELS:
+            self.assertTrue(m.endswith(':free'), m)
+
+    def test_loader_accepts_configured_free_models(self):
+        cfg = {'openrouter_models': ['some/free-model:free', 'other:free']}
+        with mock.patch.object(tg, 'RUNTIME_CFG', cfg):
+            self.assertEqual(tg._runtime_or_models(),
+                             ['some/free-model:free', 'other:free'])
+
+    def test_loader_fail_silent_keeps_only_free_ids(self):
+        for cfg in ({}, {'openrouter_models': []},
+                    {'openrouter_models': 'nvidia/foo:free'},
+                    {'openrouter_models': [None, '', 42]},
+                    {'openrouter_models': ['openai/paid', '']}):
+            with self.subTest(cfg=cfg), mock.patch.object(tg, 'RUNTIME_CFG', cfg):
+                self.assertEqual(tg._runtime_or_models(), tg.DEFAULT_OR_MODELS)
+        # A partly bad list keeps only the valid free ids; paid is dropped.
+        with mock.patch.object(tg, 'RUNTIME_CFG',
+                               {'openrouter_models': ['', 'm:free',
+                                                      'openai/paid', 7]}):
+            self.assertEqual(tg._runtime_or_models(), ['m:free'])
+
+    def test_chain_order_nvidia_groq_or_machine_no_paid(self):
+        order = []
+
+        def fake_nv(key, model, system, user, max_tokens=400, timeout=25):
+            order.append(('nvidia', model))
+            raise RuntimeError('nvidia down')
+
+        def fake_gr(key, model, system, user, timeout=30):
+            order.append(('groq', model))
+            raise RuntimeError('groq down')
+
+        def fake_or(key, model, system, user, timeout=25):
+            order.append(('openrouter', model))
+            raise RuntimeError('openrouter down')
+
+        def fake_machine(src):
+            order.append(('machine', ''))
+            return GOOD_EN
+
+        env = dict(ENV, NVIDIA_API_KEY='nv-test-sentinel')
+        with mock.patch.dict(os.environ, env, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', side_effect=fake_nv), \
+             mock.patch.object(tg, 'groq_chat', side_effect=fake_gr), \
+             mock.patch.object(tg, 'openrouter_chat', side_effect=fake_or), \
+             mock.patch.object(tg, 'translate_free_ar_en',
+                               side_effect=fake_machine):
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', got)
+        stages = [s for s, _ in order]
+        # 2 NVIDIA models -> 2 Groq models -> all configured OR -> machine.
+        self.assertEqual(stages[:2], ['nvidia', 'nvidia'])
+        self.assertEqual(stages[2:4], ['groq', 'groq'])
+        self.assertEqual([m for s, m in order if s == 'openrouter'], self.WORKING)
+        self.assertEqual(stages[-1], 'machine')
+        for stage, model in order:
+            if stage == 'openrouter':
+                self.assertTrue(model.endswith(':free'), model)
+                self.assertNotIn('paid', model)
+
+    def test_or_429_retries_same_model_then_accepts(self):
+        seen = []
+
+        def fake_or(key, model, system, user, timeout=25):
+            seen.append(model)
+            if len(seen) == 1:
+                raise RuntimeError('openrouter HTTP 429')
+            return GOOD_EN
+
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat',
+                               side_effect=AssertionError('no nvidia key')), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('groq down')), \
+             mock.patch.object(tg, 'openrouter_chat', side_effect=fake_or), \
+             mock.patch.object(tg.time, 'sleep') as slp, \
+             mock.patch.object(tg, 'translate_free_ar_en',
+                               side_effect=RuntimeError('machine down')):
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', got)
+        self.assertEqual(seen[:2], [self.WORKING[0], self.WORKING[0]],
+                         'a 429 must retry the SAME model once')
+        slp.assert_any_call(8)
+
+
 class TranslationCacheTests(unittest.TestCase):
     """#4: accepted-only, hashed-key, TTL/eviction, fail-open cache."""
 
