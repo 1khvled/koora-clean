@@ -7,5 +7,6 @@
   "nvidia_timeout": 12,
   "watch_link_every": 12,
   "translation_cache_days": 7,
+  "daily_photo_time_utc": "08:00",
   "sponsor_line": ""
 }
