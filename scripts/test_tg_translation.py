@@ -153,22 +153,42 @@ class ScoreGroundingAndVeneziaTests(unittest.TestCase):
 
 
 class ChainTests(unittest.TestCase):
-    """Paid primary, free fail-open chain, kill switch, injection wrapper."""
+    """Paid is hard-disabled; free fail-open chain, injection wrapper."""
 
-    def test_fallback_to_free_model(self):
-        # Paid errors; the first free OpenRouter engine succeeds.
+    def test_paid_env_cannot_enable_paid_call(self):
+        # Owner disabled paid translation 2026-11-22. Even though ENV sets
+        # PAID_MODEL, openrouter_chat must ONLY ever see FREE (':free') models,
+        # and the free chain must still produce a good translation.
         with mock.patch.dict(os.environ, ENV, clear=False), \
-             mock.patch.object(tg, 'openrouter_chat', side_effect=[
-                 RuntimeError('paid 402'), GOOD_EN]) as orc, \
+             mock.patch.object(tg, 'openrouter_chat',
+                               return_value=GOOD_EN) as orc, \
              mock.patch.object(tg, 'groq_chat',
                                side_effect=RuntimeError('groq down')), \
              mock.patch.object(tg, 'translate_free_ar_en',
                                return_value=GOOD_EN) as machine:
             got = tg.llm_fix(SRC_AR)
         self.assertIn('Lamine Yamal', got)
-        self.assertEqual(orc.call_count, 2)
-        self.assertIn('paid-test', orc.call_args_list[0].args[1])
-        self.assertTrue(orc.call_args_list[1].args[1].endswith(':free'))
+        self.assertGreaterEqual(orc.call_count, 1)
+        for c in orc.call_args_list:
+            self.assertTrue(c.args[1].endswith(':free'), c.args[1])
+            self.assertNotIn('paid', c.args[1], 'no paid model may be called')
+        self.assertNotIn('paid-test', str(orc.call_args_list))
+        machine.assert_not_called()
+
+    def test_free_fallback_after_groq_failure(self):
+        # Groq down: the first free OpenRouter engine succeeds, so the machine
+        # translation fallback is never needed.
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'openrouter_chat',
+                               return_value=GOOD_EN) as orc, \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('groq down')), \
+             mock.patch.object(tg, 'translate_free_ar_en',
+                               return_value=GOOD_EN) as machine:
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', got)
+        self.assertEqual(orc.call_count, 1)
+        self.assertTrue(orc.call_args_list[0].args[1].endswith(':free'))
         machine.assert_not_called()
 
     def test_free_model_garbage_is_not_posted(self):
@@ -181,8 +201,11 @@ class ChainTests(unittest.TestCase):
             self.assertEqual(tg.llm_fix(SRC_AR), '')
 
     def test_paid_kill_switch(self):
+        # Historically the kill switch was deleting PAID_MODEL from the env.
+        # Paid is now hard-disabled in llm_fix(); this still proves the free
+        # chain works with no PAID_MODEL present (and only calls free models).
         env = dict(ENV)
-        env.pop('PAID_MODEL')  # deleting the env line disables paid usage
+        env.pop('PAID_MODEL')
         with mock.patch.dict(os.environ, env, clear=False), \
              mock.patch.object(tg, 'openrouter_chat',
                                return_value=GOOD_EN) as orc, \
