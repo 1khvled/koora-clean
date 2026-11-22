@@ -7,13 +7,21 @@ scraper) is mocked. Run with:  python scripts/test_tg_translation.py
 import io
 import json
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tg_news as tg  # noqa: E402
+
+# The accepted-translation cache is a real runtime optimisation, but it would
+# short-circuit the model-call assertions in the existing chain/breaker tests.
+# Disable it for the whole module; the TranslationCacheTests below opt in and
+# isolate a temp cache file. No production behaviour is affected (test-only).
+tg._CACHE_ENABLED = False
 
 
 SRC_AR = ('سجل Lamine Yamal هدفا عالميا في الدقيقة 73 ليقود Barcelona '
@@ -1524,6 +1532,214 @@ class NewsBodyStyleTests(unittest.TestCase):
                       'bullet per event', seen['system'])
         self.assertIn(self.GOAL, seen['system'])
         self.assertIn(self.ASSIST, seen['system'])
+
+
+class RuntimeConfigTests(unittest.TestCase):
+    """#3: non-secret tunables load from tg_runtime.json, fail-silent."""
+
+    def setUp(self):
+        self._tmp = tempfile.mkdtemp(prefix='tg_runtime_test_')
+        self._path = os.path.join(self._tmp, 'tg_runtime.json')
+
+    def tearDown(self):
+        shutil.rmtree(self._tmp, ignore_errors=True)
+
+    def test_runtime_config_loads_all_keys(self):
+        cfg = {
+            'nvidia_models': [['m-a', 111]],
+            'nvidia_timeout': 9,
+            'watch_link_every': 4,
+            'translation_cache_days': 2,
+            'sponsor_line': '',
+        }
+        with open(self._path, 'w', encoding='utf-8') as f:
+            json.dump(cfg, f)
+        with mock.patch.object(tg, 'RUNTIME_PATH', self._path):
+            got = tg.runtime_config()
+        self.assertEqual(got['nvidia_models'], [['m-a', 111]])
+        self.assertEqual(got['nvidia_timeout'], 9)
+        self.assertEqual(got['watch_link_every'], 4)
+        self.assertEqual(got['translation_cache_days'], 2)
+        self.assertEqual(got['sponsor_line'], '')
+
+    def test_runtime_config_fail_silent_on_missing_or_bad(self):
+        with mock.patch.object(tg, 'RUNTIME_PATH',
+                               os.path.join(self._tmp, 'nope.json')):
+            self.assertEqual(tg.runtime_config(), {})
+        with open(self._path, 'w', encoding='utf-8') as f:
+            f.write('{ this is not json ')
+        with mock.patch.object(tg, 'RUNTIME_PATH', self._path):
+            self.assertEqual(tg.runtime_config(), {})
+        with open(self._path, 'w', encoding='utf-8') as f:
+            f.write('[1, 2, 3]')  # valid JSON but not a dict
+        with mock.patch.object(tg, 'RUNTIME_PATH', self._path):
+            self.assertEqual(tg.runtime_config(), {})
+
+    def test_fallbacks_keep_current_values(self):
+        # With no config, every tunable resolves to the shipped value.
+        with mock.patch.object(tg, 'RUNTIME_CFG', {}):
+            self.assertEqual(tg._runtime_int('nvidia_timeout', 12), 12)
+            self.assertEqual(tg._runtime_int('watch_link_every', 12), 12)
+            self.assertEqual(tg._runtime_int('translation_cache_days', 7), 7)
+            self.assertEqual(tg._runtime_models(), [
+                ('nvidia/nemotron-3-ultra-550b-a55b', 400),
+                ('nvidia/nemotron-3-nano-omni-30b-a3b-reasoning', 1200)])
+        # The committed config currently carries the same values.
+        self.assertEqual(tg.NVIDIA_TIMEOUT, 12)
+        self.assertEqual(tg.WATCH_LINK_EVERY, 12)
+        self.assertEqual(tg.TRANSLATION_CACHE_DAYS, 7)
+        self.assertEqual(tg.NVIDIA_MODELS[0][1], 400)
+        self.assertEqual(tg.NVIDIA_MODELS[1][1], 1200)
+
+
+class TranslationCacheTests(unittest.TestCase):
+    """#4: accepted-only, hashed-key, TTL/eviction, fail-open cache."""
+
+    NENV = dict(ENV, NVIDIA_API_KEY='nv-test-sentinel')
+
+    def setUp(self):
+        self._tmp = tempfile.mkdtemp(prefix='tg_cache_test_')
+        self._path = os.path.join(self._tmp, 'cache.json')
+        self._orig_path = tg.CACHE_PATH
+        self._orig_enabled = tg._CACHE_ENABLED
+        self._orig_max = tg._CACHE_MAX
+        tg.CACHE_PATH = self._path
+        tg._CACHE_MAX = 3
+        tg._CACHE_ENABLED = True
+        tg.reset_translation_cache()
+
+    def tearDown(self):
+        tg._CACHE_ENABLED = self._orig_enabled
+        tg._CACHE_MAX = self._orig_max
+        tg.CACHE_PATH = self._orig_path
+        tg.reset_translation_cache()
+        shutil.rmtree(self._tmp, ignore_errors=True)
+
+    def test_cache_hit_avoids_model_call(self):
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat',
+                               return_value=GOOD_EN) as nv, \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('must not be called')), \
+             mock.patch.object(tg, 'translate_free_ar_en',
+                               side_effect=RuntimeError('must not be called')):
+            first = tg.llm_fix(SRC_AR)
+            self.assertEqual(nv.call_count, 1)
+            nv.reset_mock()
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                second = tg.llm_fix(SRC_AR)
+        self.assertEqual(first, second)
+        nv.assert_not_called()
+        self.assertIn('translation cache hit', buf.getvalue())
+
+    def test_cache_miss_calls_model_and_stores_only_accepted(self):
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', return_value=GOOD_EN) as nv, \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('must not be called')):
+            out = tg.llm_fix(SRC_AR)
+        nv.assert_called_once()
+        key = tg._cache_key(SRC_AR)
+        self.assertIsNotNone(key)
+        self.assertEqual(len(key), 64)  # sha256 hex
+        cached = tg._cache_get(key)
+        self.assertEqual(cached, out)
+        self.assertIn('Lamine Yamal', cached)
+        with open(self._path, encoding='utf-8') as f:
+            persisted = json.load(f)
+        self.assertTrue(any(r['k'] == key and r['v'] == cached
+                            for r in persisted['items']))
+
+    def test_rejected_and_empty_output_never_cached(self):
+        bad = GOOD_EN + ' \u0627\u0644\u062f\u0642\u064a\u0642\u0629 @spam'
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', return_value=bad), \
+             mock.patch.object(tg, 'groq_chat', return_value=bad), \
+             mock.patch.object(tg, 'openrouter_chat', return_value=bad), \
+             mock.patch.object(tg, 'translate_free_ar_en', return_value=''):
+            self.assertEqual(tg.llm_fix(SRC_AR), '')
+        self.assertEqual(tg._translation_cache, {})
+        # A later accepted call is the only thing that gets stored.
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', return_value=GOOD_EN):
+            out = tg.llm_fix(SRC_AR)
+        self.assertEqual(len(tg._translation_cache), 1)
+        self.assertEqual(tg._cache_get(tg._cache_key(SRC_AR)), out)
+
+    def test_links_and_mentions_are_not_cached(self):
+        for extra in (' https://t.me/spam_channel', ' @spam'):
+            with self.subTest(extra=extra):
+                tg.reset_translation_cache()
+                src = SRC_AR + extra
+                self.assertIsNone(tg._cache_key(src))
+                with mock.patch.dict(os.environ, self.NENV, clear=False), \
+                     mock.patch.object(tg, 'nvidia_chat',
+                                       return_value=GOOD_EN):
+                    out = tg.llm_fix(src)
+                self.assertIn('Lamine Yamal', out)
+                self.assertEqual(tg._translation_cache, {})
+
+    def test_ttl_expires_in_memory_and_on_load(self):
+        key = tg._cache_key(SRC_AR)
+        now = 1000000.0
+        with mock.patch.object(tg.time, 'time', return_value=now):
+            tg._cache_put(key, GOOD_EN)
+            self.assertEqual(tg._cache_get(key), GOOD_EN)
+        with mock.patch.object(tg.time, 'time',
+                               return_value=now + 8 * 86400):
+            self.assertIsNone(tg._cache_get(key))
+        self.assertNotIn(key, tg._translation_cache)
+        # A stale persisted entry is dropped when the cache is loaded.
+        with open(self._path, 'w', encoding='utf-8') as f:
+            json.dump({'items': [{'k': 'stale',
+                                  't': now - 8 * 86400, 'v': GOOD_EN}]}, f)
+        tg._translation_cache = {}
+        tg._cache_loaded = False
+        with mock.patch.object(tg.time, 'time', return_value=now):
+            self.assertIsNone(tg._cache_get('stale'))
+
+    def test_eviction_drops_oldest(self):
+        with mock.patch.object(tg.time, 'time',
+                               side_effect=[1000, 1001, 1002, 1003]):
+            for i in range(4):
+                tg._cache_put('k%d' % i, 'value %d' % i)
+        self.assertEqual(len(tg._translation_cache), 3)
+        self.assertNotIn('k0', tg._translation_cache)
+        self.assertIn('k3', tg._translation_cache)
+
+    def test_fail_open_on_cache_error(self):
+        with mock.patch.object(tg, '_cache_load',
+                               side_effect=RuntimeError('disk gone')), \
+             mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', return_value=GOOD_EN):
+            out = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', out)
+
+
+class ReplyChainGateTests(unittest.TestCase):
+    """#6: keep threading only on a shared meaningful entity."""
+
+    def test_reply_kept_when_shared_roster_token(self):
+        # Good-thread shape (cf. #13793/#13794): parent and child both name
+        # Lamine Yamal (shielded to Latin by protect_names).
+        parent = '\u0633\u062c\u0644 \u0644\u0627\u0645\u064a\u0646 \u064a\u0627\u0645\u0627\u0644 \u0647\u062f\u0641\u0627'
+        child = '\u0644\u0627\u0645\u064a\u0646 \u064a\u0627\u0645\u0627\u0644 \u0623\u0636\u0627\u0641 \u0647\u062f\u0641\u0627 \u0622\u062e\u0631'
+        self.assertTrue(tg.reply_entity_ok(parent, child))
+
+    def test_reply_kept_when_shared_digit_marker(self):
+        parent = '\u0647\u062f\u0641 \u0641\u064a \u0627\u0644\u062f\u0642\u064a\u0642\u0629 73'
+        child = '\u0645\u064a\u0646\u0627\u0631 73 \u0644\u0644\u0641\u0648\u0632'
+        self.assertTrue(tg.reply_entity_ok(parent, child))
+
+    def test_reply_dropped_when_no_shared_entity(self):
+        parent = '\u0633\u062c\u0644 \u0644\u0627\u0645\u064a\u0646 \u064a\u0627\u0645\u0627\u0644 \u0641\u064a 73'
+        child = '\u0627\u0646\u062a\u0647\u062a \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629 \u0628\u0644\u0627 \u0623\u0647\u062f\u0627\u0641'
+        self.assertFalse(tg.reply_entity_ok(parent, child))
+
+    def test_reply_dropped_when_parent_unknown(self):
+        self.assertFalse(tg.reply_entity_ok('', SRC_AR))
+        self.assertFalse(tg.reply_entity_ok(None, SRC_AR))
 
 
 if __name__ == '__main__':

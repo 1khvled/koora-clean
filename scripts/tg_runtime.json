@@ -1,0 +1,11 @@
+{
+  "_note": "Non-secret runtime tunables only. NEVER store an API key or secret here. Missing/malformed file -> silent fallback to the hardcoded defaults in tg_news.py, so behaviour does not change. sponsor_line is a documented placeholder reserved for future monetisation; leave it empty (posts stay English-only, link/promo-free).",
+  "nvidia_models": [
+    ["nvidia/nemotron-3-ultra-550b-a55b", 400],
+    ["nvidia/nemotron-3-nano-omni-30b-a3b-reasoning", 1200]
+  ],
+  "nvidia_timeout": 12,
+  "watch_link_every": 12,
+  "translation_cache_days": 7,
+  "sponsor_line": ""
+}
