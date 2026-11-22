@@ -18,12 +18,12 @@ import tg_news as tg
 
 # --- 1. channel About: the phrases people actually type into telegram search.
 # Promotes the two sites we own (Messi first, Ronaldo second); the old Koora
-# destination is gone. Long-tail league keywords are kept. 247/255 chars.
+# destination is gone. Long-tail league keywords are kept. 245/255 chars.
 ABOUT = (
     "⚽ Live football & soccer: scores, goals, highlights. "
     "Premier League, La Liga, Serie A, Champions League, Bundesliga, Ligue 1, "
     "Europa League, World Cup, AFCON, Nations League. "
-    "Stats: https://www.messistat.com/en | https://ronaldostats.vercel.app/en"
+    "Stats: https://www.messistat.com/en | https://www.ronaldostats.site/en"
 )
 
 # --- 2. pinned post: the long-tail league and competition list.
@@ -32,7 +32,7 @@ ABOUT = (
 PINNED = (
     "\U0001f4fa MESSISTAT — verified Lionel Messi career stats\n"
     "\U0001f3a6 Messi: https://www.messistat.com/en\n"
-    "\U0001f3a6 Ronaldo: https://ronaldostats.vercel.app/en\n"
+    "\U0001f3a6 Ronaldo: https://www.ronaldostats.site/en\n"
     "\n"
     "\U0001f3df Leagues: Premier League · La Liga · Serie A · Champions League · "
     "Europa League · Conference League · Bundesliga · Ligue 1 · Saudi Pro League · "
