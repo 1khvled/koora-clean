@@ -28,12 +28,49 @@ import tg_news as tg
 STATE_KEY = 'last_daily_photo_date'
 MAX_ROWS = 30
 FETCH_TIMEOUT = 10
+
+# Canvas geometry (the *_H names are asserted by the offline image tests).
 WIDTH = 1000
 PAD = 24
-TITLE_H = 64
+ACCENT_H = 6
+TITLE_H = 76
 COL_H = 34
-ROW_H = 34
-FOOTER_H = 40
+ROW_H = 40
+FOOTER_H = 44
+
+# Team-crest badges (logo phase is bounded and fully fail-open).
+LOGO_SIZE = 28
+LOGO_MAX = 60                 # 30 matches x 2 teams, never more
+LOGO_WORKERS = 10
+LOGO_TIMEOUT = 2.5           # 6 rounds x 2.5s = ~15s worst case
+BADGE_FILL = (24, 34, 62)
+BADGE_OUTLINE = (100, 120, 160)
+
+# Sports-broadcast palette: dark navy surfaces, team red, championship gold.
+BG = (11, 16, 32)            # #0B1020 page background
+SURFACE_A = (18, 26, 46)     # #121A2E row/card surface
+SURFACE_B = (24, 34, 58)     # #18223A alternating row surface
+COL_BG = (22, 32, 56)        # column-label band
+RED = (220, 38, 38)          # #DC2626 primary accent (LIVE states, rules)
+RED_2 = (239, 68, 68)        # #EF4444 secondary accent (the "v" separator)
+GOLD = (251, 191, 36)        # #FBBF24 kickoff time + date
+WHITE = (255, 255, 255)      # #FFFFFF team names / title
+SLATE = (148, 163, 184)      # #94A3B8 muted labels / scheduled status
+FT_GREEN = (110, 231, 183)   # #6EE7B7 finished results (muted emerald)
+FT_PILL = (16, 45, 42)       # dark green pill behind a finished result
+SLATE_PILL = (32, 44, 70)    # neutral pill for scheduled/cancelled matches
+LINE = (40, 52, 80)          # subtle divider on the dark surfaces
+PILL_W = 92
+PILL_H = 22
+
+# Type scale. Floor of 14px for metadata, 16px for match rows (never smaller).
+FONT_TITLE = 34
+FONT_DATE = 20
+FONT_COL = 14
+FONT_ROW = 16
+FONT_PILL = 14
+FONT_FOOT = 14
+MIN_FONT_SIZE = 14
 
 SOURCES = (
     ('FotMob',
@@ -51,6 +88,8 @@ SOURCES = (
 # FotMob statusId -> short status shown in the right column. Scheduled (1)
 # deliberately maps to '' because the kickoff time already sits in TIME.
 _FOTMOB_STATUS = {1: '', 2: '1H', 3: '2H', 10: 'HT', 6: 'FT', 106: 'Canc'}
+# Verified against live 20261122 payloads (200 image/png for real team ids).
+_FOTMOB_LOGO = 'https://images.fotmob.com/image_resources/logo/teamlogo/%s.png'
 
 
 # --------------------------------------------------------------------------
@@ -114,9 +153,15 @@ def _redact(text, token=''):
     return s[:120]
 
 
-def _match(time_key, home, away, status, league_order):
+def _match(time_key, home, away, status, league_order, logos=None):
+    """A normalised match row. `logos` carries optional crest URL + team id."""
+    logos = logos or {}
     return {'time': _hhmm(time_key), 'sort': time_key, 'home': home,
-            'away': away, 'status': status, 'league_order': league_order}
+            'away': away, 'status': status, 'league_order': league_order,
+            'home_logo': str(logos.get('home_logo') or ''),
+            'away_logo': str(logos.get('away_logo') or ''),
+            'home_tid': str(logos.get('home_tid') or ''),
+            'away_tid': str(logos.get('away_tid') or '')}
 
 
 def _english(home, away):
@@ -155,7 +200,13 @@ def parse_fotmob(data):
                 else:
                     status = _FOTMOB_STATUS.get(sid, 'LIVE' if live else
                                                 ('FT' if done else ''))
-                out.append(_match(key, home, away, status, order))
+                logos = {}
+                for side, team in (('home', h), ('away', a)):
+                    tid = team.get('id')
+                    if tid not in (None, ''):
+                        logos[side + '_tid'] = str(tid)
+                        logos[side + '_logo'] = _FOTMOB_LOGO % tid
+                out.append(_match(key, home, away, status, order, logos))
     except Exception:
         return []
     return out
@@ -171,15 +222,16 @@ def parse_espn(data):
             comp = comps[0] if comps and isinstance(comps[0], dict) else {}
             home = away = ''
             hs = as_ = None
+            home_team = away_team = {}
             for c in (comp.get('competitors') or []):
                 if not isinstance(c, dict):
                     continue
                 team = c.get('team') or {}
                 name = _clean_name(team.get('displayName') or team.get('name'))
                 if str(c.get('homeAway')) == 'home':
-                    home, hs = name, c.get('score')
+                    home, hs, home_team = name, c.get('score'), team
                 elif str(c.get('homeAway')) == 'away':
-                    away, as_ = name, c.get('score')
+                    away, as_, away_team = name, c.get('score'), team
             if not _english(home, away):
                 continue
             typ = ((ev.get('status') or {}).get('type') or
@@ -199,7 +251,15 @@ def parse_espn(data):
                 status = 'FT'
             else:
                 status = ''
-            out.append(_match(key, home, away, status, order))
+            logos = {}
+            for side, team in (('home', home_team), ('away', away_team)):
+                url = team.get('logo') or ''
+                tid = team.get('id')
+                if url:
+                    logos[side + '_logo'] = str(url)
+                if tid not in (None, ''):
+                    logos[side + '_tid'] = str(tid)
+            out.append(_match(key, home, away, status, order, logos))
     except Exception:
         return []
     return out
@@ -221,7 +281,14 @@ def parse_tifo(data):
             if not _english(home, away):
                 continue
             key = _utc_key(m.get('date') or m.get('time') or m.get('kickoff'))
-            out.append(_match(key, home, away, '', order))
+            logos = {}
+            for side, keys in (('home', ('home_logo', 'homeLogo', 'home_crest')),
+                               ('away', ('away_logo', 'awayLogo', 'away_crest'))):
+                url = next((m.get(k) for k in keys if m.get(k)), '')
+                if url:
+                    logos[side + '_logo'] = str(url)
+                    logos[side + '_tid'] = str(url)  # URL itself is the cache key
+            out.append(_match(key, home, away, '', order, logos))
     except Exception:
         return []
     return out
@@ -269,7 +336,12 @@ def select_matches(matches, limit=MAX_ROWS):
 # image rendering (Pillow, system DejaVuSans, English text only)
 # --------------------------------------------------------------------------
 def header_text(date_display_value):
-    return "Today's matches - " + date_display_value
+    """Uppercase broadcast title (the date is drawn separately on the right).
+
+    Kept as one string so image_text()/the English-only moat still cover every
+    human-readable value that reaches the PNG.
+    """
+    return "TODAY'S MATCHES - " + date_display_value
 
 
 def caption_text(date_display_value, count):
@@ -289,9 +361,23 @@ def image_text(matches, date_display_value):
 
 
 def _font(size, bold=False):
+    """First Unicode-capable font available: runner (Linux) first, then Windows.
+
+    DejaVuSans stays first for the CI runner; Segoe UI / Arial / Calibri make
+    local previews render accented team names correctly. A font missing glyphs
+    is never silently preferred over one that has them; load_default() is only
+    the last-resort fail-open when no system font can be opened at all.
+    """
     from PIL import ImageFont
-    names = (['DejaVuSans-Bold.ttf'] if bold else ['DejaVuSans.ttf'])
-    paths = ['/usr/share/fonts/truetype/dejavu/' + names[0], names[0]]
+    if bold:
+        names = ('DejaVuSans-Bold.ttf', 'segoeuib.ttf', 'arialbd.ttf',
+                 'calibrib.ttf', 'DejaVuSans.ttf', 'segoeui.ttf', 'arial.ttf')
+    else:
+        names = ('DejaVuSans.ttf', 'segoeui.ttf', 'arial.ttf', 'calibri.ttf',
+                 'DejaVuSans-Bold.ttf', 'segoeuib.ttf', 'arialbd.ttf')
+    paths = ['/usr/share/fonts/truetype/dejavu/' + names[0]]
+    paths += list(names)
+    paths += ['C:\\Windows\\Fonts\\' + n for n in names]
     for p in paths:
         try:
             return ImageFont.truetype(p, size)
@@ -315,44 +401,190 @@ def _fit(draw, text, font, max_px):
     return keep.rstrip() + ell
 
 
+# --------------------------------------------------------------------------
+# team crests: bounded, cached, fail-open; a monogram badge is the fallback
+# --------------------------------------------------------------------------
+_LOGO_CACHE = {}
+
+
+def _initials(name, limit=3):
+    """1-3 initials from an English team name for the fallback badge."""
+    parts = [p for p in re.split(r'[^A-Za-z0-9]+', str(name or '')) if p]
+    return (''.join(p[0] for p in parts[:limit]).upper() or '?')[:limit]
+
+
+def _fetch_logo(url, timeout=LOGO_TIMEOUT):
+    """One crest download -> RGBA image. Raises; _load_logos swallows it."""
+    from PIL import Image
+    req = urllib.request.Request(
+        str(url), headers={'User-Agent': 'MessiStat-DailyPhoto/1.0 (koora-clean)'})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        body = r.read(200000)
+    return Image.open(io.BytesIO(body)).convert('RGBA')
+
+
+def _load_logos(matches, fetcher=None):
+    """Return {team key: RGBA image or None}, at most LOGO_MAX unique teams.
+
+    Uses a small thread pool and a process-level cache; never raises into the
+    posting path. Both FotMob and ESPN crests are keyed by their team id.
+    """
+    get = fetcher or _fetch_logo
+    wanted = {}
+    for m in matches or []:
+        for side in ('home', 'away'):
+            key = str(m.get(side + '_tid') or '') or str(m.get(side + '_logo') or '')
+            url = str(m.get(side + '_logo') or '')
+            if key and url:
+                wanted[key] = url
+    items = list(wanted.items())[:LOGO_MAX]
+    missing = [(k, u) for k, u in items if k not in _LOGO_CACHE]
+    if missing:
+        try:
+            from concurrent.futures import ThreadPoolExecutor
+
+            def work(pair):
+                key, url = pair
+                try:
+                    return key, get(url)
+                except Exception:
+                    return key, None
+
+            with ThreadPoolExecutor(max_workers=LOGO_WORKERS) as pool:
+                for key, image in pool.map(work, missing):
+                    _LOGO_CACHE[key] = image
+        except Exception:
+            for key, _ in missing:
+                _LOGO_CACHE.setdefault(key, None)
+    return {key: _LOGO_CACHE.get(key) for key, _ in items}
+
+
+def _draw_monogram(img, d, x, y, name):
+    """Dark circular badge with 1-3 gold initials (no emoji, no dependencies)."""
+    x, y = int(x), int(y)
+    d.ellipse([x, y, x + LOGO_SIZE - 1, y + LOGO_SIZE - 1],
+              fill=BADGE_FILL, outline=BADGE_OUTLINE, width=1)
+    font = _font(14, True)
+    label = _fit(d, _initials(name), font, LOGO_SIZE - 6)
+    tw = d.textlength(label, font=font)
+    d.text((x + (LOGO_SIZE - tw) / 2, y + (LOGO_SIZE - FONT_FOOT) / 2 - 1),
+           label, font=font, fill=GOLD)
+
+
+def _draw_crest(img, d, x, y, image, name):
+    """Paste a real crest with alpha; fall back to the monogram on any problem."""
+    from PIL import Image as PILImage
+    x, y = int(x), int(y)
+    if image is not None:
+        try:
+            resample = getattr(getattr(PILImage, 'Resampling', PILImage),
+                               'LANCZOS', 3)
+            tile = image.resize((LOGO_SIZE, LOGO_SIZE), resample)
+            img.paste(tile, (x, y), tile)
+            return
+        except Exception:
+            pass
+    _draw_monogram(img, d, x, y, name)
+
+
+def _status_style(status):
+    """Return (pill_fill, text_color) for a score/status value."""
+    s = (status or '').strip()
+    if s in ('LIVE', '1H', '2H', 'HT', 'ET', 'PEN'):
+        return RED, WHITE                 # live: team red, white text (4.8:1)
+    if s == 'FT' or re.match(r'^\d+\s*-\s*\d+$', s):
+        return FT_PILL, FT_GREEN          # finished: muted emerald result
+    return SLATE_PILL, SLATE              # blank / Canc / Pstp: quiet slate
+
+
+def _draw_pair(img, d, x, y, logo_y, home, away, crests, f_team, f_v, max_px):
+    """[crest] Home  v  [crest] Away on fixed columns like a broadcast board."""
+    v_w = d.textlength('v', font=f_v)
+    half = max(48, (int(max_px) - int(v_w) - 24) // 2)
+    x_v = x + half
+    x_away = x_v + int(v_w) + 14
+    gap = LOGO_SIZE + 8
+    x_home_text, x_away_text = x + gap, x_away + gap
+    h = _fit(d, home or '', f_team, max(24, x_v - x_home_text - 8))
+    a = _fit(d, away or '', f_team, max(24, int(max_px) - (x_away_text - x) - 2))
+    _draw_crest(img, d, x, logo_y, crests[0], home)
+    d.text((x_home_text, y), h, font=f_team, fill=WHITE)
+    d.text((x_v, y), 'v', font=f_v, fill=RED_2)
+    _draw_crest(img, d, x_away, logo_y, crests[1], away)
+    d.text((x_away_text, y), a, font=f_team, fill=WHITE)
+
+
+def _draw_pill(d, x_right, y_center, label, fill, color, font):
+    """Right-aligned status block; an empty label stays a quiet placeholder."""
+    x0 = int(x_right) - PILL_W
+    y0 = int(y_center) - PILL_H // 2
+    d.rounded_rectangle([x0, y0, x0 + PILL_W, y0 + PILL_H], radius=6, fill=fill)
+    label = (label or '').strip() or '-'  # a dash reads as "upcoming", not missing
+    label = _fit(d, label, font, PILL_W - 12)
+    tw = d.textlength(label, font=font)
+    d.text((x0 + (PILL_W - tw) / 2, y0 + (PILL_H - FONT_PILL) / 2 - 1),
+           label, font=font, fill=color)
+
+
 def render_png(matches, date_display_value):
-    """Draw the PNG in memory. 1000px wide, 16px rows, alternating shading."""
+    """Draw the PNG in memory: dark sports-broadcast board, 1000px wide."""
     from PIL import Image, ImageDraw
     rows = list(matches)
     height = TITLE_H + COL_H + max(1, len(rows)) * ROW_H + FOOTER_H
-    img = Image.new('RGB', (WIDTH, height), (255, 255, 255))
+    img = Image.new('RGB', (WIDTH, height), BG)
     d = ImageDraw.Draw(img)
-    f_title, f_col, f_row = _font(22, True), _font(14, True), _font(16)
 
-    d.rectangle([0, 0, WIDTH, TITLE_H], fill=(18, 26, 43))
-    d.text((PAD, (TITLE_H - 22) // 2), header_text(date_display_value),
-           font=f_title, fill=(255, 255, 255))
+    f_title = _font(FONT_TITLE, True)
+    f_date = _font(FONT_DATE, True)
+    f_col = _font(FONT_COL, True)
+    f_time = _font(FONT_ROW, True)
+    f_team = _font(FONT_ROW)
+    f_v = _font(FONT_ROW, True)
+    f_pill = _font(FONT_PILL, True)
+    f_foot = _font(FONT_FOOT, True)
+
+    # Header: red accent bar, uppercase title, gold date, thin divider.
+    d.rectangle([0, 0, WIDTH, ACCENT_H], fill=RED)
+    d.text((PAD, 20), "TODAY'S MATCHES", font=f_title, fill=WHITE)
+    date_s = date_display_value or ''
+    d.text((WIDTH - PAD - d.textlength(date_s, font=f_date), 26),
+           date_s, font=f_date, fill=GOLD)
+    d.line([0, TITLE_H - 1, WIDTH, TITLE_H - 1], fill=LINE, width=1)
 
     y0 = TITLE_H
-    d.rectangle([0, y0, WIDTH, y0 + COL_H], fill=(232, 236, 243))
+    d.rectangle([0, y0, WIDTH, y0 + COL_H], fill=COL_BG)
     x_time, x_match, x_right = PAD, PAD + 96, WIDTH - PAD
-    d.text((x_time, y0 + 10), 'TIME', font=f_col, fill=(70, 80, 95))
-    d.text((x_match, y0 + 10), 'MATCH', font=f_col, fill=(70, 80, 95))
-    d.text((x_right - d.textlength('STATUS', font=f_col), y0 + 10),
-           'STATUS', font=f_col, fill=(70, 80, 95))
+    cy = y0 + (COL_H - FONT_COL) // 2
+    d.text((x_time, cy), 'TIME', font=f_col, fill=SLATE)
+    d.text((x_match, cy), 'MATCH', font=f_col, fill=SLATE)
+    d.text((x_right - d.textlength('STATUS', font=f_col), cy),
+           'STATUS', font=f_col, fill=SLATE)
+    d.line([0, y0 + COL_H - 1, WIDTH, y0 + COL_H - 1], fill=LINE, width=1)
 
+    crests = _load_logos(rows)
+    x_status_start = x_right - PILL_W - 12
+    max_pair = x_status_start - x_match - 8
     for i, m in enumerate(rows):
         ry = y0 + COL_H + i * ROW_H
-        if i % 2:
-            d.rectangle([0, ry, WIDTH, ry + ROW_H], fill=(246, 248, 251))
-        d.line([0, ry + ROW_H, WIDTH, ry + ROW_H], fill=(225, 230, 237), width=1)
-        ty = ry + (ROW_H - 16) // 2
-        d.text((x_time, ty), m.get('time') or '--:--', font=f_row, fill=(30, 40, 55))
-        pair = _fit(d, '%s  v  %s' % (m.get('home'), m.get('away')),
-                    f_row, x_right - x_match - 130)
-        d.text((x_match, ty), pair, font=f_row, fill=(20, 28, 42))
-        status = m.get('status') or ''
-        d.text((x_right - d.textlength(status, font=f_row), ty), status, font=f_row,
-               fill=(200, 45, 45) if status in ('LIVE', '1H', '2H', 'HT') else (30, 40, 55))
+        d.rectangle([0, ry, WIDTH, ry + ROW_H],
+                    fill=SURFACE_A if i % 2 == 0 else SURFACE_B)
+        d.line([0, ry + ROW_H - 1, WIDTH, ry + ROW_H - 1], fill=LINE, width=1)
+        ty = ry + (ROW_H - FONT_ROW) // 2
+        logo_y = ry + (ROW_H - LOGO_SIZE) // 2
+        d.text((x_time, ty), m.get('time') or '--:--', font=f_time, fill=GOLD)
+        hk = str(m.get('home_tid') or '') or str(m.get('home_logo') or '')
+        ak = str(m.get('away_tid') or '') or str(m.get('away_logo') or '')
+        _draw_pair(img, d, x_match, ty, logo_y, m.get('home'), m.get('away'),
+                   (crests.get(hk), crests.get(ak)), f_team, f_v, max_pair)
+        status = (m.get('status') or '').strip()
+        fill, color = _status_style(status)
+        _draw_pill(d, x_right, ry + ROW_H // 2, status, fill, color, f_pill)
 
     fy = y0 + COL_H + len(rows) * ROW_H
-    d.rectangle([0, fy, WIDTH, height], fill=(232, 236, 243))
-    d.text((PAD, fy + 10), '%d matches' % len(rows), font=f_col, fill=(70, 80, 95))
+    d.rectangle([0, fy, WIDTH, height], fill=SURFACE_A)
+    d.rectangle([PAD, fy + 9, PAD + 48, fy + 12], fill=RED)
+    d.text((PAD + 60, fy + (FOOTER_H - FONT_FOOT) // 2),
+           '%d MATCHES' % len(rows), font=f_foot, fill=SLATE)
 
     out = io.BytesIO()
     img.save(out, format='PNG', optimize=True)

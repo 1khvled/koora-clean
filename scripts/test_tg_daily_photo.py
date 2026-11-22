@@ -159,6 +159,12 @@ class SelectionTests(unittest.TestCase):
 
 
 class ImageTests(unittest.TestCase):
+    def setUp(self):
+        # Parsed fixtures now carry real crest URLs; keep these tests offline.
+        patcher = mock.patch.object(daily, '_load_logos', return_value={})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_caption_and_image_text_are_english_only(self):
         picked = daily.select_matches(daily.parse_fotmob(FOTMOB))
         cap = daily.caption_text('2026-11-22', len(picked))
@@ -193,6 +199,251 @@ class ImageTests(unittest.TestCase):
                 self.assertEqual(f.read(), png)
         finally:
             os.unlink(path)
+
+
+class DesignTests(unittest.TestCase):
+    """Offline checks for the dark sports-broadcast design system."""
+
+    @staticmethod
+    def _rows():
+        return [
+            {'time': '14:00', 'home': 'Arsenal', 'away': 'Chelsea', 'status': ''},
+            {'time': '15:00', 'home': 'Liverpool', 'away': 'Everton', 'status': '1H'},
+            {'time': '16:00', 'home': 'Barcelona', 'away': 'Getafe', 'status': '2-1'},
+            {'time': '17:00', 'home': 'Real Madrid', 'away': 'Ajax', 'status': 'Canc'},
+        ]
+
+    def test_palette_matches_design_system(self):
+        self.assertEqual(daily.BG, (11, 16, 32))          # #0B1020
+        self.assertEqual(daily.SURFACE_A, (18, 26, 46))   # #121A2E
+        self.assertEqual(daily.SURFACE_B, (24, 34, 58))   # #18223A
+        self.assertEqual(daily.RED, (220, 38, 38))        # #DC2626
+        self.assertEqual(daily.RED_2, (239, 68, 68))      # #EF4444
+        self.assertEqual(daily.GOLD, (251, 191, 36))      # #FBBF24
+        self.assertEqual(daily.WHITE, (255, 255, 255))
+        self.assertEqual(daily.SLATE, (148, 163, 184))    # #94A3B8
+        self.assertEqual(daily.FT_GREEN, (110, 231, 183))
+
+    def test_type_scale_has_no_sub_14px_text_and_16px_rows(self):
+        self.assertGreaterEqual(daily.MIN_FONT_SIZE, 14)
+        for name in ('FONT_TITLE', 'FONT_DATE', 'FONT_COL', 'FONT_ROW',
+                     'FONT_PILL', 'FONT_FOOT'):
+            self.assertGreaterEqual(getattr(daily, name), daily.MIN_FONT_SIZE, name)
+        self.assertGreaterEqual(daily.FONT_ROW, 16)
+        self.assertGreaterEqual(daily.FONT_TITLE, 30)
+        self.assertLessEqual(daily.FONT_TITLE, 36)
+
+    def test_header_text_is_uppercase_and_english_only(self):
+        self.assertEqual(daily.header_text('2026-11-22'),
+                         "TODAY'S MATCHES - 2026-11-22")
+        self.assertFalse(tg.has_arabic(daily.header_text('2026-11-22')))
+        self.assertFalse(tg.has_foreign_script(daily.header_text('2026-11-22')))
+
+    def test_image_text_still_covers_all_drawn_labels(self):
+        txt = daily.image_text(self._rows(), '2026-11-22')
+        for word in ('TODAY', '2026-11-22', 'TIME', 'MATCH', 'STATUS',
+                     'Arsenal', 'Chelsea', '4 matches'):
+            self.assertIn(word, txt)
+
+    def test_status_style_mapping(self):
+        for live in ('LIVE', '1H', '2H', 'HT'):
+            self.assertEqual(daily._status_style(live), (daily.RED, daily.WHITE))
+        for done in ('FT', '2-1', '0 - 0'):
+            self.assertEqual(daily._status_style(done),
+                             (daily.FT_PILL, daily.FT_GREEN))
+        for quiet in ('', 'Canc', 'Pstp'):
+            self.assertEqual(daily._status_style(quiet),
+                             (daily.SLATE_PILL, daily.SLATE))
+
+    def test_rendered_pixels_use_dark_palette(self):
+        from PIL import Image
+        import io
+        rows = self._rows()
+        img = Image.open(io.BytesIO(daily.render_png(rows, '2026-11-22')))
+        safe_x = daily.WIDTH - daily.PAD - daily.PILL_W - 32  # clear of text/pill
+        self.assertEqual(img.getpixel((daily.WIDTH // 2, 2)), daily.RED)
+        self.assertEqual(img.getpixel((daily.WIDTH // 2, 20)), daily.BG)
+        self.assertEqual(img.getpixel((safe_x, daily.TITLE_H + 4)), daily.COL_BG)
+        row0_y = daily.TITLE_H + daily.COL_H + 4
+        self.assertEqual(img.getpixel((safe_x, row0_y)), daily.SURFACE_A)
+        self.assertEqual(img.getpixel((safe_x, row0_y + daily.ROW_H)),
+                         daily.SURFACE_B)
+        self.assertEqual(img.getpixel((safe_x, img.height - 2)), daily.SURFACE_A)
+
+    def test_status_pill_colors_in_rendered_png(self):
+        from PIL import Image
+        import io
+        rows = self._rows()
+        img = Image.open(io.BytesIO(daily.render_png(rows, '2026-11-22')))
+        px = daily.WIDTH - daily.PAD - 6  # inside pill, clear of centred label
+        expected = [daily.SLATE_PILL, daily.RED, daily.FT_PILL, daily.SLATE_PILL]
+        for i, want in enumerate(expected):
+            ry = daily.TITLE_H + daily.COL_H + i * daily.ROW_H
+            y = ry + daily.ROW_H // 2
+            self.assertEqual(img.getpixel((px, y)), want, 'row %d pill' % i)
+
+    def test_font_falls_back_to_windows_unicode_fonts(self):
+        from PIL import ImageFont
+
+        class FakeFont:
+            pass
+
+        calls = []
+
+        def fake_truetype(path, size):
+            calls.append(str(path))
+            low = str(path).lower()
+            if 'windows\\fonts\\' in low and ('segoeui' in low or 'arial' in low):
+                return FakeFont
+            raise OSError('unavailable in this test')
+
+        with mock.patch.object(ImageFont, 'truetype', side_effect=fake_truetype):
+            self.assertIs(daily._font(16), FakeFont)
+        self.assertTrue(any('C:\\Windows\\Fonts\\' in p for p in calls))
+        self.assertTrue(any('segoeui.ttf' in p for p in calls))
+        self.assertTrue(any(p.startswith('/usr/share/fonts/') for p in calls))
+
+
+class LogoTests(unittest.TestCase):
+    """Offline coverage for crest fetching, caching, fallback and bounding."""
+
+    @staticmethod
+    def _rows():
+        return [
+            {'time': '14:00', 'home': 'Arsenal', 'away': 'Chelsea', 'status': '',
+             'home_tid': 'H', 'home_logo': 'http://crest.test/h',
+             'away_tid': 'A', 'away_logo': 'http://crest.test/a'},
+        ]
+
+    def test_parsers_carry_fotmob_cdn_and_espn_direct_logo_urls(self):
+        fotmob = {'leagues': [{'matches': [{
+            'home': {'name': 'Arsenal', 'id': 8650},
+            'away': {'name': 'Chelsea', 'id': 631},
+            'status': {'utcTime': '2026-11-22T14:00:00Z'},
+        }]}]}
+        got = daily.parse_fotmob(fotmob)[0]
+        self.assertEqual(got['home_tid'], '8650')
+        self.assertEqual(got['home_logo'],
+                         'https://images.fotmob.com/image_resources/'
+                         'logo/teamlogo/8650.png')
+        espn = {'events': [{
+            'date': '2026-11-22T14:00Z',
+            'status': {'type': {'name': 'STATUS_SCHEDULED'}},
+            'competitions': [{'competitors': [
+                {'homeAway': 'home',
+                 'team': {'displayName': 'Barcelona', 'id': '83',
+                          'logo': 'https://a.espncdn.com/soccer/83.png'}},
+                {'homeAway': 'away',
+                 'team': {'displayName': 'Getafe', 'id': '2884',
+                          'logo': 'https://a.espncdn.com/soccer/2884.png'}},
+            ]}],
+        }]}
+        e = daily.parse_espn(espn)[0]
+        self.assertEqual(e['home_logo'], 'https://a.espncdn.com/soccer/83.png')
+        self.assertEqual(e['away_tid'], '2884')
+
+    def test_initials_for_monogram_fallback(self):
+        self.assertEqual(daily._initials('Atletico Madrid'), 'AM')
+        self.assertEqual(daily._initials('Liverpool'), 'L')
+        self.assertEqual(daily._initials('Paris Saint-Germain'), 'PSG')
+        self.assertEqual(daily._initials(''), '?')
+
+    def test_monogram_badge_is_drawn_on_failure(self):
+        from PIL import Image, ImageDraw
+        img = Image.new('RGB', (60, 40), daily.BG)
+        d = ImageDraw.Draw(img)
+        daily._draw_monogram(img, d, 4, 6, 'Atletico Madrid')
+        colors = {img.getpixel((x, y))
+                  for x in range(4, 4 + daily.LOGO_SIZE)
+                  for y in range(6, 6 + daily.LOGO_SIZE)}
+        self.assertIn(daily.BADGE_FILL, colors)
+
+    def test_logo_painted_when_fetch_succeeds_and_monogram_on_failure(self):
+        from PIL import Image, ImageDraw
+        import io
+        tiny = Image.new('RGBA', (8, 8), (0, 0, 255, 255))
+        with mock.patch.object(daily, '_LOGO_CACHE', {'H': tiny, 'A': None}):
+            png = daily.render_png(self._rows(), '2026-11-22')
+        img = Image.open(io.BytesIO(png))
+        draw = ImageDraw.Draw(img)
+        x = daily.PAD + 96  # x_match
+        ry = daily.TITLE_H + daily.COL_H
+        logo_y = ry + (daily.ROW_H - daily.LOGO_SIZE) // 2
+        cx = x + daily.LOGO_SIZE // 2
+        self.assertEqual(img.getpixel((cx, logo_y + daily.LOGO_SIZE // 2)),
+                         (0, 0, 255))  # real crest pasted
+
+        v_w = draw.textlength('v', font=daily._font(daily.FONT_ROW, True))
+        max_pair = (daily.WIDTH - daily.PAD - daily.PILL_W - 12) - x - 8
+        half = max(48, (max_pair - int(v_w) - 24) // 2)
+        ax = x + half + int(v_w) + 14
+        colors = {img.getpixel((xx, yy))
+                  for xx in range(ax + 2, ax + daily.LOGO_SIZE - 2)
+                  for yy in range(logo_y + 2, logo_y + daily.LOGO_SIZE - 2)}
+        self.assertIn(daily.BADGE_FILL, colors)  # failed away crest -> badge
+
+    def test_cache_hit_avoids_refetch_and_no_duplicate_per_team(self):
+        from PIL import Image
+        calls = []
+
+        def fake(url):
+            calls.append(url)
+            return Image.new('RGBA', (8, 8), (1, 2, 3, 255))
+
+        rows = self._rows() + [{
+            'home_tid': 'H', 'home_logo': 'http://crest.test/h',
+            'away_tid': 'B', 'away_logo': 'http://crest.test/b',
+        }]
+        with mock.patch.object(daily, '_LOGO_CACHE', {}):
+            first = daily._load_logos(rows, fetcher=fake)
+            self.assertEqual(sorted(calls),
+                             ['http://crest.test/a', 'http://crest.test/b',
+                              'http://crest.test/h'])
+            second = daily._load_logos(rows, fetcher=fake)
+            self.assertEqual(len(calls), 3)  # cache hit: no second fetch
+        self.assertEqual(set(first), {'H', 'A', 'B'})
+        self.assertTrue(all(im is not None for im in second.values()))
+
+    def test_failed_logo_cached_as_none_and_never_raises(self):
+        rows = self._rows()
+        with mock.patch.object(daily, '_LOGO_CACHE', {}):
+
+            def boom(url):
+                raise OSError('404')
+
+            got = daily._load_logos(rows, fetcher=boom)
+            self.assertIsNone(got['H'])
+            self.assertIsNone(got['A'])
+
+            called = []
+
+            def count(url):
+                called.append(url)
+                return None
+
+            daily._load_logos(rows, fetcher=count)
+            self.assertEqual(called, [])  # cached failure, not retried
+
+    def test_logo_phase_is_bounded(self):
+        import concurrent.futures
+        self.assertEqual(daily.LOGO_MAX, 60)
+        self.assertLessEqual(daily.LOGO_WORKERS, 12)
+        self.assertLessEqual(daily.LOGO_TIMEOUT, 4)
+        seen = {}
+        real_pool = concurrent.futures.ThreadPoolExecutor
+
+        class RecordingPool(real_pool):
+            def __init__(self, max_workers=None, **kwargs):
+                seen['workers'] = max_workers
+                super().__init__(max_workers=max_workers, **kwargs)
+
+        many = [{'home_tid': str(i), 'home_logo': 'http://c/%d' % i}
+                for i in range(70)]
+        with mock.patch.object(daily, '_LOGO_CACHE', {}), \
+             mock.patch('concurrent.futures.ThreadPoolExecutor', RecordingPool):
+            got = daily._load_logos(many, fetcher=lambda u: None)
+        self.assertEqual(seen['workers'], daily.LOGO_WORKERS)
+        self.assertEqual(len(got), daily.LOGO_MAX)  # capped at 60
 
 
 class OncePerDayTests(unittest.TestCase):
