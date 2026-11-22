@@ -1,0 +1,185 @@
+name: telegram-watchdog
+
+on:
+  schedule:
+    # Every 15 minutes. Detects a silent stall of the telegram-news bot
+    # (cron-job.org dispatch paused, or a run stuck in the tg-news
+    # concurrency group) and DMs the owner. Fail-open by design: this
+    # detector must never be a source of noise of its own.
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'If true, print the alert instead of sending it'
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check last telegram-news run and alert if stalled
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          python3 - <<'PY'
+          import os, sys, json, urllib.request
+          from datetime import datetime, timezone
+
+          REPO = "1khvled/koora-clean"
+          OWNER_CHAT = "5625295907"
+          WORKFLOW = "telegram-news.yml"
+          WORKFLOW_URL = f"https://github.com/{REPO}/actions/workflows/{WORKFLOW}"
+          MAX_AGE_SECONDS = 20 * 60
+
+          def log(*args):
+              print(*args, flush=True)
+
+          def fail_open(msg):
+              # Never fail the watchdog: a broken detector must not cry wolf.
+              log("watchdog fail-open:", msg)
+              sys.exit(0)
+
+          def parse_time(value):
+              if not value:
+                  return None
+              try:
+                  return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+              except Exception:
+                  pass
+              try:
+                  return datetime.fromisoformat(value.replace("Z", "+00:00"))
+              except Exception:
+                  return None
+
+          def api_get(url, token):
+              req = urllib.request.Request(
+                  url,
+                  headers={
+                      "Accept": "application/vnd.github+json",
+                      "Authorization": f"Bearer {token}",
+                      "User-Agent": "tg-watchdog",
+                  },
+              )
+              with urllib.request.urlopen(req, timeout=20) as resp:
+                  return json.loads(resp.read().decode("utf-8"))
+
+          def send_telegram(token, chat_id, text):
+              payload = json.dumps({
+                  "chat_id": chat_id,
+                  "text": text,
+                  "disable_web_page_preview": True,
+              }).encode("utf-8")
+              # The token lives only in the URL. Never log the exception
+              # string: it can embed the full request URL (and the token).
+              url = f"https://api.telegram.org/bot{token}/sendMessage"
+              req = urllib.request.Request(
+                  url,
+                  data=payload,
+                  headers={"Content-Type": "application/json"},
+                  method="POST",
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as resp:
+                      body = json.loads(resp.read().decode("utf-8"))
+                      log("Telegram send ok=" + str(bool(body.get("ok"))))
+              except Exception as e:
+                  log("Telegram send failed:", type(e).__name__)
+
+          def main():
+              dry = os.environ.get("DRY_RUN", "").strip().lower() == "true"
+              token = os.environ.get("GITHUB_TOKEN", "")
+              tg_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+              now = datetime.now(timezone.utc)
+
+              url = f"https://api.github.com/repos/{REPO}/actions/workflows/{WORKFLOW}/runs?per_page=5"
+              try:
+                  data = api_get(url, token)
+              except Exception as e:
+                  fail_open("GitHub API error " + type(e).__name__)
+                  return
+              runs = data.get("workflow_runs") or []
+              if not isinstance(runs, list):
+                  fail_open("unexpected API response")
+                  return
+
+              # "Active" = still running / waiting, or finished successfully.
+              # Failed/cancelled runs are already reported by the news
+              # workflow's own failure alert, so they do not count here.
+              active = []
+              for r in runs:
+                  if not isinstance(r, dict):
+                      continue
+                  if r.get("status") in ("in_progress", "queued") or r.get("conclusion") == "success":
+                      active.append(r)
+              if active:
+                  epoch = datetime.min.replace(tzinfo=timezone.utc)
+                  active.sort(
+                      key=lambda r: parse_time(r.get("run_started_at") or r.get("created_at")) or epoch,
+                      reverse=True,
+                  )
+
+              last = active[0] if active else None
+              if last is None:
+                  stalled = True
+                  log("No active (in_progress/queued/success) news run found among the 5 most recent runs")
+              else:
+                  started = parse_time(last.get("run_started_at") or last.get("created_at"))
+                  if started is None:
+                      # Cannot judge freshness -> fail open, do not cry wolf.
+                      fail_open("could not parse last run start time")
+                      return
+                  age = (now - started).total_seconds()
+                  stalled = age > MAX_AGE_SECONDS
+                  log(
+                      "Last active run #%s: status=%s conclusion=%s started=%s age=%ds"
+                      % (last.get("run_number"), last.get("status"),
+                         last.get("conclusion"), started.isoformat(), int(age))
+                  )
+
+              if not stalled:
+                  log("Recent active news run present (<20 min). No alert.")
+                  return
+
+              if last is None:
+                  last_status = "none"
+                  last_started = "n/a"
+                  run_url = WORKFLOW_URL
+              else:
+                  last_status = "%s / %s" % (last.get("status"), last.get("conclusion"))
+                  last_started = last.get("run_started_at") or last.get("created_at") or "unknown"
+                  run_url = last.get("html_url") or WORKFLOW_URL
+
+              text = (
+                  "Telegram bot stalled\n"
+                  "Last run: " + last_status + "\n"
+                  "Last run started: " + last_started + "\n"
+                  "Current UTC time: " + now.strftime("%Y-%m-%dT%H:%M:%SZ") + "\n"
+                  "GitHub Actions: " + run_url
+              )
+
+              if dry:
+                  log("DRY RUN - would send Telegram DM to owner chat " + OWNER_CHAT)
+                  log("DRY RUN - message:\n" + text)
+                  return
+
+              if not tg_token:
+                  fail_open("TELEGRAM_BOT_TOKEN not available")
+                  return
+              send_telegram(tg_token, OWNER_CHAT, text)
+
+          try:
+              main()
+          except SystemExit:
+              raise
+          except Exception as e:
+              fail_open("unexpected error " + type(e).__name__)
+          PY
