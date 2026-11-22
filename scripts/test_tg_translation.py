@@ -1172,6 +1172,13 @@ class NvidiaChainTests(unittest.TestCase):
     PRIMARY = 'nvidia/nemotron-3-ultra-550b-a55b'
     FALLBACK = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning'
 
+    def setUp(self):
+        # The breaker is module state: isolate tests that open it.
+        tg._reset_nvidia_circuit()
+
+    def tearDown(self):
+        tg._reset_nvidia_circuit()
+
     def test_nvidia_chat_parses_content_and_ignores_reasoning(self):
         payload = {'choices': [{'message': {
             'content': GOOD_EN,
@@ -1192,7 +1199,7 @@ class NvidiaChainTests(unittest.TestCase):
         self.assertEqual(body['temperature'], 0.2)
         self.assertEqual(body['max_tokens'], 400)
         self.assertEqual(body['stream'], False)
-        self.assertEqual(u.call_args[1]['timeout'], 25)
+        self.assertEqual(u.call_args[1]['timeout'], 12)
 
     def test_nvidia_chat_empty_content_fails_open(self):
         # Reasoning models can put their thought in reasoning_content and
@@ -1317,6 +1324,94 @@ class NvidiaChainTests(unittest.TestCase):
             data = f.read()
         self.assertNotIn(needle, data)
         self.assertIn('NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}', data)
+
+
+class NvidiaCircuitBreakerTests(unittest.TestCase):
+    """Per-run breaker: 2 consecutive NVIDIA transport failures -> Groq only.
+
+    All offline: nvidia_chat / groq_chat / the remaining chain are mocked.
+    """
+
+    NENV = dict(ENV, NVIDIA_API_KEY='nv-test-sentinel')
+    TIMEOUT = RuntimeError('nvidia network: timed out')
+
+    def setUp(self):
+        tg._reset_nvidia_circuit()
+
+    def tearDown(self):
+        tg._reset_nvidia_circuit()
+
+    def test_nvidia_timeout_is_12s(self):
+        self.assertEqual(tg.NVIDIA_TIMEOUT, 12)
+        payload = {'choices': [{'message': {'content': GOOD_EN}}]}
+        with mock.patch.object(tg.urllib.request, 'urlopen',
+                               return_value=_FakeResp(payload)) as u:
+            tg.nvidia_chat('nv-test-sentinel', tg.NVIDIA_MODELS[0][0],
+                           'sys', 'usr')
+        # No explicit timeout passed: the 12s default must reach urlopen.
+        self.assertEqual(u.call_args[1]['timeout'], 12)
+
+    def test_two_timeouts_open_breaker_and_skip_nvidia_next_post(self):
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat',
+                               side_effect=self.TIMEOUT) as nv, \
+             mock.patch.object(tg, 'groq_chat', return_value=GOOD_EN) as gr, \
+             mock.patch.object(tg, 'openrouter_chat',
+                               side_effect=RuntimeError('unused')), \
+             mock.patch.object(tg, 'translate_free_ar_en',
+                               side_effect=RuntimeError('unused')):
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                first = tg.llm_fix(SRC_AR)
+                self.assertEqual(nv.call_count, 2)  # both NVIDIA models tried
+                nv.reset_mock()
+                second = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', first)
+        self.assertIn('Lamine Yamal', second)
+        self.assertEqual(nv.call_count, 0,
+                         'breaker open: no NVIDIA call for the rest of the run')
+        self.assertGreaterEqual(gr.call_count, 1)
+        self.assertIn('[lang] nvidia circuit open (2 timeouts), '
+                      'using Groq for rest of run', buf.getvalue())
+        self.assertTrue(tg._nvidia_circuit_open)
+        self.assertEqual(tg._nvidia_consec_failures, 2)
+
+    def test_success_resets_counter_and_keeps_breaker_closed(self):
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat',
+                               side_effect=[self.TIMEOUT, GOOD_EN]) as nv, \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('must not be called')):
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', got)
+        self.assertEqual(nv.call_count, 2)
+        self.assertEqual(tg._nvidia_consec_failures, 0)
+        self.assertFalse(tg._nvidia_circuit_open)
+        # A later post still tries NVIDIA: the breaker never opened.
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', return_value=GOOD_EN) as nv2, \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('must not be called')):
+            tg.llm_fix(SRC_AR)
+        nv2.assert_called_once()
+
+    def test_gate_rejection_does_not_open_breaker(self):
+        bad = GOOD_EN + ' \u0627\u0646\u062a\u0647\u062a'  # Arabic leak
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', return_value=bad) as nv, \
+             mock.patch.object(tg, 'groq_chat', return_value=GOOD_EN):
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                first = tg.llm_fix(SRC_AR)
+                nv.reset_mock()
+                second = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', first)
+        self.assertIn('Lamine Yamal', second)
+        self.assertEqual(nv.call_count, 2,
+                         'gate rejection is not a transport failure')
+        self.assertEqual(tg._nvidia_consec_failures, 0)
+        self.assertFalse(tg._nvidia_circuit_open)
+        self.assertNotIn('nvidia circuit open', buf.getvalue())
 
 
 if __name__ == '__main__':
