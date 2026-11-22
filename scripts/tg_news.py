@@ -2257,10 +2257,29 @@ def _deaccent_latin(s):
 _MAPPED_NAMES = None
 
 
+def _latin_words(s):
+    """Accent-free, lowercase word set of a Latin roster name. Used to spot
+    the SAME name with extra/missing words (surname <-> full name). Never
+    raises."""
+    try:
+        return frozenset(w for w in re.findall(r'[^\W\d_]+',
+                                               _deaccent_latin(s).lower())
+                         if w)
+    except Exception:
+        return frozenset()
+
+
 def _mapped_name_roster():
-    """(latin value, word-boundary regex, arabic key tokens) triples, built
-    lazily from the single shared shield map so the gate cannot drift from
-    what the source shield emits. Never raises."""
+    """(latin value, word-boundary regex, grounding arabic tokens) triples,
+    built lazily from the single shared shield map so the gate cannot drift
+    from what the source shield emits.
+
+    Grounding tokens are the union over every roster name whose Latin WORD SET
+    is nested with this one: "Yamal" / "Lamine Yamal", "Kounde" / "Jules
+    Kounde". A bare surname in the source therefore grounds a full-name output
+    and vice versa; spelling variants are already handled by _ar_near(). Only
+    nested word sets borrow aliases, so an unrelated namesake (Fenerbahce vs
+    Venezia) can never ground the other's name. Never raises."""
     global _MAPPED_NAMES
     if _MAPPED_NAMES is not None:
         return _MAPPED_NAMES
@@ -2269,10 +2288,17 @@ def _mapped_name_roster():
         keys = {}
         for ar, lat in _PROTECT_MAP.items():
             keys.setdefault(lat, []).append(ar)
+        own = {lat: tuple(t for k in ars for t in _AR_NAME_TOKEN.findall(k))
+               for lat, ars in keys.items()}
+        words = {lat: _latin_words(lat) for lat in keys}
         for lat in sorted(keys, key=len, reverse=True):
             plain = _deaccent_latin(lat).lower()
             rx = re.compile(r'(?<!\w)' + re.escape(plain) + r'(?!\w)')
-            toks = [t for k in keys[lat] for t in _AR_NAME_TOKEN.findall(k)]
+            toks = set(own[lat])
+            w = words[lat]
+            for other, ow in words.items():
+                if other != lat and w and ow and (w <= ow or ow <= w):
+                    toks.update(own[other])
             out.append((lat, rx, tuple(toks)))
     except Exception:
         out = []
@@ -2281,8 +2307,10 @@ def _mapped_name_roster():
 
 
 def _ungrounded_mapped_names(out, src):
-    """Roster names in `out` with no supporting Arabic token in `src`.
-    [] when the source is empty / already English. Never raises."""
+    """Roster names in `out` with no supporting Arabic alias in `src`.
+    The roster supplies each name's full alias family (surname <-> full name,
+    spelling variants), so legitimate names are grounded while a famous
+    namesake with no alias in the source is still rejected. Never raises."""
     try:
         if not has_arabic(src) or not out:
             return []
@@ -2294,12 +2322,12 @@ def _ungrounded_mapped_names(out, src):
         # "Barcelona"): copying one of those is grounded by definition.
         s_latin = _deaccent_latin(src).lower()
         bad = []
-        for lat, rx, key_toks in _mapped_name_roster():
+        for lat, rx, ground_toks in _mapped_name_roster():
             if not rx.search(o):
                 continue
             if rx.search(s_latin):
                 continue
-            if any(_ar_near(kt, st) for kt in key_toks for st in stoks):
+            if any(_ar_near(kt, st) for kt in ground_toks for st in stoks):
                 continue
             bad.append(lat)
         return bad

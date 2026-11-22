@@ -152,6 +152,75 @@ class ScoreGroundingAndVeneziaTests(unittest.TestCase):
             self.assertEqual(tg.repair_names(good), good)
 
 
+class NameFamilyGroundingTests(unittest.TestCase):
+    """Alias-family tolerance for the mapped-name grounding gate.
+
+    Real case: Offsideahdaff 2026-11-22 14:43 "لامميين كادددت بججانب
+    القائممم" (Lamine Yamal nearly hit the post, stretched spelling) was
+    rendered by NVIDIA as "Yamal ...", but commit 8320a753's gate only knew
+    the bare "يامال" alias for the "Yamal" roster entry and rejected it.
+    Grounding now borrows aliases across nested Latin word sets (surname <->
+    full name) without borrowing from unrelated namesakes (Venezia/Fenerbahce).
+    """
+
+    # Arabic source spellings as \u escapes (stdout never encodes Arabic).
+    LAMINE_STRETCHED = ('\u0644\u0627\u0645\u0645\u064a\u064a\u0646 '
+                        '\u0643\u0627\u062f\u062f\u062f\u062a '
+                        '\u0628\u062c\u062c\u0627\u0646\u0628 '
+                        '\u0627\u0644\u0642\u0627\u0626\u0645\u0645\u0645')
+    YAMAL_BARE = '\u062a\u0633\u062f\u064a\u062f\u0629 \u064a\u0627\u0645\u0627\u0644'
+    ONE_WORD = '\u064a\u0627\u0645\u0627\u0644'
+
+    def test_real_yamal_output_grounded_by_stretched_full_name(self):
+        # The actual run 45034498684 case: the better NVIDIA output was
+        # rejected as "ungrounded mapped name: Yamal" even though the source
+        # named the player as stretched "لامميين" (= Lamine).
+        for out in ('Yamal nearly hit the post',
+                    'Lamine Yamal nearly hit the post'):
+            self.assertEqual(tg._ungrounded_mapped_names(
+                tg.repair_names(out), self.LAMINE_STRETCHED), [])
+            self.assertIsNotNone(
+                tg._llm_accept(out, self.LAMINE_STRETCHED, 'nvidia'))
+            self.assertIsNotNone(tg.validate_translation(
+                self.LAMINE_STRETCHED, out, 'nvidia'))
+
+    def test_bare_surname_source_grounds_full_name_output(self):
+        out = 'Lamine Yamal takes a shot at goal'
+        self.assertEqual(tg._ungrounded_mapped_names(
+            tg.repair_names(out), self.YAMAL_BARE), [])
+        self.assertIsNotNone(tg._llm_accept(out, self.YAMAL_BARE, 'nvidia'))
+
+    def test_fenerbahce_with_venezia_source_still_rejected(self):
+        # #13789: the correct Arabic name (Venezia) is present, so a famous
+        # namesake swap must still be rejected -- no alias borrowing between
+        # unrelated Latin word sets.
+        src = ('GOAAAL / The FIIIRST Juventus vs '
+               + ScoreGroundingAndVeneziaTests.VENEZIA)
+        out = ('GOAAAL! First Juventus vs Fenerbahce\n'
+               '\u2022 Juventus beat Fenerbahce in the first goal.')
+        bad = tg._ungrounded_mapped_names(tg.repair_names(out), src)
+        self.assertTrue(any('Fenerbah' in b for b in bad), bad)
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            self.assertIsNone(tg._llm_accept(out, src, 'test'))
+        self.assertIn('ungrounded mapped name', buf.getvalue())
+
+    def test_invented_score_still_rejected(self):
+        src = ('GOAAAL / The FIIIRST Juventus vs '
+               + ScoreGroundingAndVeneziaTests.VENEZIA)
+        out = ('GOAAAL! First Juventus vs Fenerbahce\n'
+               '\u2022 Juventus beat Fenerbahce 2-1 in the first goal.')
+        self.assertIsNone(tg.validate_translation(src, out, 'test'))
+
+    def test_tiny_source_over_generation_still_rejected(self):
+        out = ('Yamal scored a superb goal in the 73rd minute to seal a win '
+               'in stoppage time.')
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            self.assertIsNone(tg._llm_accept(out, self.ONE_WORD, 'test'))
+        self.assertIn('tiny-source over-generation', buf.getvalue())
+
+
 class ChainTests(unittest.TestCase):
     """Paid is hard-disabled; free fail-open chain, injection wrapper."""
 
