@@ -47,6 +47,44 @@ def env_or_cfg(env_key, cfg_key):
         return str(FILE_CFG.get(cfg_key, '') or '').strip()
     except Exception:
         return ''
+
+
+# Non-secret runtime tunables (scripts/tg_runtime.json). Fail-silent: a missing
+# or malformed file falls back to the hardcoded current values below, so the
+# bridge behaves exactly as before. NEVER put a key/secret in this file.
+RUNTIME_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'tg_runtime.json')
+
+
+def runtime_config():
+    """Load non-secret tunables with the stdlib. Missing/bad file -> {}."""
+    try:
+        with open(RUNTIME_PATH, encoding='utf-8') as f:
+            d = json.load(f)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+RUNTIME_CFG = runtime_config()
+
+
+def _runtime_int(key, default):
+    """Positive int from runtime config, else the current hardcoded default."""
+    try:
+        v = RUNTIME_CFG.get(key)
+        if v is None:
+            return default
+        n = int(v)
+        return n if n > 0 else default
+    except Exception:
+        return default
+
+
+# Reserved placeholder for future monetisation; intentionally unused today
+# (posts stay English-only and link/promo-free). Read but never injected.
+SPONSOR_LINE = str(RUNTIME_CFG.get('sponsor_line', '') or '').strip()
+
 # Only the optional MTProto upgrade reads this (public path scrapes the web
 # preview instead). The public entry was removed: nothing may name the source.
 SOURCES = [
@@ -871,17 +909,40 @@ def groq_chat(key, model, system, user, timeout=30):
 # choices[0].message.content (which can be empty -- fail open to the next
 # model). The nano reasoning model is faster but needs ~1200 tokens. Both are
 # gated by NVIDIA_API_KEY only; no key literal lives in this file.
-NVIDIA_MODELS = [
-    ('nvidia/nemotron-3-ultra-550b-a55b', 400),
-    ('nvidia/nemotron-3-nano-omni-30b-a3b-reasoning', 1200),
-]
+def _runtime_models():
+    """(model, max_tokens) pairs from runtime config; current values fallback.
+
+    The primary-first order and per-model token budgets are the tunables that
+    used to force a script edit after a re-benchmark. Malformed entries are
+    skipped; a fully empty/invalid list falls back to the shipped defaults.
+    """
+    raw = RUNTIME_CFG.get('nvidia_models')
+    if isinstance(raw, list) and raw:
+        out = []
+        for item in raw:
+            try:
+                if isinstance(item, (list, tuple)) and len(item) == 2:
+                    model = str(item[0]).strip()
+                    nmax = int(item[1])
+                    if model and nmax > 0:
+                        out.append((model, nmax))
+            except Exception:
+                continue
+        if out:
+            return out
+    return [('nvidia/nemotron-3-ultra-550b-a55b', 400),
+            ('nvidia/nemotron-3-nano-omni-30b-a3b-reasoning', 1200)]
+
+
+NVIDIA_MODELS = _runtime_models()
 
 # Cadence guard: the news workflow fires every 5 min with no in-progress
 # cancel, so a slow NIM call queues the next run (observed 157-290s/run).
 # Benchmarks: ultra 2.9-10.8s, nano 0.9-8s -> 12s covers the slowest call with
 # headroom; two consecutive transport failures skip NVIDIA for the rest of
-# this process (run) and go straight to Groq.
-NVIDIA_TIMEOUT = 12
+# this process (run) and go straight to Groq. Timeout is now config-tunable
+# (nvidia_timeout), defaulting to the current 12s.
+NVIDIA_TIMEOUT = _runtime_int('nvidia_timeout', 12)
 _NVIDIA_FAIL_LIMIT = 2
 _nvidia_consec_failures = 0
 _nvidia_circuit_open = False
@@ -2615,7 +2676,130 @@ def validate_translation(src, out, tag='', allow_our_link=False, min_len=3):
         return None
 
 
-def llm_fix(text):
+# --- accepted-translation cache (#4) -------------------------------------
+# In-memory + persisted cache of ACCEPTED English translations, keyed by a
+# sha256 of the canonicalised Arabic source. A repeated or delayed duplicate
+# source post gets an instant, identical translation without touching
+# NVIDIA/Groq/OpenRouter. Fails open on ANY error; never caches links/mentions,
+# empty output, or anything that failed the fail-closed gate.
+#
+# Persistence choice: a SEPARATE JSON file (tg_translation_cache.json) next to
+# tg_state.json, NOT a new key inside the state file. The state file is written
+# by two independent branches (public preview + optional Kurdish MTProto), each
+# loading its own snapshot and saving at several points; a cache key injected
+# mid-run could be clobbered by the other branch's stale snapshot and would
+# couple a pure optimisation to dedup state. A standalone file is self-contained,
+# best-effort, and can never corrupt dedup/offside state.
+CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          'tg_translation_cache.json')
+TRANSLATION_CACHE_DAYS = _runtime_int('translation_cache_days', 7)
+_CACHE_TTL = TRANSLATION_CACHE_DAYS * 86400
+_CACHE_MAX = 500
+_CACHE_ENABLED = True          # tests switch this off for model-call isolation
+_translation_cache = {}        # key -> {'t': epoch, 'v': accepted English}
+_cache_loaded = False
+
+
+def _cache_key(text):
+    """sha256(canon_text(source)), or None when the post must not be cached
+    (empty, link or @mention). No key/secret is involved."""
+    try:
+        t = (text or '').strip()
+        if not t:
+            return None
+        if (_URL_RX.search(t) or _TLINK.search(t)
+                or re.search(r'@\w', t)
+                or 'http' in t.lower() or 't.me' in t.lower()):
+            return None
+        c = canon_text(t)
+        if not c:
+            return None
+        import hashlib
+        return hashlib.sha256(c.encode('utf-8')).hexdigest()
+    except Exception:
+        return None
+
+
+def _cache_load():
+    global _translation_cache, _cache_loaded
+    if _cache_loaded:
+        return
+    _cache_loaded = True
+    try:
+        with open(CACHE_PATH, encoding='utf-8') as f:
+            d = json.load(f)
+        items = d.get('items') if isinstance(d, dict) else None
+        if isinstance(items, list):
+            now = time.time()
+            for rec in items:
+                try:
+                    k = str(rec.get('k') or '')
+                    v = rec.get('v')
+                    ts = float(rec.get('t') or 0)
+                    if k and isinstance(v, str) and v and now - ts < _CACHE_TTL:
+                        _translation_cache[k] = {'t': ts, 'v': v}
+                except Exception:
+                    continue
+    except Exception:
+        pass
+
+
+def _cache_save():
+    try:
+        items = [{'k': k, 't': r['t'], 'v': r['v']}
+                 for k, r in _translation_cache.items()]
+        tmp = CACHE_PATH + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump({'items': items}, f, ensure_ascii=False)
+        os.replace(tmp, CACHE_PATH)
+    except Exception:
+        pass
+
+
+def _cache_get(key):
+    if not _CACHE_ENABLED or not key:
+        return None
+    try:
+        _cache_load()
+        rec = _translation_cache.get(key)
+        if not rec:
+            return None
+        if time.time() - float(rec['t']) >= _CACHE_TTL:
+            _translation_cache.pop(key, None)
+            return None
+        return rec['v']
+    except Exception:
+        return None
+
+
+def _cache_put(key, value):
+    if not _CACHE_ENABLED or not key or not value:
+        return
+    try:
+        _cache_load()
+        _translation_cache[key] = {'t': time.time(), 'v': value}
+        while len(_translation_cache) > _CACHE_MAX:
+            oldest = min(_translation_cache,
+                         key=lambda k: _translation_cache[k]['t'])
+            _translation_cache.pop(oldest, None)
+        _cache_save()
+    except Exception:
+        pass
+
+
+def reset_translation_cache():
+    """Test hook: drop in-memory + persisted cache (best effort, never raises)."""
+    global _translation_cache, _cache_loaded
+    _translation_cache = {}
+    _cache_loaded = False
+    for p in (CACHE_PATH, CACHE_PATH + '.tmp'):
+        try:
+            os.remove(p)
+        except Exception:
+            pass
+
+
+def _llm_fix_uncached(text):
     """Fix (and translate to English) with the free Groq LLM. Channel is English-only: Arabic in, natural English out, clean bullet list. Fail-open to original. Key in GROQ_API_KEY secret only."""
     global _nvidia_consec_failures, _nvidia_circuit_open
     text = (text or '').strip()
@@ -2850,6 +3034,31 @@ def llm_fix(text):
     return repair_names(dedupe_lines(normalize_inline_bullets(got)))
 
 
+def llm_fix(text):
+    """Translate to English with an accepted-output cache in front.
+
+    A repeated / delayed duplicate Arabic source returns the identical
+    accepted translation instantly, before any NVIDIA/Groq/OpenRouter call.
+    Cache failures are ignored (fail-open); only accepted, non-Arabic output is
+    stored. The underlying free chain itself is unchanged.
+    """
+    text = (text or '').strip()
+    if not text:
+        return text
+    key = _cache_key(text)
+    if key:
+        hit = _cache_get(key)
+        if hit is not None:
+            print('[lang] translation cache hit (%d chars)' % len(hit))
+            return hit
+    out = _llm_fix_uncached(text)
+    # Every accepted return path of _llm_fix_uncached went through the same
+    # fail-closed gate; empty / Arabic / untranslated output is never stored.
+    if key and isinstance(out, str) and out and not has_arabic(out):
+        _cache_put(key, out)
+    return out
+
+
 # Tokens whose presence in the LONGER line proves new facts (keep it).
 _DEDUP_NEG = frozenset(['no', 'not', 'never', 'without', 'neither', 'nor',
                         "n't", 'deny', 'denies', 'denied', 'refutes'])
@@ -2873,6 +3082,34 @@ def _roster_toks():
         pass
     _ROSTER_TOKS = frozenset(toks)
     return _ROSTER_TOKS
+
+
+def reply_entity_ok(parent_text, child_text):
+    """True when a source reply's parent and child share a MEANINGFUL entity:
+    a rostered team/player token (from _roster_toks(), surfaced via the Arabic
+    name shield) or a shared digit/time marker (minute, score, kickoff).
+
+    Used to drop reply_to on unrelated posts: a reply that names nobody in
+    common with its parent is threaded into the wrong conversation. Never
+    raises; on any doubt returns False (conservative: unthread).
+    """
+    try:
+        p = canon_text(parent_text or '')
+        c = canon_text(child_text or '')
+        if not p or not c:
+            return False
+        # Digit / time marker first: works even on fully-Arabic sources.
+        pnum = set(re.findall(r'\d+', p))
+        cnum = set(re.findall(r'\d+', c))
+        if pnum & cnum:
+            return True
+        # Surface known Arabic names as their standard Latin tokens, then
+        # require a shared roster token (not an arbitrary common word).
+        ptok = set(re.findall(r'[a-z]+', protect_names(p).lower()))
+        ctok = set(re.findall(r'[a-z]+', protect_names(c).lower()))
+        return bool((ptok & ctok) & _roster_toks())
+    except Exception:
+        return False
 
 
 # Stopwords ignored when measuring CONTENT overlap for paraphrase echoes.
@@ -3169,7 +3406,7 @@ SITE_BASE = 'https://kooraadz.vercel.app'
 # Keep the Koora watch link as useful context, but only on 1 in N genuine
 # single-match posts. The counter lives in tg_state.json so a restart or a
 # fresh run cannot reset the budget (owner: "less marketing", not zero).
-WATCH_LINK_EVERY = 12
+WATCH_LINK_EVERY = _runtime_int('watch_link_every', 12)
 _FIXTURES = {'at': 0.0, 'items': []}
 _AR_MARKS = '\u064b-\u0652\u0670\u06d6-\u06ed\u0640'
 
@@ -3740,7 +3977,16 @@ def public_preview_run(target):
             parent = int(x.get('reply_to') or 0)
             if parent:
                 reply_to = (state.get('msgmap') or {}).get(str(parent))
-                if not reply_to:
+                if reply_to:
+                    # #6: only thread a copied reply when parent and child
+                    # share a meaningful entity; otherwise it is an unrelated
+                    # post and must not land under the parent in the channel.
+                    pitem = by_key.get(parent) or {}
+                    if not reply_entity_ok(pitem.get('text', ''), src_txt):
+                        print('#%d: reply to #%d dropped (no shared entity)'
+                              % (x['key'], parent))
+                        reply_to = None
+                else:
                     print('#%d: parent #%d not posted here, unthreaded'
                           % (x['key'], parent))
             kind, vurl = source_media(x['key'], also=x.get('preview_video'))
@@ -3962,6 +4208,19 @@ def main():
                         kparent = getattr(m, 'reply_to_msg_id', None)
                         if kparent:
                             kreply = (state.get('msgmap') or {}).get(str(kparent))
+                            if kreply:
+                                # #6: same entity gate as the public path.
+                                pm = next((q for q in (msgs or [])
+                                           if getattr(q, 'id', 0) == kparent), None)
+                                ptext = ''
+                                if pm is not None:
+                                    ptext = (getattr(pm, 'message', '')
+                                             or getattr(pm, 'text', '') or '')
+                                if not reply_entity_ok(ptext, txt):
+                                    print('#%d: reply to #%d dropped '
+                                          '(no shared entity)'
+                                          % (m.id, kparent))
+                                    kreply = None
                         result = send_post(target, body, out, kvid, kanim,
                                            reply_to=kreply, src=txt)
                         if result:
