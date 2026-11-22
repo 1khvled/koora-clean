@@ -987,14 +987,46 @@ def nvidia_chat(key, model, system, user, max_tokens=400, timeout=NVIDIA_TIMEOUT
         raise RuntimeError('nvidia bad response')
 
 
-# Free OpenRouter engines, benchmarked live 2026-10-10 on a real post with
-# the production prompt (quality + speed): super 0.7s flawless, lightning
-# 0.9s flawless, apodex 1.1s clean. Gemma free = 429 quota-dead, inkling =
-# 403, the rest burn the budget narrating or return empty. Re-benchmark if
-# the free list changes.
-OR_MODELS = ['nvidia/nemotron-3-super-120b-a12b:free',
-             'nvidia/nemotron-3.5-lightning:free',
-             'apodex/apodex-1.1-mini:free']
+# Free OpenRouter engines. Re-benchmarked live 2026-11-22 with the new key on
+# two real Arabic football posts (temperature 0.2, max_tokens 300): the two
+# Nemotron ids configured in tg_runtime.json answered 200/200 with complete,
+# clean English (2.5-5.6s, zero 429s). The old super/lightning ids and the 3.5
+# variants now return empty content, and both gemma-4 free ids are 429
+# quota-dead (confirmed twice, including after a 30s cooldown). Paid stays
+# hard-disabled below. The live list is a NON-SECRET tunable in
+# scripts/tg_runtime.json so it can be refreshed without a code edit; a
+# missing / malformed file falls back to the shipped list (current behaviour).
+DEFAULT_OR_MODELS = ['nvidia/nemotron-3-super-120b-a12b:free',
+                     'nvidia/nemotron-3.5-lightning:free',
+                     'apodex/apodex-1.1-mini:free']
+
+
+def _runtime_or_models():
+    """Free OpenRouter model ids from runtime config; shipped fallback.
+
+    Only non-empty ':free' ids are accepted, so a bad or hand-edited runtime
+    file can never select a paid model. A missing / empty / fully invalid list
+    falls back to DEFAULT_OR_MODELS. Stdlib-only, never raises.
+    """
+    try:
+        raw = RUNTIME_CFG.get('openrouter_models')
+        if isinstance(raw, list):
+            out = []
+            for item in raw:
+                try:
+                    m = str(item).strip()
+                    if m and m.endswith(':free'):
+                        out.append(m)
+                except Exception:
+                    continue
+            if out:
+                return out
+    except Exception:
+        pass
+    return list(DEFAULT_OR_MODELS)
+
+
+OR_MODELS = _runtime_or_models()
 
 
 def openrouter_chat(key, model, system, user, timeout=25):
