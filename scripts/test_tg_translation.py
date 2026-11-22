@@ -1414,5 +1414,117 @@ class NvidiaCircuitBreakerTests(unittest.TestCase):
         self.assertNotIn('nvidia circuit open', buf.getvalue())
 
 
+class NewsBodyStyleTests(unittest.TestCase):
+    """Deterministic layout polish applied at the send boundary.
+
+    Offline only: pure formatter + mocked Bot API. No model, network or
+    Telegram calls. Only universal Unicode emoji are introduced.
+    """
+    GOAL = '\u26bd'
+    ASSIST = '\U0001f170\ufe0f'
+
+    POST = ('Full-time: Barcelona 3-2 Villarreal\n'
+            '\u2022 Lamine Yamal scored and assisted as Barcelona beat Villarreal 3-2.\n'
+            '\u2022 Gerard Martin (assisted by Pedri Gonzalez) scored in the 22nd minute.\n'
+            '\u2022 Pedri Gonzalez provided the assist for the opener.\n'
+            '\u2022 Ferm\u00edn L\u00f3pez and Pau Navarro were sent off.')
+
+    def test_goal_and_assist_markers(self):
+        got = tg.style_news_body(self.POST)
+        self.assertTrue(got.startswith('Full-time: Barcelona 3-2 Villarreal\n\n'))
+        self.assertIn('\n' + self.GOAL + ' Lamine Yamal scored', got)
+        self.assertIn('\n' + self.GOAL +
+                      ' Gerard Martin (assisted by Pedri Gonzalez)', got)
+        self.assertIn('\n' + self.ASSIST +
+                      ' Pedri Gonzalez provided the assist', got)
+        self.assertIn('\n\u2022 Ferm\u00edn L\u00f3pez and Pau Navarro were '
+                      'sent off.', got)
+        self.assertNotIn('\n\u2022 Lamine', got)
+
+    def test_names_numbers_and_facts_preserved(self):
+        got = tg.style_news_body(self.POST)
+        # Undoing ONLY marker + blank-line edits must restore the input byte
+        # for byte: no word, name, digit or fact was added or changed.
+        plain = (got.replace(self.GOAL + ' ', '\u2022 ')
+                    .replace(self.ASSIST + ' ', '\u2022 ')
+                    .replace('\n\n', '\n'))
+        self.assertEqual(plain, self.POST)
+        for token in ('3-2', '22nd', 'Lamine Yamal', 'Pedri Gonzalez',
+                      'Ferm\u00edn L\u00f3pez', 'Pau Navarro'):
+            self.assertIn(token, got)
+        self.assertFalse(tg.has_arabic(got))
+        self.assertNotIn('t.me', got)
+
+    def test_idempotent(self):
+        once = tg.style_news_body(self.POST)
+        self.assertEqual(tg.style_news_body(once), once)
+        self.assertEqual(tg.style_news_body(''), '')
+
+    def test_non_goal_post_unchanged(self):
+        halftime = ('End of the first half [Premier League - Matchday 11]: '
+                    '\u2022 [\u26bd\ufe0f] Hull City 0-0 Brighton & Hove '
+                    'Albion [\u26bd\ufe0f]')
+        for text in (
+            'Ferm\u00edn L\u00f3pez sent off',
+            'Ferm\u00edn L\u00f3pez sent off\n'
+            '\u2022 The midfielder left the bench after a second yellow card.',
+            halftime,
+        ):
+            self.assertEqual(tg.style_news_body(text), text, text)
+        # Excessive blank lines still collapse on ordinary posts.
+        self.assertEqual(
+            tg.style_news_body('Pau Navarro sent off\n\n\n\nNext match soon'),
+            'Pau Navarro sent off\n\nNext match soon')
+
+    def test_negated_goal_not_marked(self):
+        got = tg.style_news_body(
+            'Match report\n'
+            '\u2022 Barcelona failed to score in the second half.\n'
+            '\u2022 Pedri Gonzalez provided the assist.')
+        self.assertIn('\n\u2022 Barcelona failed to score', got)
+        self.assertNotIn(self.GOAL + ' Barcelona failed', got)
+        self.assertIn('\n' + self.ASSIST + ' Pedri Gonzalez', got)
+
+    def test_watch_link_left_untouched(self):
+        link = '\U0001f3a6 Watch live: https://kooraadz.vercel.app/watch/1'
+        got = tg.style_news_body(self.POST + '\n\n' + link)
+        self.assertIn(link, got)
+        self.assertNotIn(self.GOAL + ' \U0001f3a6', got)
+
+    def test_only_universal_emoji_introduced(self):
+        got = tg.style_news_body(self.POST)
+        self.assertEqual(got.count(self.GOAL), 2)
+        self.assertEqual(got.count(self.ASSIST), 1)
+        # No custom/premium emoji ID can be produced by a rule-based formatter.
+        self.assertNotIn('<tg-emoji', got)
+
+    def test_send_post_applies_layout_to_accepted_body(self):
+        with mock.patch.object(tg, 'bot', return_value={
+                'ok': True, 'result': {'message_id': 9}}) as b:
+            self.assertEqual(tg.send_post('@chan', GOOD_EN, None, src=SRC_AR), 9)
+        caption = b.call_args[0][1]['text']
+        self.assertTrue(caption.startswith(
+            'Lamine Yamal stunner seals hard-fought Barcelona win\n\n'
+            + self.GOAL + ' Lamine Yamal scored'))
+
+    def test_prompt_asks_for_same_shape(self):
+        seen = {}
+
+        def fake_or(key, model, system, user, timeout=25):
+            seen['system'] = system
+            return GOOD_EN
+
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'openrouter_chat', side_effect=fake_or), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('no network')), \
+             mock.patch.object(tg, 'translate_free_ar_en', return_value=''):
+            tg.llm_fix(SRC_AR)
+        self.assertIn('a short headline, a blank line, then one short '
+                      'bullet per event', seen['system'])
+        self.assertIn(self.GOAL, seen['system'])
+        self.assertIn(self.ASSIST, seen['system'])
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

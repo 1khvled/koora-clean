@@ -1038,6 +1038,85 @@ def normalize_inline_bullets(text):
         return text
 
 
+# --- deterministic post layout (owner feedback 2026-11-22) ---------------
+# The source channel has a clean, grouped layout. We CANNOT mint Telegram
+# Premium/custom emoji, so this uses only two markers that render on every
+# platform: ⚽ (U+26BD) for a goal/scorer line and 🅰️ (U+1F170 U+FE0F) for
+# an assist-only line. Pure formatting: no word, name, digit or fact is
+# added or changed -- only leading bullet markers and blank-line spacing
+# are touched. Idempotent, no dependencies, never raises.
+_EVENT_GOAL = re.compile(
+    r'(?i)\b(?:scor(?:e|ed|es|ing|er|ers)|goal(?:s)?|netted|nets|'
+    r'equalis(?:er|ers|ed|es)|equaliz(?:er|ers|ed|es)|hat-?trick|brace)\b')
+_EVENT_ASSIST = re.compile(r'(?i)\bassist(?:ed|s|ing)?\b')
+_EVENT_NEGATED = re.compile(
+    r'(?i)\b(?:did\s*not|didn\'t|does\s*not|doesn\'t|has\s*not|hasn\'t|'
+    r'have\s*not|haven\'t|failed\s+to|without|miss(?:ed|es)?|no)\b'
+    r'.{0,40}?\b(?:scor\w*|goal\w*|net\w*)')
+_EVENT_URL = re.compile(r'(?i)https?://|www\.|t\.me/|\b\w+\.com\b')
+
+
+def style_news_body(text):
+    """Polish an ACCEPTED English translation into a short headline, a blank
+    line, then one event per line (⚽ goal, 🅰️ assist-only). Non-event lines
+    keep their own words and bullet char; every digit/name is preserved.
+    Only universal Unicode emoji are introduced -- never a custom emoji ID,
+    never a source mention/link, never a new fact. Idempotent: a second pass
+    over already-styled text returns it byte-identical. Never raises."""
+    try:
+        t = text or ''
+        if not t.strip():
+            return text
+        t = t.replace('\r\n', '\n').replace('\r', '\n')
+        # Collapse runs of blank lines; a single separator between paragraphs
+        # survives untouched.
+        norm = []
+        for ln in (x.strip() for x in t.strip().split('\n')):
+            if not ln and (not norm or norm[-1] == ''):
+                continue
+            norm.append(ln)
+        if not norm or norm[0] == '':
+            return text
+        out, styled, first = [], False, True
+        for ln in norm:
+            if not ln:
+                out.append('')
+                continue
+            if first:
+                out.append(ln)          # headline stays unmarked
+                first = False
+                continue
+            core = ln
+            b = re.match(r'^([•‣⁃])\s*', core)
+            if b:
+                core = core[b.end():]
+            if core and core[0] in ('\u26bd', '\U0001f170', '\ufe0f'):
+                out.append(core)        # already styled: never double a marker
+                styled = True
+                continue
+            if _EVENT_URL.search(core) or has_arabic(core):
+                out.append(ln)          # watch link / non-English: leave alone
+                continue
+            if _EVENT_GOAL.search(core) and not _EVENT_NEGATED.search(core):
+                out.append('\u26bd ' + core)
+                styled = True
+            elif _EVENT_ASSIST.search(core):
+                out.append('\U0001f170\ufe0f ' + core)
+                styled = True
+            else:
+                out.append(ln)
+        if styled:
+            # Exactly one blank line between the headline and the events.
+            idx = 1
+            while idx < len(out) and out[idx] == '':
+                idx += 1
+            if idx < len(out):
+                out[1:idx] = ['']
+        return '\n'.join(out).strip()
+    except Exception:
+        return text
+
+
 def _llm_accept(out, text, tag):
     """Shared output gate for the LLM engines (paid + Groq + OpenRouter).
     Thin wrapper over validate_translation(), the SAME fail-closed gate every
@@ -2570,7 +2649,9 @@ def llm_fix(text):
               'For أول/ثاني in a goal alert, say "first goal"/"second goal", '
               'not a bare "First"/"Second". Keep the '
               'emojis and the item order. English only: a header line, then '
-              'one bullet per item starting with the bullet char. Each '
+              'one bullet per item starting with the bullet char. '
+               'Format: a short headline, a blank line, then one short bullet per event — ⚽ for goals/scorers, 🅰️ for assist-only items. '
+               'Each '
               'distinct sentence appears exactly once -- never repeat the '
               'same sentence as both header and bullet. '
               'Never invent facts, scorelines, or name spellings -- when '
@@ -3404,6 +3485,10 @@ def send_post(target, body, out, video=None, animation=None, reply_to=None,
             print('blocked: body failed final gate, post refused by send_post')
             return None
         body = got
+        # Owner feedback 2026-11-22: deterministic layout polish on the
+        # ACCEPTED translation, at the last boundary before any Telegram
+        # call. Both send paths (preview + private source) go through here.
+        body = style_news_body(body)
     elif has_arabic(src):
         # No caption at all but the source was Arabic: translation failed.
         print('blocked: untranslated arabic source, post refused by send_post')
