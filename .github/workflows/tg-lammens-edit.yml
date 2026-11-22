@@ -1,0 +1,83 @@
+name: tg-lammens-edit (temporary)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  edit:
+    runs-on: ubuntu-latest
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TARGET_CHAT: ${{ secrets.TARGET_CHAT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Apply vetted Lammens goalkeeper correction
+        run: |
+          python - <<'PY'
+          import json, os, sys, time, urllib.request, urllib.parse
+
+          token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+          chat = os.environ.get("TARGET_CHAT", "").strip()
+          if not token or not chat:
+              print("ERROR: missing secrets TELEGRAM_BOT_TOKEN or TARGET_CHAT")
+              sys.exit(1)
+
+          with open("scripts/tg_lammens_edit_map.json", encoding="utf-8") as f:
+              items = json.load(f)
+
+          backup = os.path.join(
+              os.environ.get("RUNNER_TEMP", "/tmp"),
+              "tg_lammens_backup_" + time.strftime("%Y%m%d", time.gmtime()) + ".json",
+          )
+          with open(backup, "w", encoding="utf-8") as f:
+              json.dump(items, f, ensure_ascii=False, indent=2)
+          print("backup written to", backup)
+
+          print("DRY-RUN DIFF:")
+          for it in items:
+              print("  #%s [%s]\n    OLD: %s\n    NEW: %s" % (
+                  it["id"], "caption" if it["media"] else "text",
+                  it.get("old", "<unknown>"), it["text"]))
+
+          base = "https://api.telegram.org/bot" + token
+          ok = fail = 0
+          for idx, it in enumerate(items):
+              media = bool(it["media"])
+              method = "editMessageCaption" if media else "editMessageText"
+              field = "caption" if media else "text"
+              payload = {"chat_id": chat, "message_id": it["id"], field: it["text"]}
+              data = urllib.parse.urlencode(payload).encode("utf-8")
+              req = urllib.request.Request(
+                  base + "/" + method,
+                  data=data,
+                  headers={"Content-Type": "application/x-www-form-urlencoded"},
+              )
+              desc = ""
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as resp:
+                      body = json.loads(resp.read().decode("utf-8"))
+                  if body.get("ok"):
+                      ok += 1
+                      status = "OK"
+                  else:
+                      fail += 1
+                      status = "FAILED"
+                      desc = "api:" + str(body.get("description", "unknown"))
+              except Exception as exc:  # noqa: BLE001
+                  fail += 1
+                  status = "FAILED"
+                  desc = "exception:" + str(exc)
+              desc = desc.replace(token, "***")[:300]
+              print(f"{it['id']} {status} {desc}".rstrip())
+              if idx < len(items) - 1:
+                  time.sleep(1.1)
+
+          print(f"SUMMARY attempted={len(items)} ok={ok} failed={fail}")
+          sys.exit(0)
+          PY
