@@ -93,6 +93,65 @@ class GateTests(unittest.TestCase):
             self.assertIsNone(tg.validate_translation(SRC_AR, bad, 'test'))
 
 
+class ScoreGroundingAndVeneziaTests(unittest.TestCase):
+    """Audit 2026-11-22, messistatdotcom #13789/#13790.
+
+    #13789: source Offsideahdaff/390136 was a first-goal alert for Juventus
+    vs Venezia (فينيتسيا). Venezia was unshielded, so the model swapped in the
+    famous namesake Fenerbahçe and rendered أول as a bare "First".
+    #13790 (a genuine reply to #13789): the digit-free source had a single
+    word (فولتمادده) and the model invented the teams and a 2-1 scoreline.
+    All offline: pure helpers + the shared gate, no model / network / Telegram.
+    """
+
+    # Arabic source spellings as \u escapes (stdout never encodes Arabic).
+    VENEZIA = '\u0641\u064a\u0646\u064a\u062a\u0633\u064a\u0627'
+    FENER = '\u0641\u0646\u0631\u0628\u062e\u0634\u0629'
+
+    def test_invented_scoreline_from_digit_free_source_rejected(self):
+        src = 'GOAAAL / The FIIIRST Juventus vs ' + self.VENEZIA
+        out = ('GOAAAL! First Juventus vs Fenerbahce\n'
+               '\u2022 Juventus beat Fenerbahce 2-1 in the first goal.')
+        self.assertIsNone(tg.validate_translation(src, out, 'test'))
+        # The same gate is used by paid / Groq / OpenRouter / machine paths.
+        self.assertIsNone(tg._llm_accept(out, src, 'paid'))
+
+    def test_real_source_score_preserved(self):
+        src = ('\u0633\u062c\u0644 \u0627\u0644\u0641\u0631\u064a\u0642 \u0647\u062f\u0641\u0627 '
+               '\u0641\u064a \u0627\u0644\u062f\u0642\u064a\u0642\u0629 73 '
+               '\u0648\u0627\u0646\u062a\u0647\u062a 2-1 \u0644\u0635\u0627\u0644\u062d\u0647.')
+        out = ('The team scored in the 73rd minute and won 2-1 after a '
+               'thrilling cup tie.')
+        self.assertIsNotNone(tg.validate_translation(src, out, 'test'))
+        # Arabic-Indic digits and a non-ASCII dash in the source normalise.
+        ar_src = src.replace('73', '\u0667\u0663').replace('2-1', '\u0662\u2013\u0661')
+        self.assertIsNotNone(tg.validate_translation(ar_src, out, 'test'))
+
+    def test_scoreless_first_goal_alert_accepted(self):
+        src = ('\u0647\u062f\u0641 \u0623\u0648\u0644! \u0633\u062c\u0644 \u0627\u0644\u0644\u0627\u0639\u0628 '
+               '\u0644\u0635\u0627\u0644\u062d \u0627\u0644\u0641\u0631\u064a\u0642 \u0641\u064a '
+               '\u0627\u0644\u0634\u0648\u0637 \u0627\u0644\u0623\u0648\u0644.')
+        out = ('First goal! The player scored for the team in the first half.\n'
+               '\u2022 A brilliant finish put the team ahead early on.')
+        self.assertIsNotNone(tg.validate_translation(src, out, 'test'))
+
+    def test_venezia_shielded_before_translation(self):
+        src = 'GOAAAL / The FIIIRST Juventus vs ' + self.VENEZIA
+        got = tg.protect_names(src)
+        self.assertIn('Venezia', got)
+        self.assertNotIn(self.VENEZIA, got)
+        self.assertEqual(tg._PROTECT_MAP[tg._ar_norm1(self.VENEZIA)], 'Venezia')
+
+    def test_genuine_fenerbahce_survives_both_passes(self):
+        # No Fenerbahce->Venezia repair exists: a real Fenerbahçe post must
+        # come out unchanged, both from the source shield and the post-pass.
+        self.assertEqual(tg.protect_names(self.FENER), 'Fenerbah\u00e7e')
+        for good in ('Fenerbah\u00e7e beat Juventus',
+                     'Galatasaray and Fenerbahce drew 1-1',
+                     'Fenerbahce signed a new striker'):
+            self.assertEqual(tg.repair_names(good), good)
+
+
 class ChainTests(unittest.TestCase):
     """Paid primary, free fail-open chain, kill switch, injection wrapper."""
 
