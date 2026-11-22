@@ -997,7 +997,9 @@ class NameMapFileTests(unittest.TestCase):
     def test_qids_section_present_for_refresh(self):
         with open(self._path(), encoding='utf-8') as f:
             data = json.load(f)
-        self.assertEqual(data.get('qids'), self.QIDS)
+        # The map grows over time; only require the original verified seed
+        # QIDs to still be present (extra harvested entries are expected).
+        self.assertTrue(self.QIDS.items() <= (data.get('qids') or {}).items())
 
     def test_new_variant_is_live_in_compiled_roster(self):
         # بابلون دوران (with ن) is NOT in the hand-curated _AR_PROTECT list;
