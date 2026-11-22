@@ -1806,6 +1806,12 @@ _AR_PROTECT = [
     ('سبورتينغ لشبونة', 'Sporting CP'),
     ('غلطة سراي', 'Galatasaray'),
     ('فنربخشة', 'Fenerbahçe'),
+    # reported 2026-11-22 (#13789, source Offsideahdaff/390136): the source
+    # فينيتسيا = Venezia, but Venezia was unshielded so the model substituted
+    # the famous namesake Fenerbahçe. Shield the correct club before the LLM
+    # sees the post; do NOT add a Fenerbahçe->Venezia repair (that would
+    # corrupt genuine Fenerbahçe posts).
+    ('فينيتسيا', 'Venezia'),
     ('يوفنتوس', 'Juventus'),
     ('اليوفي', 'Juventus'),
     ('ميلان', 'Milan'),
@@ -2143,6 +2149,15 @@ def number_tokens(s):
     return set(re.findall(r'\d+', canon_text(s)))
 
 
+# Invented-score grounding (audit 2026-11-22, messistatdotcom #13790): a
+# digit-free source left the model free to invent "Fulham 2-1 Wolves". A
+# scoreline in the output must be grounded in a scoreline in the SOURCE.
+# Narrow by design: only the x-y shape (1-2 digits a side); the source is
+# canonicalised first so Arabic-Indic digits, extended digits, dash variants
+# and digit-grouping commas compare equal. No other numbers are restricted.
+_SCORE_RX = re.compile(r'\b\d{1,2}\s*[-–]\s*\d{1,2}\b')
+
+
 _META_RX = re.compile(r'(?i)^\s*(?:translation|translated|corrected|here is|'
                       r"here's|output)\b")
 _JSON_WRAP_RX = re.compile(r'(?i)^\s*[\[{]\s*["\']?(?:translation|text|result|'
@@ -2291,6 +2306,13 @@ def validate_translation(src, out, tag='', allow_our_link=False, min_len=3):
             lost = sorted(src_nums - number_tokens(out))[:6]
             print('[lang] %s output rejected (numbers lost: %s)' % (tag, lost))
             return None
+        # A scoreline can only be reported if the source actually had one.
+        # Grounding check is source-wide, independent of the per-token rule
+        # above: a digit-free source has no numbers to "lose", yet the model
+        # can still fabricate a result. Fail closed on a score it never saw.
+        if _SCORE_RX.search(out) and not _SCORE_RX.search(canon_text(src or '')):
+            print('[lang] %s output rejected (ungrounded scoreline)' % tag)
+            return None
         # Truncation floor: an English translation of a long Arabic post is
         # never a tiny fraction of its length. Catches the model cutting off
         # at max_tokens or emitting only the first sentence of a long post.
@@ -2331,7 +2353,9 @@ def llm_fix(text):
               "credit the stats line's player with the goal. "
               'If a name is unfamiliar, copy it from the shielded source '
               'exactly; never substitute a famous namesake. '
-              'Keep scores, minute marks, and every number exactly. Keep the '
+              'Keep scores, minute marks, and every number exactly. '
+              'For أول/ثاني in a goal alert, say "first goal"/"second goal", '
+              'not a bare "First"/"Second". Keep the '
               'emojis and the item order. English only: a header line, then '
               'one bullet per item starting with the bullet char. Each '
               'distinct sentence appears exactly once -- never repeat the '
