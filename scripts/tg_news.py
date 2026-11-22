@@ -2555,7 +2555,9 @@ def llm_fix(text):
     # Fail-open to the free chain below (no credits / HTTP error -> Groq ->
     # free OpenRouter -> machine translation). Kill switch: drop the
     # PAID_MODEL line from the workflow env.
-    paid = os.environ.get('PAID_MODEL', '').strip()
+    # owner disabled paid translation 2026-11-22; free chain only
+    # Hard-disabled (not env-gated): NO setting can re-enable a paid call.
+    paid = ''
     if paid and or_key:
         try:
             out = openrouter_chat(or_key, paid, system, user)
