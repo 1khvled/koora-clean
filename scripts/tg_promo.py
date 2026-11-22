@@ -31,7 +31,7 @@ import tg_news as tg
 
 SITE = 'https://kooraadz.vercel.app/'
 MESSI_URL = 'https://www.messistat.com/en'
-RONALDO_URL = 'https://ronaldostats.vercel.app/en'
+RONALDO_URL = 'https://www.ronaldostats.site/en'
 
 KICKOFF_WINDOW = 15 * 60       # announce matches started in the last 15 min
 KICKOFF_EVERY = 24 * 3600      # at most ONE combined kickoff post per day
