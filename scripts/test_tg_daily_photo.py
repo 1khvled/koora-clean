@@ -19,6 +19,15 @@ DAY = datetime.date(2026, 11, 22)
 NEXT_DAY = datetime.date(2026, 11, 23)
 DS = '20261122'
 
+
+def utc(hh, mm=0, day=DAY):
+    """Timezone-aware UTC instant for the time-gate tests (no real clock)."""
+    return datetime.datetime(day.year, day.month, day.day, hh, mm,
+                             tzinfo=datetime.timezone.utc)
+
+
+NOW = utc(12, 0)   # safely after the default 08:00 posting hour
+
 FOTMOB = {
     'leagues': [
         {'name': 'Premier League', 'matches': [
@@ -73,15 +82,20 @@ def sample_matches(n=3):
     ]
 
 
-def run(state, fetch=None, send=OK, day=DAY, fetch_side=None):
-    """post_daily_photo with every boundary mocked; returns (rc, send_mock)."""
+def run(state, fetch=None, send=OK, day=DAY, fetch_side=None, now=None, cfg=None):
+    """post_daily_photo with every boundary mocked; returns (rc, send_mock).
+
+    The clock and runtime config are pinned so these tests never depend on the
+    real UTC time or on whatever tg_runtime.json happens to contain.
+    """
     with mock.patch.object(tg, 'load_state', return_value=state), \
          mock.patch.object(tg, 'save_state'), \
+         mock.patch.object(daily, 'runtime_config', return_value=cfg or {}), \
          mock.patch.object(daily, 'fetch_today',
                            return_value=sample_matches() if fetch is None else fetch,
                            side_effect=fetch_side) as ft, \
          mock.patch.object(daily, '_send_photo_bytes', return_value=send) as snd:
-        rc = daily.post_daily_photo(day=day)
+        rc = daily.post_daily_photo(day=day, now=now or NOW)
     return rc, snd, ft
 
 
@@ -150,12 +164,60 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual([m['sort'] for m in picked],
                          sorted(m['sort'] for m in picked))
 
-    def test_top_leagues_preferred(self):
-        a = {'time': '20:00', 'sort': '2026-11-22T20:00', 'home': 'Top',
-             'away': 'Side', 'status': '', 'league_order': 0}
-        b = {'time': '12:00', 'sort': '2026-11-22T12:00', 'home': 'Lower',
-             'away': 'Side', 'status': '', 'league_order': 9}
-        self.assertEqual(daily.select_matches([b, a], limit=1), [a])
+    def test_top_leagues_preferred_over_earlier_kickoff(self):
+        top = {'time': '20:00', 'sort': '2026-11-22T20:00', 'home': 'Top',
+               'away': 'Side', 'status': '', 'league_order': 9,
+               'competition': 'Premier League'}
+        lower = {'time': '12:00', 'sort': '2026-11-22T12:00', 'home': 'Lower',
+                 'away': 'Side', 'status': '', 'league_order': 0,
+                 'competition': 'Lower Division'}
+        self.assertEqual(daily.select_matches([lower, top], limit=1), [top])
+
+    def test_live_matches_come_before_top_competitions(self):
+        live = {'time': '21:00', 'sort': '2026-11-22T21:00', 'home': 'Live',
+                'away': 'Side', 'status': '1H', 'league_order': 8,
+                'competition': 'Lower Division'}
+        top = {'time': '13:00', 'sort': '2026-11-22T13:00', 'home': 'Top',
+               'away': 'Side', 'status': '', 'league_order': 0,
+               'competition': 'UEFA Champions League'}
+        self.assertEqual(daily.select_matches([top, live]), [live, top])
+
+    def test_live_payload_flag_wins_even_with_a_score(self):
+        live = {'home': 'Live', 'sort': '2026-11-22T22:00', 'status': '2-1',
+                'live': True, 'competition': 'Lower Division'}
+        done = {'home': 'Done', 'sort': '2026-11-22T10:00', 'status': '3-0',
+                'live': False, 'competition': 'Premier League'}
+        self.assertEqual(daily.select_matches([done, live], limit=1)[0]['home'],
+                         'Live')
+
+    def test_top_allowlist_is_normalized(self):
+        for name in ('LaLiga', 'la liga', 'UEFA Champions League',
+                     'Saudi Pro League'):
+            self.assertTrue(daily._is_top({'competition': name}), name)
+        self.assertFalse(daily._is_top({'competition': 'Local Amateur Cup'}))
+
+    def test_parsers_carry_competition_and_live_flags(self):
+        payload = {'leagues': [{'name': 'Premier League', 'matches': [
+            {'statusId': 2,
+             'status': {'utcTime': '2026-11-22T20:00:00Z', 'started': True},
+             'home': {'name': 'Arsenal', 'score': 1},
+             'away': {'name': 'Chelsea', 'score': 0}},
+        ]}]}
+        parsed = daily.parse_fotmob(payload)
+        self.assertEqual(parsed[0]['competition'], 'Premier League')
+        self.assertTrue(parsed[0]['live'])
+        self.assertTrue(daily._is_top(parsed[0]))
+        espn = {'leagues': [{'name': 'La Liga'}], 'events': [{
+            'date': '2026-11-22T18:00Z',
+            'status': {'type': {'name': 'STATUS_IN_PROGRESS'}},
+            'competitions': [{'competitors': [
+                {'homeAway': 'home', 'team': {'displayName': 'Barcelona'}},
+                {'homeAway': 'away', 'team': {'displayName': 'Getafe'}},
+            ]}],
+        }]}
+        e = daily.parse_espn(espn)[0]
+        self.assertEqual(e['competition'], 'La Liga')
+        self.assertTrue(e['live'])
 
 
 class ImageTests(unittest.TestCase):
@@ -505,6 +567,159 @@ class OncePerDayTests(unittest.TestCase):
         self.assertEqual(args[0][:8], b'\x89PNG\r\n\x1a\n')
         self.assertIn("Today's matches: 2026-11-22", args[1])
         self.assertIn('(3 matches)', args[1])
+
+
+class PostingHourTests(unittest.TestCase):
+    """Fixed posting hour: no post before it, always a post after it."""
+
+    CFG = {'daily_photo_time_utc': '08:00'}
+
+    def test_default_and_invalid_configs(self):
+        self.assertEqual(daily.configured_photo_time({}), '08:00')
+        for bad in ('nonsense', '25:00', '08:99', '', None):
+            self.assertEqual(
+                daily.configured_photo_time({'daily_photo_time_utc': bad}),
+                '08:00', bad)
+
+    def test_config_is_parsed_and_zero_padded(self):
+        self.assertEqual(
+            daily.configured_photo_time({'daily_photo_time_utc': '9:05'}),
+            '09:05')
+        cfg = {'daily_photo_time_utc': '9:05'}
+        self.assertFalse(daily.past_posting_hour(utc(9, 4), cfg))
+        self.assertTrue(daily.past_posting_hour(utc(9, 5), cfg))
+
+    def test_before_configured_hour_does_not_post_or_fetch(self):
+        state = {}
+        rc, snd, ft = run(state, now=utc(7, 59), cfg=self.CFG)
+        self.assertFalse(rc)
+        snd.assert_not_called()
+        ft.assert_not_called()
+        self.assertNotIn(daily.STATE_KEY, state)
+
+    def test_at_configured_hour_posts_once(self):
+        state = {}
+        rc, snd, _ = run(state, now=utc(8, 0), cfg=self.CFG)
+        self.assertTrue(rc)
+        self.assertEqual(snd.call_count, 1)
+        rc2, snd2, _ = run(state, now=utc(9, 0), cfg=self.CFG)
+        self.assertFalse(rc2)
+        snd2.assert_not_called()
+
+    def test_late_start_still_posts_no_missed_day(self):
+        state = {}
+        rc, snd, _ = run(state, now=utc(23, 30), cfg=self.CFG)
+        self.assertTrue(rc)
+        self.assertEqual(snd.call_count, 1)
+        self.assertEqual(state[daily.STATE_KEY], DS)
+        rc2, snd2, _ = run(state, now=utc(23, 59), cfg=self.CFG)
+        self.assertFalse(rc2)
+        snd2.assert_not_called()
+
+    def test_custom_hour_is_respected(self):
+        cfg = {'daily_photo_time_utc': '20:00'}
+        rc, snd, _ = run({}, now=utc(19, 59), cfg=cfg)
+        self.assertFalse(rc)
+        snd.assert_not_called()
+        rc, snd, _ = run({}, now=utc(20, 0), cfg=cfg)
+        self.assertTrue(rc)
+        self.assertEqual(snd.call_count, 1)
+
+    def test_state_guard_still_wins_after_the_hour(self):
+        state = {daily.STATE_KEY: DS}
+        rc, snd, ft = run(state, now=utc(12, 0), cfg=self.CFG)
+        self.assertFalse(rc)
+        snd.assert_not_called()
+        ft.assert_not_called()
+
+    def test_new_day_posts_again_after_the_hour(self):
+        state = {}
+        run(state, now=utc(12, 0), cfg=self.CFG)
+        rc, snd, _ = run(state, day=NEXT_DAY, now=utc(8, 1), cfg=self.CFG)
+        self.assertTrue(rc)
+        self.assertEqual(snd.call_count, 1)
+        self.assertEqual(state[daily.STATE_KEY], '20261123')
+
+    def test_runtime_config_is_fail_silent(self):
+        import tempfile
+        missing = os.path.join(tempfile.gettempdir(),
+                               'tg_runtime_missing_test.json')
+        if os.path.exists(missing):
+            os.unlink(missing)
+        with mock.patch.object(daily, 'RUNTIME_PATH', missing):
+            self.assertEqual(daily.runtime_config(), {})
+        fd, bad = tempfile.mkstemp(suffix='.json')
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                f.write('{not json')
+            with mock.patch.object(daily, 'RUNTIME_PATH', bad):
+                self.assertEqual(daily.runtime_config(), {})
+        finally:
+            os.unlink(bad)
+
+
+class SponsorTests(unittest.TestCase):
+    """The optional muted footer slot: absent by default, plain text when set."""
+
+    SPONSOR = 'Powered by Example Media'
+
+    def setUp(self):
+        patcher = mock.patch.object(daily, '_load_logos', return_value={})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_absent_by_default(self):
+        self.assertEqual(daily.configured_sponsor_line({}), '')
+        rows = sample_matches(2)
+        self.assertNotIn(self.SPONSOR, daily.image_text(rows, '2026-11-22'))
+        self.assertNotIn(self.SPONSOR,
+                         daily.caption_text('2026-11-22', len(rows)))
+        from PIL import Image
+        import io
+        img = Image.open(io.BytesIO(daily.render_png(rows, '2026-11-22')))
+        footer = [img.getpixel((x, y))
+                  for x in range(daily.WIDTH - 300, daily.WIDTH - daily.PAD)
+                  for y in range(img.height - daily.FOOTER_H, img.height)]
+        self.assertNotIn(daily.MUTED, footer)
+
+    def test_rendered_when_set(self):
+        rows = sample_matches(2)
+        cfg = {'sponsor_line': self.SPONSOR}
+        self.assertEqual(daily.configured_sponsor_line(cfg), self.SPONSOR)
+        self.assertIn(self.SPONSOR,
+                      daily.image_text(rows, '2026-11-22', self.SPONSOR))
+        plain = daily.render_png(rows, '2026-11-22')
+        with_line = daily.render_png(rows, '2026-11-22', self.SPONSOR)
+        self.assertNotEqual(plain, with_line)
+        from PIL import Image
+        import io
+        a, b = Image.open(io.BytesIO(plain)), Image.open(io.BytesIO(with_line))
+        self.assertEqual(a.height, b.height)   # no layout shift / extra rows
+        footer = [b.getpixel((x, y))
+                  for x in range(daily.WIDTH - 300, daily.WIDTH - daily.PAD)
+                  for y in range(b.height - daily.FOOTER_H, b.height)]
+        self.assertIn(daily.MUTED, footer)
+
+    def test_sponsor_is_english_only_and_plain_text(self):
+        txt = daily.image_text(sample_matches(2), '2026-11-22', self.SPONSOR)
+        self.assertFalse(tg.has_arabic(txt))
+        self.assertFalse(tg.has_foreign_script(txt))
+        low = txt.lower()
+        for bad in ('t.me', 'http', 'www.', '@', 'bet', 'casino', 'shop',
+                    'store'):
+            self.assertNotIn(bad, low)
+
+    def test_non_english_sponsor_is_skipped_by_english_only_moat(self):
+        state = {}
+        rc, snd, _ = run(state, cfg={'sponsor_line': 'رعاة'})
+        self.assertFalse(rc)
+        snd.assert_not_called()
+        self.assertNotIn(daily.STATE_KEY, state)
+
+    def test_sponsor_line_is_trimmed(self):
+        self.assertEqual(
+            daily.configured_sponsor_line({'sponsor_line': '  Hello  '}),
+            'Hello')
 
 
 class UploadTests(unittest.TestCase):
