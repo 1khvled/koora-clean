@@ -1075,5 +1075,180 @@ class MappedNameGroundingTests(unittest.TestCase):
                       seen['system'])
 
 
+class _FakeResp:
+    """Minimal urlopen() response: context manager + .read()."""
+
+    def __init__(self, payload):
+        self._data = json.dumps(payload).encode('utf-8')
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def read(self):
+        return self._data
+
+
+class NvidiaChainTests(unittest.TestCase):
+    """NVIDIA NIM is the new free PRIMARY translator, ahead of Groq.
+
+    All offline: urllib / nvidia_chat / the rest of the chain are mocked. No
+    real model, network, or Telegram call. No key literal appears anywhere --
+    the fake key below is a non-secret test sentinel.
+    """
+
+    NENV = dict(ENV, NVIDIA_API_KEY='nv-test-sentinel')
+    PRIMARY = 'nvidia/nemotron-3-ultra-550b-a55b'
+    FALLBACK = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning'
+
+    def test_nvidia_chat_parses_content_and_ignores_reasoning(self):
+        payload = {'choices': [{'message': {
+            'content': GOOD_EN,
+            'reasoning_content': 'private chain of thought'}}]}
+        with mock.patch.object(tg.urllib.request, 'urlopen',
+                               return_value=_FakeResp(payload)) as u:
+            got = tg.nvidia_chat('nv-test-sentinel', self.PRIMARY,
+                                 'sys', 'usr', max_tokens=400)
+        self.assertEqual(got, GOOD_EN)
+        req = u.call_args[0][0]
+        self.assertEqual(req.full_url,
+                         'https://integrate.api.nvidia.com/v1/chat/completions')
+        self.assertEqual(req.headers['Authorization'], 'Bearer nv-test-sentinel')
+        body = json.loads(req.data.decode('utf-8'))
+        self.assertEqual(body['model'], self.PRIMARY)
+        self.assertEqual(body['messages'][0], {'role': 'system', 'content': 'sys'})
+        self.assertEqual(body['messages'][1], {'role': 'user', 'content': 'usr'})
+        self.assertEqual(body['temperature'], 0.2)
+        self.assertEqual(body['max_tokens'], 400)
+        self.assertEqual(body['stream'], False)
+        self.assertEqual(u.call_args[1]['timeout'], 25)
+
+    def test_nvidia_chat_empty_content_fails_open(self):
+        # Reasoning models can put their thought in reasoning_content and
+        # leave content empty; the helper returns '' so _llm_accept() rejects
+        # it and the chain advances to the next model.
+        payload = {'choices': [{'message': {
+            'content': '', 'reasoning_content': 'thinking only'}}]}
+        with mock.patch.object(tg.urllib.request, 'urlopen',
+                               return_value=_FakeResp(payload)):
+            self.assertEqual(tg.nvidia_chat('nv-test-sentinel', self.PRIMARY,
+                                            'sys', 'usr'), '')
+
+    def test_nvidia_tried_first_and_output_passes_gate(self):
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', return_value=GOOD_EN) as nv, \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('must not be called')) as gr, \
+             mock.patch.object(tg, 'openrouter_chat',
+                               side_effect=RuntimeError('must not be called')) as orc, \
+             mock.patch.object(tg, 'translate_free_ar_en',
+                               side_effect=RuntimeError('must not be called')):
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', got)
+        nv.assert_called_once()
+        self.assertEqual(nv.call_args.args[1], self.PRIMARY)
+        self.assertEqual(nv.call_args.kwargs['max_tokens'], 400)
+        gr.assert_not_called()
+        orc.assert_not_called()
+
+    def test_empty_reasoning_content_falls_through_to_fallback(self):
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat',
+                               side_effect=['', GOOD_EN]) as nv, \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('no network')) as gr, \
+             mock.patch.object(tg, 'openrouter_chat',
+                               side_effect=RuntimeError('no network')), \
+             mock.patch.object(tg, 'translate_free_ar_en',
+                               side_effect=RuntimeError('no network')):
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', got)
+        self.assertEqual(nv.call_count, 2)
+        self.assertEqual(nv.call_args_list[0].args[1], self.PRIMARY)
+        self.assertEqual(nv.call_args_list[0].kwargs['max_tokens'], 400)
+        self.assertEqual(nv.call_args_list[1].args[1], self.FALLBACK)
+        self.assertEqual(nv.call_args_list[1].kwargs['max_tokens'], 1200)
+        gr.assert_not_called()
+
+    def test_bad_nvidia_output_rejected_then_fallback(self):
+        bad = GOOD_EN + ' \u0627\u0646\u062a\u0647\u062a'  # Arabic leak
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat',
+                               side_effect=[bad, GOOD_EN]) as nv, \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('no network')):
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', got)
+        self.assertNotIn('\u0627\u0646\u062a\u0647\u062a', got)
+        self.assertEqual(nv.call_count, 2)
+
+    def test_free_chain_runs_when_nvidia_unavailable(self):
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat',
+                               side_effect=RuntimeError('nvidia down')) as nv, \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('groq down')) as gr, \
+             mock.patch.object(tg, 'openrouter_chat',
+                               return_value=GOOD_EN) as orc, \
+             mock.patch.object(tg, 'translate_free_ar_en',
+                               return_value=GOOD_EN):
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', got)
+        self.assertEqual(nv.call_count, 2)  # both NVIDIA models attempted
+        self.assertTrue(gr.call_count >= 1)
+        self.assertTrue(orc.call_count >= 1)
+        for c in orc.call_args_list:
+            self.assertTrue(c.args[1].endswith(':free'), c.args[1])
+            self.assertNotIn('paid', c.args[1])
+
+    def test_no_nvidia_key_skips_nvidia_stage(self):
+        # No key in env -> nvidia_chat is never called, free chain proceeds.
+        with mock.patch.dict(os.environ, ENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat',
+                               side_effect=AssertionError('must not be called')), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('groq down')), \
+             mock.patch.object(tg, 'openrouter_chat',
+                               return_value=GOOD_EN) as orc:
+            got = tg.llm_fix(SRC_AR)
+        self.assertIn('Lamine Yamal', got)
+        self.assertTrue(orc.call_count >= 1)
+
+    def test_prompt_forbids_added_context(self):
+        seen = {}
+
+        def fake_nv(key, model, system, user, max_tokens=400, timeout=25):
+            seen['system'] = system
+            return GOOD_EN
+
+        with mock.patch.dict(os.environ, self.NENV, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', side_effect=fake_nv), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=RuntimeError('no network')):
+            tg.llm_fix(SRC_AR)
+        self.assertIn('Never add context that is not in the source',
+                      seen['system'])
+        self.assertIn('copy names exactly from the shielded text',
+                      seen['system'])
+
+    def test_no_key_literal_in_repo_source(self):
+        # The key lives only in the GitHub secret + the runtime temp file;
+        # no source file may carry an NVIDIA key literal.
+        base = os.path.dirname(os.path.abspath(tg.__file__))
+        # Built at runtime so the test file itself never carries the literal.
+        needle = 'nv' + 'api-'
+        for name in ('tg_news.py', 'test_tg_translation.py'):
+            with open(os.path.join(base, name), encoding='utf-8') as f:
+                self.assertNotIn(needle, f.read())
+        wf = os.path.join(os.path.dirname(base), '.github', 'workflows',
+                          'telegram-news.yml')
+        with open(wf, encoding='utf-8') as f:
+            data = f.read()
+        self.assertNotIn(needle, data)
+        self.assertIn('NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}', data)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
