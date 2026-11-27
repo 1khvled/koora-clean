@@ -46,25 +46,67 @@ TOP_COMPETITIONS = frozenset(
         'UEFA Champions League', 'Europa League', 'UEFA Europa League',
         'FA Cup', 'Copa del Rey',
     ))
+# Disambiguate league names shared across minor domestic tiers when FotMob
+# supplies `ccode` (e.g. ENG vs WAL/AZE/UKR/TAN/SIN "Premier League").
+_COMP_CCODES = {
+    'premier league': frozenset(('ENG',)),
+    'la liga': frozenset(('ESP',)),
+    'laliga': frozenset(('ESP',)),
+    'serie a': frozenset(('ITA',)),
+    'bundesliga': frozenset(('GER',)),
+    'ligue 1': frozenset(('FRA',)),
+    'saudi pro league': frozenset(('KSA',)),
+    'fa cup': frozenset(('ENG',)),
+    'copa del rey': frozenset(('ESP',)),
+    'champions league': frozenset(('INT',)),
+    'uefa champions league': frozenset(('INT',)),
+    'europa league': frozenset(('INT',)),
+    'uefa europa league': frozenset(('INT',)),
+}
+_COMP_BADGES = {
+    ('premier league', 'ENG'): 'PREMIER LGE',
+    ('la liga', 'ESP'): 'LA LIGA',
+    ('laliga', 'ESP'): 'LA LIGA',
+    ('serie a', 'ITA'): 'SERIE A',
+    ('bundesliga', 'GER'): 'BUNDESLIGA',
+    ('ligue 1', 'FRA'): 'LIGUE 1',
+    ('saudi pro league', 'KSA'): 'SAUDI PL',
+    ('champions league', 'INT'): 'UCL',
+    ('uefa champions league', 'INT'): 'UCL',
+    ('europa league', 'INT'): 'EUROPA LGE',
+    ('uefa europa league', 'INT'): 'EUROPA LGE',
+    ('conference league', 'INT'): 'UECL',
+    ('uefa conference league', 'INT'): 'UECL',
+    ('fa cup', 'ENG'): 'FA CUP',
+    ('copa del rey', 'ESP'): 'COPA REY',
+    ('championship', 'ENG'): 'CHAMPIONSHIP',
+    ('eredivisie', 'NED'): 'EREDIVISIE',
+    ('liga portugal', 'POR'): 'LIGA PT',
+    ('mls', 'USA'): 'MLS',
+    ('2 bundesliga', 'GER'): '2. BUNDES',
+    ('laliga2', 'ESP'): 'LALIGA 2',
+}
 # Status tokens that mean in-progress (used when a row has no explicit flag).
 LIVE_STATUSES = frozenset(('LIVE', '1H', '2H', 'HT', 'ET', 'PEN'))
 
 # Canvas geometry (the *_H names are asserted by the offline image tests).
-WIDTH = 1000
-PAD = 24
+WIDTH = 1080
+PAD = 28
 ACCENT_H = 6
-TITLE_H = 76
-COL_H = 34
-ROW_H = 40
-FOOTER_H = 44
+TITLE_H = 84
+COL_H = 36
+ROW_H = 48
+FOOTER_H = 46
 
 # Team-crest badges (logo phase is bounded and fully fail-open).
-LOGO_SIZE = 28
+LOGO_SIZE = 32
 LOGO_MAX = 60                 # 30 matches x 2 teams, never more
 LOGO_WORKERS = 10
 LOGO_TIMEOUT = 2.5           # 6 rounds x 2.5s = ~15s worst case
 BADGE_FILL = (24, 34, 62)
 BADGE_OUTLINE = (100, 120, 160)
+CREST_BG = (236, 241, 248)   # soft frosted disc so dark & light crests pop
+CREST_RING = (64, 82, 114)
 
 # Sports-broadcast palette: dark navy surfaces, team red, championship gold.
 BG = (11, 16, 32)            # #0B1020 page background
@@ -80,9 +122,14 @@ MUTED = (100, 116, 139)      # #64748B quieter slate for the optional sponsor
 FT_GREEN = (110, 231, 183)   # #6EE7B7 finished results (muted emerald)
 FT_PILL = (16, 45, 42)       # dark green pill behind a finished result
 SLATE_PILL = (32, 44, 70)    # neutral pill for scheduled/cancelled matches
+COMP_PILL = (30, 42, 72)     # muted competition tag pill
+TOP_COMP_PILL = (42, 38, 28) # subtle gold-tinted pill for top leagues
 LINE = (40, 52, 80)          # subtle divider on the dark surfaces
-PILL_W = 92
-PILL_H = 22
+PILL_W = 96
+PILL_H = 26
+COMP_X = PAD + 74
+COMP_W = 114
+MATCH_X = COMP_X + COMP_W + 18
 
 # Type scale. Floor of 14px for metadata, 16px for match rows (never smaller).
 FONT_TITLE = 34
@@ -230,21 +277,24 @@ def _redact(text, token=''):
 
 
 def _match(time_key, home, away, status, league_order, logos=None,
-           live=False, competition=''):
+           live=False, competition='', ccode=''):
     """A normalised match row.
 
-    `logos` carries optional crest URL + team id. `live` and `competition` are
-    taken straight from the source payload (never invented); both are used only
-    for ranking the board, never drawn into the image.
+    `logos` carries optional crest URL + team id. `live`, `competition` and
+    `ccode` are taken straight from the source payload (never invented) for
+    accurate ranking and clean English competition tags.
     """
     logos = logos or {}
-    return {'time': _hhmm(time_key), 'sort': time_key, 'home': home,
-            'away': away, 'status': status, 'league_order': league_order,
-            'live': bool(live), 'competition': _clean_name(competition),
-            'home_logo': str(logos.get('home_logo') or ''),
-            'away_logo': str(logos.get('away_logo') or ''),
-            'home_tid': str(logos.get('home_tid') or ''),
-            'away_tid': str(logos.get('away_tid') or '')}
+    row = {'time': _hhmm(time_key), 'sort': time_key, 'home': home,
+           'away': away, 'status': status, 'league_order': league_order,
+           'live': bool(live), 'competition': _clean_name(competition),
+           'home_logo': str(logos.get('home_logo') or ''),
+           'away_logo': str(logos.get('away_logo') or ''),
+           'home_tid': str(logos.get('home_tid') or ''),
+           'away_tid': str(logos.get('away_tid') or '')}
+    if ccode:
+        row['ccode'] = _clean_name(ccode).upper()
+    return row
 
 
 def _english(home, away):
@@ -263,6 +313,7 @@ def parse_fotmob(data):
             if not isinstance(league, dict):
                 continue
             comp_name = _clean_name(league.get('name'))
+            ccode = _clean_name(league.get('ccode')).upper()
             for m in (league.get('matches') or []):
                 if not isinstance(m, dict):
                     continue
@@ -292,7 +343,7 @@ def parse_fotmob(data):
                         logos[side + '_logo'] = _FOTMOB_LOGO % tid
                 out.append(_match(key, home, away, status, order, logos,
                                   live=live and not cancelled and not done,
-                                  competition=comp_name))
+                                  competition=comp_name, ccode=ccode))
     except Exception:
         return []
     return out
@@ -439,7 +490,47 @@ def _is_live(match):
 
 
 def _is_top(match):
-    return _norm_comp(match.get('competition')) in TOP_COMPETITIONS
+    nc = _norm_comp(match.get('competition'))
+    if nc not in TOP_COMPETITIONS:
+        return False
+    ccode = _clean_name(match.get('ccode')).upper()
+    if ccode and nc in _COMP_CCODES:
+        return ccode in _COMP_CCODES[nc]
+    return True
+
+
+def _comp_badge(match):
+    """Return a clean uppercase competition label (free of ads/non-ASCII)."""
+    nc = _norm_comp(match.get('competition'))
+    ccode = _clean_name(match.get('ccode')).upper()
+    if (nc, ccode) in _COMP_BADGES:
+        return _COMP_BADGES[(nc, ccode)]
+    if ccode and nc in _COMP_CCODES and ccode not in _COMP_CCODES[nc]:
+        return ccode if len(ccode) <= 4 and ccode.isalnum() else ''
+    if nc in _COMP_BADGES_NOCC:
+        return _COMP_BADGES_NOCC[nc]
+    if ccode and len(ccode) <= 4 and ccode.isalnum():
+        return ccode
+    return ''
+
+
+_COMP_BADGES_NOCC = {
+    'la liga': 'LA LIGA',
+    'laliga': 'LA LIGA',
+    'ligue 1': 'LIGUE 1',
+    'saudi pro league': 'SAUDI PL',
+    'champions league': 'UCL',
+    'uefa champions league': 'UCL',
+    'europa league': 'EUROPA LGE',
+    'uefa europa league': 'EUROPA LGE',
+    'conference league': 'UECL',
+    'uefa conference league': 'UECL',
+    'copa del rey': 'COPA REY',
+    'premier league': 'PREMIER LGE',
+    'bundesliga': 'BUNDESLIGA',
+    'serie a': 'SERIE A',
+    'fa cup': 'FA CUP',
+}
 
 
 def select_matches(matches, limit=MAX_ROWS):
@@ -484,14 +575,18 @@ def image_text(matches, date_display_value, sponsor_line=''):
     Exposed so tests can assert the rendered content is English-only. The
     optional sponsor line is included so the English-only moat covers it too.
     """
-    parts = [header_text(date_display_value), 'TIME', 'MATCH', 'STATUS']
+    parts = [header_text(date_display_value), 'UTC',
+             'TIME', 'LEAGUE', 'MATCH', 'STATUS']
     for m in matches:
-        parts.append('%s | %s v %s | %s' % (
-            m.get('time'), m.get('home'), m.get('away'), m.get('status')))
+        badge = _comp_badge(m)
+        parts.append('%s | %s | %s v %s | %s' % (
+            m.get('time'), badge, m.get('home'), m.get('away'), m.get('status')))
     parts.append('%d matches' % len(matches))
     sponsor = (sponsor_line or '').strip()
     if sponsor:
         parts.append(sponsor)
+    else:
+        parts.append('KICKOFFS IN UTC')
     return '\n'.join(parts)
 
 
@@ -595,27 +690,47 @@ def _load_logos(matches, fetcher=None):
 
 
 def _draw_monogram(img, d, x, y, name):
-    """Dark circular badge with 1-3 gold initials (no emoji, no dependencies)."""
+    """Dark circular badge with 1-3 centered gold initials."""
     x, y = int(x), int(y)
     d.ellipse([x, y, x + LOGO_SIZE - 1, y + LOGO_SIZE - 1],
               fill=BADGE_FILL, outline=BADGE_OUTLINE, width=1)
     font = _font(14, True)
     label = _fit(d, _initials(name), font, LOGO_SIZE - 6)
-    tw = d.textlength(label, font=font)
-    d.text((x + (LOGO_SIZE - tw) / 2, y + (LOGO_SIZE - FONT_FOOT) / 2 - 1),
-           label, font=font, fill=GOLD)
+    d.text((x + LOGO_SIZE / 2, y + LOGO_SIZE / 2),
+           label, font=font, fill=GOLD, anchor='mm')
 
 
 def _draw_crest(img, d, x, y, image, name):
-    """Paste a real crest with alpha; fall back to the monogram on any problem."""
-    from PIL import Image as PILImage
+    """Draw a real crest inside a frosted circular disc; monogram on fallback."""
+    from PIL import Image as PILImage, ImageDraw as PILDraw
     x, y = int(x), int(y)
     if image is not None:
         try:
+            d.ellipse([x, y, x + LOGO_SIZE - 1, y + LOGO_SIZE - 1],
+                      fill=CREST_BG, outline=CREST_RING, width=1)
+            pad = 3
+            box = max(8, LOGO_SIZE - 2 * pad)
             resample = getattr(getattr(PILImage, 'Resampling', PILImage),
                                'LANCZOS', 3)
-            tile = image.resize((LOGO_SIZE, LOGO_SIZE), resample)
-            img.paste(tile, (x, y), tile)
+            w, h = image.size
+            scale = min(box / max(1, w), box / max(1, h))
+            nw = max(1, int(round(w * scale)))
+            nh = max(1, int(round(h * scale)))
+            tile = image.resize((nw, nh), resample)
+            # Clip opaque square-background logos neatly inside the circular disc.
+            disc = PILImage.new('L', (LOGO_SIZE, LOGO_SIZE), 0)
+            PILDraw.Draw(disc).ellipse(
+                [pad - 1, pad - 1, LOGO_SIZE - pad, LOGO_SIZE - pad], fill=255)
+            ox = pad + (box - nw) // 2
+            oy = pad + (box - nh) // 2
+            slot = PILImage.new('RGBA', (LOGO_SIZE, LOGO_SIZE), (0, 0, 0, 0))
+            slot.paste(tile, (ox, oy), tile)
+            alpha = slot.getchannel('A')
+            clipped = PILImage.eval(
+                PILImage.composite(alpha, PILImage.new('L', disc.size, 0), disc),
+                lambda v: v,
+            )
+            img.paste(slot, (x, y), clipped)
             return
         except Exception:
             pass
@@ -632,40 +747,60 @@ def _status_style(status):
     return SLATE_PILL, SLATE              # blank / Canc / Pstp: quiet slate
 
 
-def _draw_pair(img, d, x, y, logo_y, home, away, crests, f_team, f_v, max_px):
-    """[crest] Home  v  [crest] Away on fixed columns like a broadcast board."""
-    v_w = d.textlength('v', font=f_v)
-    half = max(48, (int(max_px) - int(v_w) - 24) // 2)
-    x_v = x + half
-    x_away = x_v + int(v_w) + 14
-    gap = LOGO_SIZE + 8
-    x_home_text, x_away_text = x + gap, x_away + gap
-    h = _fit(d, home or '', f_team, max(24, x_v - x_home_text - 8))
-    a = _fit(d, away or '', f_team, max(24, int(max_px) - (x_away_text - x) - 2))
-    _draw_crest(img, d, x, logo_y, crests[0], home)
-    d.text((x_home_text, y), h, font=f_team, fill=WHITE)
-    d.text((x_v, y), 'v', font=f_v, fill=RED_2)
-    _draw_crest(img, d, x_away, logo_y, crests[1], away)
-    d.text((x_away_text, y), a, font=f_team, fill=WHITE)
+def _pair_layout(x, max_px):
+    """Symmetric broadcast matchup geometry around the center `v` spine."""
+    x_mid = int(x) + int(max_px) // 2
+    half_center = 16
+    hx_crest = x_mid - half_center - LOGO_SIZE
+    ax_crest = x_mid + half_center
+    return {
+        'x_mid': x_mid,
+        'hx_crest': hx_crest,
+        'ax_crest': ax_crest,
+        'x_home_end': hx_crest - 10,
+        'x_away_start': ax_crest + LOGO_SIZE + 10,
+        'max_home': max(24, hx_crest - 10 - int(x)),
+        'max_away': max(24, int(x) + int(max_px) - (ax_crest + LOGO_SIZE + 10)),
+    }
+
+
+def _draw_pair(img, d, x, y_mid, logo_y, home, away, crests, f_team, f_v, max_px):
+    """Home (right-aligned) + [crest]  v  [crest] + Away (left-aligned)."""
+    geo = _pair_layout(x, max_px)
+    h = _fit(d, home or '', f_team, geo['max_home'])
+    a = _fit(d, away or '', f_team, geo['max_away'])
+    d.text((geo['x_home_end'], y_mid), h, font=f_team, fill=WHITE, anchor='rm')
+    _draw_crest(img, d, geo['hx_crest'], logo_y, crests[0], home)
+    d.text((geo['x_mid'], y_mid), 'v', font=f_v, fill=RED_2, anchor='mm')
+    _draw_crest(img, d, geo['ax_crest'], logo_y, crests[1], away)
+    d.text((geo['x_away_start'], y_mid), a, font=f_team, fill=WHITE, anchor='lm')
 
 
 def _draw_pill(d, x_right, y_center, label, fill, color, font):
     """Right-aligned status block; an empty label stays a quiet placeholder."""
     x0 = int(x_right) - PILL_W
     y0 = int(y_center) - PILL_H // 2
-    d.rounded_rectangle([x0, y0, x0 + PILL_W, y0 + PILL_H], radius=6, fill=fill)
+    d.rounded_rectangle([x0, y0, x0 + PILL_W, y0 + PILL_H], radius=7, fill=fill)
     label = (label or '').strip() or '-'  # a dash reads as "upcoming", not missing
-    label = _fit(d, label, font, PILL_W - 12)
-    tw = d.textlength(label, font=font)
-    d.text((x0 + (PILL_W - tw) / 2, y0 + (PILL_H - FONT_PILL) / 2 - 1),
-           label, font=font, fill=color)
+    label = _fit(d, label, font, PILL_W - 14)
+    d.text((x0 + PILL_W / 2, y_center), label, font=font, fill=color, anchor='mm')
+
+
+def _draw_comp_pill(d, x, y_center, badge, is_top, font):
+    """Compact league pill between kickoff time and matchup."""
+    y0 = int(y_center) - PILL_H // 2
+    fill = TOP_COMP_PILL if is_top else COMP_PILL
+    color = GOLD if is_top else SLATE
+    d.rounded_rectangle([x, y0, x + COMP_W, y0 + PILL_H], radius=6, fill=fill)
+    txt = _fit(d, badge or '-', font, COMP_W - 10)
+    d.text((x + COMP_W / 2, y_center), txt, font=font, fill=color, anchor='mm')
 
 
 def render_png(matches, date_display_value, sponsor_line=''):
-    """Draw the PNG in memory: dark sports-broadcast board, 1000px wide.
+    """Draw the PNG in memory: dark sports-broadcast board, 1080px wide.
 
-    `sponsor_line` is optional and muted; empty by default so the board is
-    unchanged. No link, call-to-action or emoji is added.
+    `sponsor_line` is optional and muted; empty by default. No link,
+    call-to-action or emoji is added.
     """
     from PIL import Image, ImageDraw
     rows = list(matches)
@@ -682,57 +817,71 @@ def render_png(matches, date_display_value, sponsor_line=''):
     f_pill = _font(FONT_PILL, True)
     f_foot = _font(FONT_FOOT, True)
 
-    # Header: red accent bar, uppercase title, gold date, thin divider.
+    # Header: red accent bar, centered uppercase title, date + UTC badge.
     d.rectangle([0, 0, WIDTH, ACCENT_H], fill=RED)
-    d.text((PAD, 20), "TODAY'S MATCHES", font=f_title, fill=WHITE)
+    h_mid = ACCENT_H + (TITLE_H - ACCENT_H) // 2
+    d.text((PAD, h_mid), "TODAY'S MATCHES", font=f_title, fill=WHITE, anchor='lm')
     date_s = date_display_value or ''
-    d.text((WIDTH - PAD - d.textlength(date_s, font=f_date), 26),
-           date_s, font=f_date, fill=GOLD)
+    utc_w = 46
+    d.rounded_rectangle([WIDTH - PAD - utc_w, h_mid - 12,
+                         WIDTH - PAD, h_mid + 12], radius=6, fill=SLATE_PILL)
+    d.text((WIDTH - PAD - utc_w / 2, h_mid), 'UTC',
+           font=f_col, fill=SLATE, anchor='mm')
+    d.text((WIDTH - PAD - utc_w - 12, h_mid), date_s,
+           font=f_date, fill=GOLD, anchor='rm')
     d.line([0, TITLE_H - 1, WIDTH, TITLE_H - 1], fill=LINE, width=1)
 
     y0 = TITLE_H
     d.rectangle([0, y0, WIDTH, y0 + COL_H], fill=COL_BG)
-    x_time, x_match, x_right = PAD, PAD + 96, WIDTH - PAD
-    cy = y0 + (COL_H - FONT_COL) // 2
-    d.text((x_time, cy), 'TIME', font=f_col, fill=SLATE)
-    d.text((x_match, cy), 'MATCH', font=f_col, fill=SLATE)
-    d.text((x_right - d.textlength('STATUS', font=f_col), cy),
-           'STATUS', font=f_col, fill=SLATE)
+    x_time, x_match, x_right = PAD, MATCH_X, WIDTH - PAD
+    x_status_start = x_right - PILL_W - 14
+    max_pair = x_status_start - x_match - 8
+    geo = _pair_layout(x_match, max_pair)
+    c_mid = y0 + COL_H // 2
+    d.text((x_time, c_mid), 'TIME', font=f_col, fill=SLATE, anchor='lm')
+    d.text((COMP_X + COMP_W / 2, c_mid), 'LEAGUE',
+           font=f_col, fill=SLATE, anchor='mm')
+    d.text((geo['x_mid'], c_mid), 'MATCH', font=f_col, fill=SLATE, anchor='mm')
+    d.text((x_right, c_mid), 'STATUS', font=f_col, fill=SLATE, anchor='rm')
     d.line([0, y0 + COL_H - 1, WIDTH, y0 + COL_H - 1], fill=LINE, width=1)
 
     crests = _load_logos(rows)
-    x_status_start = x_right - PILL_W - 12
-    max_pair = x_status_start - x_match - 8
     for i, m in enumerate(rows):
         ry = y0 + COL_H + i * ROW_H
         d.rectangle([0, ry, WIDTH, ry + ROW_H],
                     fill=SURFACE_A if i % 2 == 0 else SURFACE_B)
+        if _is_live(m):
+            d.rectangle([0, ry + 6, 4, ry + ROW_H - 7], fill=RED)
         d.line([0, ry + ROW_H - 1, WIDTH, ry + ROW_H - 1], fill=LINE, width=1)
-        ty = ry + (ROW_H - FONT_ROW) // 2
+        row_mid = ry + ROW_H // 2
         logo_y = ry + (ROW_H - LOGO_SIZE) // 2
-        d.text((x_time, ty), m.get('time') or '--:--', font=f_time, fill=GOLD)
+        d.text((x_time, row_mid), m.get('time') or '--:--',
+               font=f_time, fill=GOLD, anchor='lm')
+        _draw_comp_pill(d, COMP_X, row_mid, _comp_badge(m), _is_top(m), f_col)
         hk = str(m.get('home_tid') or '') or str(m.get('home_logo') or '')
         ak = str(m.get('away_tid') or '') or str(m.get('away_logo') or '')
-        _draw_pair(img, d, x_match, ty, logo_y, m.get('home'), m.get('away'),
-                   (crests.get(hk), crests.get(ak)), f_team, f_v, max_pair)
+        _draw_pair(img, d, x_match, row_mid, logo_y, m.get('home'),
+                   m.get('away'), (crests.get(hk), crests.get(ak)),
+                   f_team, f_v, max_pair)
         status = (m.get('status') or '').strip()
         fill, color = _status_style(status)
-        _draw_pill(d, x_right, ry + ROW_H // 2, status, fill, color, f_pill)
+        _draw_pill(d, x_right, row_mid, status, fill, color, f_pill)
 
     fy = y0 + COL_H + len(rows) * ROW_H
     d.rectangle([0, fy, WIDTH, height], fill=SURFACE_A)
-    d.rectangle([PAD, fy + 9, PAD + 48, fy + 12], fill=RED)
-    d.text((PAD + 60, fy + (FOOTER_H - FONT_FOOT) // 2),
-           '%d MATCHES' % len(rows), font=f_foot, fill=SLATE)
+    f_mid = fy + FOOTER_H // 2
+    d.rectangle([PAD, f_mid - 2, PAD + 40, f_mid + 2], fill=RED)
+    d.text((PAD + 52, f_mid), '%d MATCHES' % len(rows),
+           font=f_foot, fill=SLATE, anchor='lm')
 
     sponsor = (sponsor_line or '').strip()
+    f_sponsor = _font(FONT_FOOT)
     if sponsor:
-        # Right-aligned, quieter than the match label, never a link/CTA/emoji.
-        f_sponsor = _font(FONT_FOOT)
-        s = _fit(d, sponsor, f_sponsor, WIDTH - 2 * PAD - 180)
-        d.text((WIDTH - PAD - d.textlength(s, font=f_sponsor),
-                fy + (FOOTER_H - FONT_FOOT) // 2),
-               s, font=f_sponsor, fill=MUTED)
+        s = _fit(d, sponsor, f_sponsor, WIDTH - 2 * PAD - 200)
+        d.text((WIDTH - PAD, f_mid), s, font=f_sponsor, fill=MUTED, anchor='rm')
+    else:
+        d.text((WIDTH - PAD, f_mid), 'KICKOFFS IN UTC',
+               font=f_sponsor, fill=SLATE, anchor='rm')
 
     out = io.BytesIO()
     img.save(out, format='PNG', optimize=True)
@@ -794,6 +943,32 @@ def _send_photo_bytes(png, caption, tgmod=None, timeout=30):
 # --------------------------------------------------------------------------
 # once-per-day entry point
 # --------------------------------------------------------------------------
+def seed_daily_clubs_to_state(state, matches, ds):
+    """Store today's top-competition club names in state['daily_clubs'] so the
+    translator knows today's exact official spellings before kickoff."""
+    if not isinstance(state, dict) or not matches:
+        return
+    try:
+        names = []
+        seen = set()
+        for m in matches:
+            if not _is_top(m):
+                continue
+            for side in ('home', 'away'):
+                nm = str(m.get(side) or '').strip()
+                if nm and nm.lower() not in seen and _english(nm, nm):
+                    seen.add(nm.lower())
+                    names.append(nm)
+                if len(names) >= 30:
+                    break
+            if len(names) >= 30:
+                break
+        if names:
+            state['daily_clubs'] = {'date': str(ds or ''), 'names': names}
+    except Exception:
+        pass
+
+
 def post_daily_photo(tgmod=None, day=None, now=None):
     """Post once per UTC calendar day, at/after the configured UTC hour.
 
@@ -818,6 +993,7 @@ def post_daily_photo(tgmod=None, day=None, now=None):
         if not matches:
             print('daily photo: no fixtures for %s, skipping' % ds)
             return False
+        seed_daily_clubs_to_state(state, matches, ds)
         picked = select_matches(matches)
         if not picked:
             return False
