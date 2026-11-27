@@ -1,10 +1,6 @@
 {
- "offside": 391908,
+ "offside": 391910,
  "seen": [
-  "5991adbe47c4",
-  "ee4c2a5f81dc",
-  "f49eda594732",
-  "4331b28f6d91",
   "ecd1bc34f16c",
   "2259ad80a7be",
   "c58c116d2614",
@@ -300,14 +296,16 @@
   "cd1ec752c442",
   "dd93f0008d5f",
   "bf8b5c9a7ae3",
-  "c1644b9710bd"
+  "c1644b9710bd",
+  "c1fe298be6da",
+  "8afbbdd16a64",
+  "73abf46cd884",
+  "3bf47bea930a"
  ],
  "seo_msg": 15421,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391682": 15212,
-  "391683": 15213,
   "391684": 15214,
   "391686": 15215,
   "391687": 15216,
@@ -505,7 +503,9 @@
   "391905": 15431,
   "391906": 15432,
   "391907": 15433,
-  "391908": 15434
+  "391908": 15434,
+  "391909": 15435,
+  "391910": 15436
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,15 +513,15 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 27,
-   "fail": 7
+   "ok": 28,
+   "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 1,
    "fail": 5
   },
   "gemini:gemma-4-26b-a4b-it": {
-   "ok": 3,
+   "ok": 4,
    "fail": 6
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
@@ -561,12 +561,12 @@
   "مراجعه": 1795806936,
   "يحتسب": 1795814231,
   "حسام عوار": 1795807821,
-  "نهايه المباراه": 1795807821,
+  "نهايه المباراه": 1795816592,
   "الجوله الثالثه": 1795807821,
   "نهايه": 1795812639,
   "المباراه": 1795809948,
   "بدايه المباراه": 1795809948,
-  "الجوله الثانيه": 1795812639,
+  "الجوله الثانيه": 1795816592,
   "عامر الخوذيري": 1795809948,
   "بدايه": 1795809948,
   "الممتاز": 1795812639,
@@ -579,11 +579,11 @@
   "اسيسست": 1795816248,
   "دانييل": 1795810251,
   "مونوز": 1795810247,
-  "ايغور خيسوس": 1795812639,
-  "دانييل مونيوث": 1795812639,
+  "ايغور خيسوس": 1795816592,
+  "دانييل مونيوث": 1795816592,
   "ايغور": 1795810251,
   "مونيوث": 1795810251,
-  "كاملا": 1795815959,
+  "كاملا": 1795816532,
   "الجوله": 1795812639,
   "توتنغهام": 1795813833,
   "تحصل عليها": 1795813838,
@@ -600,7 +600,7 @@
   "ايمانوييل اميغا": 1795816248,
   "ايمانوييل": 1795816248,
   "اميغا": 1795816248,
-  "مورغان غيبس": 1795815379,
+  "مورغان غيبس": 1795816592,
   "مورغان": 1795815379,
   "اعاده لقطه": 1795814131,
   "اعاده": 1795815640,
@@ -625,20 +625,21 @@
   "Al-Ittihad": 1795807824.5010211,
   "Youssef En-Nesyri": 1795807824.5010211,
   "Houssem Aouar": 1795807824.5010211,
-  "Nottingham Forest": 1795816272.9077563,
+  "Nottingham Forest": 1795816593.5803924,
   "City Ground": 1795809953.1959007,
   "Amer Al-Khudairi": 1795809953.1959007,
-  "Igor Jesus": 1795812645.9142082,
-  "Daniel Muñoz": 1795812645.9142082,
+  "Igor Jesus": 1795816593.5803924,
+  "Daniel Muñoz": 1795816593.5803924,
   "Liam Delap": 1795813839.2383745,
-  "Morgan Gibbs-White": 1795815408.481817,
+  "Morgan Gibbs-White": 1795816593.5803924,
   "Imamouil Imega": 1795816272.9077563,
   "Imamaouil Imega": 1795814223.0547702,
   "Third Nottingham Forest": 1795815408.481817,
-  "Xaver Schlager": 1795815408.481817,
+  "Xaver Schlager": 1795816593.5803924,
   "Yasser Al-Zabiri": 1795816044.4187129,
   "Racing Santander": 1795815955.9951434,
-  "Pedro Neto": 1795816272.9077563
+  "Pedro Neto": 1795816272.9077563,
+  "Emmanuel Imega": 1795816593.5803924
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -676,7 +677,9 @@
   "391905": "Stunning goalscoring form  • 14 games, 12 goals",
   "391906": "Chelsea double their lead against Nottingham Forest  • Second goal for Chelsea against Nottingham Forest [3-2]",
   "391907": "Imamouil Imega assist  • Pedro Neto assisted Imamouil Imega.",
-  "391908": "Chelsea grab late third against Nottingham Forest  • Imamouil Imega scored in the 89th minute to make it 3-2 for Chelsea against Nottingham "
+  "391908": "Chelsea grab late third against Nottingham Forest  • Imamouil Imega scored in the 89th minute to make it 3-2 for Chelsea against Nottingham ",
+  "391909": "Full replay of the Chelsea second goal",
+  "391910": "Nottingham Forest 3-2 Chelsea  ⚽️ Igor Jesus scored, assisted by Daniel Muñoz. ⚽️ Morgan Gibbs-White scored a penalty. ⚽️ Morgan Gibbs-White"
  },
  "sent_recent": {
   "391868": {
@@ -900,6 +903,18 @@
    "is_media": true,
    "src_hash": "bf8b5c9a7ae3",
    "body_hash": "c1644b9710bd"
+  },
+  "391909": {
+   "msg_id": 15435,
+   "is_media": true,
+   "src_hash": "c1fe298be6da",
+   "body_hash": "8afbbdd16a64"
+  },
+  "391910": {
+   "msg_id": 15436,
+   "is_media": true,
+   "src_hash": "73abf46cd884",
+   "body_hash": "3bf47bea930a"
   }
  }
 }
