@@ -1,14 +1,6 @@
 {
- "offside": 391897,
+ "offside": 391901,
  "seen": [
-  "08594230abed",
-  "027d97d5d206",
-  "beaa0c190b91",
-  "0ac830cd747a",
-  "063056c51d68",
-  "4249f96c99df",
-  "01063267dc4d",
-  "9dfdb371011d",
   "e15166f5125f",
   "15225cc832db",
   "79807bf43bba",
@@ -300,16 +292,20 @@
   "d38693543213",
   "ada77cf3a090",
   "aa375fec2496",
-  "0233d5f68acf"
+  "0233d5f68acf",
+  "51715e80aeff",
+  "a717d74ca3d1",
+  "02a28bbda4fb",
+  "365782a8fc1f",
+  "9942259b39c7",
+  "b8fb2857219a",
+  "2d52e71f1ec2",
+  "df1aa2407b0a"
  ],
  "seo_msg": 15421,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391670": 15199,
-  "391672": 15200,
-  "391673": 15201,
-  "391674": 15202,
   "391675": 15204,
   "391676": 15206,
   "391677": 15207,
@@ -505,7 +501,11 @@
   "391893": 15418,
   "391894": 15419,
   "391895": 15420,
-  "391896": 15423
+  "391896": 15423,
+  "391898": 15424,
+  "391899": 15425,
+  "391900": 15426,
+  "391901": 15427
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,44 +513,44 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 19,
-   "fail": 5
+   "ok": 22,
+   "fail": 6
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 1,
-   "fail": 4
+   "fail": 5
   },
   "gemini:gemma-4-26b-a4b-it": {
    "ok": 2,
-   "fail": 5
+   "fail": 6
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
    "ok": 0,
-   "fail": 3
+   "fail": 4
   },
   "nvidia:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": {
    "ok": 0,
-   "fail": 3
+   "fail": 4
   },
   "groq:qwen/qwen3.8-27b": {
    "ok": 1,
-   "fail": 2
+   "fail": 3
   },
   "groq:openai/gpt-oss-20b": {
    "ok": 0,
-   "fail": 2
+   "fail": 3
   },
   "groq:openai/gpt-oss-120b": {
    "ok": 0,
-   "fail": 2
+   "fail": 3
   },
   "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free": {
    "ok": 0,
-   "fail": 2
+   "fail": 3
   },
   "openrouter:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
    "ok": 1,
-   "fail": 1
+   "fail": 2
   }
  },
  "unknown_ar_names": {
@@ -576,7 +576,7 @@
   "ايجور": 1795810244,
   "خيسوس": 1795810251,
   "اسيسست دانييل": 1795810247,
-  "اسيسست": 1795810247,
+  "اسيسست": 1795815374,
   "دانييل": 1795810251,
   "مونوز": 1795810247,
   "ايغور خيسوس": 1795812639,
@@ -600,24 +600,32 @@
   "ايمانوييل اميغا": 1795814222,
   "ايمانوييل": 1795814222,
   "اميغا": 1795814222,
-  "مورغان غيبس": 1795814172,
-  "مورغان": 1795814172,
+  "مورغان غيبس": 1795815379,
+  "مورغان": 1795815379,
   "اعاده لقطه": 1795814131,
-  "اعاده": 1795814131
+  "اعاده": 1795814131,
+  "شلاغر": 1795815379,
+  "كزافر شلاغر": 1795815379,
+  "كزافر": 1795815379,
+  "اسيسست شلاغر": 1795815374,
+  "جول \r\n\r\nالثاالث": 1795815335,
+  "الثاالث": 1795815335
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
   "Youssef En-Nesyri": 1795807824.5010211,
   "Houssem Aouar": 1795807824.5010211,
-  "Nottingham Forest": 1795814265.1526768,
+  "Nottingham Forest": 1795815408.481817,
   "City Ground": 1795809953.1959007,
   "Amer Al-Khudairi": 1795809953.1959007,
   "Igor Jesus": 1795812645.9142082,
   "Daniel Muñoz": 1795812645.9142082,
   "Liam Delap": 1795813839.2383745,
-  "Morgan Gibbs-White": 1795814196.7642374,
+  "Morgan Gibbs-White": 1795815408.481817,
   "Imamouil Imega": 1795814265.1526768,
-  "Imamaouil Imega": 1795814223.0547702
+  "Imamaouil Imega": 1795814223.0547702,
+  "Third Nottingham Forest": 1795815408.481817,
+  "Xaver Schlager": 1795815408.481817
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -644,7 +652,11 @@
   "391893": "Referee checks the goal  • Referee checks the goal.",
   "391894": "Goal awarded  • Referee awards a valid goal",
   "391895": "Chelsea score first goal against Nottingham Forest  • 54' ⚽️ Imamouil Imega scored the first goal for Chelsea against Nottingham Forest, mak",
-  "391896": "Full replay of Chelsea's first goal"
+  "391896": "Full replay of Chelsea's first goal",
+  "391898": "Nottingham Forest extend lead against Chelsea  • Third Nottingham Forest goal against Chelsea brings the score to 3-1.",
+  "391899": "Morgan Gibbs-White",
+  "391900": "Xaver Schlager assist",
+  "391901": "Third Nottingham Forest goal against Chelsea  • Morgan Gibbs-White scored the third goal for Nottingham Forest in the 72nd minute, assisted "
  },
  "sent_recent": {
   "391868": {
@@ -802,6 +814,30 @@
    "is_media": true,
    "src_hash": "aa375fec2496",
    "body_hash": "0233d5f68acf"
+  },
+  "391898": {
+   "msg_id": 15424,
+   "is_media": false,
+   "src_hash": "51715e80aeff",
+   "body_hash": "a717d74ca3d1"
+  },
+  "391899": {
+   "msg_id": 15425,
+   "is_media": false,
+   "src_hash": "02a28bbda4fb",
+   "body_hash": "365782a8fc1f"
+  },
+  "391900": {
+   "msg_id": 15426,
+   "is_media": false,
+   "src_hash": "9942259b39c7",
+   "body_hash": "b8fb2857219a"
+  },
+  "391901": {
+   "msg_id": 15427,
+   "is_media": true,
+   "src_hash": "2d52e71f1ec2",
+   "body_hash": "df1aa2407b0a"
   }
  }
 }
