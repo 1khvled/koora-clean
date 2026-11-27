@@ -1,8 +1,6 @@
 {
- "offside": 391901,
+ "offside": 391902,
  "seen": [
-  "e15166f5125f",
-  "15225cc832db",
   "79807bf43bba",
   "7360b622edb0",
   "f8b7c8f3fcbf",
@@ -300,13 +298,14 @@
   "9942259b39c7",
   "b8fb2857219a",
   "2d52e71f1ec2",
-  "df1aa2407b0a"
+  "df1aa2407b0a",
+  "a680c65bcc9e",
+  "2f9e60e694b3"
  ],
  "seo_msg": 15421,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391675": 15204,
   "391676": 15206,
   "391677": 15207,
   "391678": 15208,
@@ -505,7 +504,8 @@
   "391898": 15424,
   "391899": 15425,
   "391900": 15426,
-  "391901": 15427
+  "391901": 15427,
+  "391902": 15428
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -603,7 +603,7 @@
   "مورغان غيبس": 1795815379,
   "مورغان": 1795815379,
   "اعاده لقطه": 1795814131,
-  "اعاده": 1795814131,
+  "اعاده": 1795815640,
   "شلاغر": 1795815379,
   "كزافر شلاغر": 1795815379,
   "كزافر": 1795815379,
@@ -656,7 +656,8 @@
   "391898": "Nottingham Forest extend lead against Chelsea  • Third Nottingham Forest goal against Chelsea brings the score to 3-1.",
   "391899": "Morgan Gibbs-White",
   "391900": "Xaver Schlager assist",
-  "391901": "Third Nottingham Forest goal against Chelsea  • Morgan Gibbs-White scored the third goal for Nottingham Forest in the 72nd minute, assisted "
+  "391901": "Third Nottingham Forest goal against Chelsea  • Morgan Gibbs-White scored the third goal for Nottingham Forest in the 72nd minute, assisted ",
+  "391902": "Goal replay"
  },
  "sent_recent": {
   "391868": {
@@ -838,6 +839,12 @@
    "is_media": true,
    "src_hash": "2d52e71f1ec2",
    "body_hash": "df1aa2407b0a"
+  },
+  "391902": {
+   "msg_id": 15428,
+   "is_media": true,
+   "src_hash": "a680c65bcc9e",
+   "body_hash": "2f9e60e694b3"
   }
  }
 }
