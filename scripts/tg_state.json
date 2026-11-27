@@ -1,8 +1,6 @@
 {
- "offside": 391917,
+ "offside": 391918,
  "seen": [
-  "011837501991",
-  "f82d3395a34c",
   "ec728c3a79b9",
   "baea496c1632",
   "600faef960b5",
@@ -300,13 +298,14 @@
   "794cd05e6cef",
   "4da0da29f47b",
   "e1d061a6ad13",
-  "5ad89600cb8a"
+  "5ad89600cb8a",
+  "c66642201ca0",
+  "a601938f0738"
  ],
  "seo_msg": 15443,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391692": 15223,
   "391695": 15224,
   "391696": 15225,
   "391697": 15226,
@@ -505,7 +504,8 @@
   "391914": 15440,
   "391915": 15441,
   "391916": 15442,
-  "391917": 15445
+  "391917": 15445,
+  "391918": 15446
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 36,
+   "ok": 37,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -653,7 +653,13 @@
   "جاهزا للمشاركه": 1795818045,
   "المتوقع": 1795818045,
   "جاهزا": 1795818045,
-  "للمشاركه": 1795818045
+  "للمشاركه": 1795818045,
+  "مشكله تتعلق": 1795818365,
+  "اعتقد": 1795818365,
+  "مشكلتنا": 1795818365,
+  "مشكله": 1795818365,
+  "تتعلق": 1795818365,
+  "بالثقه": 1795818365
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -676,7 +682,7 @@
   "Emmanuel Imega": 1795816593.5803924,
   "Erling Haaland": 1795816839.2497551,
   "João Pedro": 1795817459.360277,
-  "Xabi Alonso": 1795817447.3755229,
+  "Xabi Alonso": 1795818370.1622863,
   "Real Madrid": 1795817447.3755229,
   "David Raya": 1795818048.8192234,
   "Manchester City": 1795818048.8192234
@@ -726,7 +732,8 @@
   "391914": "Xabi Alonso struggles early at Chelsea  • Xabi Alonso has lost 6 of his first 15 matches across all competitions with Chelsea, matching his ",
   "391915": "Morgan Gibbs-White praises special atmosphere  • Morgan Gibbs-White: This is what City Ground nights are truly all about.",
   "391916": "Chelsea's record with and without João Pedro  • Chelsea took 4 wins, 1 draw and 1 defeat in the Premier League this season with João Pedro, ",
-  "391917": "David Raya in line to face Manchester City  • David Raya is expected to be fit to play for Arsenal against Manchester City."
+  "391917": "David Raya in line to face Manchester City  • David Raya is expected to be fit to play for Arsenal against Manchester City.",
+  "391918": "Xabi Alonso speaks on confidence issues  • Xabi Alonso believes the team's main problem is a lack of confidence."
  },
  "sent_recent": {
   "391868": {
@@ -1004,6 +1011,12 @@
    "is_media": true,
    "src_hash": "e1d061a6ad13",
    "body_hash": "5ad89600cb8a"
+  },
+  "391918": {
+   "msg_id": 15446,
+   "is_media": true,
+   "src_hash": "c66642201ca0",
+   "body_hash": "a601938f0738"
   }
  }
 }
