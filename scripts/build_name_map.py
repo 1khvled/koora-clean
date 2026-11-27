@@ -35,7 +35,7 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_PATH = os.path.join(HERE, 'name_map_ar_en.json')
-ROSTER_PATH = os.path.join(HERE, 'tg_news.py')
+ROSTER_PATH = os.path.join(HERE, 'tg_names_data.py')
 # Optional plain-text proxy, e.g.
 #   https://r.jina.ai/https://www.wikidata.org/w/api.php
 # A trailing slash is stripped so the '?' below always appends cleanly.
@@ -47,6 +47,11 @@ UA = 'koora-name-map/1.0 (koora-clean dev-time name map builder; stdlib urllib)'
 # surname like "إسبي" from pulling in Espy, Pennsylvania.
 _FOOTBALLER = re.compile(
     r'association football player|football player|footballer|لاعب كرة قدم',
+    re.IGNORECASE,
+)
+_FOOTBALL_CLUB = re.compile(
+    r'association football club|football club|soccer club|national.*football team'
+    r'|نادي كرة قدم|منتخب كرة قدم',
     re.IGNORECASE,
 )
 _MIN_INTERVAL = 0.5          # <= 2 API calls per second
@@ -174,6 +179,20 @@ def is_footballer(entity):
         descs = entity.get('descriptions', {})
         for lang in ('en', 'ar'):
             if _FOOTBALLER.search(descs.get(lang, {}).get('value', '') or ''):
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def is_football_entity(entity):
+    """True when an API entity's English/Arabic description names a player or club."""
+    if is_footballer(entity):
+        return True
+    try:
+        descs = entity.get('descriptions', {})
+        for lang in ('en', 'ar'):
+            if _FOOTBALL_CLUB.search(descs.get(lang, {}).get('value', '') or ''):
                 return True
     except Exception:
         pass

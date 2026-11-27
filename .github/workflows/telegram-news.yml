@@ -54,24 +54,27 @@ jobs:
           else
             timeout 120 sudo apt-get install -y ffmpeg || echo "ffmpeg unavailable; oversized clips will be sent without compression"
           fi
-      - name: Cache pip wheels
+      - name: Cache Python virtualenv
+        id: venv-cache
         if: steps.throttle.outputs.skip != 'true'
-        # Runners are ephemeral, so cache telethon's wheels in the Actions
-        # cache: reinstalls come from cache instead of PyPI (~1 min saved per
-        # run = ~1 min fresher posts). Standard GitHub action, no behavior
-        # change when the cache misses.
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-telethon
-      - name: Install deps
+          path: .venv
+          key: venv-${{ runner.os }}-py3.11-telethon-requests-pillow
+      - name: Install deps (cache miss only)
         if: steps.throttle.outputs.skip != 'true'
-        run: pip install telethon requests pillow
+        run: |
+          if [ "${{ steps.venv-cache.outputs.cache-hit }}" != "true" ] || [ ! -x .venv/bin/python ]; then
+            python -m venv .venv
+            .venv/bin/pip install --no-cache-dir telethon requests pillow
+          fi
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Load dedup state (state branch keeps Vercel quiet)
         run: |
           git fetch origin state:refs/remotes/origin/state 2>/dev/null || true
           if git rev-parse --verify origin/state >/dev/null 2>&1; then
             git show origin/state:scripts/tg_state.json > scripts/tg_state.json
+            git show origin/state:scripts/learned_name_map.json > scripts/learned_name_map.json 2>/dev/null || rm -f scripts/learned_name_map.json
             echo "state seeded from origin/state"
           else
             echo "no state branch yet, using main checkout copy"
@@ -88,6 +91,7 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # Paid primary translator (owner's paid OpenRouter key). ~$0.10-0.45/mo.
           # Kill switch: delete this one line -> free chain only.
         run: python scripts/tg_news.py
@@ -175,9 +179,11 @@ jobs:
           with open('scripts/tg_state.json', 'w', encoding='utf-8') as f:
               json.dump(merged, f, ensure_ascii=False, indent=1)
           EOF
-            # Carry the heartbeat file forward too so this push never drops it.
+            # Carry the heartbeat and auto-learned name map forward too so this push never drops them.
             git show origin/state:.github/heartbeat.txt > .github/heartbeat.txt.tmp 2>/dev/null && mv .github/heartbeat.txt.tmp .github/heartbeat.txt || rm -f .github/heartbeat.txt.tmp
+            git show origin/state:scripts/learned_name_map.json > scripts/learned_name_map.json.tmp 2>/dev/null && mv scripts/learned_name_map.json.tmp scripts/learned_name_map.json || rm -f scripts/learned_name_map.json.tmp
             git add scripts/tg_state.json
+            [ -f scripts/learned_name_map.json ] && git add scripts/learned_name_map.json
             [ -f .github/heartbeat.txt ] && git add .github/heartbeat.txt
             if git diff --cached --quiet; then
               echo "state unchanged, nothing to push"

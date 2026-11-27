@@ -196,6 +196,20 @@ class SelectionTests(unittest.TestCase):
             self.assertTrue(daily._is_top({'competition': name}), name)
         self.assertFalse(daily._is_top({'competition': 'Local Amateur Cup'}))
 
+    def test_ambiguous_premier_league_filtered_by_ccode(self):
+        eng = {'competition': 'Premier League', 'ccode': 'ENG'}
+        wal = {'competition': 'Premier League', 'ccode': 'WAL'}
+        aze = {'competition': 'Premier League', 'ccode': 'AZE'}
+        ger = {'competition': 'Bundesliga', 'ccode': 'GER'}
+        aut = {'competition': 'Bundesliga', 'ccode': 'AUT'}
+        self.assertTrue(daily._is_top(eng))
+        self.assertFalse(daily._is_top(wal))
+        self.assertFalse(daily._is_top(aze))
+        self.assertTrue(daily._is_top(ger))
+        self.assertFalse(daily._is_top(aut))
+        self.assertEqual(daily._comp_badge(wal), 'WAL')
+        self.assertEqual(daily._comp_badge(eng), 'PREMIER LGE')
+
     def test_parsers_carry_competition_and_live_flags(self):
         payload = {'leagues': [{'name': 'Premier League', 'matches': [
             {'statusId': 2,
@@ -421,24 +435,22 @@ class LogoTests(unittest.TestCase):
         self.assertIn(daily.BADGE_FILL, colors)
 
     def test_logo_painted_when_fetch_succeeds_and_monogram_on_failure(self):
-        from PIL import Image, ImageDraw
+        from PIL import Image
         import io
         tiny = Image.new('RGBA', (8, 8), (0, 0, 255, 255))
         with mock.patch.object(daily, '_LOGO_CACHE', {'H': tiny, 'A': None}):
             png = daily.render_png(self._rows(), '2026-11-22')
         img = Image.open(io.BytesIO(png))
-        draw = ImageDraw.Draw(img)
-        x = daily.PAD + 96  # x_match
+        x_match = daily.MATCH_X
+        max_pair = (daily.WIDTH - daily.PAD - daily.PILL_W - 14) - x_match - 8
+        geo = daily._pair_layout(x_match, max_pair)
         ry = daily.TITLE_H + daily.COL_H
         logo_y = ry + (daily.ROW_H - daily.LOGO_SIZE) // 2
-        cx = x + daily.LOGO_SIZE // 2
+        cx = geo['hx_crest'] + daily.LOGO_SIZE // 2
         self.assertEqual(img.getpixel((cx, logo_y + daily.LOGO_SIZE // 2)),
-                         (0, 0, 255))  # real crest pasted
+                         (0, 0, 255))  # real crest pasted inside medallion
 
-        v_w = draw.textlength('v', font=daily._font(daily.FONT_ROW, True))
-        max_pair = (daily.WIDTH - daily.PAD - daily.PILL_W - 12) - x - 8
-        half = max(48, (max_pair - int(v_w) - 24) // 2)
-        ax = x + half + int(v_w) + 14
+        ax = geo['ax_crest']
         colors = {img.getpixel((xx, yy))
                   for xx in range(ax + 2, ax + daily.LOGO_SIZE - 2)
                   for yy in range(logo_y + 2, logo_y + daily.LOGO_SIZE - 2)}

@@ -1209,7 +1209,7 @@ class NvidiaChainTests(unittest.TestCase):
         self.assertEqual(body['temperature'], 0.2)
         self.assertEqual(body['max_tokens'], 400)
         self.assertEqual(body['stream'], False)
-        self.assertEqual(u.call_args[1]['timeout'], 12)
+        self.assertEqual(u.call_args[1]['timeout'], tg.NVIDIA_TIMEOUT)
 
     def test_nvidia_chat_empty_content_fails_open(self):
         # Reasoning models can put their thought in reasoning_content and
@@ -1325,7 +1325,7 @@ class NvidiaChainTests(unittest.TestCase):
         base = os.path.dirname(os.path.abspath(tg.__file__))
         # Built at runtime so the test file itself never carries the literal.
         needle = 'nv' + 'api-'
-        for name in ('tg_news.py', 'test_tg_translation.py'):
+        for name in ('tg_news.py', 'tg_names_data.py', 'tg_scrape.py', 'tg_media.py', 'test_tg_translation.py'):
             with open(os.path.join(base, name), encoding='utf-8') as f:
                 self.assertNotIn(needle, f.read())
         wf = os.path.join(os.path.dirname(base), '.github', 'workflows',
@@ -1351,15 +1351,15 @@ class NvidiaCircuitBreakerTests(unittest.TestCase):
     def tearDown(self):
         tg._reset_nvidia_circuit()
 
-    def test_nvidia_timeout_is_12s(self):
-        self.assertEqual(tg.NVIDIA_TIMEOUT, 12)
+    def test_nvidia_timeout_is_6s(self):
+        self.assertEqual(tg.NVIDIA_TIMEOUT, 6)
         payload = {'choices': [{'message': {'content': GOOD_EN}}]}
         with mock.patch.object(tg.urllib.request, 'urlopen',
                                return_value=_FakeResp(payload)) as u:
             tg.nvidia_chat('nv-test-sentinel', tg.NVIDIA_MODELS[0][0],
                            'sys', 'usr')
-        # No explicit timeout passed: the 12s default must reach urlopen.
-        self.assertEqual(u.call_args[1]['timeout'], 12)
+        # The runtime-configured 6s timeout must reach urlopen.
+        self.assertEqual(u.call_args[1]['timeout'], 6)
 
     def test_two_timeouts_open_breaker_and_skip_nvidia_next_post(self):
         with mock.patch.dict(os.environ, self.NENV, clear=False), \
@@ -1586,8 +1586,8 @@ class RuntimeConfigTests(unittest.TestCase):
             self.assertEqual(tg._runtime_models(), [
                 ('nvidia/nemotron-3-ultra-550b-a55b', 400),
                 ('nvidia/nemotron-3-nano-omni-30b-a3b-reasoning', 1200)])
-        # The committed config currently carries the same values.
-        self.assertEqual(tg.NVIDIA_TIMEOUT, 12)
+        # The committed config carries the active tuned values.
+        self.assertEqual(tg.NVIDIA_TIMEOUT, 6)
         self.assertEqual(tg.WATCH_LINK_EVERY, 12)
         self.assertEqual(tg.TRANSLATION_CACHE_DAYS, 7)
         self.assertEqual(tg.NVIDIA_MODELS[0][1], 400)
@@ -1850,6 +1850,479 @@ class ReplyChainGateTests(unittest.TestCase):
     def test_reply_dropped_when_parent_unknown(self):
         self.assertFalse(tg.reply_entity_ok('', SRC_AR))
         self.assertFalse(tg.reply_entity_ok(None, SRC_AR))
+
+
+class ElongationAndAuditRegressionTests(unittest.TestCase):
+    """Regressions from Nov 24-27 production failures & translation audit."""
+
+    def test_elongated_names_pass_grounding_and_send_gate(self):
+        cases = [
+            ('\u0634\u0631\u0631\u0631\u0631\u0642\u064a\u064a\u064a',
+             'Cherki!'),
+            ('\u0625\u064a\u0632\u0627\u0627\u0627\u0627\u0627\u0627\u0627\u0627\u0627\u0643',
+             'Isak!'),
+            ('\u0623\u0633\u064a\u0633\u0633\u0633\u062a \u0633\u0648\u0628\u0648\u0648\u0648\u0633\u0644\u0627\u064a',
+             'Assist by Szoboszlai'),
+            ('\u0639\u0627\u0627\u0627\u0644\u0645\u064a \u0645\u0646 \u0641\u064a\u064a\u064a\u064a\u0631\u062a\u0632',
+             'World-class from Wirtz'),
+            ('\u0627\u0648\u0628\u0627\u0645\u064a\u064a\u064a\u0643\u0627\u0646\u0648\u0648\u0648',
+             'Upamecano!'),
+            ('\u0633\u0648\u0648\u0648\u0631\u0644\u0648\u0648\u0648\u0648\u062b',
+             'S\u00f8rloth!'),
+            ('\u0627\u0644\u0623\u0648\u0648\u0648\u0644 \u0628\u0631\u0631\u0634\u0634\u0634\u0644\u0648\u0646\u0629',
+             'First goal for Barcelona!'),
+        ]
+        for src, out in cases:
+            self.assertEqual(tg._ungrounded_mapped_names(out, src), [], src)
+            self.assertIsNotNone(tg.validate_translation(src, out, 'send'), src)
+
+    def test_shared_first_name_cannot_ground_wrong_full_name(self):
+        # نوح سافيولو (Noah Saviolo) must NOT ground Noah Okafor.
+        src = '\u0646\u0648\u062d \u0633\u0627\u0641\u064a\u0648\u0644\u0648 \u0633\u062c\u0644 \u0647\u062f\u0641\u0627'
+        bad = tg._ungrounded_mapped_names('Noah Okafor scored a goal.', src)
+        self.assertIn('Noah Okafor', bad)
+        self.assertIsNone(tg.validate_translation(src, 'Noah Okafor scored a goal.', 'test'))
+        self.assertIsNotNone(tg.validate_translation(src, 'Noah Saviolo scored a goal.', 'test'))
+        # Shared club/first-name prefixes must not cross-ground rivals.
+        utd = '\u0645\u0627\u0646\u0634\u0633\u062a\u0631 \u064a\u0648\u0646\u0627\u064a\u062a\u062f \u0641\u0627\u0632'
+        self.assertIn('Manchester City', tg._ungrounded_mapped_names('Manchester City won', utd))
+        soler = '\u0643\u0627\u0631\u0644\u0648\u0633 \u0633\u0648\u0644\u064a\u0631 \u0633\u062c\u0644'
+        self.assertIn('Carlos Esp\u00ed', tg._ungrounded_mapped_names('Carlos Espi scored', soler))
+
+    def test_style_news_body_assist_with_goal_noun_and_quotes(self):
+        post = (
+            'Europa League: Milan 4-2 Olympiacos\n'
+            "\u2022 Christian Pulisic assisted Hutchinson's second goal.\n"
+            '\u2022 "We are all striving for the same goal."'
+        )
+        got = tg.style_news_body(post)
+        self.assertIn("\U0001f170\ufe0f Christian Pulisic assisted Hutchinson's second goal.", got)
+        self.assertNotIn("\u26bd Christian Pulisic assisted", got)
+        self.assertIn('\u2022 "We are all striving for the same goal."', got)
+        self.assertNotIn('\u26bd "We are all', got)
+
+    def test_audited_names_shielded_and_repaired(self):
+        self.assertEqual(tg.protect_names('\u0645\u0627\u062a\u064a\u062a\u0627'), 'Mateta')
+        self.assertEqual(tg.protect_names('\u0631\u064a\u0627\u0646 \u0641\u064a\u062a\u0648\u0631'), 'Rayan Vitor')
+        self.assertEqual(tg.protect_names('\u0646\u0648\u062d \u0633\u0627\u0641\u064a\u0648\u0644\u0648'), 'Noah Saviolo')
+        self.assertEqual(tg.protect_names('\u062c\u064a\u0641 \u0625\u064a\u0643\u0627\u062a\u0648\u0631'), 'Jeff Ekhator')
+        self.assertEqual(tg.protect_names('\u0623\u0644\u0641\u0627\u062f\u0648 \u0633\u064a\u0633\u064a\u0647'), 'Alphadjo Ciss\u00e8')
+        self.assertEqual(tg.repair_names('Watatta scored'), 'Mateta scored')
+        self.assertEqual(tg.repair_names('Alvaro Sese assisted'), 'Alphadjo Ciss\u00e8 assisted')
+
+    def test_prompt_carries_digit_rtl_and_stats_rules(self):
+        seen = {}
+
+        def fake_nvidia(key, model, system, user, max_tokens=400, timeout=12):
+            seen['system'] = system
+            return GOOD_EN
+
+        with mock.patch.dict(os.environ, {'NVIDIA_API_KEY': 'test'}, clear=False), \
+             mock.patch.object(tg, 'nvidia_chat', side_effect=fake_nvidia):
+            tg._reset_nvidia_circuit()
+            tg._llm_fix_uncached(SRC_AR)
+        self.assertIn("never spell out 'five'", seen['system'])
+        self.assertIn('Milan trail 1-2', seen['system'])
+        self.assertIn("never write 'scored' for a", seen['system'])
+        self.assertIn('Goal replay', seen['system'])
+        self.assertIn('Sunderfield', seen['system'])
+
+    def test_sanitize_strips_pua_bullet_glyphs(self):
+        self.assertEqual(tg.sanitize_output('\uf0a7 Replay'), 'Replay')
+
+    def test_style_news_body_does_not_mark_saved_or_disallowed_equalizer(self):
+        post = (
+            "Milan's draw slips away after brilliant Pirola save\n"
+            "\u2022 Milan's equalizer was nullified by a stunning Pirola rescue."
+        )
+        got = tg.style_news_body(post)
+        self.assertIn('\u2022 Milan\'s equalizer was nullified', got)
+        self.assertNotIn('\u26bd', got)
+
+    def test_dedupe_lines_keeps_brace_goals_in_match_summary(self):
+        summary = (
+            'Ajax 4-0 Thun\n'
+            '\u2022 Rayane Bounida scored, assisted by Oliver Edvardsen.\n'
+            '\u2022 Marcus Leonardo scored, assisted by Abdellah Ouazane.\n'
+            '\u2022 Rayane Bounida scored.'
+        )
+        got = tg.dedupe_lines(summary)
+        self.assertEqual(got.count('Rayane Bounida scored'), 2)
+
+    def test_extended_audit_names_shielded_and_repaired(self):
+        self.assertEqual(tg.protect_names('\u0643\u0648\u062a\u0634\u0648 \u0647\u064a\u0631\u0646\u0627\u0646\u062f\u064a\u0632'), 'Cucho Hern\u00e1ndez')
+        self.assertEqual(tg.protect_names('\u0643\u0627\u0631\u0644\u0648\u0633 \u0641\u0648\u0631\u0628\u0633'), 'Carlos Forbs')
+        self.assertEqual(tg.protect_names('\u0631\u0648\u0628\u0646 \u0631\u064a\u0633\u0631'), 'Robin Risser')
+        self.assertEqual(tg.protect_names('\u0628\u0648\u0648\u0644\u064a\u0633\u064a\u062a\u0634'), 'Pulisic')
+        self.assertEqual(tg.protect_names('\u0643\u0627\u0645\u064a\u0644 \u062c\u0648\u0632\u0648\u064a\u0627\u0643'), 'Kamil J\u00f3\u017awiak')
+        self.assertEqual(tg.protect_names('\u062e\u0627\u0641\u064a\u064a\u0631 \u0631\u0648\u064a\u062f\u0627'), 'Javier Rueda')
+        self.assertEqual(tg.protect_names('\u0644\u0648\u0631\u064a\u0646\u0632\u0648 \u0628\u064a\u0631\u0648\u0644\u0627'), 'Lorenzo Pirola')
+        self.assertEqual(tg.repair_names('Sunderfield vs Sunderdale'), 'Sunderland vs Sunderland')
+        self.assertEqual(tg.repair_names('Buolitsich scored'), 'Pulisic scored')
+        self.assertEqual(tg.repair_names('Kutch Hernandez & Robin Ritscher'), 'Cucho Hern\u00e1ndez & Robin Risser')
+        self.assertEqual(tg.repair_names('Cska Sofia beat Yagellonia'), 'CSKA Sofia beat Jagiellonia')
+        self.assertEqual(tg.repair_names('Antony Gordon & Kamil Jozefiak'), 'Anthony Gordon & Kamil J\u00f3\u017awiak')
+
+
+class PipelineUpgradeTests(unittest.TestCase):
+    """Tests for fast-path, deshout shield, semantic gates, model health,
+    pre-translation short-circuiting, and monotonic cursor."""
+
+    def setUp(self):
+        tg._reset_nvidia_circuit()
+        tg._CACHE_ENABLED = False
+
+    def tearDown(self):
+        tg._reset_nvidia_circuit()
+        tg._CACHE_ENABLED = True
+
+    def test_deshout_token_shield_catches_mixed_elongations(self):
+        self.assertEqual(tg.protect_names('\u0628\u0648\u0648\u0644\u064a\u0633\u064a\u062a\u0634'), 'Pulisic')
+        self.assertEqual(tg.protect_names('\u0628\u0631\u0631\u0634\u0634\u0634\u0644\u0648\u0646\u0629'), 'Barcelona')
+        self.assertEqual(tg.protect_names('\u062a\u064a\u0644\u064a\u0645\u0627\u0646\u0633\u0633'), 'Tielemans')
+        self.assertEqual(tg.protect_names('\u0623\u0633\u0628\u0627\u0627\u0627\u0633\u0633'), 'Aspas')
+
+    def test_fast_path_replay_skips_llm_calls(self):
+        with mock.patch.object(tg, 'nvidia_chat', side_effect=AssertionError('must not call LLM')), \
+             mock.patch.object(tg, 'groq_chat', side_effect=AssertionError('must not call LLM')):
+            self.assertEqual(tg.llm_fix('\u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u0647\u062f\u0641.'), 'Goal replay')
+            self.assertEqual(tg.llm_fix('\u0627\u0644\u0627\u0639\u0627\u062f\u0629'), 'Replay')
+            self.assertEqual(tg.llm_fix('\u0646\u0647\u0627\u064a\u0629 \u0627\u0644\u0634\u0648\u0637 \u0627\u0644\u0623\u0648\u0644'), 'Half-time')
+
+    def test_prepare_for_llm_normalizes_digits_and_emoji_spam(self):
+        got = tg._prepare_for_llm('\U0001f6a8\U0001f6a8\U0001f6a8 \u0665 \u0623\u0647\u062f\u0627\u0641 \u274c\u274c')
+        self.assertIn('5', got)
+        self.assertEqual(got.count('\U0001f6a8'), 1)
+        self.assertEqual(got.count('\u274c'), 1)
+
+    def test_stats_line_credited_as_goal_rejected(self):
+        src = (
+            '\u0646\u0647\u0627\u064a\u0629 \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629: \u0643\u0631\u064a\u0633\u062a\u0627\u0644 \u0628\u0627\u0644\u0627\u0633 2-1 \u0631\u064a\u0627\u0644 \u0633\u0648\u0633\u064a\u062f\u0627\u062f\n'
+            '\u26bd \u062c\u0627\u0646 \u0641\u064a\u0644\u064a\u0628 \u0645\u0627\u062a\u064a\u062a\u0627.\n'
+            '\u26bd \u062f\u0648\u0627\u064a\u062a \u0645\u0627\u0643\u0646\u064a\u0644.\n'
+            '\U0001f4ca \u064a\u0631\u064a\u0645\u064a \u0628\u064a\u0646\u0648.\n'
+            '\u26bd \u0645\u0627\u0645\u0627\u062f\u0648 \u0633\u0627\u0631 \U0001f170 \u062c\u0648\u0628 \u0623\u0648\u062a\u0634\u064a\u0646\u063a.'
+        )
+        bad = (
+            'Crystal Palace 2-1 Real Sociedad\n\n'
+            '\u26bd Jean-Philippe Mateta scored.\n'
+            '\u26bd Dwight McNeil scored.\n'
+            '\u26bd J\u00e9r\u00e9mie Pino scored for Real Sociedad.\n'
+            '\u26bd Mamadou Sarr scored, assisted by Job Ochieng.'
+        )
+        good = (
+            'Crystal Palace 2-1 Real Sociedad\n\n'
+            '\u26bd Jean-Philippe Mateta scored.\n'
+            '\u26bd Dwight McNeil scored.\n'
+            '\u2022 J\u00e9r\u00e9mie Pino missed a penalty.\n'
+            '\u26bd Mamadou Sarr scored, assisted by Job Ochieng.'
+        )
+        self.assertIsNone(tg.validate_translation(src, bad, 'test'))
+        self.assertIsNotNone(tg.validate_translation(src, good, 'test'))
+
+    def test_dropped_player_and_summary_lines_rejected(self):
+        src = (
+            '\u0646\u0647\u0627\u064a\u0629 \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629: \u064a\u0648\u0641\u0646\u062a\u0648\u0633 4-1 \u0623\u0648\u0645\u0648\u0646\u064a\u0627 \u0646\u064a\u0642\u0648\u0633\u064a\u0627\n'
+            '\u26bd \u0623\u0646\u062f\u0631\u064a\u0627 \u0643\u0627\u0645\u0628\u064a\u0627\u0633\u0648 \U0001f170 \u0641\u0631\u0627\u0646\u0633\u064a\u0633\u0643\u0648 \u0643\u0648\u0646\u0633\u064a\u0633\u0627\u0648.\n'
+            '\u26bd \u062c\u064a\u0641 \u0625\u064a\u0643\u0627\u062a\u0648\u0631 \U0001f170 \u0641\u0631\u0627\u0646\u0633\u064a\u0633\u0643\u0648 \u0643\u0648\u0646\u0633\u064a\u0633\u0627\u0648.\n'
+            '\u26bd \u0641\u0631\u0627\u0646\u0633\u064a\u0633\u0643\u0648 \u0643\u0648\u0646\u0633\u064a\u0633\u0627\u0648.\n'
+            '\u26bd \u062c\u064a\u0631\u064a\u0645\u064a \u0628\u0648\u063a\u0627 \U0001f170 \u0623\u0646\u062f\u0631\u064a\u0627 \u0643\u0627\u0645\u0628\u064a\u0627\u0633\u0648.\n'
+            '\u26bd \u0644\u064a\u0648\u0628\u0648\u0645\u064a\u0631 \u0634\u0627\u062a\u0643\u0627 \U0001f170 \u0645\u0639\u0645\u0631 \u062a\u0627\u0646\u0643\u0648\u0641\u064a\u062a\u0634.'
+        )
+        dropped_line = (
+            'Juventus 4-1 Omonia Nicosia\n\n'
+            '\u26bd Andrea Cambiaso scored, assisted by Francisco Concei\u00e7\u00e3o.\n'
+            '\u26bd Jeff Ekhator scored, assisted by Francisco Concei\u00e7\u00e3o.\n'
+            '\u26bd J\u00e9r\u00e9mie Boga scored, assisted by Andrea Cambiaso.\n'
+            '\u26bd \u013dubom\u00edr \u0160atka scored, assisted by Muamer Tankovi\u0107.'
+        )
+        complete = (
+            'Juventus 4-1 Omonia Nicosia\n\n'
+            '\u26bd Andrea Cambiaso scored, assisted by Francisco Concei\u00e7\u00e3o.\n'
+            '\u26bd Jeff Ekhator scored, assisted by Francisco Concei\u00e7\u00e3o.\n'
+            '\u26bd Francisco Concei\u00e7\u00e3o scored.\n'
+            '\u26bd J\u00e9r\u00e9mie Boga scored, assisted by Andrea Cambiaso.\n'
+            '\u26bd \u013dubom\u00edr \u0160atka scored, assisted by Muamer Tankovi\u0107.'
+        )
+        self.assertIsNone(tg.validate_translation(src, dropped_line, 'test'))
+        self.assertIsNotNone(tg.validate_translation(src, complete, 'test'))
+
+    def test_per_model_strike_breaker_skips_dead_empty_model(self):
+        calls = []
+
+        def fake_groq(key, model, system, user, timeout=30):
+            calls.append(model)
+            if model == 'qwen/qwen3.8-27b':
+                return ''
+            return GOOD_EN
+
+        env = {'NVIDIA_API_KEY': '', 'GROQ_API_KEY': 'g', 'OPENROUTER_API_KEY': ''}
+        with mock.patch.dict(os.environ, env, clear=False), \
+             mock.patch.object(tg, 'groq_chat', side_effect=fake_groq):
+            tg.llm_fix(SRC_AR)
+            tg.llm_fix(SRC_AR)
+            tg.llm_fix(SRC_AR)
+        # qwen failed empty twice -> skipped on 3rd call, going straight to fallback.
+        self.assertEqual(calls.count('qwen/qwen3.8-27b'), 2)
+        self.assertEqual(calls.count('openai/gpt-oss-20b'), 3)
+
+    def test_pre_translation_short_circuit_and_monotonic_cursor(self):
+        state = {'offside': 500, 'seen': [tg.fingerprint(SRC_AR)], 'post_retry': {'400': 1}}
+        items = [
+            {'key': 400, 'text': SRC_AR, 'photo': '', 'preview_video': '', 'reply_to': 0},
+            {'key': 501, 'text': '\u0643\u0648\u062f \u062e\u0635\u0645 50% \u0645\u062a\u062c\u0631', 'photo': '', 'preview_video': '', 'reply_to': 0},
+        ]
+        with mock.patch.object(tg, 'load_state', return_value=state), \
+             mock.patch.object(tg, 'save_state'), \
+             mock.patch.object(tg, 'scrape_offside_preview', return_value=items), \
+             mock.patch.object(tg, 'seed_seen'), \
+             mock.patch.object(tg, 'fetch_single', return_value=''), \
+             mock.patch.object(tg, 'llm_fix', side_effect=AssertionError('should skip repeat and promo')):
+            posted = tg.public_preview_run('@chan')
+        self.assertEqual(posted, 0)
+        self.assertEqual(state['offside'], 501)
+        self.assertEqual(state['post_retry'], {})
+
+    def test_site_fixtures_caches_failure_for_run(self):
+        orig = dict(tg._FIXTURES)
+        try:
+            tg._FIXTURES['at'] = 0.0
+            tg._FIXTURES['items'] = []
+            with mock.patch.object(tg, 'http_get_json',
+                                   side_effect=RuntimeError('HTTP Error 402')) as gj:
+                first = tg.site_fixtures(max_age=600)
+                second = tg.site_fixtures(max_age=600)
+            self.assertEqual(first, [])
+            self.assertEqual(second, [])
+            # First call tries today + tomorrow (2 calls); second call is cached (0 more).
+            self.assertEqual(gj.call_count, 2)
+        finally:
+            tg._FIXTURES.clear()
+            tg._FIXTURES.update(orig)
+
+    def test_is_daily_schedule_catches_source_schedule_and_spares_news(self):
+        for sched in (
+            '• مُباريات اليوم: الجمعة 27 نوفمبر 2026.',
+            '• مُباريات اليوم: الخميس 26 نوفمبر 2026.',
+            'جدول مباريات اليوم الجمعة:\nأرسنال × تشيلسي 20:00',
+            "Today's matches: Thursday, 26 November 2026",
+            'Matches set for Friday 27 November 2026',
+        ):
+            self.assertTrue(tg.is_daily_schedule(sched), sched)
+        for news in (
+            'فاز برشلونة على خيتافي بثلاثية نظيفة اليوم في الدوري الإسباني.',
+            'تحدث أنشيلوتي عن مباريات اليوم الصعبة في الدوري.',
+            "Barcelona scored three goals in today's match against Getafe.",
+            "Manager praised his squad ahead of today's matches in Spain.",
+        ):
+            self.assertFalse(tg.is_daily_schedule(news), news)
+
+    def test_public_preview_skips_source_daily_schedule_without_llm(self):
+        state = {'offside': 500, 'seen': [], 'seen_at': {}, 'post_retry': {}}
+        items = [
+            {'key': 501, 'text': '• مُباريات اليوم: الجمعة 27 نوفمبر 2026.',
+             'photo': 'http://img.test/sched.jpg', 'reply_to': 0},
+        ]
+        with mock.patch.object(tg, 'load_state', return_value=state), \
+             mock.patch.object(tg, 'save_state'), \
+             mock.patch.object(tg, 'scrape_offside_preview', return_value=items), \
+             mock.patch.object(tg, 'seed_seen'), \
+             mock.patch.object(tg, 'fetch_single', return_value=''), \
+             mock.patch.object(tg, 'llm_fix', side_effect=AssertionError('should skip schedule before LLM')):
+            posted = tg.public_preview_run('@chan')
+        self.assertEqual(posted, 0)
+        self.assertEqual(state['offside'], 501)
+        self.assertEqual(state['post_retry'], {})
+
+    def test_club_grounding_rejects_fayha_hallucinated_as_wehda(self):
+        src = 'الثااااني القاادسية ضد الفيحاء [2-0].'
+        self.assertIsNone(
+            tg.validate_translation(src, 'Al-Qadsiah lead Al-Wehda 2-0', 'test'))
+        ok = tg.validate_translation(src, 'Al-Qadsiah lead Al-Fayha 2-0', 'test')
+        self.assertEqual(ok, 'Al-Qadsiah lead Al-Fayha 2-0')
+        # Polysemous Arabic noun ("الاتحاد الأوروبي") must NOT be rewritten as Al-Ittihad
+        self.assertNotIn('Al-Ittihad', tg.protect_names('أعلن الاتحاد الأوروبي قرارا'))
+
+    def test_fast_map_full_goal_and_repair_saudi_name_drift(self):
+        self.assertEqual(tg._fast_translate_ar_en('الهدف كاملًا.'), 'Full goal')
+        self.assertEqual(
+            tg.repair_names('Al-Qadsia score via Turki Al-Omair and Mosaab Al-Juwayr'),
+            'Al-Qadsiah score via Turki Al-Ammar and Musab Al-Juwair',
+        )
+
+    def test_prepare_for_llm_squeezes_doubled_alif_and_color_brackets(self):
+        got = tg._prepare_for_llm('الثااااني القاادسية [🔴 ] ضد [🟠] الفيحاء')
+        self.assertEqual(got, 'الثاني القادسية 🔴 ضد 🟠 الفيحاء')
+
+    def test_match_glossary_and_reply_context_flow_and_tag_guard(self):
+        state = {}
+        tg.record_match_glossary(
+            state,
+            'Turki Al-Ammar scored as Al-Qadsiah beat Al-Fayha 2-0',
+            now=1000.0,
+        )
+        ctx = tg.build_translation_context(
+            state,
+            parent_text='د71 | هدف أول لـ القادسية ضد الفيحاء',
+            parent_en='Al-Qadsiah lead Al-Fayha 1-0 via Turki Al-Ammar',
+            src='الشوط الثاني بدأ',
+            now=1060.0,
+        )
+        self.assertIn('Reply parent', ctx)
+        self.assertIn('Turki Al-Ammar', ctx)
+        self.assertIn('Al-Qadsiah', ctx)
+        self.assertIsNone(
+            tg.validate_translation('خبر عادي', '<context>x</context> test', 'test'))
+
+        seen = {}
+
+        def fake_groq(key, model, system, user, timeout=30):
+            seen['user'] = user
+            return 'Second half underway\n• Al-Qadsiah lead Al-Fayha.'
+
+        with mock.patch.dict(tg.os.environ, {'NVIDIA_API_KEY': '', 'GROQ_API_KEY': 'gk'}), \
+             mock.patch.object(tg, 'groq_chat', side_effect=fake_groq):
+            out = tg.llm_fix('شوط ثانٍ مثير بين القاادسية والفيحاء', context_hint=ctx)
+        self.assertIn('<context>', seen['user'])
+        self.assertIn('Al-Qadsiah', out)
+        # Never allow borrowing clubs from <context> when absent in <source>
+        self.assertIsNone(
+            tg.validate_translation('شوط ثانٍ مثير بين الفريقين',
+                                    'Al-Qadsiah lead Al-Fayha.', 'test'))
+
+    def test_structured_fast_translator_handles_ordinal_and_goal_zero_llm(self):
+        with mock.patch.object(tg, 'nvidia_chat',
+                               side_effect=AssertionError('should use deterministic path')), \
+             mock.patch.object(tg, 'groq_chat',
+                               side_effect=AssertionError('should use deterministic path')):
+            self.assertEqual(
+                tg._llm_fix_uncached('الثااااني القاادسية ضد الفيحاء [2-0].'),
+                'Al-Qadsiah lead Al-Fayha 2-0',
+            )
+            self.assertEqual(
+                tg._llm_fix_uncached('الأول ميلان ضد أولمبياكوس [2-1]'),
+                'Milan trail Olympiacos 1-2',
+            )
+            goal = tg._llm_fix_uncached(
+                "د71' | هدف أول لـ القادسية ضد الفيحاء. [1-0] | ⚽️ تركي العمار. | 🎯 مصعب الجوير."
+            )
+            self.assertIn('Al-Qadsiah lead Al-Fayha 1-0', goal)
+            self.assertIn('Turki Al-Ammar scored in the 71st minute, assisted by Musab Al-Juwair.', goal)
+
+    def test_ranked_models_promotes_higher_acceptance_model(self):
+        stats = {
+            'groq:qwen/qwen3.8-27b': {'ok': 1, 'fail': 10},
+            'groq:openai/gpt-oss-20b': {'ok': 15, 'fail': 0},
+        }
+        got = tg._ranked_models('groq', ['qwen/qwen3.8-27b', 'openai/gpt-oss-20b'], stats=stats)
+        self.assertEqual(got[0], 'openai/gpt-oss-20b')
+        # Untouched/tied preserves exact config order
+        self.assertEqual(tg._ranked_models('groq', ['a', 'b'], stats={}), ['a', 'b'])
+
+    def test_sync_recent_edits_edits_telegram_when_source_changes(self):
+        old_src = 'هدف أول لـ القادسية ضد الفيحاء'
+        new_src = 'هدف أول لـ القادسية ضد الفيحاء بواسطة تركي العمار'
+        state = {
+            'sent_recent': {
+                '900': {
+                    'msg_id': 777,
+                    'is_media': False,
+                    'src_hash': tg.fingerprint(old_src),
+                    'body_hash': tg.fingerprint('Al-Qadsiah lead Al-Fayha 1-0'),
+                }
+            }
+        }
+        calls = []
+
+        def fake_bot(method, payload=None, files=None, timeout=60):
+            calls.append((method, payload))
+            return {'ok': True}
+
+        with mock.patch.object(tg, 'bot', side_effect=fake_bot), \
+             mock.patch.object(tg, 'llm_fix',
+                               return_value='Al-Qadsiah lead Al-Fayha via Turki Al-Ammar'):
+            n = tg.sync_recent_edits(state, '@chan', {900: {'key': 900, 'text': new_src}})
+        self.assertEqual(n, 1)
+        self.assertEqual(calls[0][0], 'editMessageText')
+        self.assertEqual(calls[0][1]['message_id'], 777)
+        self.assertEqual(state['sent_recent']['900']['src_hash'], tg.fingerprint(new_src))
+
+    def test_auto_learn_names_resolves_and_clears_queue(self):
+        import json
+        import tempfile
+        import auto_learn_names as aln
+        with tempfile.TemporaryDirectory() as td:
+            st_p = os.path.join(td, 'tg_state.json')
+            ln_p = os.path.join(td, 'learned_name_map.json')
+            cm_p = os.path.join(td, 'name_map_ar_en.json')
+            with open(cm_p, 'w', encoding='utf-8') as f:
+                json.dump({}, f)
+            with open(st_p, 'w', encoding='utf-8') as f:
+                json.dump({'unknown_ar_names': {'لاعب جديد': 1000}}, f)
+
+            def fake_verify(ar):
+                return ('Q9999999', 'لاعب جديد', 'New Player')
+
+            added = aln.run_learn(state_path=st_p, learned_path=ln_p,
+                                  committed_path=cm_p, verifier=fake_verify)
+            self.assertEqual(added, 1)
+            with open(ln_p, encoding='utf-8') as f:
+                learned = json.load(f)
+            self.assertEqual(learned['لاعب جديد'], 'New Player')
+            with open(st_p, encoding='utf-8') as f:
+                st_after = json.load(f)
+            self.assertEqual(st_after['unknown_ar_names'], {})
+
+    def test_daily_clubs_seeded_and_used_in_context(self):
+        import tg_daily_photo as dp
+        state = {}
+        dp.seed_daily_clubs_to_state(state, [
+            {'home': 'Al-Qadsiah', 'away': 'Al-Fayha', 'competition': 'Saudi Pro League'},
+            {'home': 'Lower Team', 'away': 'Other Team', 'competition': 'Local League'},
+        ], '20261127')
+        self.assertIn('Al-Qadsiah', state['daily_clubs']['names'])
+        self.assertNotIn('Lower Team', state['daily_clubs']['names'])
+        ctx = tg.build_translation_context(state, src='مباراة اليوم')
+        self.assertIn("Today's clubs", ctx)
+        self.assertIn('Al-Qadsiah', ctx)
+
+    def test_gemini_interactions_and_free_failover_chain(self):
+        import io
+        import json as _json
+        fake_resp = _json.dumps({
+            'status': 'completed',
+            'steps': [
+                {'type': 'thought', 'summary': 'ignored'},
+                {'type': 'model_output', 'content': [{'type': 'text', 'text': 'Al-Qadsiah beat Al-Fayha 2-0'}]},
+            ],
+        }).encode('utf-8')
+
+        class _R:
+            def __enter__(self): return io.BytesIO(fake_resp)
+            def __exit__(self, *a): pass
+
+        with mock.patch('urllib.request.urlopen', return_value=_R()):
+            got = tg.gemini_chat('secret-sentinel', 'gemini-3.5-flash-lite', 'sys', 'usr')
+        self.assertEqual(got, 'Al-Qadsiah beat Al-Fayha 2-0')
+
+        tg._reset_nvidia_circuit()
+        calls = []
+
+        def fake_gemini(key, model, system, user, timeout=15):
+            calls.append(('gemini', model))
+            if model == 'gemini-3.5-flash-lite':
+                raise RuntimeError('gemini HTTP 503')
+            return GOOD_EN
+
+        try:
+            with mock.patch.dict(os.environ, {'GEMINI_API_KEY': 'gk', 'NVIDIA_API_KEY': '', 'GROQ_API_KEY': ''}), \
+                 mock.patch.object(tg, 'gemini_chat', side_effect=fake_gemini):
+                out = tg._llm_fix_uncached(SRC_AR)
+            self.assertEqual(out, GOOD_EN)
+            self.assertEqual(calls[0], ('gemini', 'gemini-3.5-flash-lite'))
+            self.assertEqual(calls[1], ('gemini', 'gemini-3.1-flash-lite'))
+        finally:
+            tg._reset_nvidia_circuit()
 
 
 if __name__ == '__main__':

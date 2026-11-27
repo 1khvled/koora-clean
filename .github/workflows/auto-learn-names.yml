@@ -1,0 +1,53 @@
+name: auto-learn-names
+
+on:
+  schedule:
+    - cron: '15 4 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: tg-news
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  learn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Load state and learned name map
+        run: |
+          git fetch origin state:refs/remotes/origin/state 2>/dev/null || true
+          if git rev-parse --verify origin/state >/dev/null 2>&1; then
+            git show origin/state:scripts/tg_state.json > scripts/tg_state.json 2>/dev/null || true
+            git show origin/state:scripts/learned_name_map.json > scripts/learned_name_map.json 2>/dev/null || rm -f scripts/learned_name_map.json
+          fi
+      - name: Auto-learn queued names via Wikidata
+        run: python scripts/auto_learn_names.py
+      - name: Save state and learned name map to state branch
+        run: |
+          git config user.name "khvled"
+          git config user.email "khvled2004@gmail.com"
+          git fetch origin state:refs/remotes/origin/state 2>/dev/null || true
+          git show origin/state:.github/heartbeat.txt > .github/heartbeat.txt.tmp 2>/dev/null && mv .github/heartbeat.txt.tmp .github/heartbeat.txt || rm -f .github/heartbeat.txt.tmp
+          [ -f scripts/tg_state.json ] && git add scripts/tg_state.json
+          [ -f scripts/learned_name_map.json ] && git add scripts/learned_name_map.json
+          [ -f .github/heartbeat.txt ] && git add .github/heartbeat.txt
+          if git diff --cached --quiet; then
+            echo "no learned names or queue changes"
+            exit 0
+          fi
+          if git rev-parse --verify origin/state >/dev/null 2>&1; then
+            PARENT=origin/state
+          else
+            PARENT=HEAD
+          fi
+          TREE=$(git write-tree)
+          COMMIT=$(git commit-tree "$TREE" -p "$PARENT" -m "auto-learn verified names [skip ci]")
+          git push origin "$COMMIT:refs/heads/state"
