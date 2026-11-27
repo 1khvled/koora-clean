@@ -1,12 +1,6 @@
 {
- "offside": 391913,
+ "offside": 391916,
  "seen": [
-  "43fe2b59a2ce",
-  "7592d54ac918",
-  "3cd28f9e2fa6",
-  "ee6cf7a83d00",
-  "51d9b7c83203",
-  "2477c50eb42b",
   "6087d6d328db",
   "85d14109db6b",
   "0449712b4957",
@@ -300,15 +294,18 @@
   "4fbce090f4de",
   "45e90d380a4d",
   "893a6976b7d7",
-  "6f4558af21a0"
+  "6f4558af21a0",
+  "597ead3caeb7",
+  "838d773a3c5d",
+  "130ccb81635b",
+  "b463d411f278",
+  "98025cbe8676",
+  "794cd05e6cef"
  ],
  "seo_msg": 15421,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391688": 15217,
-  "391689": 15220,
-  "391690": 15221,
   "391691": 15222,
   "391692": 15223,
   "391695": 15224,
@@ -505,7 +502,10 @@
   "391910": 15436,
   "391911": 15437,
   "391912": 15438,
-  "391913": 15439
+  "391913": 15439,
+  "391914": 15440,
+  "391915": 15441,
+  "391916": 15442
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 31,
+   "ok": 34,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -600,8 +600,8 @@
   "ايمانوييل اميغا": 1795816248,
   "ايمانوييل": 1795816248,
   "اميغا": 1795816248,
-  "مورغان غيبس": 1795816836,
-  "مورغان": 1795815379,
+  "مورغان غيبس": 1795817451,
+  "مورغان": 1795817451,
   "اعاده لقطه": 1795814131,
   "اعاده": 1795815640,
   "شلاغر": 1795815379,
@@ -632,19 +632,35 @@
   "ليكون الاكثر": 1795817143,
   "خساره بين": 1795817143,
   "جميع فرق": 1795817143,
-  "المسابقه خلال": 1795817143
+  "المسابقه خلال": 1795817143,
+  "انتصارات وتعادلا": 1795817457,
+  "وهزيمه واحده": 1795817457,
+  "غيابه سوي": 1795817457,
+  "انتصار واحد": 1795817457,
+  "انتصارات": 1795817457,
+  "وتعادلا": 1795817457,
+  "تحمله الكلمه": 1795817451,
+  "ليالي": 1795817451,
+  "غراوند": 1795817451,
+  "تحمله": 1795817451,
+  "مباريات خلال": 1795817444,
+  "جميع المسابقات": 1795817444,
+  "وهو نفس": 1795817444,
+  "عدد الهزايم": 1795817444,
+  "التي تلقاها": 1795817444,
+  "فريقه السابق": 1795817444
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
   "Youssef En-Nesyri": 1795807824.5010211,
   "Houssem Aouar": 1795807824.5010211,
   "Nottingham Forest": 1795816593.5803924,
-  "City Ground": 1795809953.1959007,
+  "City Ground": 1795817453.027277,
   "Amer Al-Khudairi": 1795809953.1959007,
   "Igor Jesus": 1795816593.5803924,
   "Daniel Muñoz": 1795816593.5803924,
   "Liam Delap": 1795813839.2383745,
-  "Morgan Gibbs-White": 1795816839.2497551,
+  "Morgan Gibbs-White": 1795817453.027277,
   "Imamouil Imega": 1795816272.9077563,
   "Imamaouil Imega": 1795814223.0547702,
   "Third Nottingham Forest": 1795815408.481817,
@@ -653,7 +669,10 @@
   "Racing Santander": 1795815955.9951434,
   "Pedro Neto": 1795816272.9077563,
   "Emmanuel Imega": 1795816593.5803924,
-  "Erling Haaland": 1795816839.2497551
+  "Erling Haaland": 1795816839.2497551,
+  "João Pedro": 1795817459.360277,
+  "Xabi Alonso": 1795817447.3755229,
+  "Real Madrid": 1795817447.3755229
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -696,7 +715,10 @@
   "391910": "Nottingham Forest 3-2 Chelsea  ⚽️ Igor Jesus scored, assisted by Daniel Muñoz. ⚽️ Morgan Gibbs-White scored a penalty. ⚽️ Morgan Gibbs-White",
   "391911": "Morgan Gibbs-White matches Erling Haaland goal record  • Morgan Gibbs-White has scored more Premier League goals in 2026 than any player exc",
   "391912": "Chelsea's dismal run in the Premier League  • Chelsea have lost 14 of their 23 Premier League matches since the start of March, more than an",
-  "391913": "Chelsea suffer poor run of form  • Chelsea have lost 4 of their last 5 matches."
+  "391913": "Chelsea suffer poor run of form  • Chelsea have lost 4 of their last 5 matches.",
+  "391914": "Xabi Alonso struggles early at Chelsea  • Xabi Alonso has lost 6 of his first 15 matches across all competitions with Chelsea, matching his ",
+  "391915": "Morgan Gibbs-White praises special atmosphere  • Morgan Gibbs-White: This is what City Ground nights are truly all about.",
+  "391916": "Chelsea's record with and without João Pedro  • Chelsea took 4 wins, 1 draw and 1 defeat in the Premier League this season with João Pedro, "
  },
  "sent_recent": {
   "391868": {
@@ -950,6 +972,24 @@
    "is_media": true,
    "src_hash": "893a6976b7d7",
    "body_hash": "6f4558af21a0"
+  },
+  "391914": {
+   "msg_id": 15440,
+   "is_media": true,
+   "src_hash": "597ead3caeb7",
+   "body_hash": "838d773a3c5d"
+  },
+  "391915": {
+   "msg_id": 15441,
+   "is_media": true,
+   "src_hash": "130ccb81635b",
+   "body_hash": "b463d411f278"
+  },
+  "391916": {
+   "msg_id": 15442,
+   "is_media": true,
+   "src_hash": "98025cbe8676",
+   "body_hash": "794cd05e6cef"
   }
  }
 }
