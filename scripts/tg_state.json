@@ -1,10 +1,6 @@
 {
- "offside": 391911,
+ "offside": 391913,
  "seen": [
-  "c58c116d2614",
-  "c15531939874",
-  "9823d9030527",
-  "39b1aae63718",
   "43fe2b59a2ce",
   "7592d54ac918",
   "3cd28f9e2fa6",
@@ -300,14 +296,16 @@
   "73abf46cd884",
   "3bf47bea930a",
   "baf4afb0618c",
-  "85ded23a6543"
+  "85ded23a6543",
+  "4fbce090f4de",
+  "45e90d380a4d",
+  "893a6976b7d7",
+  "6f4558af21a0"
  ],
  "seo_msg": 15421,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391686": 15215,
-  "391687": 15216,
   "391688": 15217,
   "391689": 15220,
   "391690": 15221,
@@ -505,7 +503,9 @@
   "391908": 15434,
   "391909": 15435,
   "391910": 15436,
-  "391911": 15437
+  "391911": 15437,
+  "391912": 15438,
+  "391913": 15439
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 29,
+   "ok": 31,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -623,7 +623,16 @@
   "لاعب اهدافا": 1795816836,
   "الممتاز خلال": 1795816836,
   "وايت سوي": 1795816836,
-  "اهدافا": 1795816836
+  "اهدافا": 1795816836,
+  "مباريات خاضها": 1795817151,
+  "مباريات": 1795817151,
+  "خاضها": 1795817151,
+  "منذ بدايه": 1795817143,
+  "شهر مارس": 1795817143,
+  "ليكون الاكثر": 1795817143,
+  "خساره بين": 1795817143,
+  "جميع فرق": 1795817143,
+  "المسابقه خلال": 1795817143
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -685,7 +694,9 @@
   "391908": "Chelsea grab late third against Nottingham Forest  • Imamouil Imega scored in the 89th minute to make it 3-2 for Chelsea against Nottingham ",
   "391909": "Full replay of the Chelsea second goal",
   "391910": "Nottingham Forest 3-2 Chelsea  ⚽️ Igor Jesus scored, assisted by Daniel Muñoz. ⚽️ Morgan Gibbs-White scored a penalty. ⚽️ Morgan Gibbs-White",
-  "391911": "Morgan Gibbs-White matches Erling Haaland goal record  • Morgan Gibbs-White has scored more Premier League goals in 2026 than any player exc"
+  "391911": "Morgan Gibbs-White matches Erling Haaland goal record  • Morgan Gibbs-White has scored more Premier League goals in 2026 than any player exc",
+  "391912": "Chelsea's dismal run in the Premier League  • Chelsea have lost 14 of their 23 Premier League matches since the start of March, more than an",
+  "391913": "Chelsea suffer poor run of form  • Chelsea have lost 4 of their last 5 matches."
  },
  "sent_recent": {
   "391868": {
@@ -927,6 +938,18 @@
    "is_media": true,
    "src_hash": "baf4afb0618c",
    "body_hash": "85ded23a6543"
+  },
+  "391912": {
+   "msg_id": 15438,
+   "is_media": true,
+   "src_hash": "4fbce090f4de",
+   "body_hash": "45e90d380a4d"
+  },
+  "391913": {
+   "msg_id": 15439,
+   "is_media": true,
+   "src_hash": "893a6976b7d7",
+   "body_hash": "6f4558af21a0"
   }
  }
 }
