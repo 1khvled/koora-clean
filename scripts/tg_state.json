@@ -1,14 +1,6 @@
 {
- "offside": 391876,
+ "offside": 391880,
  "seen": [
-  "5ea5fddf86c8",
-  "949c28823bad",
-  "1caa97f20d9c",
-  "d81c1fa24a9e",
-  "b31d55fec96f",
-  "144bbd88f017",
-  "b2ce05d530b7",
-  "d1e3883d07e8",
   "04239d2c113b",
   "3d6c8e5a26a5",
   "81a03a5c7a78",
@@ -300,16 +292,20 @@
   "b2cd4da590b0",
   "56a76a28524b",
   "c705d5c58636",
-  "63a81a96d3c5"
+  "63a81a96d3c5",
+  "a9fcc05c8685",
+  "ef4be736a4f6",
+  "9a71176f7e34",
+  "8983ea434e36",
+  "eefd8a49f980",
+  "b3b9e8163299",
+  "8c1f873a5318",
+  "b36a5c98c293"
  ],
  "seo_msg": 15398,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391649": 15177,
-  "391650": 15178,
-  "391651": 15179,
-  "391652": 15180,
   "391653": 15181,
   "391654": 15182,
   "391655": 15183,
@@ -505,7 +501,11 @@
   "391871": 15397,
   "391873": 15400,
   "391874": 15401,
-  "391876": 15402
+  "391876": 15402,
+  "391877": 15403,
+  "391878": 15404,
+  "391879": 15405,
+  "391880": 15406
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,28 +513,44 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 3,
-   "fail": 2
+   "ok": 6,
+   "fail": 3
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 0,
-   "fail": 2
+   "fail": 3
   },
   "gemini:gemma-4-26b-a4b-it": {
    "ok": 2,
-   "fail": 2
+   "fail": 3
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
    "ok": 0,
-   "fail": 1
+   "fail": 2
   },
   "nvidia:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": {
    "ok": 0,
-   "fail": 1
+   "fail": 2
   },
   "groq:qwen/qwen3.8-27b": {
    "ok": 1,
-   "fail": 0
+   "fail": 1
+  },
+  "groq:openai/gpt-oss-20b": {
+   "ok": 0,
+   "fail": 1
+  },
+  "groq:openai/gpt-oss-120b": {
+   "ok": 0,
+   "fail": 1
+  },
+  "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free": {
+   "ok": 0,
+   "fail": 1
+  },
+  "openrouter:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
+   "ok": 0,
+   "fail": 1
   }
  },
  "unknown_ar_names": {
@@ -553,15 +569,30 @@
   "الجوله الثانيه": 1795809948,
   "عامر الخوذيري": 1795809948,
   "بدايه": 1795809948,
-  "الممتاز": 1795809948
+  "الممتاز": 1795809948,
+  "جول \r\n\r\nالاوول": 1795810221,
+  "الاوول": 1795810221,
+  "ايجور خيسوس": 1795810244,
+  "ايجور": 1795810244,
+  "خيسوس": 1795810251,
+  "اسيسست دانييل": 1795810247,
+  "اسيسست": 1795810247,
+  "دانييل": 1795810251,
+  "مونوز": 1795810247,
+  "ايغور خيسوس": 1795810251,
+  "دانييل مونيوث": 1795810251,
+  "ايغور": 1795810251,
+  "مونيوث": 1795810251
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
   "Youssef En-Nesyri": 1795807824.5010211,
   "Houssem Aouar": 1795807824.5010211,
-  "Nottingham Forest": 1795809953.1959007,
+  "Nottingham Forest": 1795810275.90858,
   "City Ground": 1795809953.1959007,
-  "Amer Al-Khudairi": 1795809953.1959007
+  "Amer Al-Khudairi": 1795809953.1959007,
+  "Igor Jesus": 1795810275.90858,
+  "Daniel Muñoz": 1795810275.90858
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -569,7 +600,11 @@
   "391870": "Goal awarded after VAR review",
   "391871": "Ittihad take the lead against Neom SC  • 75th minute: first goal for Al-Ittihad against Neom SC [1-0] ⚽️ Youssef En-Nesyri scored, assisted ",
   "391873": "Ittihad edge Neom SC in narrow win  • ⚽️ Youssef En-Nesyri scored in the Al-Ittihad 1-0 Neom SC match, assisted by Houssem Aouar.",
-  "391876": "Nottingham Forest vs Chelsea kicks off  • Premier League, Matchday 12, at City Ground. • Broadcast on beIN SPORTS 1 with commentary by Amer "
+  "391876": "Nottingham Forest vs Chelsea kicks off  • Premier League, Matchday 12, at City Ground. • Broadcast on beIN SPORTS 1 with commentary by Amer ",
+  "391877": "Nottingham Forest lead Chelsea  • Nottingham Forest scored the first goal against Chelsea [1-0].",
+  "391878": "Igor Jesus",
+  "391879": "Assist by Daniel Muñoz",
+  "391880": "Nottingham Forest take early lead against Chelsea  • Igor Jesus scored the opening goal for Nottingham Forest in the 5th minute, assisted by"
  },
  "sent_recent": {
   "391868": {
@@ -613,6 +648,30 @@
    "is_media": true,
    "src_hash": "c705d5c58636",
    "body_hash": "63a81a96d3c5"
+  },
+  "391877": {
+   "msg_id": 15403,
+   "is_media": false,
+   "src_hash": "a9fcc05c8685",
+   "body_hash": "ef4be736a4f6"
+  },
+  "391878": {
+   "msg_id": 15404,
+   "is_media": false,
+   "src_hash": "9a71176f7e34",
+   "body_hash": "8983ea434e36"
+  },
+  "391879": {
+   "msg_id": 15405,
+   "is_media": false,
+   "src_hash": "eefd8a49f980",
+   "body_hash": "b3b9e8163299"
+  },
+  "391880": {
+   "msg_id": 15406,
+   "is_media": true,
+   "src_hash": "8c1f873a5318",
+   "body_hash": "b36a5c98c293"
   }
  }
 }
