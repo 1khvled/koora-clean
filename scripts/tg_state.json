@@ -1,8 +1,6 @@
 {
- "offside": 391872,
+ "offside": 391873,
  "seen": [
-  "3661576a058f",
-  "df883d55c872",
   "06751d2ce106",
   "609701b996d5",
   "5ea5fddf86c8",
@@ -300,13 +298,14 @@
   "408873596b9b",
   "7b99dfd0585a",
   "27924a8d7ffe",
-  "46ad6d18a600"
+  "46ad6d18a600",
+  "b2cd4da590b0",
+  "56a76a28524b"
  ],
  "seo_msg": 15398,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391646": 15172,
   "391647": 15175,
   "391648": 15176,
   "391649": 15177,
@@ -505,7 +504,8 @@
   "391868": 15394,
   "391869": 15395,
   "391870": 15396,
-  "391871": 15397
+  "391871": 15397,
+  "391873": 15400
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 2,
+   "ok": 3,
    "fail": 1
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -527,23 +527,28 @@
  },
  "unknown_ar_names": {
   "الاتحاد": 1795806941,
-  "يوسف النصيري": 1795806941,
+  "يوسف النصيري": 1795807821,
   "النصيري": 1795806941,
   "بعد مراجعه": 1795806936,
   "مراجعه": 1795806936,
   "يحتسب": 1795806936,
-  "حسام عوار": 1795806941
+  "حسام عوار": 1795807821,
+  "نهايه المباراه": 1795807821,
+  "الجوله الثالثه": 1795807821,
+  "نهايه": 1795807821,
+  "المباراه": 1795807821
  },
  "match_glossary": {
-  "Al-Ittihad": 1795806964.6433988,
-  "Youssef En-Nesyri": 1795806964.6433988,
-  "Houssem Aouar": 1795806964.6433988
+  "Al-Ittihad": 1795807824.5010211,
+  "Youssef En-Nesyri": 1795807824.5010211,
+  "Houssem Aouar": 1795807824.5010211
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
   "391869": "Youssef En-Nesyri",
   "391870": "Goal awarded after VAR review",
-  "391871": "Ittihad take the lead against Neom SC  • 75th minute: first goal for Al-Ittihad against Neom SC [1-0] ⚽️ Youssef En-Nesyri scored, assisted "
+  "391871": "Ittihad take the lead against Neom SC  • 75th minute: first goal for Al-Ittihad against Neom SC [1-0] ⚽️ Youssef En-Nesyri scored, assisted ",
+  "391873": "Ittihad edge Neom SC in narrow win  • ⚽️ Youssef En-Nesyri scored in the Al-Ittihad 1-0 Neom SC match, assisted by Houssem Aouar."
  },
  "sent_recent": {
   "391868": {
@@ -569,6 +574,12 @@
    "is_media": true,
    "src_hash": "27924a8d7ffe",
    "body_hash": "46ad6d18a600"
+  },
+  "391873": {
+   "msg_id": 15400,
+   "is_media": true,
+   "src_hash": "b2cd4da590b0",
+   "body_hash": "56a76a28524b"
   }
  }
 }
