@@ -1,8 +1,6 @@
 {
- "offside": 391881,
+ "offside": 391882,
  "seen": [
-  "81a03a5c7a78",
-  "6d3d9c5f564e",
   "d9349511527e",
   "72254e5c8957",
   "c3133c6df14a",
@@ -300,13 +298,14 @@
   "8c1f873a5318",
   "b36a5c98c293",
   "a07f18ad50a8",
-  "310174f82182"
+  "310174f82182",
+  "9b3b2ae5d7f2",
+  "18db3eb23b0d"
  ],
  "seo_msg": 15398,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391654": 15182,
   "391655": 15183,
   "391656": 15184,
   "391657": 15185,
@@ -505,7 +504,8 @@
   "391878": 15404,
   "391879": 15405,
   "391880": 15406,
-  "391881": 15407
+  "391881": 15407,
+  "391882": 15408
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -514,15 +514,15 @@
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
    "ok": 7,
-   "fail": 3
+   "fail": 4
   },
   "gemini:gemini-3.1-flash-lite": {
-   "ok": 0,
+   "ok": 1,
    "fail": 3
   },
   "gemini:gemma-4-26b-a4b-it": {
    "ok": 2,
-   "fail": 3
+   "fail": 4
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
    "ok": 0,
@@ -563,13 +563,13 @@
   "حسام عوار": 1795807821,
   "نهايه المباراه": 1795807821,
   "الجوله الثالثه": 1795807821,
-  "نهايه": 1795807821,
+  "نهايه": 1795812639,
   "المباراه": 1795809948,
   "بدايه المباراه": 1795809948,
-  "الجوله الثانيه": 1795809948,
+  "الجوله الثانيه": 1795812639,
   "عامر الخوذيري": 1795809948,
   "بدايه": 1795809948,
-  "الممتاز": 1795809948,
+  "الممتاز": 1795812639,
   "جول \r\n\r\nالاوول": 1795810221,
   "الاوول": 1795810221,
   "ايجور خيسوس": 1795810244,
@@ -579,21 +579,22 @@
   "اسيسست": 1795810247,
   "دانييل": 1795810251,
   "مونوز": 1795810247,
-  "ايغور خيسوس": 1795810251,
-  "دانييل مونيوث": 1795810251,
+  "ايغور خيسوس": 1795812639,
+  "دانييل مونيوث": 1795812639,
   "ايغور": 1795810251,
   "مونيوث": 1795810251,
-  "كاملا": 1795810529
+  "كاملا": 1795810529,
+  "الجوله": 1795812639
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
   "Youssef En-Nesyri": 1795807824.5010211,
   "Houssem Aouar": 1795807824.5010211,
-  "Nottingham Forest": 1795810647.851945,
+  "Nottingham Forest": 1795812645.9142082,
   "City Ground": 1795809953.1959007,
   "Amer Al-Khudairi": 1795809953.1959007,
-  "Igor Jesus": 1795810275.90858,
-  "Daniel Muñoz": 1795810275.90858
+  "Igor Jesus": 1795812645.9142082,
+  "Daniel Muñoz": 1795812645.9142082
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -606,7 +607,8 @@
   "391878": "Igor Jesus",
   "391879": "Assist by Daniel Muñoz",
   "391880": "Nottingham Forest take early lead against Chelsea  • Igor Jesus scored the opening goal for Nottingham Forest in the 5th minute, assisted by",
-  "391881": "Nottingham Forest goal replay"
+  "391881": "Nottingham Forest goal replay",
+  "391882": "Nottingham Forest lead Chelsea at the break  • Igor Jesus scored the first goal for Nottingham Forest, assisted by Daniel Muñoz [1-0]."
  },
  "sent_recent": {
   "391868": {
@@ -680,6 +682,12 @@
    "is_media": true,
    "src_hash": "a07f18ad50a8",
    "body_hash": "310174f82182"
+  },
+  "391882": {
+   "msg_id": 15408,
+   "is_media": true,
+   "src_hash": "9b3b2ae5d7f2",
+   "body_hash": "18db3eb23b0d"
   }
  }
 }
