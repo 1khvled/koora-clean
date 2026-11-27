@@ -1,8 +1,6 @@
 {
- "offside": 391910,
+ "offside": 391911,
  "seen": [
-  "ecd1bc34f16c",
-  "2259ad80a7be",
   "c58c116d2614",
   "c15531939874",
   "9823d9030527",
@@ -300,13 +298,14 @@
   "c1fe298be6da",
   "8afbbdd16a64",
   "73abf46cd884",
-  "3bf47bea930a"
+  "3bf47bea930a",
+  "baf4afb0618c",
+  "85ded23a6543"
  ],
  "seo_msg": 15421,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391684": 15214,
   "391686": 15215,
   "391687": 15216,
   "391688": 15217,
@@ -505,7 +504,8 @@
   "391907": 15433,
   "391908": 15434,
   "391909": 15435,
-  "391910": 15436
+  "391910": 15436,
+  "391911": 15437
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 28,
+   "ok": 29,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -569,7 +569,7 @@
   "الجوله الثانيه": 1795816592,
   "عامر الخوذيري": 1795809948,
   "بدايه": 1795809948,
-  "الممتاز": 1795812639,
+  "الممتاز": 1795816836,
   "جول \r\n\r\nالاوول": 1795810221,
   "الاوول": 1795810221,
   "ايجور خيسوس": 1795810244,
@@ -600,7 +600,7 @@
   "ايمانوييل اميغا": 1795816248,
   "ايمانوييل": 1795816248,
   "اميغا": 1795816248,
-  "مورغان غيبس": 1795816592,
+  "مورغان غيبس": 1795816836,
   "مورغان": 1795815379,
   "اعاده لقطه": 1795814131,
   "اعاده": 1795815640,
@@ -619,7 +619,11 @@
   "اسيسست بيدروو": 1795816248,
   "بيدروو": 1795816248,
   "جول \r\n\r\nالثااني": 1795816240,
-  "الثااني": 1795816240
+  "الثااني": 1795816240,
+  "لاعب اهدافا": 1795816836,
+  "الممتاز خلال": 1795816836,
+  "وايت سوي": 1795816836,
+  "اهدافا": 1795816836
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -631,7 +635,7 @@
   "Igor Jesus": 1795816593.5803924,
   "Daniel Muñoz": 1795816593.5803924,
   "Liam Delap": 1795813839.2383745,
-  "Morgan Gibbs-White": 1795816593.5803924,
+  "Morgan Gibbs-White": 1795816839.2497551,
   "Imamouil Imega": 1795816272.9077563,
   "Imamaouil Imega": 1795814223.0547702,
   "Third Nottingham Forest": 1795815408.481817,
@@ -639,7 +643,8 @@
   "Yasser Al-Zabiri": 1795816044.4187129,
   "Racing Santander": 1795815955.9951434,
   "Pedro Neto": 1795816272.9077563,
-  "Emmanuel Imega": 1795816593.5803924
+  "Emmanuel Imega": 1795816593.5803924,
+  "Erling Haaland": 1795816839.2497551
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -679,7 +684,8 @@
   "391907": "Imamouil Imega assist  • Pedro Neto assisted Imamouil Imega.",
   "391908": "Chelsea grab late third against Nottingham Forest  • Imamouil Imega scored in the 89th minute to make it 3-2 for Chelsea against Nottingham ",
   "391909": "Full replay of the Chelsea second goal",
-  "391910": "Nottingham Forest 3-2 Chelsea  ⚽️ Igor Jesus scored, assisted by Daniel Muñoz. ⚽️ Morgan Gibbs-White scored a penalty. ⚽️ Morgan Gibbs-White"
+  "391910": "Nottingham Forest 3-2 Chelsea  ⚽️ Igor Jesus scored, assisted by Daniel Muñoz. ⚽️ Morgan Gibbs-White scored a penalty. ⚽️ Morgan Gibbs-White",
+  "391911": "Morgan Gibbs-White matches Erling Haaland goal record  • Morgan Gibbs-White has scored more Premier League goals in 2026 than any player exc"
  },
  "sent_recent": {
   "391868": {
@@ -915,6 +921,12 @@
    "is_media": true,
    "src_hash": "73abf46cd884",
    "body_hash": "3bf47bea930a"
+  },
+  "391911": {
+   "msg_id": 15437,
+   "is_media": true,
+   "src_hash": "baf4afb0618c",
+   "body_hash": "85ded23a6543"
   }
  }
 }
