@@ -1,16 +1,6 @@
 {
- "offside": 391883,
+ "offside": 391888,
  "seen": [
-  "d9349511527e",
-  "72254e5c8957",
-  "c3133c6df14a",
-  "ec60916c6896",
-  "02a96e14d351",
-  "42dffa180940",
-  "f39eeb209190",
-  "fd8fd451859f",
-  "40a167ddf14f",
-  "00bfd488d9eb",
   "55473616ac31",
   "3e308f99eec9",
   "f2b317aae2a8",
@@ -300,17 +290,22 @@
   "a07f18ad50a8",
   "310174f82182",
   "9b3b2ae5d7f2",
-  "18db3eb23b0d"
+  "18db3eb23b0d",
+  "4780acbbf318",
+  "3f5ca46dad33",
+  "102673eb33cb",
+  "bd3508a352f8",
+  "d8d05a43b540",
+  "a8b11072b4c8",
+  "ab6ebb23ff72",
+  "bcd0acdd1583",
+  "9cbf5ba00e3f",
+  "d14932b108d7"
  ],
  "seo_msg": 15398,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391655": 15183,
-  "391656": 15184,
-  "391657": 15185,
-  "391658": 15186,
-  "391659": 15187,
   "391660": 15188,
   "391661": 15189,
   "391662": 15190,
@@ -505,7 +500,12 @@
   "391879": 15405,
   "391880": 15406,
   "391881": 15407,
-  "391882": 15408
+  "391882": 15408,
+  "391884": 15409,
+  "391885": 15410,
+  "391886": 15411,
+  "391887": 15412,
+  "391888": 15413
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 7,
+   "ok": 12,
    "fail": 4
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -584,17 +584,26 @@
   "ايغور": 1795810251,
   "مونيوث": 1795810251,
   "كاملا": 1795810529,
-  "الجوله": 1795812639
+  "الجوله": 1795812639,
+  "توتنغهام": 1795813833,
+  "تحصل عليها": 1795813838,
+  "ليام ديلاب": 1795813838,
+  "بعد تدخل": 1795813838,
+  "عليها": 1795813838,
+  "ديلاب": 1795813838,
+  "فوفانا": 1795813838,
+  "جيبس وايت": 1795813875
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
   "Youssef En-Nesyri": 1795807824.5010211,
   "Houssem Aouar": 1795807824.5010211,
-  "Nottingham Forest": 1795812645.9142082,
+  "Nottingham Forest": 1795813872.3554823,
   "City Ground": 1795809953.1959007,
   "Amer Al-Khudairi": 1795809953.1959007,
   "Igor Jesus": 1795812645.9142082,
-  "Daniel Muñoz": 1795812645.9142082
+  "Daniel Muñoz": 1795812645.9142082,
+  "Liam Delap": 1795813839.2383745
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -608,7 +617,12 @@
   "391879": "Assist by Daniel Muñoz",
   "391880": "Nottingham Forest take early lead against Chelsea  • Igor Jesus scored the opening goal for Nottingham Forest in the 5th minute, assisted by",
   "391881": "Nottingham Forest goal replay",
-  "391882": "Nottingham Forest lead Chelsea at the break  • Igor Jesus scored the first goal for Nottingham Forest, assisted by Daniel Muñoz [1-0]."
+  "391882": "Nottingham Forest lead Chelsea at the break  • Igor Jesus scored the first goal for Nottingham Forest, assisted by Daniel Muñoz [1-0].",
+  "391884": "Penalty awarded to Nottingham Forest",
+  "391885": "Penalty won by Liam Delap  • Liam Delap won the ball after a challenge from Fofana.",
+  "391886": "Nottingham Forest penalty",
+  "391887": "Nottingham Forest double their lead against Chelsea  • Second goal for Nottingham Forest against Chelsea [2-0]",
+  "391888": "Gibbs-White converts from the spot  • Gibbs-White scored a penalty."
  },
  "sent_recent": {
   "391868": {
@@ -688,6 +702,36 @@
    "is_media": true,
    "src_hash": "9b3b2ae5d7f2",
    "body_hash": "18db3eb23b0d"
+  },
+  "391884": {
+   "msg_id": 15409,
+   "is_media": false,
+   "src_hash": "4780acbbf318",
+   "body_hash": "3f5ca46dad33"
+  },
+  "391885": {
+   "msg_id": 15410,
+   "is_media": false,
+   "src_hash": "102673eb33cb",
+   "body_hash": "bd3508a352f8"
+  },
+  "391886": {
+   "msg_id": 15411,
+   "is_media": true,
+   "src_hash": "d8d05a43b540",
+   "body_hash": "a8b11072b4c8"
+  },
+  "391887": {
+   "msg_id": 15412,
+   "is_media": false,
+   "src_hash": "ab6ebb23ff72",
+   "body_hash": "bcd0acdd1583"
+  },
+  "391888": {
+   "msg_id": 15413,
+   "is_media": false,
+   "src_hash": "9cbf5ba00e3f",
+   "body_hash": "d14932b108d7"
   }
  }
 }
