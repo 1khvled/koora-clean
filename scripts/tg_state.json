@@ -1,8 +1,6 @@
 {
- "offside": 391895,
+ "offside": 391896,
  "seen": [
-  "e587add2b6af",
-  "dca588e81070",
   "08594230abed",
   "027d97d5d206",
   "beaa0c190b91",
@@ -300,13 +298,14 @@
   "513fbe1aaf8c",
   "f89799441a79",
   "d38693543213",
-  "ada77cf3a090"
+  "ada77cf3a090",
+  "aa375fec2496",
+  "0233d5f68acf"
  ],
  "seo_msg": 15421,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391668": 15195,
   "391670": 15199,
   "391672": 15200,
   "391673": 15201,
@@ -505,7 +504,8 @@
   "391892": 15417,
   "391893": 15418,
   "391894": 15419,
-  "391895": 15420
+  "391895": 15420,
+  "391896": 15423
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 18,
+   "ok": 19,
    "fail": 5
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -583,7 +583,7 @@
   "دانييل مونيوث": 1795812639,
   "ايغور": 1795810251,
   "مونيوث": 1795810251,
-  "كاملا": 1795810529,
+  "كاملا": 1795814439,
   "الجوله": 1795812639,
   "توتنغهام": 1795813833,
   "تحصل عليها": 1795813838,
@@ -643,7 +643,8 @@
   "391892": "Imamouil Imega  • Imamaouil Imega",
   "391893": "Referee checks the goal  • Referee checks the goal.",
   "391894": "Goal awarded  • Referee awards a valid goal",
-  "391895": "Chelsea score first goal against Nottingham Forest  • 54' ⚽️ Imamouil Imega scored the first goal for Chelsea against Nottingham Forest, mak"
+  "391895": "Chelsea score first goal against Nottingham Forest  • 54' ⚽️ Imamouil Imega scored the first goal for Chelsea against Nottingham Forest, mak",
+  "391896": "Full replay of Chelsea's first goal"
  },
  "sent_recent": {
   "391868": {
@@ -795,6 +796,12 @@
    "is_media": true,
    "src_hash": "d38693543213",
    "body_hash": "ada77cf3a090"
+  },
+  "391896": {
+   "msg_id": 15423,
+   "is_media": true,
+   "src_hash": "aa375fec2496",
+   "body_hash": "0233d5f68acf"
   }
  }
 }
