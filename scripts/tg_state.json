@@ -1,21 +1,6 @@
 {
- "offside": 391888,
+ "offside": 391895,
  "seen": [
-  "55473616ac31",
-  "3e308f99eec9",
-  "f2b317aae2a8",
-  "aa4fa388a0e5",
-  "9015ee8913a8",
-  "3050c1719730",
-  "d91dfaa31647",
-  "aee6b9f333f3",
-  "f9b0574cef4a",
-  "da2590c05ff3",
-  "a44075c8add4",
-  "049569154adf",
-  "d90ffa6c5471",
-  "962cd89b3757",
-  "61cccc29f25a",
   "e587add2b6af",
   "dca588e81070",
   "08594230abed",
@@ -300,19 +285,27 @@
   "ab6ebb23ff72",
   "bcd0acdd1583",
   "9cbf5ba00e3f",
-  "d14932b108d7"
+  "d14932b108d7",
+  "02a96e14d351",
+  "70562a91af09",
+  "b0a95aeab8c5",
+  "509a84ee2763",
+  "026f71791695",
+  "e5190a15714a",
+  "4070b9fddca3",
+  "dcb64e1f6a51",
+  "6ebccfcceb6b",
+  "a6528488b4c9",
+  "ff1259acdf79",
+  "513fbe1aaf8c",
+  "f89799441a79",
+  "d38693543213",
+  "ada77cf3a090"
  ],
- "seo_msg": 15398,
+ "seo_msg": 15421,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391660": 15188,
-  "391661": 15189,
-  "391662": 15190,
-  "391663": 15191,
-  "391664": 15192,
-  "391665": 15193,
-  "391666": 15194,
   "391668": 15195,
   "391670": 15199,
   "391672": 15200,
@@ -505,7 +498,14 @@
   "391885": 15410,
   "391886": 15411,
   "391887": 15412,
-  "391888": 15413
+  "391888": 15413,
+  "391889": 15414,
+  "391890": 15415,
+  "391891": 15416,
+  "391892": 15417,
+  "391893": 15418,
+  "391894": 15419,
+  "391895": 15420
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,43 +513,43 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 12,
-   "fail": 4
+   "ok": 18,
+   "fail": 5
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 1,
-   "fail": 3
+   "fail": 4
   },
   "gemini:gemma-4-26b-a4b-it": {
    "ok": 2,
-   "fail": 4
+   "fail": 5
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
    "ok": 0,
-   "fail": 2
+   "fail": 3
   },
   "nvidia:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": {
    "ok": 0,
-   "fail": 2
+   "fail": 3
   },
   "groq:qwen/qwen3.8-27b": {
    "ok": 1,
-   "fail": 1
+   "fail": 2
   },
   "groq:openai/gpt-oss-20b": {
    "ok": 0,
-   "fail": 1
+   "fail": 2
   },
   "groq:openai/gpt-oss-120b": {
    "ok": 0,
-   "fail": 1
+   "fail": 2
   },
   "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free": {
    "ok": 0,
-   "fail": 1
+   "fail": 2
   },
   "openrouter:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
-   "ok": 0,
+   "ok": 1,
    "fail": 1
   }
  },
@@ -559,7 +559,7 @@
   "النصيري": 1795806941,
   "بعد مراجعه": 1795806936,
   "مراجعه": 1795806936,
-  "يحتسب": 1795806936,
+  "يحتسب": 1795814231,
   "حسام عوار": 1795807821,
   "نهايه المباراه": 1795807821,
   "الجوله الثالثه": 1795807821,
@@ -592,18 +592,32 @@
   "عليها": 1795813838,
   "ديلاب": 1795813838,
   "فوفانا": 1795813838,
-  "جيبس وايت": 1795813875
+  "جيبس وايت": 1795813875,
+  "ايمانويل ايميغا": 1795814235,
+  "ايمانويل": 1795814235,
+  "ايميغا": 1795814235,
+  "يراجع": 1795814227,
+  "ايمانوييل اميغا": 1795814222,
+  "ايمانوييل": 1795814222,
+  "اميغا": 1795814222,
+  "مورغان غيبس": 1795814172,
+  "مورغان": 1795814172,
+  "اعاده لقطه": 1795814131,
+  "اعاده": 1795814131
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
   "Youssef En-Nesyri": 1795807824.5010211,
   "Houssem Aouar": 1795807824.5010211,
-  "Nottingham Forest": 1795813872.3554823,
+  "Nottingham Forest": 1795814265.1526768,
   "City Ground": 1795809953.1959007,
   "Amer Al-Khudairi": 1795809953.1959007,
   "Igor Jesus": 1795812645.9142082,
   "Daniel Muñoz": 1795812645.9142082,
-  "Liam Delap": 1795813839.2383745
+  "Liam Delap": 1795813839.2383745,
+  "Morgan Gibbs-White": 1795814196.7642374,
+  "Imamouil Imega": 1795814265.1526768,
+  "Imamaouil Imega": 1795814223.0547702
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -622,7 +636,14 @@
   "391885": "Penalty won by Liam Delap  • Liam Delap won the ball after a challenge from Fofana.",
   "391886": "Nottingham Forest penalty",
   "391887": "Nottingham Forest double their lead against Chelsea  • Second goal for Nottingham Forest against Chelsea [2-0]",
-  "391888": "Gibbs-White converts from the spot  • Gibbs-White scored a penalty."
+  "391888": "Gibbs-White converts from the spot  • Gibbs-White scored a penalty.",
+  "391889": "Nottingham Forest penalty replay",
+  "391890": "Morgan Gibbs-White doubles Nottingham Forest lead  • Morgan Gibbs-White scored a 51st-minute penalty as Nottingham Forest led Chelsea 2-0.",
+  "391891": "Chelsea goal halves deficit  • First goal for Chelsea against Nottingham Forest [2-1]",
+  "391892": "Imamouil Imega  • Imamaouil Imega",
+  "391893": "Referee checks the goal  • Referee checks the goal.",
+  "391894": "Goal awarded  • Referee awards a valid goal",
+  "391895": "Chelsea score first goal against Nottingham Forest  • 54' ⚽️ Imamouil Imega scored the first goal for Chelsea against Nottingham Forest, mak"
  },
  "sent_recent": {
   "391868": {
@@ -732,6 +753,48 @@
    "is_media": false,
    "src_hash": "9cbf5ba00e3f",
    "body_hash": "d14932b108d7"
+  },
+  "391889": {
+   "msg_id": 15414,
+   "is_media": true,
+   "src_hash": "70562a91af09",
+   "body_hash": "b0a95aeab8c5"
+  },
+  "391890": {
+   "msg_id": 15415,
+   "is_media": true,
+   "src_hash": "509a84ee2763",
+   "body_hash": "026f71791695"
+  },
+  "391891": {
+   "msg_id": 15416,
+   "is_media": false,
+   "src_hash": "e5190a15714a",
+   "body_hash": "4070b9fddca3"
+  },
+  "391892": {
+   "msg_id": 15417,
+   "is_media": false,
+   "src_hash": "dcb64e1f6a51",
+   "body_hash": "6ebccfcceb6b"
+  },
+  "391893": {
+   "msg_id": 15418,
+   "is_media": false,
+   "src_hash": "a6528488b4c9",
+   "body_hash": "ff1259acdf79"
+  },
+  "391894": {
+   "msg_id": 15419,
+   "is_media": false,
+   "src_hash": "513fbe1aaf8c",
+   "body_hash": "f89799441a79"
+  },
+  "391895": {
+   "msg_id": 15420,
+   "is_media": true,
+   "src_hash": "d38693543213",
+   "body_hash": "ada77cf3a090"
   }
  }
 }
