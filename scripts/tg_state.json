@@ -1,8 +1,6 @@
 {
- "offside": 391880,
+ "offside": 391881,
  "seen": [
-  "04239d2c113b",
-  "3d6c8e5a26a5",
   "81a03a5c7a78",
   "6d3d9c5f564e",
   "d9349511527e",
@@ -300,13 +298,14 @@
   "eefd8a49f980",
   "b3b9e8163299",
   "8c1f873a5318",
-  "b36a5c98c293"
+  "b36a5c98c293",
+  "a07f18ad50a8",
+  "310174f82182"
  ],
  "seo_msg": 15398,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391653": 15181,
   "391654": 15182,
   "391655": 15183,
   "391656": 15184,
@@ -505,7 +504,8 @@
   "391877": 15403,
   "391878": 15404,
   "391879": 15405,
-  "391880": 15406
+  "391880": 15406,
+  "391881": 15407
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 6,
+   "ok": 7,
    "fail": 3
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -582,13 +582,14 @@
   "ايغور خيسوس": 1795810251,
   "دانييل مونيوث": 1795810251,
   "ايغور": 1795810251,
-  "مونيوث": 1795810251
+  "مونيوث": 1795810251,
+  "كاملا": 1795810529
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
   "Youssef En-Nesyri": 1795807824.5010211,
   "Houssem Aouar": 1795807824.5010211,
-  "Nottingham Forest": 1795810275.90858,
+  "Nottingham Forest": 1795810647.851945,
   "City Ground": 1795809953.1959007,
   "Amer Al-Khudairi": 1795809953.1959007,
   "Igor Jesus": 1795810275.90858,
@@ -604,7 +605,8 @@
   "391877": "Nottingham Forest lead Chelsea  • Nottingham Forest scored the first goal against Chelsea [1-0].",
   "391878": "Igor Jesus",
   "391879": "Assist by Daniel Muñoz",
-  "391880": "Nottingham Forest take early lead against Chelsea  • Igor Jesus scored the opening goal for Nottingham Forest in the 5th minute, assisted by"
+  "391880": "Nottingham Forest take early lead against Chelsea  • Igor Jesus scored the opening goal for Nottingham Forest in the 5th minute, assisted by",
+  "391881": "Nottingham Forest goal replay"
  },
  "sent_recent": {
   "391868": {
@@ -672,6 +674,12 @@
    "is_media": true,
    "src_hash": "8c1f873a5318",
    "body_hash": "b36a5c98c293"
+  },
+  "391881": {
+   "msg_id": 15407,
+   "is_media": true,
+   "src_hash": "a07f18ad50a8",
+   "body_hash": "310174f82182"
   }
  }
 }
