@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 37,
+   "ok": 38,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -1015,8 +1015,8 @@
   "391918": {
    "msg_id": 15446,
    "is_media": true,
-   "src_hash": "c66642201ca0",
-   "body_hash": "a601938f0738"
+   "src_hash": "64b157744208",
+   "body_hash": "fc64c2deee7e"
   }
  }
 }
