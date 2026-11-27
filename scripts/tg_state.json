@@ -1,12 +1,6 @@
 {
- "offside": 391902,
+ "offside": 391905,
  "seen": [
-  "79807bf43bba",
-  "7360b622edb0",
-  "f8b7c8f3fcbf",
-  "81e3fc5a963b",
-  "fa6c78ed4745",
-  "658e1b1f71c0",
   "a8922eccf650",
   "1e9da78adaff",
   "0c4091ddce63",
@@ -300,15 +294,18 @@
   "2d52e71f1ec2",
   "df1aa2407b0a",
   "a680c65bcc9e",
-  "2f9e60e694b3"
+  "2f9e60e694b3",
+  "1c9f5c9106a5",
+  "f28c26dcd5ea",
+  "90d83dfecd25",
+  "4a64bc220ff8",
+  "b3b46862259f",
+  "54c7eb14ada4"
  ],
  "seo_msg": 15421,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391676": 15206,
-  "391677": 15207,
-  "391678": 15208,
   "391679": 15209,
   "391680": 15210,
   "391681": 15211,
@@ -505,7 +502,10 @@
   "391899": 15425,
   "391900": 15426,
   "391901": 15427,
-  "391902": 15428
+  "391902": 15428,
+  "391903": 15429,
+  "391904": 15430,
+  "391905": 15431
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 22,
+   "ok": 25,
    "fail": 6
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -583,7 +583,7 @@
   "دانييل مونيوث": 1795812639,
   "ايغور": 1795810251,
   "مونيوث": 1795810251,
-  "كاملا": 1795814439,
+  "كاملا": 1795815959,
   "الجوله": 1795812639,
   "توتنغهام": 1795813833,
   "تحصل عليها": 1795813838,
@@ -609,7 +609,11 @@
   "كزافر": 1795815379,
   "اسيسست شلاغر": 1795815374,
   "جول \r\n\r\nالثاالث": 1795815335,
-  "الثاالث": 1795815335
+  "الثاالث": 1795815335,
+  "مباراه": 1795816047,
+  "الزابيري": 1795815959,
+  "الزابيري كاملا": 1795815959,
+  "ياسر الزابيري": 1795815930
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -625,7 +629,9 @@
   "Imamouil Imega": 1795814265.1526768,
   "Imamaouil Imega": 1795814223.0547702,
   "Third Nottingham Forest": 1795815408.481817,
-  "Xaver Schlager": 1795815408.481817
+  "Xaver Schlager": 1795815408.481817,
+  "Yasser Al-Zabiri": 1795816044.4187129,
+  "Racing Santander": 1795815955.9951434
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -657,7 +663,10 @@
   "391899": "Morgan Gibbs-White",
   "391900": "Xaver Schlager assist",
   "391901": "Third Nottingham Forest goal against Chelsea  • Morgan Gibbs-White scored the third goal for Nottingham Forest in the 72nd minute, assisted ",
-  "391902": "Goal replay"
+  "391902": "Goal replay",
+  "391903": "Yasser Al-Zabiri on target for Racing Santander  • Yasser Al-Zabiri scored for Racing Santander.",
+  "391904": "Yasser Al-Zabiri goal  • Full video of the Yasser Al-Zabiri goal.",
+  "391905": "Stunning goalscoring form  • 14 games, 12 goals"
  },
  "sent_recent": {
   "391868": {
@@ -845,6 +854,24 @@
    "is_media": true,
    "src_hash": "a680c65bcc9e",
    "body_hash": "2f9e60e694b3"
+  },
+  "391903": {
+   "msg_id": 15429,
+   "is_media": true,
+   "src_hash": "1c9f5c9106a5",
+   "body_hash": "f28c26dcd5ea"
+  },
+  "391904": {
+   "msg_id": 15430,
+   "is_media": true,
+   "src_hash": "90d83dfecd25",
+   "body_hash": "4a64bc220ff8"
+  },
+  "391905": {
+   "msg_id": 15431,
+   "is_media": true,
+   "src_hash": "b3b46862259f",
+   "body_hash": "54c7eb14ada4"
   }
  }
 }
