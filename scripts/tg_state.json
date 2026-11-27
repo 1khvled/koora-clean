@@ -1,8 +1,6 @@
 {
- "offside": 391874,
+ "offside": 391876,
  "seen": [
-  "06751d2ce106",
-  "609701b996d5",
   "5ea5fddf86c8",
   "949c28823bad",
   "1caa97f20d9c",
@@ -300,13 +298,14 @@
   "27924a8d7ffe",
   "46ad6d18a600",
   "b2cd4da590b0",
-  "56a76a28524b"
+  "56a76a28524b",
+  "c705d5c58636",
+  "63a81a96d3c5"
  ],
  "seo_msg": 15398,
  "last_promo": 1795777821.892876,
  "post_retry": {},
  "msgmap": {
-  "391648": 15176,
   "391649": 15177,
   "391650": 15178,
   "391651": 15179,
@@ -505,7 +504,8 @@
   "391870": 15396,
   "391871": 15397,
   "391873": 15400,
-  "391874": 15401
+  "391874": 15401,
+  "391876": 15402
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795777821.892876,
@@ -514,15 +514,27 @@
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
    "ok": 3,
-   "fail": 1
+   "fail": 2
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 0,
-   "fail": 1
+   "fail": 2
   },
   "gemini:gemma-4-26b-a4b-it": {
    "ok": 2,
+   "fail": 2
+  },
+  "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
+   "ok": 0,
    "fail": 1
+  },
+  "nvidia:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": {
+   "ok": 0,
+   "fail": 1
+  },
+  "groq:qwen/qwen3.8-27b": {
+   "ok": 1,
+   "fail": 0
   }
  },
  "unknown_ar_names": {
@@ -536,19 +548,28 @@
   "نهايه المباراه": 1795807821,
   "الجوله الثالثه": 1795807821,
   "نهايه": 1795807821,
-  "المباراه": 1795807821
+  "المباراه": 1795809948,
+  "بدايه المباراه": 1795809948,
+  "الجوله الثانيه": 1795809948,
+  "عامر الخوذيري": 1795809948,
+  "بدايه": 1795809948,
+  "الممتاز": 1795809948
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
   "Youssef En-Nesyri": 1795807824.5010211,
-  "Houssem Aouar": 1795807824.5010211
+  "Houssem Aouar": 1795807824.5010211,
+  "Nottingham Forest": 1795809953.1959007,
+  "City Ground": 1795809953.1959007,
+  "Amer Al-Khudairi": 1795809953.1959007
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
   "391869": "Youssef En-Nesyri",
   "391870": "Goal awarded after VAR review",
   "391871": "Ittihad take the lead against Neom SC  • 75th minute: first goal for Al-Ittihad against Neom SC [1-0] ⚽️ Youssef En-Nesyri scored, assisted ",
-  "391873": "Ittihad edge Neom SC in narrow win  • ⚽️ Youssef En-Nesyri scored in the Al-Ittihad 1-0 Neom SC match, assisted by Houssem Aouar."
+  "391873": "Ittihad edge Neom SC in narrow win  • ⚽️ Youssef En-Nesyri scored in the Al-Ittihad 1-0 Neom SC match, assisted by Houssem Aouar.",
+  "391876": "Nottingham Forest vs Chelsea kicks off  • Premier League, Matchday 12, at City Ground. • Broadcast on beIN SPORTS 1 with commentary by Amer "
  },
  "sent_recent": {
   "391868": {
@@ -586,6 +607,12 @@
    "is_media": true,
    "src_hash": "",
    "body_hash": ""
+  },
+  "391876": {
+   "msg_id": 15402,
+   "is_media": true,
+   "src_hash": "c705d5c58636",
+   "body_hash": "63a81a96d3c5"
   }
  }
 }
