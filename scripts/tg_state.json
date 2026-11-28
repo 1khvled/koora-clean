@@ -1,8 +1,6 @@
 {
- "offside": 391959,
+ "offside": 391960,
  "seen": [
-  "ebb64caae28e",
-  "6a50643d351a",
   "27f8dd19930b",
   "dc011df8cb66",
   "12d6b70ca8b8",
@@ -300,13 +298,14 @@
   "4d78349514b7",
   "6f8c0268cb34",
   "656d6136abda",
-  "a787cc7d7360"
+  "a787cc7d7360",
+  "a97df3738a61",
+  "f1b22bbc088d"
  ],
  "seo_msg": 15485,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391734": 15259,
   "391735": 15260,
   "391736": 15261,
   "391737": 15262,
@@ -505,7 +504,8 @@
   "391954": 15481,
   "391956": 15482,
   "391958": 15483,
-  "391959": 15484
+  "391959": 15484,
+  "391960": 15487
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -514,15 +514,15 @@
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
    "ok": 49,
-   "fail": 9
+   "fail": 10
   },
   "gemini:gemini-3.1-flash-lite": {
-   "ok": 2,
+   "ok": 3,
    "fail": 7
   },
   "gemini:gemma-4-26b-a4b-it": {
    "ok": 6,
-   "fail": 9
+   "fail": 10
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
    "ok": 0,
@@ -745,7 +745,13 @@
   "الرسم": 1795873850,
   "التكتيكي": 1795873850,
   "كوفنتري سيتي": 1795873844,
-  "كوفنتري": 1795873844
+  "كوفنتري": 1795873844,
+  "اسماعيل محمود": 1795874736,
+  "يراقبان احمد": 1795874736,
+  "صفوت لاعب": 1795874736,
+  "منتخب مصر": 1795874736,
+  "اسماعيل": 1795874736,
+  "محمود": 1795874736
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -771,7 +777,7 @@
   "Xabi Alonso": 1795818370.1622863,
   "Real Madrid": 1795817447.3755229,
   "David Raya": 1795818048.8192234,
-  "Manchester City": 1795818048.8192234,
+  "Manchester City": 1795874739.028699,
   "Inter Miami": 1795835476.8808134,
   "Columbus Crew": 1795835471.1089652,
   "Eastern Conference": 1795828843.5704262,
@@ -806,7 +812,8 @@
   "Manchester United": 1795873851.5729134,
   "Mauricio Pochettino": 1795873851.5729134,
   "Leeds United": 1795873846.365045,
-  "Coventry City": 1795873846.365045
+  "Coventry City": 1795873846.365045,
+  "Ahmed Safwat": 1795874739.028699
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -885,7 +892,8 @@
   "391954": "Official line-ups confirmed for Manchester United and Brentford",
   "391956": "Confirmed lineups for Leeds United against Coventry City  • Official starting XIs announced for Leeds United and Coventry City.",
   "391958": "Manchester United tactical setup under Mauricio Pochettino",
-  "391959": "Bryan Mbeumo and Matheus Cunha benched  • Bryan Mbeumo and Matheus Cunha are named among the substitutes."
+  "391959": "Bryan Mbeumo and Matheus Cunha benched  • Bryan Mbeumo and Matheus Cunha are named among the substitutes.",
+  "391960": "Manchester City and Newcastle tracking Ahmed Safwat  • Manchester City and Newcastle are monitoring Egypt youth international Ahmed Safwat."
  },
  "sent_recent": {
   "391868": {
@@ -1367,6 +1375,12 @@
    "is_media": true,
    "src_hash": "656d6136abda",
    "body_hash": "a787cc7d7360"
+  },
+  "391960": {
+   "msg_id": 15487,
+   "is_media": true,
+   "src_hash": "a97df3738a61",
+   "body_hash": "f1b22bbc088d"
   }
  },
  "daily_clubs": {
