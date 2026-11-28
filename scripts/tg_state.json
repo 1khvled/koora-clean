@@ -1,8 +1,6 @@
 {
- "offside": 391941,
+ "offside": 391942,
  "seen": [
-  "daeb31967b3f",
-  "1b16a7cf23ea",
   "1329559ed440",
   "7c6ecf9db289",
   "cb6fed9c35c2",
@@ -300,13 +298,14 @@
   "18a691f9f25f",
   "e919ad217ea1",
   "ce59ce0f6181",
-  "56e61bb0ef16"
+  "56e61bb0ef16",
+  "751058458783",
+  "344a393db18b"
  ],
  "seo_msg": 15464,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391718": 15246,
   "391719": 15247,
   "391721": 15248,
   "391722": 15249,
@@ -505,7 +504,8 @@
   "391938": 15467,
   "391939": 15468,
   "391940": 15469,
-  "391941": 15470
+  "391941": 15470,
+  "391942": 15472
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -514,14 +514,14 @@
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
    "ok": 47,
-   "fail": 7
+   "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 2,
    "fail": 5
   },
   "gemini:gemma-4-26b-a4b-it": {
-   "ok": 4,
+   "ok": 5,
    "fail": 7
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
@@ -562,10 +562,10 @@
   "يحتسب": 1795814231,
   "حسام عوار": 1795807821,
   "نهايه المباراه": 1795835469,
-  "الجوله الثالثه": 1795807821,
+  "الجوله الثالثه": 1795868433,
   "نهايه": 1795835469,
   "المباراه": 1795828837,
-  "بدايه المباراه": 1795828837,
+  "بدايه المباراه": 1795868433,
   "الجوله الثانيه": 1795816592,
   "عامر الخوذيري": 1795809948,
   "بدايه": 1795828837,
@@ -724,7 +724,11 @@
   "الفريقين": 1795864530,
   "الرسميه": 1795864530,
   "الحزم": 1795864530,
-  "النصر": 1795864530
+  "النصر": 1795864530,
+  "خالد المديفر": 1795868433,
+  "فارس عوض": 1795868433,
+  "عبر تطبيق": 1795868433,
+  "عبد الله": 1795868433
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -766,7 +770,11 @@
   "Nicolò Schira": 1795857650.692421,
   "Hamza Abdelkarim": 1795860642.8283212,
   "Alejandro Balde": 1795860648.184114,
-  "Jorge Mendes": 1795860648.184114
+  "Jorge Mendes": 1795860648.184114,
+  "Saudi Pro League": 1795868439.3363397,
+  "King Abdullah Stadium": 1795868439.3363397,
+  "Khalid Al-Mudaifer": 1795868439.3363397,
+  "Fares Awad": 1795868439.3363397
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -832,7 +840,8 @@
   "391938": "Paris Saint-Germain target Estêvão  • Paris Saint-Germain are showing interest in signing the Brazilian Estêvão, according to Nicolò Schira.",
   "391939": "Hamza Abdelkarim suffers new injury setback in training  • Hamza Abdelkarim felt discomfort again during training with the reserves yesterda",
   "391940": "Liverpool hold talks over Alejandro Balde  • Liverpool met with Jorge Mendes, agent of Alejandro Balde, to discuss a loan deal with an optio",
-  "391941": "Al Hazem vs Al Nassr official lineups  • Official starting line-ups announced for Al Hazem against Al Nassr."
+  "391941": "Al Hazem vs Al Nassr official lineups  • Official starting line-ups announced for Al Hazem against Al Nassr.",
+  "391942": "Match start: Al Hazm vs Al Nassr  • Al Hazm vs Al Nassr in the Saudi Pro League Round 13. • Kick-off at King Abdullah Stadium. • Broadcast o"
  },
  "sent_recent": {
   "391868": {
@@ -1236,6 +1245,12 @@
    "is_media": true,
    "src_hash": "ce59ce0f6181",
    "body_hash": "56e61bb0ef16"
+  },
+  "391942": {
+   "msg_id": 15472,
+   "is_media": true,
+   "src_hash": "751058458783",
+   "body_hash": "344a393db18b"
   }
  },
  "daily_clubs": {
