@@ -1,8 +1,6 @@
 {
- "offside": 391952,
+ "offside": 391953,
  "seen": [
-  "253e597c4584",
-  "edeb12584954",
   "aeb9f83e4932",
   "e5cf98678e57",
   "4412c58da05c",
@@ -300,13 +298,14 @@
   "06a9b106c018",
   "274888adf601",
   "9967a7f589ed",
-  "a0504791e950"
+  "a0504791e950",
+  "06e618ba9c37",
+  "cde5358075a1"
  ],
  "seo_msg": 15464,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391727": 15254,
   "391728": 15255,
   "391729": 15256,
   "391730": 15257,
@@ -505,7 +504,8 @@
   "391948": 15476,
   "391949": 15477,
   "391950": 15478,
-  "391952": 15479
+  "391952": 15479,
+  "391953": 15480
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 44,
+   "ok": 45,
    "fail": 9
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -728,7 +728,11 @@
   "تشكيله الهلال": 1795871439,
   "الهلال": 1795871439,
   "الاتفاق": 1795871439,
-  "هامبورغ": 1795872941
+  "هامبورغ": 1795872941,
+  "برونو فيرنانديز": 1795873532,
+  "سولي توكز": 1795873532,
+  "برونو": 1795873532,
+  "فيرنانديز": 1795873532
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -781,7 +785,9 @@
   "Samy Costa": 1795870034.740319,
   "Al-Hilal": 1795871444.5524547,
   "Al-Ettifaq": 1795871444.5524547,
-  "Bayern Munich": 1795872945.3662713
+  "Bayern Munich": 1795872945.3662713,
+  "Bruno Fernandes": 1795873534.3733978,
+  "Solhe Toxoe": 1795873534.3733978
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -855,7 +861,8 @@
   "391948": "Disallowed goal replay  • Goal replay of the disallowed Al-Hazm goal.",
   "391949": "Al-Hazm 0-1 Al-Nassr at half-time  ⚽ Samuel Costa scored for Al-Nassr.",
   "391950": "Al-Hilal announce official lineup to face Al-Ettifaq",
-  "391952": "Bayern Munich lineup against Hamburg"
+  "391952": "Bayern Munich lineup against Hamburg",
+  "391953": "Bruno Fernandes starts  • Bruno Fernandes is in the starting lineup according to Solhe Toxoe."
  },
  "sent_recent": {
   "391868": {
@@ -1307,6 +1314,12 @@
    "is_media": true,
    "src_hash": "9967a7f589ed",
    "body_hash": "a0504791e950"
+  },
+  "391953": {
+   "msg_id": 15480,
+   "is_media": false,
+   "src_hash": "06e618ba9c37",
+   "body_hash": "cde5358075a1"
   }
  },
  "daily_clubs": {
