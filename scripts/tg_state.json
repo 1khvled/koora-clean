@@ -1,9 +1,6 @@
 {
- "offside": 391960,
+ "offside": 391961,
  "seen": [
-  "27f8dd19930b",
-  "dc011df8cb66",
-  "12d6b70ca8b8",
   "696dfba0e6ee",
   "58b35f0672be",
   "a0db3cc03631",
@@ -300,13 +297,15 @@
   "656d6136abda",
   "a787cc7d7360",
   "a97df3738a61",
-  "f1b22bbc088d"
+  "f1b22bbc088d",
+  "61c8c90f2236",
+  "828161e6333d",
+  "c59a6a943d1f"
  ],
  "seo_msg": 15485,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391735": 15260,
   "391736": 15261,
   "391737": 15262,
   "391738": 15263,
@@ -505,7 +504,8 @@
   "391956": 15482,
   "391958": 15483,
   "391959": 15484,
-  "391960": 15487
+  "391960": 15487,
+  "391961": 15488
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -513,8 +513,8 @@
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 50,
-   "fail": 10
+   "ok": 43,
+   "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 3,
@@ -561,9 +561,9 @@
   "مراجعه": 1795806936,
   "يحتسب": 1795814231,
   "حسام عوار": 1795807821,
-  "نهايه المباراه": 1795835469,
-  "نهايه": 1795871155,
-  "المباراه": 1795828837,
+  "نهايه المباراه": 1795875341,
+  "نهايه": 1795875341,
+  "المباراه": 1795875341,
   "الجوله الثانيه": 1795816592,
   "عامر الخوذيري": 1795809948,
   "بدايه": 1795828837,
@@ -582,7 +582,7 @@
   "ايغور": 1795810251,
   "مونيوث": 1795810251,
   "كاملا": 1795816532,
-  "الجوله": 1795871155,
+  "الجوله": 1795875341,
   "توتنغهام": 1795813833,
   "تحصل عليها": 1795813838,
   "ليام ديلاب": 1795813838,
@@ -721,8 +721,8 @@
   "الفريقين": 1795873844,
   "الرسميه": 1795873844,
   "عبد الله": 1795868433,
-  "الجوله الثالثه": 1795871155,
-  "الثالثه": 1795871155,
+  "الجوله الثالثه": 1795875341,
+  "الثالثه": 1795875341,
   "الحزم": 1795871155,
   "النصر": 1795871155,
   "تشكيله الهلال": 1795871439,
@@ -798,7 +798,7 @@
   "King Abdullah Stadium": 1795868439.3363397,
   "Khalid Al-Mudaifer": 1795868439.3363397,
   "Fares Awad": 1795868439.3363397,
-  "Al-Nassr": 1795871158.8101308,
+  "Al-Nassr": 1795875345.5660841,
   "Al-Hazm": 1795871158.8101308,
   "Samuel Costa": 1795871158.8101308,
   "Samy Costa": 1795870034.740319,
@@ -813,7 +813,9 @@
   "Mauricio Pochettino": 1795873851.5729134,
   "Leeds United": 1795873846.365045,
   "Coventry City": 1795873846.365045,
-  "Ahmed Safwat": 1795874739.028699
+  "Ahmed Safwat": 1795874739.028699,
+  "Al-Hazem": 1795875345.5660841,
+  "Samu Costa": 1795875345.5660841
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -893,7 +895,8 @@
   "391956": "Confirmed lineups for Leeds United against Coventry City  • Official starting XIs announced for Leeds United and Coventry City.",
   "391958": "Manchester United tactical setup under Mauricio Pochettino",
   "391959": "Bryan Mbeumo and Matheus Cunha benched  • Bryan Mbeumo and Matheus Cunha are named among the substitutes.",
-  "391960": "Manchester City and Newcastle tracking Ahmed Safwat  • Manchester City and Newcastle are monitoring Egypt youth international Ahmed Safwat."
+  "391960": "Manchester City and Newcastle tracking Ahmed Safwat  • Manchester City and Newcastle are monitoring Egypt youth international Ahmed Safwat.",
+  "391961": "Al-Hazem 0-1 Al-Nassr  • ⚽️ Samu Costa scored for Al-Nassr"
  },
  "sent_recent": {
   "391868": {
@@ -1381,6 +1384,12 @@
    "is_media": true,
    "src_hash": "bd51235ce832",
    "body_hash": "61c8c90f2236"
+  },
+  "391961": {
+   "msg_id": 15488,
+   "is_media": true,
+   "src_hash": "828161e6333d",
+   "body_hash": "c59a6a943d1f"
   }
  },
  "daily_clubs": {
