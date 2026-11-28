@@ -1,10 +1,6 @@
 {
- "offside": 391920,
+ "offside": 391922,
  "seen": [
-  "581662d6c8f2",
-  "f3ce02711aef",
-  "479ae54be856",
-  "a20dc3ed5a34",
   "4d1159301640",
   "a0c303cdf9d7",
   "158bc6b46aaf",
@@ -300,14 +296,16 @@
   "a601938f0738",
   "fc64c2deee7e",
   "beb69c5d04ca",
-  "e8671fe67a34"
+  "e8671fe67a34",
+  "a3d9618f89a9",
+  "1465e296222f",
+  "2138b613faf6",
+  "d101b04c4178"
  ],
  "seo_msg": 15443,
  "last_promo": 1795821043.305368,
  "post_retry": {},
  "msgmap": {
-  "391696": 15225,
-  "391697": 15226,
   "391698": 15227,
   "391699": 15228,
   "391700": 15229,
@@ -505,7 +503,9 @@
   "391916": 15442,
   "391917": 15445,
   "391918": 15446,
-  "391920": 15448
+  "391920": 15448,
+  "391921": 15449,
+  "391922": 15450
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795821043.305368,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 39,
+   "ok": 41,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -564,11 +564,11 @@
   "نهايه المباراه": 1795816592,
   "الجوله الثالثه": 1795807821,
   "نهايه": 1795812639,
-  "المباراه": 1795809948,
-  "بدايه المباراه": 1795809948,
+  "المباراه": 1795828837,
+  "بدايه المباراه": 1795828837,
   "الجوله الثانيه": 1795816592,
   "عامر الخوذيري": 1795809948,
-  "بدايه": 1795809948,
+  "بدايه": 1795828837,
   "الممتاز": 1795816836,
   "جول \r\n\r\nالاوول": 1795810221,
   "الاوول": 1795810221,
@@ -661,11 +661,18 @@
   "تتعلق": 1795818365,
   "بالثقه": 1795818365,
   "ميامي لمواجهه": 1795824648,
-  "كولومبوس كرو": 1795824648,
+  "كولومبوس كرو": 1795828837,
   "تشكيله": 1795824648,
   "ميامي": 1795824648,
   "لمواجهه": 1795824648,
-  "كولومبوس": 1795824648
+  "كولومبوس": 1795824648,
+  "اذا فاز": 1795828843,
+  "ميامي باي": 1795828843,
+  "تلعب مباراه": 1795828843,
+  "ثالثه فاصله": 1795828843,
+  "اذا خسر": 1795828843,
+  "المباراه الثانيه": 1795828837,
+  "تصفيات": 1795828837
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -692,8 +699,11 @@
   "Real Madrid": 1795817447.3755229,
   "David Raya": 1795818048.8192234,
   "Manchester City": 1795818048.8192234,
-  "Inter Miami": 1795824652.9088674,
-  "Columbus Crew": 1795824652.9088674
+  "Inter Miami": 1795828843.5704262,
+  "Columbus Crew": 1795828843.5704262,
+  "Eastern Conference": 1795828843.5704262,
+  "Inter Miami's": 1795828843.5704262,
+  "MLS Cup Playoffs": 1795828839.7345927
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -742,7 +752,9 @@
   "391916": "Chelsea's record with and without João Pedro  • Chelsea took 4 wins, 1 draw and 1 defeat in the Premier League this season with João Pedro, ",
   "391917": "David Raya in line to face Manchester City  • David Raya is expected to be fit to play for Arsenal against Manchester City.",
   "391918": "Xabi Alonso speaks on confidence issues  • Xabi Alonso believes the team's main problem is a lack of confidence.",
-  "391920": "Inter Miami lineup announced  • Inter Miami starting XI for the match against Columbus Crew."
+  "391920": "Inter Miami lineup announced  • Inter Miami starting XI for the match against Columbus Crew.",
+  "391921": "Columbus Crew face Inter Miami in MLS Cup Playoffs",
+  "391922": "Inter Miami playoff scenarios  • A win of any kind for Inter Miami forces a deciding third match at Inter Miami on 2 December. • A defeat fo"
  },
  "sent_recent": {
   "391868": {
@@ -1032,6 +1044,18 @@
    "is_media": true,
    "src_hash": "beb69c5d04ca",
    "body_hash": "e8671fe67a34"
+  },
+  "391921": {
+   "msg_id": 15449,
+   "is_media": true,
+   "src_hash": "a3d9618f89a9",
+   "body_hash": "1465e296222f"
+  },
+  "391922": {
+   "msg_id": 15450,
+   "is_media": false,
+   "src_hash": "2138b613faf6",
+   "body_hash": "d101b04c4178"
   }
  }
 }
