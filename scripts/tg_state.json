@@ -510,7 +510,7 @@
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795821043.305368,
  "site_promo_index": 1,
- "last_daily_photo_date": "20261127",
+ "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
    "ok": 51,
@@ -1180,5 +1180,40 @@
    "src_hash": "",
    "body_hash": ""
   }
+ },
+ "daily_clubs": {
+  "date": "20261128",
+  "names": [
+   "Leeds United",
+   "Coventry City",
+   "Manchester United",
+   "Brentford",
+   "Ipswich Town",
+   "Aston Villa",
+   "Real Betis",
+   "Rayo Vallecano",
+   "Málaga",
+   "Athletic Club",
+   "Elche",
+   "Atlético Madrid",
+   "Real Madrid",
+   "Deportivo Alavés",
+   "Frosinone",
+   "Parma",
+   "Torino",
+   "Lazio",
+   "Inter",
+   "Genoa",
+   "1. FC Köln",
+   "Elversberg",
+   "Hamburger SV",
+   "Bayern München",
+   "Mainz 05",
+   "Union Berlin",
+   "Paderborn",
+   "Schalke 04",
+   "VfB Stuttgart",
+   "Eintracht Frankfurt"
+  ]
  }
 }
