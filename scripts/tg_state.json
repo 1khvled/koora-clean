@@ -1,8 +1,6 @@
 {
- "offside": 391948,
+ "offside": 391949,
  "seen": [
-  "4c281e2d88b3",
-  "s:70c2c3794085",
   "9252ab8d9154",
   "f8ef797b80c5",
   "99168fc34a4d",
@@ -300,13 +298,14 @@
   "2c7a6051f836",
   "d2b147c6962d",
   "327388dec58a",
-  "2edb90184bd2"
+  "2edb90184bd2",
+  "d106f65bfbd4",
+  "7aa0b8ef7ab6"
  ],
  "seo_msg": 15464,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391724": 15251,
   "391725": 15252,
   "391726": 15253,
   "391727": 15254,
@@ -505,7 +504,8 @@
   "391943": 15473,
   "391944": 15474,
   "391946": 15475,
-  "391948": 15476
+  "391948": 15476,
+  "391949": 15477
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -513,27 +513,27 @@
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 51,
-   "fail": 9
+   "ok": 43,
+   "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 2,
-   "fail": 6
+   "fail": 7
   },
   "gemini:gemma-4-26b-a4b-it": {
    "ok": 5,
-   "fail": 8
+   "fail": 9
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
    "ok": 0,
-   "fail": 5
+   "fail": 6
   },
   "nvidia:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": {
    "ok": 0,
-   "fail": 5
+   "fail": 6
   },
   "groq:qwen/qwen3.8-27b": {
-   "ok": 2,
+   "ok": 3,
    "fail": 3
   },
   "groq:openai/gpt-oss-20b": {
@@ -562,7 +562,7 @@
   "يحتسب": 1795814231,
   "حسام عوار": 1795807821,
   "نهايه المباراه": 1795835469,
-  "نهايه": 1795835469,
+  "نهايه": 1795871155,
   "المباراه": 1795828837,
   "الجوله الثانيه": 1795816592,
   "عامر الخوذيري": 1795809948,
@@ -582,7 +582,7 @@
   "ايغور": 1795810251,
   "مونيوث": 1795810251,
   "كاملا": 1795816532,
-  "الجوله": 1795812639,
+  "الجوله": 1795871155,
   "توتنغهام": 1795813833,
   "تحصل عليها": 1795813838,
   "ليام ديلاب": 1795813838,
@@ -720,7 +720,11 @@
   "تشكيله الفريقين": 1795864530,
   "الفريقين": 1795864530,
   "الرسميه": 1795864530,
-  "عبد الله": 1795868433
+  "عبد الله": 1795868433,
+  "الجوله الثالثه": 1795871155,
+  "الثالثه": 1795871155,
+  "الحزم": 1795871155,
+  "النصر": 1795871155
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -767,9 +771,9 @@
   "King Abdullah Stadium": 1795868439.3363397,
   "Khalid Al-Mudaifer": 1795868439.3363397,
   "Fares Awad": 1795868439.3363397,
-  "Al-Nassr": 1795870034.740319,
-  "Al-Hazm": 1795870573.0934834,
-  "Samuel Costa": 1795869996.3072042,
+  "Al-Nassr": 1795871158.8101308,
+  "Al-Hazm": 1795871158.8101308,
+  "Samuel Costa": 1795871158.8101308,
   "Samy Costa": 1795870034.740319
  },
  "parent_en": {
@@ -841,7 +845,8 @@
   "391943": "Al-Nassr 1-0 Al-Hazm  ⚽ Samuel Costa scored Al-Nassr's first goal.",
   "391944": "Al-Nassr take the lead against Al-Hazm  • Samy Costa scored the opening goal for Al-Nassr in the 26th minute, making it 1-0.",
   "391946": "Al-Hazm goal disallowed",
-  "391948": "Disallowed goal replay  • Goal replay of the disallowed Al-Hazm goal."
+  "391948": "Disallowed goal replay  • Goal replay of the disallowed Al-Hazm goal.",
+  "391949": "Al-Hazm 0-1 Al-Nassr at half-time  ⚽ Samuel Costa scored for Al-Nassr."
  },
  "sent_recent": {
   "391868": {
@@ -1275,6 +1280,12 @@
    "is_media": true,
    "src_hash": "327388dec58a",
    "body_hash": "2edb90184bd2"
+  },
+  "391949": {
+   "msg_id": 15477,
+   "is_media": true,
+   "src_hash": "d106f65bfbd4",
+   "body_hash": "7aa0b8ef7ab6"
   }
  },
  "daily_clubs": {
