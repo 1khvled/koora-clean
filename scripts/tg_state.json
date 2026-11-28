@@ -1,8 +1,6 @@
 {
- "offside": 391919,
+ "offside": 391920,
  "seen": [
-  "baea496c1632",
-  "600faef960b5",
   "581662d6c8f2",
   "f3ce02711aef",
   "479ae54be856",
@@ -300,13 +298,14 @@
   "5ad89600cb8a",
   "c66642201ca0",
   "a601938f0738",
-  "fc64c2deee7e"
+  "fc64c2deee7e",
+  "beb69c5d04ca",
+  "e8671fe67a34"
  ],
  "seo_msg": 15443,
  "last_promo": 1795821043.305368,
  "post_retry": {},
  "msgmap": {
-  "391695": 15224,
   "391696": 15225,
   "391697": 15226,
   "391698": 15227,
@@ -505,7 +504,8 @@
   "391915": 15441,
   "391916": 15442,
   "391917": 15445,
-  "391918": 15446
+  "391918": 15446,
+  "391920": 15448
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795821043.305368,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 38,
+   "ok": 39,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -659,7 +659,13 @@
   "مشكلتنا": 1795818365,
   "مشكله": 1795818365,
   "تتعلق": 1795818365,
-  "بالثقه": 1795818365
+  "بالثقه": 1795818365,
+  "ميامي لمواجهه": 1795824648,
+  "كولومبوس كرو": 1795824648,
+  "تشكيله": 1795824648,
+  "ميامي": 1795824648,
+  "لمواجهه": 1795824648,
+  "كولومبوس": 1795824648
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -685,7 +691,9 @@
   "Xabi Alonso": 1795818370.1622863,
   "Real Madrid": 1795817447.3755229,
   "David Raya": 1795818048.8192234,
-  "Manchester City": 1795818048.8192234
+  "Manchester City": 1795818048.8192234,
+  "Inter Miami": 1795824652.9088674,
+  "Columbus Crew": 1795824652.9088674
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -733,7 +741,8 @@
   "391915": "Morgan Gibbs-White praises special atmosphere  • Morgan Gibbs-White: This is what City Ground nights are truly all about.",
   "391916": "Chelsea's record with and without João Pedro  • Chelsea took 4 wins, 1 draw and 1 defeat in the Premier League this season with João Pedro, ",
   "391917": "David Raya in line to face Manchester City  • David Raya is expected to be fit to play for Arsenal against Manchester City.",
-  "391918": "Xabi Alonso speaks on confidence issues  • Xabi Alonso believes the team's main problem is a lack of confidence."
+  "391918": "Xabi Alonso speaks on confidence issues  • Xabi Alonso believes the team's main problem is a lack of confidence.",
+  "391920": "Inter Miami lineup announced  • Inter Miami starting XI for the match against Columbus Crew."
  },
  "sent_recent": {
   "391868": {
@@ -1017,6 +1026,12 @@
    "is_media": true,
    "src_hash": "64b157744208",
    "body_hash": "fc64c2deee7e"
+  },
+  "391920": {
+   "msg_id": 15448,
+   "is_media": true,
+   "src_hash": "beb69c5d04ca",
+   "body_hash": "e8671fe67a34"
   }
  }
 }
