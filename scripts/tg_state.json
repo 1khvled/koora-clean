@@ -1,8 +1,6 @@
 {
- "offside": 391945,
+ "offside": 391947,
  "seen": [
-  "1b1b5331d0b5",
-  "06a80702cd9f",
   "4c3255325a2f",
   "9084669c7aca",
   "4c281e2d88b3",
@@ -300,13 +298,14 @@
   "8e37a10eef72",
   "34d41c562df3",
   "2df78cb86ea2",
-  "1d6c12d6a89e"
+  "1d6c12d6a89e",
+  "2c7a6051f836",
+  "d2b147c6962d"
  ],
  "seo_msg": 15464,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391722": 15249,
   "391723": 15250,
   "391724": 15251,
   "391725": 15252,
@@ -505,7 +504,8 @@
   "391941": 15470,
   "391942": 15472,
   "391943": 15473,
-  "391944": 15474
+  "391944": 15474,
+  "391946": 15475
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 48,
+   "ok": 50,
    "fail": 9
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -723,7 +723,7 @@
   "تشكيله الفريقين": 1795864530,
   "الفريقين": 1795864530,
   "الرسميه": 1795864530,
-  "الحزم": 1795870000,
+  "الحزم": 1795870242,
   "النصر": 1795870000,
   "خالد المديفر": 1795868433,
   "فارس عوض": 1795868433,
@@ -732,7 +732,8 @@
   "كوستا": 1795870000,
   "سامو كوستا": 1795870000,
   "صامويل كوستا": 1795869993,
-  "صامويل": 1795869993
+  "صامويل": 1795869993,
+  "للحزم": 1795870235
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -780,7 +781,7 @@
   "Khalid Al-Mudaifer": 1795868439.3363397,
   "Fares Awad": 1795868439.3363397,
   "Al-Nassr": 1795870034.740319,
-  "Al-Hazm": 1795870034.740319,
+  "Al-Hazm": 1795870238.1581392,
   "Samuel Costa": 1795869996.3072042,
   "Samy Costa": 1795870034.740319
  },
@@ -851,7 +852,8 @@
   "391941": "Al Hazem vs Al Nassr official lineups  • Official starting line-ups announced for Al Hazem against Al Nassr.",
   "391942": "Match start: Al Hazm vs Al Nassr  • Al Hazm vs Al Nassr in the Saudi Pro League Round 13. • Kick-off at King Abdullah Stadium. • Broadcast o",
   "391943": "Al-Nassr 1-0 Al-Hazm  ⚽ Samuel Costa scored Al-Nassr's first goal.",
-  "391944": "Al-Nassr take the lead against Al-Hazm  • Samy Costa scored the opening goal for Al-Nassr in the 26th minute, making it 1-0."
+  "391944": "Al-Nassr take the lead against Al-Hazm  • Samy Costa scored the opening goal for Al-Nassr in the 26th minute, making it 1-0.",
+  "391946": "Al-Hazm goal disallowed"
  },
  "sent_recent": {
   "391868": {
@@ -1273,6 +1275,12 @@
    "is_media": true,
    "src_hash": "2df78cb86ea2",
    "body_hash": "1d6c12d6a89e"
+  },
+  "391946": {
+   "msg_id": 15475,
+   "is_media": false,
+   "src_hash": "2c7a6051f836",
+   "body_hash": "d2b147c6962d"
   }
  },
  "daily_clubs": {
