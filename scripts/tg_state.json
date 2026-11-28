@@ -1,8 +1,6 @@
 {
- "offside": 391949,
+ "offside": 391950,
  "seen": [
-  "9252ab8d9154",
-  "f8ef797b80c5",
   "99168fc34a4d",
   "36cb9fdf6d2b",
   "253e597c4584",
@@ -300,13 +298,14 @@
   "327388dec58a",
   "2edb90184bd2",
   "d106f65bfbd4",
-  "7aa0b8ef7ab6"
+  "7aa0b8ef7ab6",
+  "06a9b106c018",
+  "274888adf601"
  ],
  "seo_msg": 15464,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391725": 15252,
   "391726": 15253,
   "391727": 15254,
   "391728": 15255,
@@ -505,7 +504,8 @@
   "391944": 15474,
   "391946": 15475,
   "391948": 15476,
-  "391949": 15477
+  "391949": 15477,
+  "391950": 15478
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 43,
+   "ok": 44,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -659,7 +659,7 @@
   "بالثقه": 1795818365,
   "ميامي لمواجهه": 1795824648,
   "كولومبوس كرو": 1795835469,
-  "تشكيله": 1795864530,
+  "تشكيله": 1795871439,
   "ميامي": 1795835441,
   "لمواجهه": 1795824648,
   "كولومبوس": 1795835441,
@@ -719,12 +719,15 @@
   "الرديف": 1795860639,
   "تشكيله الفريقين": 1795864530,
   "الفريقين": 1795864530,
-  "الرسميه": 1795864530,
+  "الرسميه": 1795871439,
   "عبد الله": 1795868433,
   "الجوله الثالثه": 1795871155,
   "الثالثه": 1795871155,
   "الحزم": 1795871155,
-  "النصر": 1795871155
+  "النصر": 1795871155,
+  "تشكيله الهلال": 1795871439,
+  "الهلال": 1795871439,
+  "الاتفاق": 1795871439
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -774,7 +777,9 @@
   "Al-Nassr": 1795871158.8101308,
   "Al-Hazm": 1795871158.8101308,
   "Samuel Costa": 1795871158.8101308,
-  "Samy Costa": 1795870034.740319
+  "Samy Costa": 1795870034.740319,
+  "Al-Hilal": 1795871444.5524547,
+  "Al-Ettifaq": 1795871444.5524547
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -846,7 +851,8 @@
   "391944": "Al-Nassr take the lead against Al-Hazm  • Samy Costa scored the opening goal for Al-Nassr in the 26th minute, making it 1-0.",
   "391946": "Al-Hazm goal disallowed",
   "391948": "Disallowed goal replay  • Goal replay of the disallowed Al-Hazm goal.",
-  "391949": "Al-Hazm 0-1 Al-Nassr at half-time  ⚽ Samuel Costa scored for Al-Nassr."
+  "391949": "Al-Hazm 0-1 Al-Nassr at half-time  ⚽ Samuel Costa scored for Al-Nassr.",
+  "391950": "Al-Hilal announce official lineup to face Al-Ettifaq"
  },
  "sent_recent": {
   "391868": {
@@ -1286,6 +1292,12 @@
    "is_media": true,
    "src_hash": "d106f65bfbd4",
    "body_hash": "7aa0b8ef7ab6"
+  },
+  "391950": {
+   "msg_id": 15478,
+   "is_media": true,
+   "src_hash": "06a9b106c018",
+   "body_hash": "274888adf601"
   }
  },
  "daily_clubs": {
