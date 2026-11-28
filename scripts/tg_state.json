@@ -1,8 +1,6 @@
 {
- "offside": 391951,
+ "offside": 391952,
  "seen": [
-  "99168fc34a4d",
-  "36cb9fdf6d2b",
   "253e597c4584",
   "edeb12584954",
   "aeb9f83e4932",
@@ -300,13 +298,14 @@
   "d106f65bfbd4",
   "7aa0b8ef7ab6",
   "06a9b106c018",
-  "274888adf601"
+  "274888adf601",
+  "9967a7f589ed",
+  "a0504791e950"
  ],
  "seo_msg": 15464,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391726": 15253,
   "391727": 15254,
   "391728": 15255,
   "391729": 15256,
@@ -505,7 +504,8 @@
   "391946": 15475,
   "391948": 15476,
   "391949": 15477,
-  "391950": 15478
+  "391950": 15478,
+  "391952": 15479
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -514,14 +514,14 @@
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
    "ok": 44,
-   "fail": 8
+   "fail": 9
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 2,
    "fail": 7
   },
   "gemini:gemma-4-26b-a4b-it": {
-   "ok": 5,
+   "ok": 6,
    "fail": 9
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
@@ -659,7 +659,7 @@
   "بالثقه": 1795818365,
   "ميامي لمواجهه": 1795824648,
   "كولومبوس كرو": 1795835469,
-  "تشكيله": 1795871439,
+  "تشكيله": 1795872941,
   "ميامي": 1795835441,
   "لمواجهه": 1795824648,
   "كولومبوس": 1795835441,
@@ -719,7 +719,7 @@
   "الرديف": 1795860639,
   "تشكيله الفريقين": 1795864530,
   "الفريقين": 1795864530,
-  "الرسميه": 1795871439,
+  "الرسميه": 1795872941,
   "عبد الله": 1795868433,
   "الجوله الثالثه": 1795871155,
   "الثالثه": 1795871155,
@@ -727,7 +727,8 @@
   "النصر": 1795871155,
   "تشكيله الهلال": 1795871439,
   "الهلال": 1795871439,
-  "الاتفاق": 1795871439
+  "الاتفاق": 1795871439,
+  "هامبورغ": 1795872941
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -779,7 +780,8 @@
   "Samuel Costa": 1795871158.8101308,
   "Samy Costa": 1795870034.740319,
   "Al-Hilal": 1795871444.5524547,
-  "Al-Ettifaq": 1795871444.5524547
+  "Al-Ettifaq": 1795871444.5524547,
+  "Bayern Munich": 1795872945.3662713
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -852,7 +854,8 @@
   "391946": "Al-Hazm goal disallowed",
   "391948": "Disallowed goal replay  • Goal replay of the disallowed Al-Hazm goal.",
   "391949": "Al-Hazm 0-1 Al-Nassr at half-time  ⚽ Samuel Costa scored for Al-Nassr.",
-  "391950": "Al-Hilal announce official lineup to face Al-Ettifaq"
+  "391950": "Al-Hilal announce official lineup to face Al-Ettifaq",
+  "391952": "Bayern Munich lineup against Hamburg"
  },
  "sent_recent": {
   "391868": {
@@ -1298,6 +1301,12 @@
    "is_media": true,
    "src_hash": "06a9b106c018",
    "body_hash": "274888adf601"
+  },
+  "391952": {
+   "msg_id": 15479,
+   "is_media": true,
+   "src_hash": "9967a7f589ed",
+   "body_hash": "a0504791e950"
   }
  },
  "daily_clubs": {
