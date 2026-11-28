@@ -1,8 +1,6 @@
 {
- "offside": 391926,
+ "offside": 391927,
  "seen": [
-  "1a81ec88c3c1",
-  "58de586cdecb",
   "3371c2bc08a9",
   "edc079fe038c",
   "0ee9257e126d",
@@ -300,13 +298,14 @@
   "2090f8bdf3a1",
   "aab76f361799",
   "ba9f3637e7f9",
-  "a28d5da1f554"
+  "a28d5da1f554",
+  "6fa2e4a10f15",
+  "598a123fdd6d"
  ],
  "seo_msg": 15443,
  "last_promo": 1795821043.305368,
  "post_retry": {},
  "msgmap": {
-  "391702": 15231,
   "391703": 15232,
   "391704": 15233,
   "391705": 15234,
@@ -505,7 +504,8 @@
   "391923": 15451,
   "391924": 15452,
   "391925": 15453,
-  "391926": 15454
+  "391926": 15454,
+  "391927": 15455
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795821043.305368,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 44,
+   "ok": 45,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -563,7 +563,7 @@
   "حسام عوار": 1795807821,
   "نهايه المباراه": 1795816592,
   "الجوله الثالثه": 1795807821,
-  "نهايه": 1795812639,
+  "نهايه": 1795831551,
   "المباراه": 1795828837,
   "بدايه المباراه": 1795828837,
   "الجوله الثانيه": 1795816592,
@@ -661,7 +661,7 @@
   "تتعلق": 1795818365,
   "بالثقه": 1795818365,
   "ميامي لمواجهه": 1795824648,
-  "كولومبوس كرو": 1795828837,
+  "كولومبوس كرو": 1795831551,
   "تشكيله": 1795824648,
   "ميامي": 1795824648,
   "لمواجهه": 1795824648,
@@ -671,13 +671,15 @@
   "تلعب مباراه": 1795828843,
   "ثالثه فاصله": 1795828843,
   "اذا خسر": 1795828843,
-  "المباراه الثانيه": 1795828837,
-  "تصفيات": 1795828837,
+  "المباراه الثانيه": 1795831551,
+  "تصفيات": 1795831551,
   "اعاده فرصه": 1795829781,
   "فاول خطير": 1795830330,
   "وتصدي الحارس": 1795830330,
   "وتصدي": 1795830330,
-  "الحارس": 1795830330
+  "الحارس": 1795830330,
+  "الامريكي": 1795831551,
+  "الدور": 1795831551
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -704,11 +706,12 @@
   "Real Madrid": 1795817447.3755229,
   "David Raya": 1795818048.8192234,
   "Manchester City": 1795818048.8192234,
-  "Inter Miami": 1795828843.5704262,
-  "Columbus Crew": 1795828843.5704262,
+  "Inter Miami": 1795831555.8748884,
+  "Columbus Crew": 1795831555.8748884,
   "Eastern Conference": 1795828843.5704262,
   "Inter Miami's": 1795828843.5704262,
-  "MLS Cup Playoffs": 1795828839.7345927
+  "MLS Cup Playoffs": 1795831555.8748884,
+  "Round One": 1795831555.8748884
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -762,7 +765,8 @@
   "391922": "Inter Miami playoff scenarios  • A win of any kind for Inter Miami forces a deciding third match at Inter Miami on 2 December. • A defeat fo",
   "391923": "Messi close to the opener",
   "391924": "Messi chance replay",
-  "391925": "Messi free-kick saved  • Messi hit a dangerous free-kick that was stopped by the goalkeeper."
+  "391925": "Messi free-kick saved  • Messi hit a dangerous free-kick that was stopped by the goalkeeper.",
+  "391927": "Columbus Crew 0-0 Inter Miami at the break  • Columbus Crew and Inter Miami are goalless at half-time in their MLS Cup Playoffs Round One ma"
  },
  "sent_recent": {
   "391868": {
@@ -1088,6 +1092,12 @@
    "is_media": true,
    "src_hash": "",
    "body_hash": ""
+  },
+  "391927": {
+   "msg_id": 15455,
+   "is_media": true,
+   "src_hash": "6fa2e4a10f15",
+   "body_hash": "598a123fdd6d"
   }
  }
 }
