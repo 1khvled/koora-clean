@@ -1,10 +1,6 @@
 {
- "offside": 391928,
+ "offside": 391931,
  "seen": [
-  "3371c2bc08a9",
-  "edc079fe038c",
-  "0ee9257e126d",
-  "d4037ac02dc2",
   "d768d68e01fa",
   "17830bb8b218",
   "6b1e4bd07377",
@@ -300,14 +296,16 @@
   "ba9f3637e7f9",
   "a28d5da1f554",
   "6fa2e4a10f15",
-  "598a123fdd6d"
+  "598a123fdd6d",
+  "20edec5b6adc",
+  "cc9c2b67ef3a",
+  "3304406b3aa3",
+  "f7ec243abeca"
  ],
  "seo_msg": 15443,
  "last_promo": 1795821043.305368,
  "post_retry": {},
  "msgmap": {
-  "391703": 15232,
-  "391704": 15233,
   "391705": 15234,
   "391707": 15235,
   "391709": 15236,
@@ -505,7 +503,9 @@
   "391924": 15452,
   "391925": 15453,
   "391926": 15454,
-  "391927": 15455
+  "391927": 15455,
+  "391929": 15456,
+  "391930": 15457
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795821043.305368,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 45,
+   "ok": 47,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -679,7 +679,13 @@
   "وتصدي": 1795830330,
   "الحارس": 1795830330,
   "الامريكي": 1795831551,
-  "الدور": 1795831551
+  "الدور": 1795831551,
+  "كاسيميرو": 1795834534,
+  "اسيست": 1795834534,
+  "كاسيميرو اسيست": 1795834534,
+  "كاسيميرو يسجل": 1795834529,
+  "لكن تسلل": 1795834529,
+  "ركله حره": 1795834529
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -766,7 +772,9 @@
   "391923": "Messi close to the opener",
   "391924": "Messi chance replay",
   "391925": "Messi free-kick saved  • Messi hit a dangerous free-kick that was stopped by the goalkeeper.",
-  "391927": "Columbus Crew 0-0 Inter Miami at the break  • Columbus Crew and Inter Miami are goalless at half-time in their MLS Cup Playoffs Round One ma"
+  "391927": "Columbus Crew 0-0 Inter Miami at the break  • Columbus Crew and Inter Miami are goalless at half-time in their MLS Cup Playoffs Round One ma",
+  "391929": "Casemiro goal disallowed for offside  • The disallowed goal came from a free-kick assist by Messi.",
+  "391930": "Casemiro disallowed goal ruled out  • Casemiro had a goal disallowed, with the assist provided by Messi."
  },
  "sent_recent": {
   "391868": {
@@ -1098,6 +1106,18 @@
    "is_media": true,
    "src_hash": "6fa2e4a10f15",
    "body_hash": "598a123fdd6d"
+  },
+  "391929": {
+   "msg_id": 15456,
+   "is_media": false,
+   "src_hash": "20edec5b6adc",
+   "body_hash": "cc9c2b67ef3a"
+  },
+  "391930": {
+   "msg_id": 15457,
+   "is_media": true,
+   "src_hash": "3304406b3aa3",
+   "body_hash": "f7ec243abeca"
   }
  }
 }
