@@ -1,8 +1,6 @@
 {
- "offside": 391940,
+ "offside": 391941,
  "seen": [
-  "207091614aae",
-  "88ad6ace2ff7",
   "daeb31967b3f",
   "1b16a7cf23ea",
   "1329559ed440",
@@ -300,13 +298,14 @@
   "15767e736730",
   "c9e600643be8",
   "18a691f9f25f",
-  "e919ad217ea1"
+  "e919ad217ea1",
+  "ce59ce0f6181",
+  "56e61bb0ef16"
  ],
  "seo_msg": 15464,
- "last_promo": 1795821043.305368,
+ "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391717": 15245,
   "391718": 15246,
   "391719": 15247,
   "391721": 15248,
@@ -505,15 +504,16 @@
   "391937": 15463,
   "391938": 15467,
   "391939": 15468,
-  "391940": 15469
+  "391940": 15469,
+  "391941": 15470
  },
  "last_err_alert": 1795645010.6540186,
- "last_site_promo": 1795821043.305368,
+ "last_site_promo": 1795864535.578503,
  "site_promo_index": 1,
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 46,
+   "ok": 47,
    "fail": 7
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -662,7 +662,7 @@
   "بالثقه": 1795818365,
   "ميامي لمواجهه": 1795824648,
   "كولومبوس كرو": 1795835469,
-  "تشكيله": 1795824648,
+  "تشكيله": 1795864530,
   "ميامي": 1795835441,
   "لمواجهه": 1795824648,
   "كولومبوس": 1795835441,
@@ -719,7 +719,12 @@
   "الرديف امس": 1795860639,
   "شعر بانزعاج": 1795860639,
   "عبدالكريم": 1795860639,
-  "الرديف": 1795860639
+  "الرديف": 1795860639,
+  "تشكيله الفريقين": 1795864530,
+  "الفريقين": 1795864530,
+  "الرسميه": 1795864530,
+  "الحزم": 1795864530,
+  "النصر": 1795864530
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -826,7 +831,8 @@
   "391936": "Inter Miami eliminated from MLS Cup Playoffs  • Defending champions Inter Miami exited the MLS Cup Playoffs in the first round to end their ",
   "391938": "Paris Saint-Germain target Estêvão  • Paris Saint-Germain are showing interest in signing the Brazilian Estêvão, according to Nicolò Schira.",
   "391939": "Hamza Abdelkarim suffers new injury setback in training  • Hamza Abdelkarim felt discomfort again during training with the reserves yesterda",
-  "391940": "Liverpool hold talks over Alejandro Balde  • Liverpool met with Jorge Mendes, agent of Alejandro Balde, to discuss a loan deal with an optio"
+  "391940": "Liverpool hold talks over Alejandro Balde  • Liverpool met with Jorge Mendes, agent of Alejandro Balde, to discuss a loan deal with an optio",
+  "391941": "Al Hazem vs Al Nassr official lineups  • Official starting line-ups announced for Al Hazem against Al Nassr."
  },
  "sent_recent": {
   "391868": {
@@ -1224,6 +1230,12 @@
    "is_media": true,
    "src_hash": "18a691f9f25f",
    "body_hash": "e919ad217ea1"
+  },
+  "391941": {
+   "msg_id": 15470,
+   "is_media": true,
+   "src_hash": "ce59ce0f6181",
+   "body_hash": "56e61bb0ef16"
   }
  },
  "daily_clubs": {
