@@ -1,8 +1,6 @@
 {
- "offside": 391924,
+ "offside": 391926,
  "seen": [
-  "373313fbef4b",
-  "1c83c2a6fcfd",
   "1a81ec88c3c1",
   "58de586cdecb",
   "3371c2bc08a9",
@@ -300,14 +298,14 @@
   "37e5fd30464a",
   "2f2c551a720f",
   "2090f8bdf3a1",
-  "aab76f361799"
+  "aab76f361799",
+  "ba9f3637e7f9",
+  "a28d5da1f554"
  ],
  "seo_msg": 15443,
  "last_promo": 1795821043.305368,
  "post_retry": {},
  "msgmap": {
-  "391700": 15229,
-  "391701": 15230,
   "391702": 15231,
   "391703": 15232,
   "391704": 15233,
@@ -505,7 +503,9 @@
   "391921": 15449,
   "391922": 15450,
   "391923": 15451,
-  "391924": 15452
+  "391924": 15452,
+  "391925": 15453,
+  "391926": 15454
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795821043.305368,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 43,
+   "ok": 44,
    "fail": 8
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -673,7 +673,11 @@
   "اذا خسر": 1795828843,
   "المباراه الثانيه": 1795828837,
   "تصفيات": 1795828837,
-  "اعاده فرصه": 1795829781
+  "اعاده فرصه": 1795829781,
+  "فاول خطير": 1795830330,
+  "وتصدي الحارس": 1795830330,
+  "وتصدي": 1795830330,
+  "الحارس": 1795830330
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -757,7 +761,8 @@
   "391921": "Columbus Crew face Inter Miami in MLS Cup Playoffs",
   "391922": "Inter Miami playoff scenarios  • A win of any kind for Inter Miami forces a deciding third match at Inter Miami on 2 December. • A defeat fo",
   "391923": "Messi close to the opener",
-  "391924": "Messi chance replay"
+  "391924": "Messi chance replay",
+  "391925": "Messi free-kick saved  • Messi hit a dangerous free-kick that was stopped by the goalkeeper."
  },
  "sent_recent": {
   "391868": {
@@ -1071,6 +1076,18 @@
    "is_media": true,
    "src_hash": "2090f8bdf3a1",
    "body_hash": "aab76f361799"
+  },
+  "391925": {
+   "msg_id": 15453,
+   "is_media": true,
+   "src_hash": "ba9f3637e7f9",
+   "body_hash": "a28d5da1f554"
+  },
+  "391926": {
+   "msg_id": 15454,
+   "is_media": true,
+   "src_hash": "",
+   "body_hash": ""
   }
  }
 }
