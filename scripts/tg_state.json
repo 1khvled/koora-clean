@@ -1,10 +1,6 @@
 {
- "offside": 391942,
+ "offside": 391945,
  "seen": [
-  "1329559ed440",
-  "7c6ecf9db289",
-  "cb6fed9c35c2",
-  "e4f0d9fc7d0d",
   "1b1b5331d0b5",
   "06a80702cd9f",
   "4c3255325a2f",
@@ -300,14 +296,16 @@
   "ce59ce0f6181",
   "56e61bb0ef16",
   "751058458783",
-  "344a393db18b"
+  "344a393db18b",
+  "8e37a10eef72",
+  "34d41c562df3",
+  "2df78cb86ea2",
+  "1d6c12d6a89e"
  ],
  "seo_msg": 15464,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391719": 15247,
-  "391721": 15248,
   "391722": 15249,
   "391723": 15250,
   "391724": 15251,
@@ -505,7 +503,9 @@
   "391939": 15468,
   "391940": 15469,
   "391941": 15470,
-  "391942": 15472
+  "391942": 15472,
+  "391943": 15473,
+  "391944": 15474
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -513,27 +513,27 @@
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 47,
-   "fail": 8
+   "ok": 48,
+   "fail": 9
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 2,
-   "fail": 5
+   "fail": 6
   },
   "gemini:gemma-4-26b-a4b-it": {
    "ok": 5,
-   "fail": 7
+   "fail": 8
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
    "ok": 0,
-   "fail": 4
+   "fail": 5
   },
   "nvidia:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": {
    "ok": 0,
-   "fail": 4
+   "fail": 5
   },
   "groq:qwen/qwen3.8-27b": {
-   "ok": 1,
+   "ok": 2,
    "fail": 3
   },
   "groq:openai/gpt-oss-20b": {
@@ -723,12 +723,16 @@
   "تشكيله الفريقين": 1795864530,
   "الفريقين": 1795864530,
   "الرسميه": 1795864530,
-  "الحزم": 1795864530,
-  "النصر": 1795864530,
+  "الحزم": 1795870000,
+  "النصر": 1795870000,
   "خالد المديفر": 1795868433,
   "فارس عوض": 1795868433,
   "عبر تطبيق": 1795868433,
-  "عبد الله": 1795868433
+  "عبد الله": 1795868433,
+  "كوستا": 1795870000,
+  "سامو كوستا": 1795870000,
+  "صامويل كوستا": 1795869993,
+  "صامويل": 1795869993
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -774,7 +778,11 @@
   "Saudi Pro League": 1795868439.3363397,
   "King Abdullah Stadium": 1795868439.3363397,
   "Khalid Al-Mudaifer": 1795868439.3363397,
-  "Fares Awad": 1795868439.3363397
+  "Fares Awad": 1795868439.3363397,
+  "Al-Nassr": 1795870034.740319,
+  "Al-Hazm": 1795870034.740319,
+  "Samuel Costa": 1795869996.3072042,
+  "Samy Costa": 1795870034.740319
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -841,7 +849,9 @@
   "391939": "Hamza Abdelkarim suffers new injury setback in training  • Hamza Abdelkarim felt discomfort again during training with the reserves yesterda",
   "391940": "Liverpool hold talks over Alejandro Balde  • Liverpool met with Jorge Mendes, agent of Alejandro Balde, to discuss a loan deal with an optio",
   "391941": "Al Hazem vs Al Nassr official lineups  • Official starting line-ups announced for Al Hazem against Al Nassr.",
-  "391942": "Match start: Al Hazm vs Al Nassr  • Al Hazm vs Al Nassr in the Saudi Pro League Round 13. • Kick-off at King Abdullah Stadium. • Broadcast o"
+  "391942": "Match start: Al Hazm vs Al Nassr  • Al Hazm vs Al Nassr in the Saudi Pro League Round 13. • Kick-off at King Abdullah Stadium. • Broadcast o",
+  "391943": "Al-Nassr 1-0 Al-Hazm  ⚽ Samuel Costa scored Al-Nassr's first goal.",
+  "391944": "Al-Nassr take the lead against Al-Hazm  • Samy Costa scored the opening goal for Al-Nassr in the 26th minute, making it 1-0."
  },
  "sent_recent": {
   "391868": {
@@ -1251,6 +1261,18 @@
    "is_media": true,
    "src_hash": "751058458783",
    "body_hash": "344a393db18b"
+  },
+  "391943": {
+   "msg_id": 15473,
+   "is_media": false,
+   "src_hash": "8e37a10eef72",
+   "body_hash": "34d41c562df3"
+  },
+  "391944": {
+   "msg_id": 15474,
+   "is_media": true,
+   "src_hash": "2df78cb86ea2",
+   "body_hash": "1d6c12d6a89e"
   }
  },
  "daily_clubs": {
