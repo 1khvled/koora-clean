@@ -1,8 +1,6 @@
 {
- "offside": 391937,
+ "offside": 391938,
  "seen": [
-  "8eb72b708560",
-  "4be26dc0b3be",
   "6d960e0c3c48",
   "8845c923996c",
   "0cb9769edd35",
@@ -300,13 +298,14 @@
   "383f5adaf340",
   "cad56367bddc",
   "9882ec6ec071",
-  "45326e19f3b3"
+  "45326e19f3b3",
+  "11cc047248f1",
+  "d3e74a29a7c4"
  ],
  "seo_msg": 15464,
  "last_promo": 1795821043.305368,
  "post_retry": {},
  "msgmap": {
-  "391713": 15240,
   "391714": 15241,
   "391716": 15244,
   "391717": 15245,
@@ -505,7 +504,8 @@
   "391934": 15460,
   "391935": 15461,
   "391936": 15462,
-  "391937": 15463
+  "391937": 15463,
+  "391938": 15467
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795821043.305368,
@@ -513,8 +513,8 @@
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 51,
-   "fail": 9
+   "ok": 44,
+   "fail": 7
   },
   "gemini:gemini-3.1-flash-lite": {
    "ok": 2,
@@ -701,7 +701,13 @@
   "سانتي": 1795835434,
   "رودريغيز": 1795835434,
   "الدقيقه": 1795835434,
-  "لكولومبوس": 1795835429
+  "لكولومبوس": 1795835429,
+  "يظهر اهتماما": 1795857641,
+  "نيكولو شيرا": 1795857641,
+  "اهتماما": 1795857641,
+  "بالتعاقد": 1795857641,
+  "البرازيلي": 1795857641,
+  "نيكولو": 1795857641
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -737,7 +743,10 @@
   "Champions Cup": 1795835476.8808134,
   "Santiago Rodríguez": 1795835471.1089652,
   "Anass Zaroury": 1795835471.1089652,
-  "Santi Rodríguez": 1795835435.2456553
+  "Santi Rodríguez": 1795835435.2456553,
+  "Paris Saint-Germain": 1795857650.692421,
+  "Brazilian Estêvão": 1795857650.692421,
+  "Nicolò Schira": 1795857650.692421
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -799,7 +808,8 @@
   "391933": "Late strike ends Inter Miami title defense  • Santi Rodríguez scored a decisive 90+2nd-minute goal to end Inter Miami's hopes of defending t",
   "391934": "Columbus Crew strike late against Inter Miami  • ⚽️ Santiago Rodríguez scored the first goal for Columbus Crew, assisted by Anass Zaroury, i",
   "391935": "Columbus Crew edge Inter Miami  • Santiago Rodríguez scored, assisted by Anass Zaroury, as Columbus Crew beat Inter Miami 1-0.",
-  "391936": "Inter Miami eliminated from MLS Cup Playoffs  • Defending champions Inter Miami exited the MLS Cup Playoffs in the first round to end their "
+  "391936": "Inter Miami eliminated from MLS Cup Playoffs  • Defending champions Inter Miami exited the MLS Cup Playoffs in the first round to end their ",
+  "391938": "Paris Saint-Germain target Estêvão  • Paris Saint-Germain are showing interest in signing the Brazilian Estêvão, according to Nicolò Schira."
  },
  "sent_recent": {
   "391868": {
@@ -1179,6 +1189,12 @@
    "is_media": true,
    "src_hash": "",
    "body_hash": ""
+  },
+  "391938": {
+   "msg_id": 15467,
+   "is_media": true,
+   "src_hash": "11cc047248f1",
+   "body_hash": "d3e74a29a7c4"
   }
  },
  "daily_clubs": {
