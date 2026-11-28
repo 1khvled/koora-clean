@@ -1,14 +1,6 @@
 {
- "offside": 391953,
+ "offside": 391959,
  "seen": [
-  "aeb9f83e4932",
-  "e5cf98678e57",
-  "4412c58da05c",
-  "6336a58d826d",
-  "80b0d4bf08c2",
-  "e7a1c60c914e",
-  "5f964127a46e",
-  "8d8f655cc76a",
   "ebb64caae28e",
   "6a50643d351a",
   "27f8dd19930b",
@@ -300,16 +292,20 @@
   "9967a7f589ed",
   "a0504791e950",
   "06e618ba9c37",
-  "cde5358075a1"
+  "cde5358075a1",
+  "5155db775860",
+  "a4bc4d3eeafb",
+  "82ffac5bc7b8",
+  "e7e223b17279",
+  "4d78349514b7",
+  "6f8c0268cb34",
+  "656d6136abda",
+  "a787cc7d7360"
  ],
  "seo_msg": 15464,
  "last_promo": 1795864535.578503,
  "post_retry": {},
  "msgmap": {
-  "391728": 15255,
-  "391729": 15256,
-  "391730": 15257,
-  "391732": 15258,
   "391734": 15259,
   "391735": 15260,
   "391736": 15261,
@@ -505,7 +501,11 @@
   "391949": 15477,
   "391950": 15478,
   "391952": 15479,
-  "391953": 15480
+  "391953": 15480,
+  "391954": 15481,
+  "391956": 15482,
+  "391958": 15483,
+  "391959": 15484
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795864535.578503,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 45,
+   "ok": 49,
    "fail": 9
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -659,7 +659,7 @@
   "بالثقه": 1795818365,
   "ميامي لمواجهه": 1795824648,
   "كولومبوس كرو": 1795835469,
-  "تشكيله": 1795872941,
+  "تشكيله": 1795873844,
   "ميامي": 1795835441,
   "لمواجهه": 1795824648,
   "كولومبوس": 1795835441,
@@ -717,9 +717,9 @@
   "شعر بانزعاج": 1795860639,
   "عبدالكريم": 1795860639,
   "الرديف": 1795860639,
-  "تشكيله الفريقين": 1795864530,
-  "الفريقين": 1795864530,
-  "الرسميه": 1795872941,
+  "تشكيله الفريقين": 1795873844,
+  "الفريقين": 1795873844,
+  "الرسميه": 1795873844,
   "عبد الله": 1795868433,
   "الجوله الثالثه": 1795871155,
   "الثالثه": 1795871155,
@@ -732,7 +732,20 @@
   "برونو فيرنانديز": 1795873532,
   "سولي توكز": 1795873532,
   "برونو": 1795873532,
-  "فيرنانديز": 1795873532
+  "فيرنانديز": 1795873532,
+  "بريان مبومو": 1795873855,
+  "علي دكه": 1795873855,
+  "بريان": 1795873855,
+  "مبومو": 1795873855,
+  "البدلاء": 1795873855,
+  "الرسم التكتيكي": 1795873850,
+  "مباراه ماوريسيو": 1795873850,
+  "الاولي علي": 1795873850,
+  "اولد ترافورد": 1795873850,
+  "الرسم": 1795873850,
+  "التكتيكي": 1795873850,
+  "كوفنتري سيتي": 1795873844,
+  "كوفنتري": 1795873844
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -787,7 +800,13 @@
   "Al-Ettifaq": 1795871444.5524547,
   "Bayern Munich": 1795872945.3662713,
   "Bruno Fernandes": 1795873534.3733978,
-  "Solhe Toxoe": 1795873534.3733978
+  "Solhe Toxoe": 1795873534.3733978,
+  "Bryan Mbeumo": 1795873856.5211258,
+  "Matheus Cunha": 1795873856.5211258,
+  "Manchester United": 1795873851.5729134,
+  "Mauricio Pochettino": 1795873851.5729134,
+  "Leeds United": 1795873846.365045,
+  "Coventry City": 1795873846.365045
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -862,7 +881,11 @@
   "391949": "Al-Hazm 0-1 Al-Nassr at half-time  ⚽ Samuel Costa scored for Al-Nassr.",
   "391950": "Al-Hilal announce official lineup to face Al-Ettifaq",
   "391952": "Bayern Munich lineup against Hamburg",
-  "391953": "Bruno Fernandes starts  • Bruno Fernandes is in the starting lineup according to Solhe Toxoe."
+  "391953": "Bruno Fernandes starts  • Bruno Fernandes is in the starting lineup according to Solhe Toxoe.",
+  "391954": "Official line-ups confirmed for Manchester United and Brentford",
+  "391956": "Confirmed lineups for Leeds United against Coventry City  • Official starting XIs announced for Leeds United and Coventry City.",
+  "391958": "Manchester United tactical setup under Mauricio Pochettino",
+  "391959": "Bryan Mbeumo and Matheus Cunha benched  • Bryan Mbeumo and Matheus Cunha are named among the substitutes."
  },
  "sent_recent": {
   "391868": {
@@ -1320,6 +1343,30 @@
    "is_media": false,
    "src_hash": "06e618ba9c37",
    "body_hash": "cde5358075a1"
+  },
+  "391954": {
+   "msg_id": 15481,
+   "is_media": true,
+   "src_hash": "5155db775860",
+   "body_hash": "a4bc4d3eeafb"
+  },
+  "391956": {
+   "msg_id": 15482,
+   "is_media": true,
+   "src_hash": "82ffac5bc7b8",
+   "body_hash": "e7e223b17279"
+  },
+  "391958": {
+   "msg_id": 15483,
+   "is_media": true,
+   "src_hash": "4d78349514b7",
+   "body_hash": "6f8c0268cb34"
+  },
+  "391959": {
+   "msg_id": 15484,
+   "is_media": true,
+   "src_hash": "656d6136abda",
+   "body_hash": "a787cc7d7360"
   }
  },
  "daily_clubs": {
