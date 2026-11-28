@@ -1,10 +1,6 @@
 {
- "offside": 391938,
+ "offside": 391940,
  "seen": [
-  "6d960e0c3c48",
-  "8845c923996c",
-  "0cb9769edd35",
-  "09dcabc77e61",
   "207091614aae",
   "88ad6ace2ff7",
   "daeb31967b3f",
@@ -300,14 +296,16 @@
   "9882ec6ec071",
   "45326e19f3b3",
   "11cc047248f1",
-  "d3e74a29a7c4"
+  "d3e74a29a7c4",
+  "15767e736730",
+  "c9e600643be8",
+  "18a691f9f25f",
+  "e919ad217ea1"
  ],
  "seo_msg": 15464,
  "last_promo": 1795821043.305368,
  "post_retry": {},
  "msgmap": {
-  "391714": 15241,
-  "391716": 15244,
   "391717": 15245,
   "391718": 15246,
   "391719": 15247,
@@ -505,7 +503,9 @@
   "391935": 15461,
   "391936": 15462,
   "391937": 15463,
-  "391938": 15467
+  "391938": 15467,
+  "391939": 15468,
+  "391940": 15469
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795821043.305368,
@@ -513,7 +513,7 @@
  "last_daily_photo_date": "20261128",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 44,
+   "ok": 46,
    "fail": 7
   },
   "gemini:gemini-3.1-flash-lite": {
@@ -707,7 +707,19 @@
   "اهتماما": 1795857641,
   "بالتعاقد": 1795857641,
   "البرازيلي": 1795857641,
-  "نيكولو": 1795857641
+  "نيكولو": 1795857641,
+  "لدراسه خيار": 1795860646,
+  "احقيه الشراء": 1795860646,
+  "اجتمع": 1795860646,
+  "خورخي": 1795860646,
+  "لدراسه": 1795860646,
+  "الاعاره": 1795860646,
+  "عند تدرب": 1795860639,
+  "حمزه عبدالكريم": 1795860639,
+  "الرديف امس": 1795860639,
+  "شعر بانزعاج": 1795860639,
+  "عبدالكريم": 1795860639,
+  "الرديف": 1795860639
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -746,7 +758,10 @@
   "Santi Rodríguez": 1795835435.2456553,
   "Paris Saint-Germain": 1795857650.692421,
   "Brazilian Estêvão": 1795857650.692421,
-  "Nicolò Schira": 1795857650.692421
+  "Nicolò Schira": 1795857650.692421,
+  "Hamza Abdelkarim": 1795860642.8283212,
+  "Alejandro Balde": 1795860648.184114,
+  "Jorge Mendes": 1795860648.184114
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -809,7 +824,9 @@
   "391934": "Columbus Crew strike late against Inter Miami  • ⚽️ Santiago Rodríguez scored the first goal for Columbus Crew, assisted by Anass Zaroury, i",
   "391935": "Columbus Crew edge Inter Miami  • Santiago Rodríguez scored, assisted by Anass Zaroury, as Columbus Crew beat Inter Miami 1-0.",
   "391936": "Inter Miami eliminated from MLS Cup Playoffs  • Defending champions Inter Miami exited the MLS Cup Playoffs in the first round to end their ",
-  "391938": "Paris Saint-Germain target Estêvão  • Paris Saint-Germain are showing interest in signing the Brazilian Estêvão, according to Nicolò Schira."
+  "391938": "Paris Saint-Germain target Estêvão  • Paris Saint-Germain are showing interest in signing the Brazilian Estêvão, according to Nicolò Schira.",
+  "391939": "Hamza Abdelkarim suffers new injury setback in training  • Hamza Abdelkarim felt discomfort again during training with the reserves yesterda",
+  "391940": "Liverpool hold talks over Alejandro Balde  • Liverpool met with Jorge Mendes, agent of Alejandro Balde, to discuss a loan deal with an optio"
  },
  "sent_recent": {
   "391868": {
@@ -1195,6 +1212,18 @@
    "is_media": true,
    "src_hash": "11cc047248f1",
    "body_hash": "d3e74a29a7c4"
+  },
+  "391939": {
+   "msg_id": 15468,
+   "is_media": true,
+   "src_hash": "15767e736730",
+   "body_hash": "c9e600643be8"
+  },
+  "391940": {
+   "msg_id": 15469,
+   "is_media": true,
+   "src_hash": "18a691f9f25f",
+   "body_hash": "e919ad217ea1"
   }
  },
  "daily_clubs": {
