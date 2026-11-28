@@ -1,16 +1,6 @@
 {
- "offside": 391931,
+ "offside": 391936,
  "seen": [
-  "d768d68e01fa",
-  "17830bb8b218",
-  "6b1e4bd07377",
-  "ab2e9e64c106",
-  "s:aaa3d5e34bd2",
-  "s:341d953e69dd",
-  "4725dfe96185",
-  "35b92036bfeb",
-  "890dfc9ec8d3",
-  "9a1086276d96",
   "b650d52e95b3",
   "8eb72b708560",
   "4be26dc0b3be",
@@ -300,17 +290,22 @@
   "20edec5b6adc",
   "cc9c2b67ef3a",
   "3304406b3aa3",
-  "f7ec243abeca"
+  "f7ec243abeca",
+  "7905a80e807b",
+  "672c8eec9cf8",
+  "4dc4b7a46182",
+  "85c9ef093e01",
+  "b5e17d0dde60",
+  "9e0a90ea8d8f",
+  "5605374c5db3",
+  "383f5adaf340",
+  "cad56367bddc",
+  "9882ec6ec071"
  ],
  "seo_msg": 15443,
  "last_promo": 1795821043.305368,
  "post_retry": {},
  "msgmap": {
-  "391705": 15234,
-  "391707": 15235,
-  "391709": 15236,
-  "391710": 15237,
-  "391711": 15238,
   "391712": 15239,
   "391713": 15240,
   "391714": 15241,
@@ -505,7 +500,12 @@
   "391926": 15454,
   "391927": 15455,
   "391929": 15456,
-  "391930": 15457
+  "391930": 15457,
+  "391932": 15458,
+  "391933": 15459,
+  "391934": 15460,
+  "391935": 15461,
+  "391936": 15462
  },
  "last_err_alert": 1795645010.6540186,
  "last_site_promo": 1795821043.305368,
@@ -513,16 +513,16 @@
  "last_daily_photo_date": "20261127",
  "model_stats": {
   "gemini:gemini-3.5-flash-lite": {
-   "ok": 47,
-   "fail": 8
+   "ok": 51,
+   "fail": 9
   },
   "gemini:gemini-3.1-flash-lite": {
-   "ok": 1,
+   "ok": 2,
    "fail": 5
   },
   "gemini:gemma-4-26b-a4b-it": {
    "ok": 4,
-   "fail": 6
+   "fail": 7
   },
   "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
    "ok": 0,
@@ -561,9 +561,9 @@
   "مراجعه": 1795806936,
   "يحتسب": 1795814231,
   "حسام عوار": 1795807821,
-  "نهايه المباراه": 1795816592,
+  "نهايه المباراه": 1795835469,
   "الجوله الثالثه": 1795807821,
-  "نهايه": 1795831551,
+  "نهايه": 1795835469,
   "المباراه": 1795828837,
   "بدايه المباراه": 1795828837,
   "الجوله الثانيه": 1795816592,
@@ -661,17 +661,17 @@
   "تتعلق": 1795818365,
   "بالثقه": 1795818365,
   "ميامي لمواجهه": 1795824648,
-  "كولومبوس كرو": 1795831551,
+  "كولومبوس كرو": 1795835469,
   "تشكيله": 1795824648,
-  "ميامي": 1795824648,
+  "ميامي": 1795835441,
   "لمواجهه": 1795824648,
-  "كولومبوس": 1795824648,
+  "كولومبوس": 1795835441,
   "اذا فاز": 1795828843,
   "ميامي باي": 1795828843,
   "تلعب مباراه": 1795828843,
   "ثالثه فاصله": 1795828843,
   "اذا خسر": 1795828843,
-  "المباراه الثانيه": 1795831551,
+  "المباراه الثانيه": 1795835469,
   "تصفيات": 1795831551,
   "اعاده فرصه": 1795829781,
   "فاول خطير": 1795830330,
@@ -685,7 +685,23 @@
   "كاسيميرو اسيست": 1795834534,
   "كاسيميرو يسجل": 1795834529,
   "لكن تسلل": 1795834529,
-  "ركله حره": 1795834529
+  "ركله حره": 1795834529,
+  "ميامي حامل": 1795835474,
+  "اللقب يودع": 1795835474,
+  "لينهي موسمه": 1795835474,
+  "مكتفيا بلقب": 1795835474,
+  "بينما خسر": 1795835474,
+  "اربعه القاب": 1795835474,
+  "سانتياغو رودريغيز": 1795835469,
+  "انس الزروري": 1795835469,
+  "سانتياغو": 1795835441,
+  "سانتي رودريغيز": 1795835434,
+  "ينهي امال": 1795835434,
+  "الحفاظ علي": 1795835434,
+  "سانتي": 1795835434,
+  "رودريغيز": 1795835434,
+  "الدقيقه": 1795835434,
+  "لكولومبوس": 1795835429
  },
  "match_glossary": {
   "Al-Ittihad": 1795807824.5010211,
@@ -712,12 +728,16 @@
   "Real Madrid": 1795817447.3755229,
   "David Raya": 1795818048.8192234,
   "Manchester City": 1795818048.8192234,
-  "Inter Miami": 1795831555.8748884,
-  "Columbus Crew": 1795831555.8748884,
+  "Inter Miami": 1795835476.8808134,
+  "Columbus Crew": 1795835471.1089652,
   "Eastern Conference": 1795828843.5704262,
-  "Inter Miami's": 1795828843.5704262,
-  "MLS Cup Playoffs": 1795831555.8748884,
-  "Round One": 1795831555.8748884
+  "Inter Miami's": 1795835435.2456553,
+  "MLS Cup Playoffs": 1795835476.8808134,
+  "Round One": 1795831555.8748884,
+  "Champions Cup": 1795835476.8808134,
+  "Santiago Rodríguez": 1795835471.1089652,
+  "Anass Zaroury": 1795835471.1089652,
+  "Santi Rodríguez": 1795835435.2456553
  },
  "parent_en": {
   "391868": "Al-Ittihad lead Neom SC  • First goal Al-Ittihad vs Neom SC [1-0]",
@@ -774,7 +794,12 @@
   "391925": "Messi free-kick saved  • Messi hit a dangerous free-kick that was stopped by the goalkeeper.",
   "391927": "Columbus Crew 0-0 Inter Miami at the break  • Columbus Crew and Inter Miami are goalless at half-time in their MLS Cup Playoffs Round One ma",
   "391929": "Casemiro goal disallowed for offside  • The disallowed goal came from a free-kick assist by Messi.",
-  "391930": "Casemiro disallowed goal ruled out  • Casemiro had a goal disallowed, with the assist provided by Messi."
+  "391930": "Casemiro disallowed goal ruled out  • Casemiro had a goal disallowed, with the assist provided by Messi.",
+  "391932": "Columbus Crew lead Inter Miami 1-0  • Columbus Crew scored their first goal against Inter Miami, making it 1-0.",
+  "391933": "Late strike ends Inter Miami title defense  • Santi Rodríguez scored a decisive 90+2nd-minute goal to end Inter Miami's hopes of defending t",
+  "391934": "Columbus Crew strike late against Inter Miami  • ⚽️ Santiago Rodríguez scored the first goal for Columbus Crew, assisted by Anass Zaroury, i",
+  "391935": "Columbus Crew edge Inter Miami  • Santiago Rodríguez scored, assisted by Anass Zaroury, as Columbus Crew beat Inter Miami 1-0.",
+  "391936": "Inter Miami eliminated from MLS Cup Playoffs  • Defending champions Inter Miami exited the MLS Cup Playoffs in the first round to end their "
  },
  "sent_recent": {
   "391868": {
@@ -1118,6 +1143,36 @@
    "is_media": true,
    "src_hash": "3304406b3aa3",
    "body_hash": "f7ec243abeca"
+  },
+  "391932": {
+   "msg_id": 15458,
+   "is_media": false,
+   "src_hash": "7905a80e807b",
+   "body_hash": "672c8eec9cf8"
+  },
+  "391933": {
+   "msg_id": 15459,
+   "is_media": false,
+   "src_hash": "4dc4b7a46182",
+   "body_hash": "85c9ef093e01"
+  },
+  "391934": {
+   "msg_id": 15460,
+   "is_media": true,
+   "src_hash": "b5e17d0dde60",
+   "body_hash": "9e0a90ea8d8f"
+  },
+  "391935": {
+   "msg_id": 15461,
+   "is_media": true,
+   "src_hash": "5605374c5db3",
+   "body_hash": "383f5adaf340"
+  },
+  "391936": {
+   "msg_id": 15462,
+   "is_media": true,
+   "src_hash": "cad56367bddc",
+   "body_hash": "9882ec6ec071"
   }
  }
 }
